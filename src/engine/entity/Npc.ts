@@ -610,7 +610,7 @@ export default class Npc extends PathingEntity {
         return this.target.isValid();
     }
 
-    private targetWithinMaxRange(): boolean {
+    public targetWithinMaxRange(): boolean {
         if (!this.target) {
             return true;
         }
