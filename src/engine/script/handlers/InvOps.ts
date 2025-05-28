@@ -206,7 +206,6 @@ const InvOps: CommandHandlers = {
         const objType = ObjType.get(obj.id);
         if (invType.scope === InvType.SCOPE_PERM) {
             // ammo drops are temp, without checking scope this spams in ranged combat
-            state.activePlayer.addWealthLog(-(obj.count * objType.cost), `Dropped ${objType.debugname} x${obj.count}`);
             state.activePlayer.addWealthEvent({
                 event_type: WealthEventType.DROP, 
                 account_items: [{ id: obj.id, name: objType.debugname, count: obj.count }], 
@@ -418,13 +417,6 @@ const InvOps: CommandHandlers = {
             }
 
             fromTotal += type.cost * obj.count;
-        }
-
-        for (const toLog of fromLogs.values()) {
-            // Log all wealth events
-            const totalValueGp = toLog.cost * toLog.count;
-            fromPlayer.addWealthLog(-totalValueGp, 'Gave ' + toLog.name + ' x' + toLog.count + ' to ' + toPlayer.username);
-            toPlayer.addWealthLog(totalValueGp, 'Received ' + toLog.name + ' x' + toLog.count + ' from ' + fromPlayer.username);
         }
 
         const toSession = isClientConnected(toPlayer) ? toPlayer.client.uuid : 'disconnected';
@@ -688,9 +680,6 @@ const InvOps: CommandHandlers = {
 
         const objType: ObjType = ObjType.get(obj.id);
         if (invType.scope === InvType.SCOPE_PERM) {
-            const value = obj.count * objType.cost;
-            state.activePlayer.addWealthLog(-(value), `Dropped ${objType.debugname} x${obj.count}`);
-            
             const p2Session = isClientConnected(toPlayer) ? toPlayer.client.uuid : 'disconnected';
             state.activePlayer.addWealthEvent({
                 event_type: WealthEventType.PVP, 
@@ -762,11 +751,6 @@ const InvOps: CommandHandlers = {
             }
 
             World.addObj(new Obj(position.level, position.x, position.z, EntityLifeCycle.DESPAWN, obj.id, obj.count), Obj.NO_RECEIVER, duration);
-        }
-        for (const toLog of wealthLog.values()) {
-            // Log all wealth events
-            const totalValueGp = toLog.cost * toLog.count;
-            state.activePlayer.addWealthLog(-totalValueGp, `Dropped ${toLog.name} x${toLog.count}`);
         }
 
         if (wealthLog.size > 0) {
