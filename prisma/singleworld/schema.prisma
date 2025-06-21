@@ -51,6 +51,9 @@ model account {
     tfa_secret_base32 String?
     // How many incorrect attempts have been made in a row
     tfa_incorrect_attempts Int @default(0)
+
+    // Adventure Log settings
+    alog_privacy_enabled Boolean @default(false)
 }
 
 // logged in sessions
