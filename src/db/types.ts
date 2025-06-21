@@ -27,6 +27,7 @@ export type account = {
     tfa_last_code: Generated<number>;
     tfa_secret_base32: string | null;
     tfa_incorrect_attempts: Generated<number>;
+    alog_privacy_enabled: Generated<number>;
 };
 export type account_session = {
     id: Generated<number>;
