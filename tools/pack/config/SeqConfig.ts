@@ -113,6 +113,34 @@ export function parseSeqConfig(key: string, value: string): ConfigValue | null |
         }
 
         return index + 512;
+    } else if (key === 'preanim_move') {
+        if (value === 'delaymove') {
+            return 0;
+        } else if (value === 'delayanim') {
+            return 1;
+        } else if (value === 'merge') {
+            return 2;
+        } else {
+            return null;
+        }
+    } else if (key === 'postanim_move') {
+        if (value === 'delaymove') {
+            return 0;
+        } else if (value === 'abortanim') {
+            return 1;
+        } else if (value === 'merge') {
+            return 2;
+        } else {
+            return null;
+        }
+    } else if (key === 'restart_mode') {
+        if (value === 'reset') {
+            return 1;
+        } else if (value === 'reset_loop') {
+            return 2;
+        } else {
+            return null;
+        }
     } else {
         return undefined;
     }
@@ -168,6 +196,15 @@ export function packSeqConfigs(configs: Map<string, ConfigLine[]>): { client: Pa
                 client.p2(value as number);
             } else if (key === 'replaycount') {
                 client.p1(8);
+                client.p1(value as number);
+            } else if (key === 'preanim_move') {
+                client.p1(9);
+                client.p1(value as number);
+            } else if (key === 'postanim_move') {
+                client.p1(10);
+                client.p1(value as number);
+            } else if (key === 'restart_mode') {
+                client.p1(11);
                 client.p1(value as number);
             }
         }
