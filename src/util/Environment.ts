@@ -101,7 +101,7 @@ export default {
     // used to check if we're producing the original cache without edits
     BUILD_VERIFY: tryParseBoolean(process.env.BUILD_VERIFY, false),
     // used to keep some semblance of sanity in our folder structure
-    BUILD_VERIFY_FOLDER: tryParseBoolean(process.env.BUILD_VERIFY_FOLDER, true),
+    BUILD_VERIFY_FOLDER: tryParseBoolean(process.env.BUILD_VERIFY_FOLDER, false),
     // used for unpacking/custom development
     BUILD_VERIFY_PACK: tryParseBoolean(process.env.BUILD_VERIFY_PACK, false),
     // used for unpacking/custom development

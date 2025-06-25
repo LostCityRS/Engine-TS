@@ -3,8 +3,7 @@ import fs from 'fs';
 import FileStream from '#/io/FileStream.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
-import { MapPack } from '#/util/PackFile.js';
-import { FramePack } from '../graphics/UnpackAnims.js';
+import { AnimPack, MapPack } from '#/util/PackFile.js';
 
 export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
     const versionlist = new Jagfile();
@@ -54,7 +53,7 @@ export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
             animCrc.p4(0);
         }
     }
-    for (let id = 0; id < FramePack.max; id++) {
+    for (let id = 0; id < AnimPack.max; id++) {
         animIndex.p2(0);
     }
     versionlist.write('anim_version', animVersion);
