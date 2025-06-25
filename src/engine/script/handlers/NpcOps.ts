@@ -501,6 +501,9 @@ const NpcOps: CommandHandlers = {
         }
 
         state.execution = ScriptState.NPC_SUSPENDED;
+    }),
+    [ScriptOpcode.NPC_INRANGE]: checkedHandler(ActiveNpc, state => {
+        state.pushInt(state.activeNpc.targetWithinMaxRange() ? 1 : 0);
     })
 };
 

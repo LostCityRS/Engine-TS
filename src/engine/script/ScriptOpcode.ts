@@ -255,6 +255,7 @@ export const enum ScriptOpcode {
     NPC_ATTACKRANGE, // official
     NPC_HASOP, // official
     NPC_ARRIVEDELAY,
+    NPC_INRANGE,
 
     // Loc ops (3000-3499)
     LOC_ADD = 3000, // official
@@ -698,6 +699,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['NPC_ATTACKRANGE', ScriptOpcode.NPC_ATTACKRANGE],
     ['NPC_HASOP', ScriptOpcode.NPC_HASOP],
     ['NPC_ARRIVEDELAY', ScriptOpcode.NPC_ARRIVEDELAY],
+    ['NPC_INRANGE', ScriptOpcode.NPC_INRANGE],
     ['LOC_ADD', ScriptOpcode.LOC_ADD],
     ['LOC_ANGLE', ScriptOpcode.LOC_ANGLE],
     ['LOC_ANIM', ScriptOpcode.LOC_ANIM],
