@@ -80,9 +80,12 @@ export default class SeqType extends ConfigType {
     walkmerge: Int32Array | null = null;
     stretches: boolean = false;
     priority: number = 5;
-    mainhand: number = -1;
-    offhand: number = -1;
+    righthand: number = -1;
+    lefthand: number = -1;
     replaycount: number = 99;
+    preanim_move: number = -1;
+    postanim_move: number = -1;
+    restart_mode: number = 0;
 
     duration: number = 0;
 
@@ -128,11 +131,17 @@ export default class SeqType extends ConfigType {
         } else if (code === 5) {
             this.priority = dat.g1();
         } else if (code === 6) {
-            this.mainhand = dat.g2();
+            this.righthand = dat.g2();
         } else if (code === 7) {
-            this.offhand = dat.g2();
+            this.lefthand = dat.g2();
         } else if (code === 8) {
             this.replaycount = dat.g1();
+        } else if (code === 9) {
+            this.preanim_move = dat.g1();
+        } else if (code === 10) {
+            this.postanim_move = dat.g1();
+        } else if (code === 11) {
+            this.restart_mode = dat.g1();
         } else if (code === 250) {
             this.debugname = dat.gjstr();
         } else {

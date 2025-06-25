@@ -21,11 +21,13 @@ export function parseNpcConfig(key: string, value: string): ConfigValue | null |
         'resizeh', 'resizev',
         'wanderrange', 'maxrange', 'huntrange', 'attackrange',
         'hitpoints', 'attack', 'strength', 'defence', 'magic', 'ranged',
-        'timer', 'respawnrate'
+        'timer', 'respawnrate',
+        'ambient', 'contrast',
+        'headicon'
     ];
     // prettier-ignore
     const booleanKeys = [
-        'hasalpha', 'minimap', 'members', 'givechase'
+        'hasalpha', 'minimap', 'members', 'givechase', 'alwaysontop'
     ];
 
     if (stringKeys.includes(key)) {
@@ -374,6 +376,17 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 client.p2(value as number);
             } else if (key === 'resizev') {
                 client.p1(98);
+                client.p2(value as number);
+            } else if (key === 'alwaysontop') {
+                client.p1(99);
+            } else if (key === 'ambient') {
+                client.p1(100);
+                client.p1(value as number);
+            } else if (key === 'contrast') {
+                client.p1(101);
+                client.p1(value as number);
+            } else if (key === 'headicon') {
+                client.p1(102);
                 client.p2(value as number);
             } else if (key === 'wanderrange') {
                 server.p1(200);

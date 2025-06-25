@@ -82,7 +82,7 @@ export async function packClient(modelFlags: number[]) {
     const cache = new FileStream('data/pack', true);
 
     await packClientTitle(cache);
-    cache.write(0, 2, fs.readFileSync('data/raw/config'));
+    cache.write(0, 2, fs.readFileSync('data/pack/client/config'));
     packClientInterface(cache, modelFlags);
     await packClientMedia(cache);
     await packClientTexture(cache);

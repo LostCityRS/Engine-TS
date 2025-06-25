@@ -98,6 +98,10 @@ export default class NpcType extends ConfigType {
     vislevel = -1;
     resizeh = 128;
     resizev = 128;
+    alwaysontop = false;
+    ambient = 0;
+    contrast = 0;
+    headicon = -1;
 
     // server-side
     regenRate = 100;
@@ -194,6 +198,14 @@ export default class NpcType extends ConfigType {
             this.resizeh = dat.g2();
         } else if (code === 98) {
             this.resizev = dat.g2();
+        } else if (code === 99) {
+            this.alwaysontop = true;
+        } else if (code === 100) {
+            this.ambient = dat.g1b();
+        } else if (code === 101) {
+            this.contrast = dat.g1b();
+        } else if (code === 102) {
+            this.headicon = dat.g1();
         } else if (code === 200) {
             this.wanderrange = dat.g1();
         } else if (code === 201) {
