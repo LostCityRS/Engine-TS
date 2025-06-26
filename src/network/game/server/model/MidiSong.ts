@@ -4,11 +4,7 @@ import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
 export default class MidiSong extends OutgoingMessage {
     priority = ServerProtPriority.BUFFERED;
 
-    constructor(
-        readonly name: string,
-        readonly crc: number,
-        readonly length: number
-    ) {
+    constructor(readonly id: number) {
         super();
     }
 }

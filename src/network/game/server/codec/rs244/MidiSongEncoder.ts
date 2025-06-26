@@ -6,8 +6,8 @@ import MidiSong from '#/network/game/server/model/MidiSong.js';
 export default class MidiSongEncoder extends MessageEncoder<MidiSong> {
     prot = ServerProt244.MIDI_SONG;
 
-    encode(buf: Packet, _message: MidiSong): void {
-        buf.p2(-1);
+    encode(buf: Packet, message: MidiSong): void {
+        buf.p2(message.id);
     }
 
     test(_message: MidiSong): number {

@@ -5,8 +5,8 @@ export default class MidiJingle extends OutgoingMessage {
     priority = ServerProtPriority.BUFFERED;
 
     constructor(
-        readonly delay: number,
-        readonly data: Uint8Array
+        readonly id: number,
+        readonly delay: number
     ) {
         super();
     }

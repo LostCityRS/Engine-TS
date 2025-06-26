@@ -78,7 +78,7 @@ export default class ServerProt244 extends ServerProtBase {
     // audio
     static readonly SYNTH_SOUND = new ServerProt244(151, 5); // NXT naming
     static readonly MIDI_SONG = new ServerProt244(240, 2); // NXT naming
-    static readonly MIDI_JINGLE = new ServerProt244(212, 4); // NXT naming
+    static readonly MIDI_JINGLE = new ServerProt244(173, 4); // NXT naming
 
     // zones
     static readonly UPDATE_ZONE_PARTIAL_FOLLOWS = new ServerProt244(94, 2); // NXT naming

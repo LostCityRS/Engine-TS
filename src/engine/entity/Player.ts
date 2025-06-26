@@ -72,6 +72,9 @@ import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/util/ChatM
 import Environment from '#/util/Environment.js';
 import { toDisplayName } from '#/util/JString.js';
 import LinkList from '#/util/LinkList.js';
+import { MidiPack } from '#/util/PackFile.js';
+import MidiSong from '#/network/game/server/model/MidiSong.js';
+import MidiJingle from '#/network/game/server/model/MidiJingle.js';
 
 const levelExperience = new Int32Array(99);
 
@@ -1843,30 +1846,19 @@ export default class Player extends PathingEntity {
         this.focus(CoordGrid.fine(x, 1), CoordGrid.fine(z, 1), true);
     }
 
+    // todo: make compiler do this at pack time
     playSong(name: string) {
-        name = name.toLowerCase().replaceAll(' ', '_');
-        if (!name) {
-            return;
+        const id = MidiPack.getByName(name.toLowerCase().replace(' ', '_'));
+        if (id !== -1) {
+            this.write(new MidiSong(id));
         }
-
-        // const song = PRELOADED.get(name + '.mid');
-        // const crc = PRELOADED_CRC.get(name + '.mid');
-        // if (song && crc) {
-        //     const length = song.length;
-        //     this.write(new MidiSong(name, crc, length));
-        // }
     }
 
-    playJingle(_delay: number, name: string): void {
-        name = name.toLowerCase().replaceAll('_', ' ');
-        if (!name) {
-            return;
+    playJingle(delay: number, name: string): void {
+        const id = MidiPack.getByName(name.toLowerCase());
+        if (id !== -1) {
+            this.write(new MidiJingle(id, delay));
         }
-
-        // const jingle = PRELOADED.get(name + '.mid');
-        // if (jingle) {
-        //     this.write(new MidiJingle(delay, jingle));
-        // }
     }
 
     openMainModal(com: number) {
