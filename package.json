@@ -8,11 +8,11 @@
     "#tools/*": "./tools/*"
   },
   "scripts": {
-    "build": "bun run tools/cache/pack.ts",
+    "build": "bun run tools/pack/pack.ts",
     "bundle": "bun run bundle:esbuild",
     "bundle:bun": "bun bundle.js",
     "bundle:esbuild": "bun run bundle.js",
-    "clean": "bun run tools/cache/cleanServer.ts && bun run tools/cache/cleanClient.ts",
+    "clean": "bun run tools/pack/cleanServer.ts && bun run tools/pack/cleanClient.ts",
     "db:migrate": "prisma migrate deploy --schema prisma/multiworld/schema.prisma",
     "db:reset": "prisma migrate reset --force --schema prisma/multiworld/schema.prisma",
     "db:schema": "prisma migrate dev --schema prisma/multiworld/schema.prisma",

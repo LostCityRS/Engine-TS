@@ -17,8 +17,8 @@ export default class FontType {
         }
     }
 
-    static load(_dir: string) {
-        const title = Jagfile.load('data/raw/title');
+    static load(dir: string) {
+        const title = Jagfile.load(`${dir}/client/title`);
 
         FontType.instances[0] = new FontType(title, 'p11');
         FontType.instances[1] = new FontType(title, 'p12');

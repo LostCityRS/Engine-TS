@@ -294,7 +294,6 @@ export const KNOWN_NAMES: string[] = [
     'backright1.dat',
     'backright2.dat',
     'backtop1.dat',
-    'backtop2.dat',
     'backvmid1.dat',
     'backvmid2.dat',
     'backvmid3.dat',
@@ -317,7 +316,6 @@ export const KNOWN_NAMES: string[] = [
     'magicon2.dat',
     'mapback.dat',
     'mapdots.dat',
-    'mapflag.dat',
     'mapfunction.dat',
     'mapscene.dat',
     'miscgraphics.dat',
@@ -339,6 +337,9 @@ export const KNOWN_NAMES: string[] = [
     'sworddecor.dat',
     'tradebacking.dat',
     'wornicons.dat',
+    // removed
+    'backtop2.dat',
+    'mapflag.dat',
     // seen in 254
     'mapmarker.dat',
     'mod_icons.dat',

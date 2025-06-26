@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { Jimp } from 'jimp';
 import kleur from 'kleur';
 
@@ -28,6 +29,45 @@ export default class Pix {
         public cropBottom: number,
         public pixelOrder: number
     ) {}
+
+    static async unpackFull(jag: Jagfile, name: string, path: string, overrideName?: string) {
+        const all = [];
+        for (let i = 0; i < 1000; i++) {
+            const pix = Pix.unpackJag(jag, name, i);
+            if (!pix) {
+                break;
+            }
+
+            all.push(pix);
+        }
+
+        if (all.length === 0) {
+            return;
+        }
+
+        const png = Pix.unpackJagToPng(jag, name);
+        if (typeof overrideName !== 'undefined') {
+            name = overrideName;
+        }
+        if (png) {
+            await png.write(`${path}/${name}.png`);
+        }
+
+        if (!fs.existsSync(`${path}/meta/`)) {
+            fs.mkdirSync(`${path}/meta`, { recursive: true });
+        }
+
+        if (all.length > 1) {
+            let opt = `${all[0].width}x${all[0].height}\n`;
+            for (let i = 0; i < all.length; i++) {
+                opt += `${all[i].cropLeft},${all[i].cropTop},${all[i].cropRight},${all[i].cropBottom}\n`;
+            }
+
+            fs.writeFileSync(`${path}/meta/${name}.opt`, opt);
+        } else if (all[0].cropLeft !== 0 || all[0].cropTop !== 0 || all[0].cropRight !== all[0].width || all[0].cropBottom !== all[0].height) {
+            fs.writeFileSync(`${path}/meta/${name}.opt`, `${all[0].cropLeft},${all[0].cropTop},${all[0].cropRight},${all[0].cropBottom}\n`);
+        }
+    }
 
     static unpackJag(jag: Jagfile, name: string, index: number = 0): Pix | null {
         const dat = jag.read(name + '.dat');
@@ -72,7 +112,7 @@ export default class Pix {
         const cropBottom = idx.g2();
         const pixelOrder = idx.g1();
 
-        if (idx.pos >= idx.length) {
+        if (idx.pos > idx.length) {
             return null;
         }
 
