@@ -19,7 +19,7 @@ class Wave {
     static tracks: Wave[] = [];
     static order: number[] = [];
 
-    static unpack(buf: Packet) {
+    static unpack(buf: Packet, keepNames: boolean = true) {
         if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/scripts/synth`)) {
             fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/scripts/synth`);
         }
@@ -27,16 +27,18 @@ class Wave {
         // can't trust synth IDs to remain stable
         const existingFiles = listFilesExt(`${Environment.BUILD_SRC_DIR}/synth`, '.synth');
         const crcs: Map<number, string> = new Map();
-        
-        for (const file of existingFiles) {
-            const data = fs.readFileSync(file);
-            const crc = Packet.getcrc(data, 0, data.length);
 
-            if (crcs.get(crc)) {
-                printWarning(`${file} has CRC collision with ${crcs.get(crc)}`);
+        if (!keepNames) {
+            for (const file of existingFiles) {
+                const data = fs.readFileSync(file);
+                const crc = Packet.getcrc(data, 0, data.length);
+
+                if (crcs.get(crc)) {
+                    printWarning(`${file} has CRC collision with ${crcs.get(crc)}`);
+                }
+            
+                crcs.set(crc, path.basename(file));
             }
-        
-            crcs.set(crc, path.basename(file));
         }
 
         const processed: string[] = [];
@@ -58,25 +60,37 @@ class Wave {
             buf.gdata(data, 0, data.length);
 
             const crc = Packet.getcrc(data, 0, data.length);
-            const existing = crcs.get(crc);
 
-            if (existing && processed.indexOf(existing) === -1) {
-                SynthPack.register(id, path.basename(existing, path.extname(existing)));
+            if (!keepNames) {
+                const existing = crcs.get(crc);
 
-                const filePath = existingFiles.find(x => x.endsWith(`/${existing}`));
-                if (!filePath) {
-                    printWarning(`${existing} should exist but does not`);
+                if (existing && processed.indexOf(existing) === -1) {
+                    SynthPack.register(id, path.basename(existing, path.extname(existing)));
 
-                    fs.writeFileSync(`${Environment.BUILD_SRC_DIR}/synth/${existing}`, data);
-                } else {
-                    fs.writeFileSync(filePath, data);
+                    const filePath = existingFiles.find(x => x.endsWith(`/${existing}`));
+                    if (!filePath) {
+                        printWarning(`${existing} should exist but does not`);
+
+                        fs.writeFileSync(`${Environment.BUILD_SRC_DIR}/synth/${existing}`, data);
+                    } else {
+                        fs.writeFileSync(filePath, data);
+                    }
+
+                    processed.push(existing);
+                    continue;
                 }
+            }
 
-                processed.push(existing);
-            } else {
-                const name = `sound_${id}`;
+            const name = SynthPack.getById(id) || `sound_${id}`;
+            if (!SynthPack.getById(id)) {
                 SynthPack.register(id, name);
+            }
+
+            const filePath = existingFiles.find(x => x.endsWith(`/${name}.synth`));
+            if (!filePath) {
                 fs.writeFileSync(`${Environment.BUILD_SRC_DIR}/synth/${name}.synth`, data);
+            } else {
+                fs.writeFileSync(filePath, data);
             }
         }
 
