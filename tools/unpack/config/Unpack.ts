@@ -4,13 +4,14 @@ import FileStream from '#/io/FileStream.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import { printFatalError, printInfo } from '#/util/Logger.js';
-import { LocPack, NpcPack, SeqPack } from '#/util/PackFile.js';
+import { LocPack, NpcPack, ObjPack, SeqPack } from '#/util/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 import { unpackSeqConfig } from './SeqConfig.js';
 import Environment from '#/util/Environment.js';
 import { unpackNpcConfig } from './NpcConfig.js';
 import { unpackLocConfig } from './LocConfig.js';
+import { unpackObjConfig } from './ObjConfig.js';
 
 function readConfigIdx(idx: Packet | null, dat: Packet | null): ConfigIdx {
     if (!idx || !dat) {
@@ -42,6 +43,8 @@ function unpackConfigNames(type: string, config: Jagfile) {    let pack = null;
         pack = LocPack;
     } else if (type === 'npc') {
         pack = NpcPack;
+    } else if (type === 'obj') {
+        pack = ObjPack;
     } else if (type === 'seq') {
         pack = SeqPack;
     }
@@ -134,10 +137,12 @@ function unpackConfigs(revision: string) {
 
     unpackConfigNames('loc', config);
     unpackConfigNames('npc', config);
+    unpackConfigNames('obj', config);
     unpackConfigNames('seq', config);
 
     unpackConfig(revision, 'loc', unpackLocConfig, config, config2);
     unpackConfig(revision, 'npc', unpackNpcConfig, config, config2);
+    unpackConfig(revision, 'obj', unpackObjConfig, config, config2);
     unpackConfig(revision, 'seq', unpackSeqConfig, config, config2);
 
     printInfo('Done! Manual post processing may be required.');
