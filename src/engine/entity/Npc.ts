@@ -460,18 +460,24 @@ export default class Npc extends PathingEntity {
     }
 
     applyDamage(damage: number, type: number) {
-        this.damageTaken = damage;
-        this.damageType = type;
-
         const current = this.levels[NpcStat.HITPOINTS];
         if (current - damage <= 0) {
             this.levels[NpcStat.HITPOINTS] = 0;
-            this.damageTaken = current;
+            damage = current;
         } else {
             this.levels[NpcStat.HITPOINTS] = current - damage;
         }
 
-        this.masks |= NpcInfoProt.DAMAGE;
+        if (this.damageSlot % 2 === 1) {
+            this.damageTaken2 = damage;
+            this.damageType2 = type;
+            this.masks |= NpcInfoProt.DAMAGE;
+        } else {
+            this.damageTaken = damage;
+            this.damageType = type;
+            this.masks |= NpcInfoProt.DAMAGE;
+        }
+        this.damageSlot++;
     }
 
     say(text: string) {

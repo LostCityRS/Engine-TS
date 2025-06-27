@@ -37,7 +37,7 @@
     ]
   },
   "dependencies": {
-    "@2004scape/rsbuf": "^225.1.7",
+    "@2004scape/rsbuf": "^244.1.0",
     "@2004scape/rsmod-pathfinder": "^5.0.4",
     "@inquirer/prompts": "^7.2.3",
     "@jimp/js-png": "^1.6.0",

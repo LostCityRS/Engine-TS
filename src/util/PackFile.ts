@@ -6,7 +6,7 @@ import { PackFile } from '#/util/PackFileBase.js';
 import { listFilesExt, loadDirExtFull } from '#/util/Parse.js';
 // import { printWarning } from '#/util/Logger.js';
 
-function validateFilesPack(pack: PackFile, paths: string | string[], ext: string, verify: boolean = true): void {
+function validateFilesPack(pack: PackFile, paths: string[], ext: string, verify: boolean = true): void {
     pack.load(`${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
 
     for (const path of paths) {

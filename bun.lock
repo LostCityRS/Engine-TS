@@ -4,7 +4,7 @@
     "": {
       "name": "engine-ts",
       "dependencies": {
-        "@2004scape/rsbuf": "^225.1.7",
+        "@2004scape/rsbuf": "^244.1.0",
         "@2004scape/rsmod-pathfinder": "^5.0.4",
         "@inquirer/prompts": "^7.2.3",
         "@jimp/js-png": "^1.6.0",
@@ -44,7 +44,7 @@
     },
   },
   "packages": {
-    "@2004scape/rsbuf": ["@2004scape/rsbuf@225.1.7", "", {}, "sha512-0Q0oCzyEGiweoMEx0lHdrv7Nmy/DoYWbuIc+linL81qOhbo6hATDZqxDdb/7IjZWCGS9Rj2s8soRY/1oRQK+Zg=="],
+    "@2004scape/rsbuf": ["@2004scape/rsbuf@244.1.0", "", {}, "sha512-LSsKX1M+cVwC7zwEYQk+8VeyfEjMTPabNuhq0sPaY6QpHarNyGZJ1wFyqpVKn58eJ1Pp1t2yydtMgzwx7QLe/Q=="],
 
     "@2004scape/rsmod-pathfinder": ["@2004scape/rsmod-pathfinder@5.0.4", "", {}, "sha512-0QFYbUwasw4x9ZAl+KbyGUW/UFn7fyXJUsjze55PesBT7CAg7yCDr/bcRR8J+dsrUN/09xRwq7FqZDKMjrvKHA=="],
 

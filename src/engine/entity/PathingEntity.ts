@@ -87,8 +87,11 @@ export default abstract class PathingEntity extends Entity {
     orientationX: number = -1;
     orientationZ: number = -1;
     faceEntity: number = -1;
+    damageSlot: number = 0;
     damageTaken: number = -1;
     damageType: number = -1;
+    damageTaken2: number = -1;
+    damageType2: number = -1;
     animId: number = -1;
     animDelay: number = -1;
     chat: string | null = null;
@@ -616,6 +619,9 @@ export default abstract class PathingEntity extends Entity {
         this.chat = null;
         this.damageTaken = -1;
         this.damageType = -1;
+        this.damageTaken2 = -1;
+        this.damageType2 = -1;
+        this.damageSlot = 0;
         this.graphicId = -1;
         this.graphicHeight = -1;
         this.graphicDelay = -1;
