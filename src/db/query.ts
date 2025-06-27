@@ -1,6 +1,6 @@
-import Database from 'better-sqlite3';
-import { Kysely, MysqlDialect, SqliteDialect } from 'kysely';
+import { Kysely, MysqlDialect } from 'kysely';
 import type { Dialect, LogEvent } from 'kysely';
+import { BunWorkerDialect } from 'kysely-bun-worker';
 import { createPool } from 'mysql2';
 
 import { DB } from '#/db/types.js';
@@ -9,8 +9,8 @@ import Environment from '#/util/Environment.js';
 let dialect: Dialect;
 
 if (Environment.DB_BACKEND === 'sqlite') {
-    dialect = new SqliteDialect({
-        database: async () => new Database('db.sqlite')
+    dialect = new BunWorkerDialect({
+        url: 'db.sqlite'
     });
 } else {
     dialect = new MysqlDialect({
@@ -41,8 +41,8 @@ export const db = new Kysely<DB>({
 export const loggerDb = new Kysely<DB>({
     dialect:
         Environment.DB_BACKEND === 'sqlite'
-            ? new SqliteDialect({
-                database: async () => new Database('db.sqlite')
+            ? new BunWorkerDialect({
+                url: 'db.sqlite'
             })
             : new MysqlDialect({
                 pool: async () =>

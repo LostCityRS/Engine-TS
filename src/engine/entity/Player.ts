@@ -622,10 +622,6 @@ export default class Player extends PathingEntity {
         World.addSessionLog(event_type, this.account_id, 'headless', CoordGrid.packCoord(this.level, this.x, this.z), message, ...args);
     }
 
-    addWealthLog(change: number, message: string, ...args: string[]) {
-        World.addSessionLog(LoggerEventType.WEALTH, this.account_id, 'headless', CoordGrid.packCoord(this.level, this.x, this.z), change + ';' + message, ...args);
-    }
-
     addWealthEvent(event: WealthEventParams) {
         World.addWealthEvent({
             coord: CoordGrid.packCoord(this.level, this.x, this.z),

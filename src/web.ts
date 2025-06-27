@@ -1,13 +1,29 @@
-import fs from 'fs';
-import fsp from 'fs/promises';
-import http from 'http';
-import { extname } from 'path';
+// import fs from 'fs';
+// import { extname } from 'path';
 
+// import ejs from 'ejs';
 import { register } from 'prom-client';
 
+import { CrcBuffer } from '#/cache/CrcTable.js';
+// import OnDemand from '#/engine/OnDemand.js';
+import World from '#/engine/World.js';
+// import { getPublicPerDeploymentToken } from '#/io/PemUtil.js';
+import Packet from '#/io/Packet.js';
+import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
+import NullClientSocket from '#/server/NullClientSocket.js';
+import WSClientSocket from '#/server/ws/WSClientSocket.js';
 import Environment from '#/util/Environment.js';
-import { CrcBuffer } from './cache/CrcTable.js';
-import OnDemand from './engine/OnDemand.js';
+// import { tryParseInt } from '#/util/TryParse.js';
+
+function getIp(req: Request) {
+    // todo: environment flag to respect cf-connecting-ip (NOT safe if origin is exposed publicly by IP + proxied)
+    const forwardedFor = req.headers.get('cf-connecting-ip') || req.headers.get('x-forwarded-for');
+    if (!forwardedFor) {
+        return null;
+    }
+
+    return forwardedFor.split(',')[0].trim();
+}
 
 const MIME_TYPES = new Map<string, string>();
 MIME_TYPES.set('.js', 'application/javascript');
@@ -17,91 +33,138 @@ MIME_TYPES.set('.html', 'text/html');
 MIME_TYPES.set('.wasm', 'application/wasm');
 MIME_TYPES.set('.sf2', 'application/octet-stream');
 
-// we don't need/want a full blown website or API on the game server
-export const web = http.createServer(async (req, res) => {
-    try {
-        if (req.method !== 'GET') {
-            res.writeHead(405);
-            res.end();
-            return;
-        }
+export type WebSocketData = {
+    client: WSClientSocket,
+    remoteAddress: string
+};
 
-        const url = new URL(req.url ?? '', `http://${req.headers.host}`);
+export type WebSocketRoutes = {
+    '/': Response
+};
 
-        if (url.pathname.startsWith('/crc')) {
-            res.setHeader('Content-Type', 'application/octet-stream');
-            res.writeHead(200);
-            res.end(CrcBuffer.data);
-        } else if (url.pathname.startsWith('/title')) {
-            res.setHeader('Content-Type', 'application/octet-stream');
-            res.writeHead(200);
-            res.end(OnDemand.cache.read(0, 1));
-        } else if (url.pathname.startsWith('/config')) {
-            res.setHeader('Content-Type', 'application/octet-stream');
-            res.writeHead(200);
-            res.end(OnDemand.cache.read(0, 2));
-        } else if (url.pathname.startsWith('/interface')) {
-            res.setHeader('Content-Type', 'application/octet-stream');
-            res.writeHead(200);
-            res.end(OnDemand.cache.read(0, 3));
-        } else if (url.pathname.startsWith('/media')) {
-            res.setHeader('Content-Type', 'application/octet-stream');
-            res.writeHead(200);
-            res.end(OnDemand.cache.read(0, 4));
-        } else if (url.pathname.startsWith('/versionlist')) {
-            res.setHeader('Content-Type', 'application/octet-stream');
-            res.writeHead(200);
-            res.end(OnDemand.cache.read(0, 5));
-        } else if (url.pathname.startsWith('/textures')) {
-            res.setHeader('Content-Type', 'application/octet-stream');
-            res.writeHead(200);
-            res.end(OnDemand.cache.read(0, 6));
-        } else if (url.pathname.startsWith('/wordenc')) {
-            res.setHeader('Content-Type', 'application/octet-stream');
-            res.writeHead(200);
-            res.end(OnDemand.cache.read(0, 7));
-        } else if (url.pathname.startsWith('/sounds')) {
-            res.setHeader('Content-Type', 'application/octet-stream');
-            res.writeHead(200);
-            res.end(OnDemand.cache.read(0, 8));
-        } else if (url.pathname === '/') {
-            if (Environment.WEBSITE_REGISTRATION) {
-                res.writeHead(404);
-                res.end();
+export async function startWeb() {
+    Bun.serve<WebSocketData, WebSocketRoutes>({
+        port: Environment.WEB_PORT,
+        async fetch(req, server) {
+            const url = new URL(req.url ?? `', 'http://${req.headers.get('host')}`);
+
+            if (url.pathname === '/') {
+                const upgraded = server.upgrade(req, {
+                    data: {
+                        client: new WSClientSocket(),
+                        remoteAddress: getIp(req)
+                    }
+                });
+
+                if (upgraded) {
+                    return undefined;
+                }
+
+                return new Response(null, { status: 404 });
+            } else if (url.pathname.startsWith('/crc')) {
+                return new Response(CrcBuffer.data);
+            } else if (url.pathname.startsWith('/title')) {
+                return new Response(await Bun.file('data/pack/client/title').bytes());
+            } else if (url.pathname.startsWith('/config')) {
+                return new Response(await Bun.file('data/pack/client/config').bytes());
+            } else if (url.pathname.startsWith('/interface')) {
+                return new Response(await Bun.file('data/pack/client/interface').bytes());
+            } else if (url.pathname.startsWith('/media')) {
+                return new Response(await Bun.file('data/pack/client/media').bytes());
+            } else if (url.pathname.startsWith('/versionlist')) {
+                return new Response(await Bun.file('data/pack/client/versionlist').bytes());
+            } else if (url.pathname.startsWith('/textures')) {
+                return new Response(await Bun.file('data/pack/client/textures').bytes());
+            } else if (url.pathname.startsWith('/wordenc')) {
+                return new Response(await Bun.file('data/raw/wordenc').bytes());
+            } else if (url.pathname.startsWith('/sounds')) {
+                return new Response(await Bun.file('data/pack/client/sounds').bytes());
             } else {
-                res.writeHead(302, { Location: '/rs2.cgi?lowmem=0&plugin=0' });
-                res.end();
+                return new Response(null, { status: 404 });
             }
-        } else if (fs.existsSync('public' + url.pathname)) {
-            res.setHeader('Content-Type', MIME_TYPES.get(extname(url.pathname ?? '')) ?? 'text/plain');
-            res.writeHead(200);
-            res.end(await fsp.readFile('public' + url.pathname));
-        } else {
-            res.writeHead(404);
-            res.end();
+        },
+        websocket: {
+            maxPayloadLength: 2000,
+            open(ws) {
+                /* TODO:
+                if (Environment.WEB_SOCKET_TOKEN_PROTECTION) {
+                    // if WEB_CONNECTION_TOKEN_PROTECTION is enabled, we must
+                    // have a matching per-deployment token sent via cookie.
+                    const headers = info.req.headers;
+                    if (!headers.cookie) {
+                        // no cookie
+                        cb(false);
+                        return;
+                    }
+                    // cookie string is present at least
+                    // find exact match. NOTE: the double quotes are deliberate
+                    const search = `per_deployment_token="${getPublicPerDeploymentToken()}"`;
+                    // could do something more fancy with cookie parsing, but
+                    // this seems fine.
+                    if (headers.cookie.indexOf(search) === -1) {
+                        cb(false);
+                        return;
+                    }
+                }
+                const { origin } = info;
+
+                // todo: check more than just the origin header (important!)
+                if (Environment.WEB_ALLOWED_ORIGIN && origin !== Environment.WEB_ALLOWED_ORIGIN) {
+                    cb(false);
+                    return;
+                }
+
+                cb(true);
+                */
+
+                ws.data.client.init(ws, ws.data.remoteAddress ?? ws.remoteAddress);
+
+                if (Environment.ENGINE_REVISION <= 225) {
+                    const seed = new Packet(new Uint8Array(8));
+                    seed.p4(Math.floor(Math.random() * 0x00ffffff));
+                    seed.p4(Math.floor(Math.random() * 0xffffffff));
+                    ws.send(seed.data);
+                }
+            },
+            message(ws, message: Buffer) {
+                try {
+                    const { client } = ws.data;
+                    if (client.state === -1 || client.remaining <= 0) {
+                        client.terminate();
+                        return;
+                    }
+
+                    client.buffer(message);
+                    World.onClientData(client);
+                } catch (_) {
+                    ws.terminate();
+                }
+            },
+            close(ws) {
+                const { client } = ws.data;
+                client.state = -1;
+
+                if (client.player) {
+                    client.player.addSessionLog(LoggerEventType.ENGINE, 'WS socket closed');
+                    client.player.client = new NullClientSocket();
+                }
+            }
         }
-    } catch (_) {
-        res.end();
-    }
-});
-
-const managementWeb = http.createServer(async (req, res) => {
-    const url = new URL(req.url ?? '', `http://${req.headers.host}`);
-
-    if (url.pathname === '/prometheus') {
-        res.setHeader('Content-Type', register.contentType);
-        res.writeHead(200);
-        res.end(await register.metrics());
-    } else {
-        res.writeHead(404);
-        res.end();
-    }
-});
-
-export function startWeb() {
-    web.listen(Environment.WEB_PORT, '0.0.0.0');
+    });
 }
 
-export function startManagementWeb() {
-    managementWeb.listen(Environment.WEB_MANAGEMENT_PORT, '0.0.0.0');
+export async function startManagementWeb() {
+    Bun.serve({
+        port: Environment.WEB_MANAGEMENT_PORT,
+        routes: {
+            '/prometheus': new Response(await register.metrics(), {
+                headers: {
+                    'Content-Type': register.contentType
+                }
+            })
+        },
+        fetch() {
+            return new Response(null, { status: 404 });
+        },
+    });
 }

@@ -499,6 +499,7 @@ export default abstract class PathingEntity extends Entity {
                         this.queueWaypoint(this.x, CoordGrid.moveZ(this.z, dir));
                         return;
                     }
+                    return;
                 }
                 this.queueWaypoints(findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, extraFlag, collisionStrategy));
             } else {

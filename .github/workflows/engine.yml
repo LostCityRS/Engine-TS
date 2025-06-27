@@ -1,12 +1,12 @@
 ﻿name: Verify Engine Code
 
 on:
-  # pull_request:
-  # push:
-  #   paths:
-  #   - '.github/workflows/engine.yml'
-  #   - 'src/**'
-  #   - 'tools/**'
+  pull_request:
+  push:
+    paths:
+    - '.github/workflows/engine.yml'
+    - 'src/**'
+    - 'tools/**'
   workflow_dispatch:
 
 
@@ -17,14 +17,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: actions/setup-node@v4
+    - uses: oven-sh/setup-bun@v2
       with:
-        node-version: '22.x'
+        bun-version: latest
 
-    - run: npm i
+    - run: bun install
 
     - name: Lint
-      run: npm run lint
+      run: bun run lint
 
     - name: Compile
-      run: npx tsc
+      run: bun run tsc

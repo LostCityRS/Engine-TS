@@ -5,12 +5,11 @@ import { collectDefaultMetrics, register } from 'prom-client';
 import { packClient, packServer } from '#/cache/PackAll.js';
 import World from '#/engine/World.js';
 import TcpServer from '#/server/tcp/TcpServer.js';
-import WSServer from '#/server/ws/WSServer.js';
 import Environment from '#/util/Environment.js';
 import { printError, printInfo } from '#/util/Logger.js';
 import { updateCompiler } from '#/util/RuneScriptCompiler.js';
 import { createWorker } from '#/util/WorkerFactory.js';
-import { startManagementWeb, startWeb, web } from '#/web.js';
+import { startManagementWeb, startWeb } from '#/web.js';
 
 if (Environment.BUILD_STARTUP_UPDATE) {
     await updateCompiler();
@@ -43,11 +42,8 @@ await World.start();
 const tcpServer = new TcpServer();
 tcpServer.start();
 
-const wsServer = new WSServer();
-wsServer.start(web);
-
-startWeb();
-startManagementWeb();
+await startWeb();
+await startManagementWeb();
 
 register.setDefaultLabels({ nodeId: Environment.NODE_ID });
 collectDefaultMetrics({ register });

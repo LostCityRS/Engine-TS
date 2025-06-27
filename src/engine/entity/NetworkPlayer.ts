@@ -244,10 +244,6 @@ export class NetworkPlayer extends Player {
         World.addSessionLog(event_type, this.account_id, isClientConnected(this) ? this.client.uuid : 'disconnected', CoordGrid.packCoord(this.level, this.x, this.z), message, ...args);
     }
 
-    override addWealthLog(change: number, message: string, ...args: string[]) {
-        World.addSessionLog(LoggerEventType.WEALTH, this.account_id, isClientConnected(this) ? this.client.uuid : 'disconnected', CoordGrid.packCoord(this.level, this.x, this.z), change + ';' + message, ...args);
-    }
-
     override addWealthEvent(event: WealthEventParams) {
         World.addWealthEvent({
             coord: CoordGrid.packCoord(this.level, this.x, this.z),

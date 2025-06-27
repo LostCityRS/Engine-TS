@@ -147,7 +147,6 @@ const ObjOps: CommandHandlers = {
         state.activePlayer.invAdd(invType.id, obj.type, obj.count);
 
         const value = obj.count * objType.cost;
-        state.activePlayer.addWealthLog(value, `Picked up ${objType.debugname} x${obj.count}`);
         state.activePlayer.addWealthEvent({
             event_type: WealthEventType.PICKUP, 
             account_items: [{ id: objType.id, name: objType.debugname, count: obj.count }], 

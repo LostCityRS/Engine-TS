@@ -12,7 +12,7 @@
       "#/*": ["src/*"],
       "#tools/*": ["tools/*"]
     },
-    "types": ["node", "bun-types", "vitest/globals"],
+    "types": ["node", "bun-types"],
     "typeRoots": ["node_modules", "node_modules/@types"],
     "sourceMap": true,
     "allowJs": true,
