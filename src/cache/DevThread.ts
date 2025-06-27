@@ -96,27 +96,14 @@ if (parentPort) {
 }
 
 trackDir(`${Environment.BUILD_SRC_DIR}/maps`);
-trackDir(`${Environment.BUILD_SRC_DIR}/midi`);
-
-// title.jag
+trackDir(`${Environment.BUILD_SRC_DIR}/songs`);
+trackDir(`${Environment.BUILD_SRC_DIR}/jingles`);
 trackDir(`${Environment.BUILD_SRC_DIR}/binary`);
 trackDir(`${Environment.BUILD_SRC_DIR}/fonts`);
 trackDir(`${Environment.BUILD_SRC_DIR}/title`);
-
-// config.jag, interface.jag
 trackDir(`${Environment.BUILD_SRC_DIR}/scripts`);
-
-// media.jag
 trackDir(`${Environment.BUILD_SRC_DIR}/sprites`);
-
-// models.jag
 trackDir(`${Environment.BUILD_SRC_DIR}/models`);
-
-// textures.jag
 trackDir(`${Environment.BUILD_SRC_DIR}/textures`);
-
-// sounds.jag
 trackDir(`${Environment.BUILD_SRC_DIR}/synth`);
-
-// wordenc.jag
 trackDir(`${Environment.BUILD_SRC_DIR}/wordenc`);

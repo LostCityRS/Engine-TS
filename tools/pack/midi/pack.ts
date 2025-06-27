@@ -8,7 +8,7 @@ import { MidiPack } from '#/util/PackFile.js';
 import { listFilesExt } from '#/util/Parse.js';
 
 export function packClientMusic(cache: FileStream) {
-    const midis = listFilesExt(`${Environment.BUILD_SRC_DIR}/midi`, '.mid');
+    const midis = [...listFilesExt(`${Environment.BUILD_SRC_DIR}/jingles`, '.mid'), ...listFilesExt(`${Environment.BUILD_SRC_DIR}/songs`, '.mid')];
     for (const file of midis) {
         const basename = path.basename(file);
         const id = MidiPack.getByName(basename.substring(0, basename.lastIndexOf('.')));

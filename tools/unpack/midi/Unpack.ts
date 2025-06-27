@@ -8,8 +8,8 @@ import { MidiPack } from '#/util/PackFile.js';
 import { listFilesExt } from '#/util/Parse.js';
 import Packet from '#/io/Packet.js';
 
-if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/midi`)) {
-    fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/midi`, { recursive: true });
+if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/songs`)) {
+    fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/songs`, { recursive: true });
 }
 
 const cache = new FileStream('data/unpack', false, true);
@@ -43,7 +43,7 @@ for (let i = 0; i < midiCount; i++) {
         }
 
         MidiPack.register(i, name);
-        fs.writeFileSync(`${Environment.BUILD_SRC_DIR}/midi/${name}.mid`, data);
+        fs.writeFileSync(`${Environment.BUILD_SRC_DIR}/songs/${name}.mid`, data);
     } else {
         const name = `midi_${i}`;
         MidiPack.register(i, name);

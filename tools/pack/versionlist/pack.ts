@@ -3,7 +3,8 @@ import fs from 'fs';
 import FileStream from '#/io/FileStream.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
-import { AnimPack, MapPack } from '#/util/PackFile.js';
+import { AnimPack, AnimSetPack, MapPack, MidiPack, ModelPack } from '#/util/PackFile.js';
+import Environment from '#/util/Environment.js';
 
 export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
     const versionlist = new Jagfile();
@@ -11,8 +12,7 @@ export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
     const modelVersion = Packet.alloc(3);
     const modelCrc = Packet.alloc(4);
     const modelIndex = Packet.alloc(3);
-    const modelCount = cache.count(1);
-    for (let id = 0; id < modelCount; id++) {
+    for (let id = 0; id < ModelPack.max; id++) {
         const data = cache.read(1, id);
         if (data) {
             modelVersion.p2(1);
@@ -42,8 +42,7 @@ export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
     const animVersion = Packet.alloc(3);
     const animCrc = Packet.alloc(4);
     const animIndex = Packet.alloc(3);
-    const animCount = cache.count(2);
-    for (let id = 0; id < animCount; id++) {
+    for (let id = 0; id < AnimSetPack.max; id++) {
         const data = cache.read(2, id);
         if (data) {
             animVersion.p2(1);
@@ -54,6 +53,7 @@ export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
         }
     }
     for (let id = 0; id < AnimPack.max; id++) {
+        // todo: i think this is each frame's animset file
         animIndex.p2(0);
     }
     versionlist.write('anim_version', animVersion);
@@ -63,13 +63,13 @@ export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
     const midiVersion = Packet.alloc(3);
     const midiCrc = Packet.alloc(4);
     const midiIndex = Packet.alloc(3);
-    const midiCount = cache.count(3);
-    for (let id = 0; id < midiCount; id++) {
+    for (let id = 0; id < MidiPack.max; id++) {
         const data = cache.read(3, id);
         if (data) {
             midiVersion.p2(1);
             midiCrc.p4(Packet.getcrc(data, 0, data.length - 2));
-            midiIndex.p1(0); // prefetch
+            // used for prefetching jingles
+            midiIndex.pbool(fs.existsSync(`${Environment.BUILD_SRC_DIR}/jingles/${MidiPack.getById(id)}.mid`));
         } else {
             midiVersion.p2(0);
             midiCrc.p4(0);
@@ -83,8 +83,7 @@ export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
     const mapVersion = Packet.alloc(3);
     const mapCrc = Packet.alloc(4);
     const mapIndex = Packet.alloc(4);
-    const mapCount = cache.count(4);
-    for (let id = 0; id < mapCount; id++) {
+    for (let id = 0; id < MapPack.max; id++) {
         const data = cache.read(4, id);
         if (data) {
             mapVersion.p2(1);
@@ -95,19 +94,33 @@ export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
         }
     }
 
-    for (let id = 0; id < MapPack.max; id++) {
-        const name = MapPack.getById(id);
-        if (name.startsWith('l')) {
+    const free2play = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').replace(/\r/g, '').split('\n');
+    const prefetch = new Set();
+    for (let index: number = 0; index < free2play.length; index++) {
+        const line: string = free2play[index];
+        if (line.startsWith('//') || !line.length) {
             continue;
         }
 
-        const locMapId = MapPack.getByName(name.replace('m', 'l'));
-        const [mapX, mapZ] = name.slice(1).split('_');
+        const [_y, mx, mz, _lx, _lz] = line.split('_').map(Number);
+        prefetch.add((mx << 8) | mz);
+    }
 
-        mapIndex.p2((parseInt(mapX) << 8) | parseInt(mapZ));
-        mapIndex.p2(id); // land map id
-        mapIndex.p2(locMapId);
-        mapIndex.p1(0); // members
+    for (let mapX = 0; mapX < 100; mapX++) {
+        for (let mapZ = 0; mapZ < 255; mapZ++) {
+            const mapId = MapPack.getByName(`m${mapX}_${mapZ}`);
+            if (mapId === -1) {
+                continue;
+            }
+
+            const locMapId = MapPack.getByName(`l${mapX}_${mapZ}`);
+
+            const region = (mapX << 8) | mapZ;
+            mapIndex.p2(region);
+            mapIndex.p2(mapId);
+            mapIndex.p2(locMapId);
+            mapIndex.pbool(prefetch.has(region));
+        }
     }
     versionlist.write('map_version', mapVersion);
     versionlist.write('map_crc', mapCrc);

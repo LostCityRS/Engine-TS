@@ -53,8 +53,8 @@ import IfClose from '#/network/game/server/model/IfClose.js';
 import IfSetTab from '#/network/game/server/model/IfSetTab.js';
 import LastLoginInfo from '#/network/game/server/model/LastLoginInfo.js';
 import MessageGame from '#/network/game/server/model/MessageGame.js';
-// import MidiJingle from '#/network/game/server/model/MidiJingle.js';
-// import MidiSong from '#/network/game/server/model/MidiSong.js';
+import MidiJingle from '#/network/game/server/model/MidiJingle.js';
+import MidiSong from '#/network/game/server/model/MidiSong.js';
 import ResetAnims from '#/network/game/server/model/ResetAnims.js';
 import ResetClientVarCache from '#/network/game/server/model/ResetClientVarCache.js';
 import TutOpen from '#/network/game/server/model/TutOpen.js';
@@ -73,8 +73,6 @@ import Environment from '#/util/Environment.js';
 import { toDisplayName } from '#/util/JString.js';
 import LinkList from '#/util/LinkList.js';
 import { MidiPack } from '#/util/PackFile.js';
-import MidiSong from '#/network/game/server/model/MidiSong.js';
-import MidiJingle from '#/network/game/server/model/MidiJingle.js';
 
 const levelExperience = new Int32Array(99);
 

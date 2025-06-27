@@ -6,31 +6,33 @@ import { PackFile } from '#/util/PackFileBase.js';
 import { listFilesExt, loadDirExtFull } from '#/util/Parse.js';
 // import { printWarning } from '#/util/Logger.js';
 
-function validateFilesPack(pack: PackFile, path: string, ext: string, verify: boolean = true): void {
+function validateFilesPack(pack: PackFile, paths: string | string[], ext: string, verify: boolean = true): void {
     pack.load(`${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
 
-    const files = listFilesExt(path, ext);
+    for (const path of paths) {
+        const files = listFilesExt(path, ext);
 
-    const fileNames = new Set(files.map(x => basename(x, ext)));
-    for (let i = 0; i < files.length; i++) {
-        files[i] = files[i].substring(files[i].lastIndexOf('/') + 1); // strip file path
-        files[i] = files[i].substring(0, files[i].length - ext.length); // strip extension
-        fileNames.add(files[i]);
-    }
-
-    if (verify) {
+        const fileNames = new Set(files.map(x => basename(x, ext)));
         for (let i = 0; i < files.length; i++) {
-            const name = files[i];
-
-            if (!pack.names.has(name)) {
-                throw new Error(`${pack.type}: ${name} is missing an ID line, you may need to edit ${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
-            }
+            files[i] = files[i].substring(files[i].lastIndexOf('/') + 1); // strip file path
+            files[i] = files[i].substring(0, files[i].length - ext.length); // strip extension
+            fileNames.add(files[i]);
         }
 
-        if (Environment.BUILD_VERIFY_PACK) {
-            for (const name of pack.names) {
-                if (!fileNames.has(name)) {
-                    // printWarning(`${pack.type}: ${name} was not found on your disk`);
+        if (verify) {
+            for (let i = 0; i < files.length; i++) {
+                const name = files[i];
+
+                if (!pack.names.has(name)) {
+                    throw new Error(`${pack.type}: ${name} is missing an ID line, you may need to edit ${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
+                }
+            }
+
+            if (Environment.BUILD_VERIFY_PACK) {
+                for (const name of pack.names) {
+                    if (!fileNames.has(name)) {
+                        // printWarning(`${pack.type}: ${name} was not found on your disk`);
+                    }
                 }
             }
         }
@@ -189,9 +191,9 @@ function regenScriptPack(pack: PackFile) {
     pack.save();
 }
 
-export const AnimSetPack = new PackFile('animset', validateFilesPack, `${Environment.BUILD_SRC_DIR}/models`, '.anim');
-export const AnimPack = new PackFile('anim', validateFilesPack, `${Environment.BUILD_SRC_DIR}/models`, '.frame', false);
-export const BasePack = new PackFile('base', validateFilesPack, `${Environment.BUILD_SRC_DIR}/models`, '.base', false);
+export const AnimSetPack = new PackFile('animset', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/models`], '.anim');
+export const AnimPack = new PackFile('anim', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/models`], '.frame', false);
+export const BasePack = new PackFile('base', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/models`], '.base', false);
 export const CategoryPack = new PackFile('category', validateCategoryPack);
 export const DbRowPack = new PackFile('dbrow', validateConfigPack, '.dbrow', true, false, false, true);
 export const DbTablePack = new PackFile('dbtable', validateConfigPack, '.dbtable', true, false, false, true);
@@ -203,15 +205,15 @@ export const InterfacePack = new PackFile('interface', validateInterfacePack);
 export const InvPack = new PackFile('inv', validateConfigPack, '.inv', true);
 export const LocPack = new PackFile('loc', validateConfigPack, '.loc');
 export const MesAnimPack = new PackFile('mesanim', validateConfigPack, '.mesanim', true, false, false, true);
-export const MapPack = new PackFile('map', validateFilesPack, `${Environment.BUILD_SRC_DIR}/maps`, '.jm2', false);
-export const MidiPack = new PackFile('midi', validateFilesPack, `${Environment.BUILD_SRC_DIR}/midi`, '.mid');
-export const ModelPack = new PackFile('model', validateFilesPack, `${Environment.BUILD_SRC_DIR}/models`, '.ob2');
+export const MapPack = new PackFile('map', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/maps`], '.jm2', false);
+export const MidiPack = new PackFile('midi', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/jingles`, `${Environment.BUILD_SRC_DIR}/songs`], '.mid');
+export const ModelPack = new PackFile('model', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/models`], '.ob2');
 export const NpcPack = new PackFile('npc', validateConfigPack, '.npc');
 export const ObjPack = new PackFile('obj', validateConfigPack, '.obj');
 export const ParamPack = new PackFile('param', validateConfigPack, '.param', true, false, false, true);
 export const ScriptPack = new PackFile('script', regenScriptPack);
 export const SeqPack = new PackFile('seq', validateConfigPack, '.seq');
-export const SynthPack = new PackFile('synth', validateFilesPack, `${Environment.BUILD_SRC_DIR}/synth`, '.synth');
+export const SynthPack = new PackFile('synth', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/synth`], '.synth');
 export const SpotAnimPack = new PackFile('spotanim', validateConfigPack, '.spotanim');
 export const StructPack = new PackFile('struct', validateConfigPack, '.struct', true, false, false, true);
 export const TexturePack = new PackFile('texture', validateImagePack, `${Environment.BUILD_SRC_DIR}/textures`, '.png');
