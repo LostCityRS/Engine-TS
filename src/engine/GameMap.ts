@@ -21,11 +21,11 @@ import { printDebug, printWarning } from '#/util/Logger.js';
 
 export default class GameMap {
     private static readonly OPEN: number = 0x0;
-    private static readonly BLOCKED: number = 0x1;
-    private static readonly BRIDGE: number = 0x2;
-    private static readonly ROOF: number = 0x4;
-    private static readonly WALL: number = 0x8;
-    private static readonly LOWMEMORY: number = 0x10;
+    private static readonly BLOCK_MAP_SQUARE: number = 0x1;
+    private static readonly LINK_BELOW: number = 0x2;
+    private static readonly REMOVE_ROOFS: number = 0x4;
+    private static readonly VISIBLE_BELOW: number = 0x8;
+    private static readonly NOT_LOW_DETAIL: number = 0x10;
 
     private static readonly Y: number = 4;
     private static readonly X: number = 64;
@@ -182,15 +182,15 @@ export default class GameMap {
 
                     const land: number = lands[this.packCoord(x, z, level)];
 
-                    if ((land & GameMap.ROOF) !== GameMap.OPEN) {
+                    if ((land & GameMap.REMOVE_ROOFS) !== GameMap.OPEN) {
                         changeRoofCollision(absoluteX, absoluteZ, level, true);
                     }
 
-                    if ((land & GameMap.BLOCKED) !== GameMap.BLOCKED) {
+                    if ((land & GameMap.BLOCK_MAP_SQUARE) !== GameMap.BLOCK_MAP_SQUARE) {
                         continue;
                     }
 
-                    const bridged: boolean = (level === 1 ? land & GameMap.BRIDGE : lands[this.packCoord(x, z, 1)] & GameMap.BRIDGE) === GameMap.BRIDGE;
+                    const bridged: boolean = (level === 1 ? land & GameMap.LINK_BELOW : lands[this.packCoord(x, z, 1)] & GameMap.LINK_BELOW) === GameMap.LINK_BELOW;
                     const actualLevel: number = bridged ? level - 1 : level;
                     if (actualLevel < 0) {
                         continue;
@@ -224,7 +224,7 @@ export default class GameMap {
                     continue;
                 }
 
-                const bridged: boolean = (level === 1 ? lands[coord] & GameMap.BRIDGE : lands[this.packCoord(x, z, 1)] & GameMap.BRIDGE) === GameMap.BRIDGE;
+                const bridged: boolean = (level === 1 ? lands[coord] & GameMap.LINK_BELOW : lands[this.packCoord(x, z, 1)] & GameMap.LINK_BELOW) === GameMap.LINK_BELOW;
                 const actualLevel: number = bridged ? level - 1 : level;
                 if (actualLevel < 0) {
                     continue;
