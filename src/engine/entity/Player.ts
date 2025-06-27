@@ -675,7 +675,7 @@ export default class Player extends PathingEntity {
             return;
         }
         if (this.stepsTaken < 2) {
-            const recovered = ((this.baseLevels[PlayerStat.AGILITY] / 9) | 0) + 8;
+            const recovered = ((this.baseLevels[PlayerStat.AGILITY] / 6) | 0) + 8;
             this.runenergy = Math.min(this.runenergy + recovered, 10000);
         } else {
             const weightKg = this.runweight / 1000;
