@@ -1,6 +1,6 @@
 import { WebSocket, WebSocketServer } from 'ws';
 
-import { db, loggerDb, toDbDate } from '#/db/query.js';
+import { db, toDbDate } from '#/db/query.js';
 import InputTrackingBlob from '#/engine/entity/tracking/InputEvent.js';
 import { SessionLog } from '#/engine/entity/tracking/SessionLog.js';
 import { WealthTransactionEvent } from '#/engine/entity/tracking/WealthEvent.js';
@@ -37,7 +37,7 @@ export default class LoggerServer {
                                 event_type: x.event_type
                             }));
 
-                            await loggerDb.insertInto('account_session').values(schemaLogs).execute();
+                            await db.insertInto('account_session').values(schemaLogs).execute();
                             break;
                         }
                         case 'wealth_event': {
@@ -62,7 +62,7 @@ export default class LoggerServer {
                                 recipient_value: x.recipient_value
                             }));
 
-                            await loggerDb.insertInto('wealth_event').values(schemaEvents).execute();
+                            await db.insertInto('wealth_event').values(schemaEvents).execute();
                             break;
                         }
                         case 'report': {
@@ -96,7 +96,7 @@ export default class LoggerServer {
                             if (!account) {
                                 console.log(msg);
                             } else {
-                                const report = await loggerDb
+                                const report = await db
                                     .insertInto('input_report')
                                     .values({
                                         account_id: account.id,
@@ -112,7 +112,7 @@ export default class LoggerServer {
                                         data: Buffer.from(blob.data, 'base64')
                                     };
                                 });
-                                await loggerDb.insertInto('input_report_event_raw').values(values).execute();
+                                await db.insertInto('input_report_event_raw').values(values).execute();
                             }
                             break;
                         }
