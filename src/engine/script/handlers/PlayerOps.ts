@@ -1159,7 +1159,7 @@ const PlayerOps: CommandHandlers = {
         state.activePlayer.setVar(VarPlayerType.RUN, state.activePlayer.run);
     }),
 
-    [ScriptOpcode.PLAYER_MEMBERS]: checkedHandler(ActivePlayer, state => {
+    [ScriptOpcode.PLAYERMEMBER]: checkedHandler(ActivePlayer, state => {
         state.pushInt(state.activePlayer.members ? 1 : 0);
     })
 };
