@@ -471,7 +471,7 @@ export default class Npc extends PathingEntity {
         if (this.damageSlot % 2 === 1) {
             this.damageTaken2 = damage;
             this.damageType2 = type;
-            this.masks |= NpcInfoProt.DAMAGE;
+            this.masks |= NpcInfoProt.DAMAGE2;
         } else {
             this.damageTaken = damage;
             this.damageType = type;
