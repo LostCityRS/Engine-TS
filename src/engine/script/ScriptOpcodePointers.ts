@@ -853,6 +853,12 @@ const ScriptOpcodePointers: {
         require2: ['active_player2'],
         set2: ['active_obj2']
     },
+    [ScriptOpcode.INV_DROPITEM_DELAYED]: {
+        require: ['active_player'],
+        set: ['active_obj'],
+        require2: ['active_player2'],
+        set2: ['active_obj2']
+    },
     [ScriptOpcode.INV_DROPSLOT]: {
         require: ['active_player'],
         set: ['active_obj'],
