@@ -334,6 +334,7 @@ export const enum ScriptOpcode {
     INV_DEL, // official
     INV_DELSLOT,
     INV_DROPITEM,
+    INV_DROPITEM_DELAYED,
     INV_DROPSLOT,
     INV_FREESPACE,
     INV_GETNUM,
@@ -766,6 +767,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['INV_DEL', ScriptOpcode.INV_DEL],
     ['INV_DELSLOT', ScriptOpcode.INV_DELSLOT],
     ['INV_DROPITEM', ScriptOpcode.INV_DROPITEM],
+    ['INV_DROPITEM_DELAYED', ScriptOpcode.INV_DROPITEM_DELAYED],
     ['INV_DROPSLOT', ScriptOpcode.INV_DROPSLOT],
     ['INV_FREESPACE', ScriptOpcode.INV_FREESPACE],
     ['INV_GETNUM', ScriptOpcode.INV_GETNUM],

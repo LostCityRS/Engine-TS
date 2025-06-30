@@ -97,6 +97,7 @@ import { createWorker } from '#/util/WorkerFactory.js';
 
 import InputTrackingBlob from './entity/tracking/InputEvent.js';
 import OnDemand from './OnDemand.js';
+import { ObjDelayedRequest } from './entity/ObjDelayedRequest.js';
 
 const priv = forge.pki.privateKeyFromPem(Environment.STANDALONE_BUNDLE ? await (await fetch('data/config/private.pem')).text() : fs.readFileSync('data/config/private.pem', 'ascii'));
 
@@ -142,6 +143,7 @@ class World {
     readonly locObjTracker: LinkList<LocObjEvent>;
     readonly queue: LinkList<EntityQueueState>;
     readonly npcEventQueue: LinkList<NpcEventRequest>;
+    readonly objDelayedQueue: LinkList<ObjDelayedRequest>;
 
     // debug data
     readonly lastCycleStats: number[];
@@ -170,6 +172,7 @@ class World {
         this.locObjTracker = new LinkList();
         this.queue = new LinkList();
         this.npcEventQueue = new LinkList();
+        this.objDelayedQueue = new LinkList();
         this.lastCycleStats = new Array(12).fill(0);
         this.cycleStats = new Array(12).fill(0);
 
@@ -576,6 +579,19 @@ class World {
             }
         }
 
+        // - add objs delayed
+        for (let request: ObjDelayedRequest | null = this.objDelayedQueue.head(); request; request = this.objDelayedQueue.next()) {
+            const delay = request.delay--;
+            if (delay > 0) {
+                continue;
+            }
+            try {
+                request.unlink();
+                this.addObj(request.obj, request.receiver64, request.duration);
+            } catch (err) {
+                console.error(err);
+            }
+        }
         // - npc ai_spawn scripts
         // - npc hunt players if not busy
         for (const npc of this.npcs) {
