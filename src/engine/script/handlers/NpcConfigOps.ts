@@ -47,7 +47,10 @@ const NpcConfigOps: CommandHandlers = {
             return;
         }
         state.pushString(npcType.op[op - 1] ?? '');
-    }
+    },
+    [ScriptOpcode.NC_SIZE]: state => {
+        state.pushInt(check(state.popInt(), NpcTypeValid).size);
+    },
 };
 
 export default NpcConfigOps;
