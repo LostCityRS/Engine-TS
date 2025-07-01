@@ -294,6 +294,7 @@ export const enum ScriptOpcode {
     NC_NAME,
     NC_OP,
     NC_PARAM,
+    NC_SIZE,
 
     // Loc config ops (4100-4199)
     LC_CATEGORY = 4100,
@@ -733,6 +734,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['NC_NAME', ScriptOpcode.NC_NAME],
     ['NC_OP', ScriptOpcode.NC_OP],
     ['NC_PARAM', ScriptOpcode.NC_PARAM],
+    ['NC_SIZE', ScriptOpcode.NC_SIZE],
     ['LC_CATEGORY', ScriptOpcode.LC_CATEGORY],
     ['LC_DEBUGNAME', ScriptOpcode.LC_DEBUGNAME],
     ['LC_DESC', ScriptOpcode.LC_DESC],
