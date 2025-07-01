@@ -222,7 +222,11 @@ export class FriendServerRepository {
             return;
         }
 
-        // TODO check player is not over friends limit
+        const list = await db.selectFrom('friendlist').where('account_id', '=', accountId.id).select(({ fn }) => fn.countAll().as('count')).executeTakeFirst();
+
+        if (list && list.count as number >= 100) {
+            return;
+        }
 
         await db
             .insertInto('friendlist')
@@ -252,7 +256,11 @@ export class FriendServerRepository {
 
         const { id } = account;
 
-        // TODO check player is not over ignore limit
+        const list = await db.selectFrom('ignorelist').where('account_id', '=', id).select(({ fn }) => fn.countAll().as('count')).executeTakeFirst();
+
+        if (list && list.count as number >= 100) {
+            return;
+        }
 
         let query = db.insertInto('ignorelist').values({
             account_id: id,
