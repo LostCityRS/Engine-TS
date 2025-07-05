@@ -49,6 +49,7 @@ export type account_tag = {
 };
 export type friendlist = {
     account_id: number;
+    profile: Generated<string>;
     friend_account_id: number;
     created: Generated<string>;
 };
@@ -70,6 +71,7 @@ export type hiscore_large = {
 };
 export type ignorelist = {
     account_id: number;
+    profile: Generated<string>;
     value: string;
     created: Generated<string>;
 };
