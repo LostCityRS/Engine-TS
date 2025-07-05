@@ -210,8 +210,6 @@ export class FriendServerRepository {
             return;
         }
 
-        this.playerFriends[username].push(targetUsername37);
-
         // I tried to do all this in 1 query but Kyesly wasn't happy
         const account = await db.selectFrom('account').select([ 'id', 'members' ]).where('username', '=', fromBase37(username37)).limit(1).executeTakeFirst();
 
@@ -229,6 +227,8 @@ export class FriendServerRepository {
         if (list && list.count as number >= limit) {
             return;
         }
+
+        this.playerFriends[username].push(targetUsername37);
 
         await db
             .insertInto('friendlist')
