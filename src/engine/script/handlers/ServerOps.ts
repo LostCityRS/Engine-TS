@@ -368,7 +368,7 @@ const ServerOps: CommandHandlers = {
                 continue;
             }
 
-            const layer = layerForLocShape(loc.shape);
+            const layer = loc.layer;
 
             if (!loc.isActive && layer === LocLayer.WALL) {
                 continue;
