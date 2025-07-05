@@ -298,10 +298,13 @@ export class FriendServerRepository {
         this.playerIgnores[username].splice(index, 1);
 
         await db.deleteFrom('ignorelist')
-            .innerJoin('account', 'account.id', 'ignorelist.account_id')
-            .where('ignorelist.profile', '=', this.profile)
-            .where('account.username', '=', fromBase37(username37))
+            .where('profile', '=', this.profile)
             .where('value', '=', fromBase37(value37))
+            .where('account_id', 'in',
+                db.selectFrom('account')
+                    .select('id')
+                    .where('username', '=', username)
+            )
             .execute();
     }
 
