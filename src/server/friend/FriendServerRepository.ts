@@ -210,8 +210,6 @@ export class FriendServerRepository {
             return;
         }
 
-        this.playerFriends[username].push(targetUsername37);
-
         // I tried to do all this in 1 query but Kyesly wasn't happy
         const accountId = await db.selectFrom('account').select('id').where('username', '=', fromBase37(username37)).limit(1).executeTakeFirst();
 
@@ -227,6 +225,8 @@ export class FriendServerRepository {
         if (list && list.count as number >= 100) {
             return;
         }
+
+        this.playerFriends[username].push(targetUsername37);
 
         await db
             .insertInto('friendlist')
@@ -246,8 +246,6 @@ export class FriendServerRepository {
             return;
         }
 
-        this.playerIgnores[username].push(value37);
-
         const account = await db.selectFrom('account').select('id').where('username', '=', fromBase37(username37)).limit(1).executeTakeFirst();
 
         if (!account) {
@@ -261,6 +259,8 @@ export class FriendServerRepository {
         if (list && list.count as number >= 100) {
             return;
         }
+
+        this.playerIgnores[username].push(value37);
 
         let query = db.insertInto('ignorelist').values({
             account_id: id,
