@@ -1,19 +1,18 @@
-// import fs from 'fs';
-// import { extname } from 'path';
+import fs from 'fs';
+import path from 'path';
 
-// import ejs from 'ejs';
+import ejs from 'ejs';
 import { register } from 'prom-client';
 
 import { CrcBuffer } from '#/cache/CrcTable.js';
 // import OnDemand from '#/engine/OnDemand.js';
 import World from '#/engine/World.js';
 // import { getPublicPerDeploymentToken } from '#/io/PemUtil.js';
-import Packet from '#/io/Packet.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import NullClientSocket from '#/server/NullClientSocket.js';
 import WSClientSocket from '#/server/ws/WSClientSocket.js';
 import Environment from '#/util/Environment.js';
-// import { tryParseInt } from '#/util/TryParse.js';
+import OnDemand from '#/engine/OnDemand.js';
 
 function getIp(req: Request) {
     // todo: environment flag to respect cf-connecting-ip (NOT safe if origin is exposed publicly by IP + proxied)
@@ -79,6 +78,23 @@ export async function startWeb() {
                 return new Response(await Bun.file('data/raw/wordenc').bytes());
             } else if (url.pathname.startsWith('/sounds')) {
                 return new Response(await Bun.file('data/pack/client/sounds').bytes());
+            } else if (url.pathname === '/rs2.cgi') {
+                return new Response(await ejs.renderFile('view/client.ejs', {
+                    nodeid: 10,
+                    lowmem: 0,
+                    members: 1,
+                    per_deployment_token: ''
+                }), {
+                    headers: {
+                        'Content-Type': 'text/html'
+                    }
+                });
+            } else if (fs.existsSync(`public${url.pathname}`)) {
+                return new Response(await Bun.file(`public${url.pathname}`).bytes(), {
+                    headers: {
+                        'Content-Type': MIME_TYPES.get(path.extname(url.pathname ?? '')) ?? 'text/plain'
+                    }
+                });
             } else {
                 return new Response(null, { status: 404 });
             }
@@ -118,13 +134,6 @@ export async function startWeb() {
                 */
 
                 ws.data.client.init(ws, ws.data.remoteAddress ?? ws.remoteAddress);
-
-                if (Environment.ENGINE_REVISION <= 225) {
-                    const seed = new Packet(new Uint8Array(8));
-                    seed.p4(Math.floor(Math.random() * 0x00ffffff));
-                    seed.p4(Math.floor(Math.random() * 0xffffffff));
-                    ws.send(seed.data);
-                }
             },
             message(ws, message: Buffer) {
                 try {
@@ -135,7 +144,12 @@ export async function startWeb() {
                     }
 
                     client.buffer(message);
-                    World.onClientData(client);
+
+                    if (client.state === 0) {
+                        World.onClientData(client);
+                    } else {
+                        OnDemand.onClientData(client);
+                    }
                 } catch (_) {
                     ws.terminate();
                 }

@@ -35,8 +35,8 @@
         }
 
         canvas {
-            width: 789px;
-            height: 532px;
+            width: 765px;
+            height: 503px;
             display: block;
             /* touch-action: none; */
             -webkit-touch-callout: none;
@@ -220,14 +220,14 @@
                 case '1':
                 case '2':
                 case '3':
-                    canvas.style.width = (789 * parseInt(size)) + 'px';
-                    canvas.style.height = (532 * parseInt(size)) + 'px';
+                    canvas.style.width = (765 * parseInt(size)) + 'px';
+                    canvas.style.height = (503 * parseInt(size)) + 'px';
                     canvas.style.maxWidth = 'none';
                     break;
                 case 'auto':
                     canvas.style.width = '100%';
                     canvas.style.height = 'auto';
-                    let maxWidth = ((window.innerHeight - 120) / 532) * 789;
+                    let maxWidth = ((window.innerHeight - 120) / 503) * 765;
                     canvas.style.maxWidth = maxWidth + 'px';
                     break;
             }
@@ -258,7 +258,7 @@
 <body>
     <center>
         <div id="game">
-            <canvas id="canvas" width="789" height="532">
+            <canvas id="canvas" width="765" height="503">
                 Your browser is not capable of running our web client.
             </canvas>
         </div>

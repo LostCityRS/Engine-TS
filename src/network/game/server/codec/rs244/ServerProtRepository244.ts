@@ -19,7 +19,6 @@ import IfSetNpcHeadEncoder from '#/network/game/server/codec/rs244/IfSetNpcHeadE
 import IfSetObjectEncoder from '#/network/game/server/codec/rs244/IfSetObjectEncoder.js';
 import IfSetPlayerHeadEncoder from '#/network/game/server/codec/rs244/IfSetPlayerHeadEncoder.js';
 import IfSetPositionEncoder from '#/network/game/server/codec/rs244/IfSetPositionEncoder.js';
-import IfSetRecolEncoder from '#/network/game/server/codec/rs244/IfSetRecolEncoder.js';
 import IfSetTabActiveEncoder from '#/network/game/server/codec/rs244/IfSetTabActiveEncoder.js';
 import IfSetTabEncoder from '#/network/game/server/codec/rs244/IfSetTabEncoder.js';
 import IfSetTextEncoder from '#/network/game/server/codec/rs244/IfSetTextEncoder.js';
@@ -87,7 +86,6 @@ import IfSetNpcHead from '#/network/game/server/model/IfSetNpcHead.js';
 import IfSetObject from '#/network/game/server/model/IfSetObject.js';
 import IfSetPlayerHead from '#/network/game/server/model/IfSetPlayerHead.js';
 import IfSetPosition from '#/network/game/server/model/IfSetPosition.js';
-import IfSetRecol from '#/network/game/server/model/IfSetRecol.js';
 import IfSetTab from '#/network/game/server/model/IfSetTab.js';
 import IfSetTabActive from '#/network/game/server/model/IfSetTabActive.js';
 import IfSetText from '#/network/game/server/model/IfSetText.js';
@@ -160,7 +158,6 @@ export default class ServerProtRepository244 extends ServerProtRepository {
         this.bind(IfSetObject, new IfSetObjectEncoder());
         this.bind(IfSetPlayerHead, new IfSetPlayerHeadEncoder());
         this.bind(IfSetPosition, new IfSetPositionEncoder());
-        this.bind(IfSetRecol, new IfSetRecolEncoder());
         this.bind(IfSetText, new IfSetTextEncoder());
         this.bind(IfSetTabActive, new IfSetTabActiveEncoder());
         this.bind(LastLoginInfo, new LastLoginInfoEncoder());

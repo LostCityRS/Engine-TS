@@ -44,7 +44,6 @@ import IfSetNpcHead from '#/network/game/server/model/IfSetNpcHead.js';
 import IfSetObject from '#/network/game/server/model/IfSetObject.js';
 import IfSetPlayerHead from '#/network/game/server/model/IfSetPlayerHead.js';
 import IfSetPosition from '#/network/game/server/model/IfSetPosition.js';
-import IfSetRecol from '#/network/game/server/model/IfSetRecol.js';
 import IfSetTabActive from '#/network/game/server/model/IfSetTabActive.js';
 import IfSetText from '#/network/game/server/model/IfSetText.js';
 import PCountDialog from '#/network/game/server/model/PCountDialog.js';
@@ -631,12 +630,8 @@ const PlayerOps: CommandHandlers = {
         state.activePlayer.write(new IfSetModel(com, model));
     }),
 
-    [ScriptOpcode.IF_SETRECOL]: checkedHandler(ActivePlayer, state => {
-        const [com, src, dest] = state.popInts(3);
-
-        check(com, NumberNotNull);
-
-        state.activePlayer.write(new IfSetRecol(com, src, dest));
+    [ScriptOpcode.IF_SETRECOL]: checkedHandler(ActivePlayer, () => {
+        throw new Error();
     }),
 
     [ScriptOpcode.TUT_FLASH]: checkedHandler(ActivePlayer, state => {
