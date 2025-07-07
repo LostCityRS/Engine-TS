@@ -8,6 +8,9 @@ export default class FileStream {
     dat: RandomAccessFile;
     idx: RandomAccessFile[] = [];
 
+    discardPacked: boolean = false;
+    packed: Uint8Array[][] = [];
+
     constructor(dir: string, createNew: boolean = false, readOnly: boolean = false) {
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
@@ -25,6 +28,7 @@ export default class FileStream {
 
         for (let i: number = 0; i <= 4; i++) {
             this.idx[i] = new RandomAccessFile(`${dir}/main_file_cache.idx${i}`, readOnly);
+            this.packed[i] = [];
         }
     }
 
@@ -36,20 +40,24 @@ export default class FileStream {
         return this.idx[index].length / 6;
     }
 
-    read(index: number, file: number, decompress: boolean = false): Uint8Array | null {
+    read(archive: number, file: number, decompress: boolean = false): Uint8Array | null {
         if (!this.dat) {
             return null;
         }
 
-        if (index < 0 || index >= this.idx.length || !this.idx[index]) {
+        if (archive < 0 || archive >= this.idx.length || !this.idx[archive]) {
             return null;
         }
 
-        if (file < 0 || file >= this.count(index)) {
+        if (file < 0 || file >= this.count(archive)) {
             return null;
         }
 
-        const idx: RandomAccessFile = this.idx[index];
+        if (this.packed[archive][file]) {
+            return this.packed[archive][file];
+        }
+
+        const idx: RandomAccessFile = this.idx[archive];
         idx.pos = file * 6;
         const idxHeader: Packet = idx.gPacket(6);
 
@@ -83,7 +91,7 @@ export default class FileStream {
             const nextSector: number = header.g3();
             const sectorIndex: number = header.g1();
 
-            if (file !== sectorFile || part !== sectorPart || index !== sectorIndex - 1) {
+            if (file !== sectorFile || part !== sectorPart || archive !== sectorIndex - 1) {
                 return null;
             }
 
@@ -97,10 +105,14 @@ export default class FileStream {
         }
 
         if (!decompress) {
+            if (!this.discardPacked) {
+                this.packed[archive][file] = data.data;
+            }
+
             return data.data;
         }
 
-        if (index === 0) {
+        if (archive === 0) {
             return data.data;
         } else {
             return new Uint8Array(zlib.gunzipSync(data.data));
