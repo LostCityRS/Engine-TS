@@ -323,9 +323,23 @@ export default class Packet extends DoublyLinkable {
     }
 
     g8(): bigint {
-        const low = this.g4();
-        const high = this.g4();
-        return (BigInt(low) << 32n) | BigInt(high);
+        const first = this.data[this.pos];
+        const last = this.data[this.pos + 7];
+        if (first === undefined || last === undefined) {
+            throw new Error('Out of bounds');
+        }
+
+        const hi = first * 2 ** 24 +
+            this.data[++this.pos] * 2 ** 16 +
+            this.data[++this.pos] * 2 ** 8 +
+            this.data[++this.pos];
+
+        const lo = this.data[++this.pos] * 2 ** 24 +
+            this.data[++this.pos] * 2 ** 16 +
+            this.data[++this.pos] * 2 ** 8 +
+            last;
+
+        return (BigInt(hi) << 32n) + BigInt(lo);
     }
 
     gbool(): boolean {
