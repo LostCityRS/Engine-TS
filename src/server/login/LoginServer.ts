@@ -185,7 +185,7 @@ export default class LoginServer {
                                 return;
                             }
 
-                            const account = await db.selectFrom('account').where('username', '=', username).selectAll().executeTakeFirst();
+                            let account = await db.selectFrom('account').where('username', '=', username).selectAll().executeTakeFirst();
 
                             if (!Environment.WEBSITE_REGISTRATION && !account) {
                                 // register the user automatically
@@ -199,15 +199,11 @@ export default class LoginServer {
                                     })
                                     .executeTakeFirst();
 
-                                s.send(
-                                    JSON.stringify({
-                                        replyTo,
-                                        response: 4,
-                                        staffmodlevel: 0,
-                                        account_id: Number(insertResult.insertId),  // bigint
-                                    })
-                                );
-                                return;
+                                if (typeof insertResult.insertId === 'undefined') {
+                                    return;
+                                }
+
+                                account = await db.selectFrom('account').where('username', '=', username).selectAll().executeTakeFirst();
                             }
 
                             if (account) {
