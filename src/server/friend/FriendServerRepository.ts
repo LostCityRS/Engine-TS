@@ -210,24 +210,30 @@ export class FriendServerRepository {
             return;
         }
 
-        this.playerFriends[username].push(targetUsername37);
-
         // I tried to do all this in 1 query but Kyesly wasn't happy
-        const accountId = await db.selectFrom('account').select('id').where('username', '=', fromBase37(username37)).limit(1).executeTakeFirst();
+        const account = await db.selectFrom('account').select([ 'id', 'members' ]).where('username', '=', fromBase37(username37)).limit(1).executeTakeFirst();
 
         const friendAccountId = await db.selectFrom('account').select('id').where('username', '=', fromBase37(targetUsername37)).limit(1).executeTakeFirst();
 
-        if (!accountId || !friendAccountId) {
+        if (!account || !friendAccountId) {
             // console.error(`[Friends]: ${username} tried to add ${targetUsername} to their friend list, but one of the accounts does not exist`);
             return;
         }
 
-        // TODO check player is not over friends limit
+        const list = await db.selectFrom('friendlist').where('account_id', '=', account.id).select(({ fn }) => fn.countAll().as('count')).executeTakeFirst();
+
+        const limit = account.members ? 200 : 100;
+
+        if (list && list.count as number >= limit) {
+            return;
+        }
+
+        this.playerFriends[username].push(targetUsername37);
 
         await db
             .insertInto('friendlist')
             .values({
-                account_id: accountId.id,
+                account_id: account.id,
                 friend_account_id: friendAccountId.id
             })
             .execute();
@@ -242,8 +248,6 @@ export class FriendServerRepository {
             return;
         }
 
-        this.playerIgnores[username].push(value37);
-
         const account = await db.selectFrom('account').select('id').where('username', '=', fromBase37(username37)).limit(1).executeTakeFirst();
 
         if (!account) {
@@ -252,7 +256,13 @@ export class FriendServerRepository {
 
         const { id } = account;
 
-        // TODO check player is not over ignore limit
+        const list = await db.selectFrom('ignorelist').where('account_id', '=', id).select(({ fn }) => fn.countAll().as('count')).executeTakeFirst();
+
+        if (list && list.count as number >= 100) {
+            return;
+        }
+
+        this.playerIgnores[username].push(value37);
 
         let query = db.insertInto('ignorelist').values({
             account_id: id,
