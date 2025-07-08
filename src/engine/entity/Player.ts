@@ -2078,16 +2078,15 @@ export default class Player extends PathingEntity {
     }
 
     lastLoginInfo() {
-        // daysSinceRecoveryChange
-        // - 201 shows welcome_screen.if
-        // - any other value shows welcome_screen_warning
         const lastDate: bigint = this.lastDate === 0n ? BigInt(Date.now()) : this.lastDate;
         const nextDate: bigint = BigInt(Date.now());
-        const daysSinceLogin: number = Number(nextDate - lastDate) / (1000 * 60 * 60 * 24);
+
+        const lastIp = 2130706433; // 127.0.0.1
+        const daysSinceLogin: number = (Number(nextDate - lastDate) / (1000 * 60 * 60 * 24)) | 0;
+        const daysSinceRecoveriesChanged = 201; // hide :)
         const warnMembersInNonMembers: boolean = !Environment.NODE_MEMBERS && this.members;
-        // proxying websockets through cf may show IPv6 and breaks anyways
-        // so we just hardcode 127.0.0.1 (2130706433)
-        this.write(new LastLoginInfo(2130706433, daysSinceLogin, 201, this.messageCount), warnMembersInNonMembers);
+
+        this.write(new LastLoginInfo(lastIp, daysSinceLogin, daysSinceRecoveriesChanged, this.messageCount, warnMembersInNonMembers));
         this.lastDate = nextDate;
     }
 

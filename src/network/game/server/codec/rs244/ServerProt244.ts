@@ -62,7 +62,7 @@ export default class ServerProt244 extends ServerProtBase {
     static readonly UPDATE_RUNENERGY = new ServerProt244(177, 1); // NXT naming
     static readonly RESET_ANIMS = new ServerProt244(242, 0); // NXT naming
     static readonly UPDATE_PID = new ServerProt244(210, 3);
-    static readonly LAST_LOGIN_INFO = new ServerProt244(44, 9); // NXT naming
+    static readonly LAST_LOGIN_INFO = new ServerProt244(44, 10); // NXT naming
     static readonly LOGOUT = new ServerProt244(17, 0); // NXT naming
     static readonly P_COUNTDIALOG = new ServerProt244(152, 0); // named after runescript command + client resume_p_countdialog packet
     static readonly SET_MULTIWAY = new ServerProt244(97, 1);
