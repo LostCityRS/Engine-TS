@@ -286,40 +286,89 @@ export default class Packet extends DoublyLinkable {
     // ----
 
     g1(): number {
-        return this.data[this.pos++];
+        const val = this.data[this.pos];
+        if (typeof val === 'undefined') {
+            throw new Error('Out of bounds');
+        }
+
+        this.pos += 1;
+        return val;
     }
 
     g1b(): number {
-        return this.data[this.pos++] << 24 >> 24;
+        const val = this.data[this.pos];
+        if (typeof val === 'undefined') {
+            throw new Error('Out of bounds');
+        }
+
+        this.pos += 1;
+        return val | (val & 2 ** 7) * 0x1fffffe;
     }
 
     g2(): number {
-        return ((this.data[this.pos++] << 8) | this.data[this.pos++]) >>> 0;
+        const first = this.data[this.pos];
+        const last = this.data[this.pos + 1];
+        if (typeof first === 'undefined' || typeof last === 'undefined') {
+            throw new Error('Out of bounds');
+        }
+
+        this.pos += 2;
+        return first * 2 ** 8 + last;
     }
 
     g2s(): number {
-        let value = ((this.data[this.pos++] << 8) | this.data[this.pos++]) >>> 0;
-        if (value > 0x7FFF) {
-            value -= 0x10000;
+        const first = this.data[this.pos];
+        const last = this.data[this.pos + 1];
+        if (typeof first === 'undefined' || typeof last === 'undefined') {
+            throw new Error('Out of bounds');
         }
-        return value;
+
+        this.pos += 2;
+
+        const val = first * 2 ** 8 + last;
+        return val | (val & 2 ** 15) * 0x1fffe;
     }
 
     ig2(): number {
+        const first = this.data[this.pos];
+        const last = this.data[this.pos + 1];
+        if (typeof first === 'undefined' || typeof last === 'undefined') {
+            throw new Error('Out of bounds');
+        }
+
         this.pos += 2;
-        return (this.data[this.pos - 1] << 8) | this.data[this.pos - 2];
+
+        const val = first * 2 ** 8 + last;
+        return val | (val & 2 ** 15) * 0x1fffe;
     }
 
     g3(): number {
-        return ((this.data[this.pos++] << 16) | (this.data[this.pos++] << 8) | this.data[this.pos++]) >>> 0;
+        const first = this.data[this.pos];
+        const last = this.data[this.pos + 2];
+        if (typeof first === 'undefined' || typeof last === 'undefined') {
+            throw new Error('Out of bounds');
+        }
+
+        const val = first * 2 ** 16 + this.data[this.pos + 1] * 2 ** 8 + last;
+
+        this.pos += 3;
+        return val | (val & 2 ** 23) * 0x1fe;
     }
 
     g4(): number {
-        let value = ((this.data[this.pos++] << 24) | (this.data[this.pos++] << 16) | (this.data[this.pos++] << 8) | this.data[this.pos++]) >>> 0;
-        if (value > 0x7FFFFFFF) {
-            value -= 0x100000000;
+        const first = this.data[this.pos];
+        const last = this.data[this.pos + 3];
+        if (typeof first === 'undefined' || typeof last === 'undefined') {
+            throw new Error('Out of bounds');
         }
-        return value;
+
+        const val = (first << 24) + // Overflow
+            this.data[this.pos + 1] * 2 ** 16 +
+            this.data[this.pos + 2] * 2 ** 8 +
+            last;
+
+        this.pos += 4;
+        return val;
     }
 
     g8(): bigint {
@@ -330,15 +379,16 @@ export default class Packet extends DoublyLinkable {
         }
 
         const hi = first * 2 ** 24 +
-            this.data[++this.pos] * 2 ** 16 +
-            this.data[++this.pos] * 2 ** 8 +
-            this.data[++this.pos];
+            this.data[this.pos + 1] * 2 ** 16 +
+            this.data[this.pos + 2] * 2 ** 8 +
+            this.data[this.pos + 3];
 
-        const lo = this.data[++this.pos] * 2 ** 24 +
-            this.data[++this.pos] * 2 ** 16 +
-            this.data[++this.pos] * 2 ** 8 +
+        const lo = this.data[this.pos + 4] * 2 ** 24 +
+            this.data[this.pos + 5] * 2 ** 16 +
+            this.data[this.pos + 6] * 2 ** 8 +
             last;
 
+        this.pos += 8;
         return (BigInt(hi) << 32n) + BigInt(lo);
     }
 
