@@ -8,7 +8,8 @@ export default class LastLoginInfo extends OutgoingMessage {
         readonly lastLoginIp: number,
         readonly daysSinceLogin: number,
         readonly daysSinceRecoveryChange: number,
-        readonly unreadMessageCount: number
+        readonly unreadMessageCount: number,
+        readonly warnMembersInNonMembers: boolean
     ) {
         super();
     }

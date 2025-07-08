@@ -11,5 +11,6 @@ export default class LastLoginInfoEncoder extends MessageEncoder<LastLoginInfo> 
         buf.p2(message.daysSinceLogin);
         buf.p1(message.daysSinceRecoveryChange);
         buf.p2(message.unreadMessageCount);
+        buf.pbool(message.warnMembersInNonMembers);
     }
 }

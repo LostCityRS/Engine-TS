@@ -11,8 +11,8 @@ export default class MessagePrivateEncoder extends MessageEncoder<MessagePrivate
 
     encode(buf: Packet, message: MessagePrivate): void {
         let staffLvl: number = message.staffModLevel;
-        if (staffLvl > 0) {
-            staffLvl += 1;
+        if (staffLvl > 3) {
+            staffLvl = 3;
         }
 
         buf.p8(message.from);

@@ -8,6 +8,6 @@ export default class UpdatePidEncoder extends MessageEncoder<UpdatePid> {
 
     encode(buf: Packet, message: UpdatePid): void {
         buf.p2(message.uid);
-        buf.p1(1);
+        buf.pbool(message.members);
     }
 }

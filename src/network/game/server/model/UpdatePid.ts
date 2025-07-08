@@ -4,7 +4,7 @@ import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
 export default class UpdatePid extends OutgoingMessage {
     priority = ServerProtPriority.IMMEDIATE; // todo: what should priority be?
 
-    constructor(readonly uid: number) {
+    constructor(readonly uid: number, readonly members: boolean) {
         super();
     }
 }
