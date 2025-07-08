@@ -85,21 +85,21 @@ export default class AnimFrame {
                 }
 
                 if ((flags & 0x1) != 0) {
-                    x[length] = tran2.gsmarts();
+                    x[length] = tran2.gsmart();
                     debug.psmarts(x[length]);
                 } else {
                     x[length] = defaultValue;
                 }
 
                 if ((flags & 0x2) != 0) {
-                    y[length] = tran2.gsmarts();
+                    y[length] = tran2.gsmart();
                     debug.psmarts(y[length]);
                 } else {
                     y[length] = defaultValue;
                 }
 
                 if ((flags & 0x4) != 0) {
-                    z[length] = tran2.gsmarts();
+                    z[length] = tran2.gsmart();
                     debug.psmarts(z[length]);
                 } else {
                     z[length] = defaultValue;
@@ -197,19 +197,19 @@ export default class AnimFrame {
                 }
 
                 if ((flags & 0x1) != 0) {
-                    x[length] = tran2.gsmarts();
+                    x[length] = tran2.gsmart();
                 } else {
                     x[length] = defaultValue;
                 }
 
                 if ((flags & 0x2) != 0) {
-                    y[length] = tran2.gsmarts();
+                    y[length] = tran2.gsmart();
                 } else {
                     y[length] = defaultValue;
                 }
 
                 if ((flags & 0x4) != 0) {
-                    z[length] = tran2.gsmarts();
+                    z[length] = tran2.gsmart();
                 } else {
                     z[length] = defaultValue;
                 }

@@ -231,18 +231,18 @@ export async function packWorldmap() {
 
         const locBuf = Packet.load(`data/pack/server/maps/l${mx}_${mz}`);
         let locId: number = -1;
-        let locIdOffset: number = locBuf.gsmart();
+        let locIdOffset: number = locBuf.gsmarts();
         while (locIdOffset !== 0) {
             locId += locIdOffset;
 
             let coord: number = 0;
-            let coordOffset: number = locBuf.gsmart();
+            let coordOffset: number = locBuf.gsmarts();
 
             while (coordOffset !== 0) {
                 const { x, z, level } = unpackCoord((coord += coordOffset - 1));
 
                 const info: number = locBuf.g1();
-                coordOffset = locBuf.gsmart();
+                coordOffset = locBuf.gsmarts();
 
                 const bridged: boolean = (level === 1 ? flags[level][x][z] & 0x2 : flags[1][x][z] & 0x2) === 2;
                 const actualLevel: number = bridged ? level - 1 : level;
@@ -328,7 +328,7 @@ export async function packWorldmap() {
                     mapfunctions[actualLevel][x][z] = type.mapfunction;
                 }
             }
-            locIdOffset = locBuf.gsmart();
+            locIdOffset = locBuf.gsmarts();
         }
 
         loc.p1(mx);

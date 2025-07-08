@@ -172,18 +172,18 @@ class Tone {
         }
 
         for (let i = 0; i < 10; i++) {
-            const volume = buf.gsmart();
+            const volume = buf.gsmarts();
             if (volume === 0) {
                 break;
             }
 
             this.harmonicVolume[i] = volume;
-            this.harmonicSemitone[i] = buf.gsmarts();
-            this.harmonicDelay[i] = buf.gsmart();
+            this.harmonicSemitone[i] = buf.gsmart();
+            this.harmonicDelay[i] = buf.gsmarts();
         }
 
-        this.reverbDelay = buf.gsmart();
-        this.reverbVolume = buf.gsmart();
+        this.reverbDelay = buf.gsmarts();
+        this.reverbVolume = buf.gsmarts();
         this.length = buf.g2();
         this.start = buf.g2();
     }

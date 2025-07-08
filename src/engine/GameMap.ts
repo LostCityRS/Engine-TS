@@ -204,18 +204,18 @@ export default class GameMap {
 
     private loadLocations(lands: Int8Array, packet: Packet, mapsquareX: number, mapsquareZ: number): void {
         let locId: number = -1;
-        let locIdOffset: number = packet.gsmart();
+        let locIdOffset: number = packet.gsmarts();
         while (locIdOffset !== 0) {
             locId += locIdOffset;
 
             let coord: number = 0;
-            let coordOffset: number = packet.gsmart();
+            let coordOffset: number = packet.gsmarts();
 
             while (coordOffset !== 0) {
                 const { x, z, level } = this.unpackCoord((coord += coordOffset - 1));
 
                 const info: number = packet.g1();
-                coordOffset = packet.gsmart();
+                coordOffset = packet.gsmarts();
 
                 const absoluteX: number = x + mapsquareX;
                 const absoluteZ: number = z + mapsquareZ;
@@ -249,7 +249,7 @@ export default class GameMap {
                     this.getZone(absoluteX, absoluteZ, actualLevel).addStaticLoc(new Loc(actualLevel, absoluteX, absoluteZ, width, length, EntityLifeCycle.RESPAWN, locId, shape, angle));
                 }
             }
-            locIdOffset = packet.gsmart();
+            locIdOffset = packet.gsmarts();
         }
     }
 

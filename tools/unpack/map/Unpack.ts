@@ -110,7 +110,7 @@ function readLocs(data: Packet) {
 
     let locId = -1;
     while (true) {
-        const deltaId = data.gsmart();
+        const deltaId = data.gsmarts();
         if (deltaId === 0) {
             break;
         }
@@ -119,7 +119,7 @@ function readLocs(data: Packet) {
 
         let locData = 0;
         while (true) {
-            const deltaData = data.gsmart();
+            const deltaData = data.gsmarts();
             if (deltaData === 0) {
                 break;
             }

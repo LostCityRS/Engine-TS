@@ -141,15 +141,15 @@ export default class Model {
                     const flags: number = Model.point1.g1();
 
                     if ((flags & 0x1) !== 0) {
-                        Model.point2.gsmart();
+                        Model.point2.gsmarts();
                     }
 
                     if ((flags & 0x2) !== 0) {
-                        Model.point3.gsmart();
+                        Model.point3.gsmarts();
                     }
 
                     if ((flags & 0x4) !== 0) {
-                        Model.point4.gsmart();
+                        Model.point4.gsmarts();
                     }
                 }
 
@@ -157,11 +157,11 @@ export default class Model {
                     const type: number = Model.vertex2.g1();
 
                     if (type === 1) {
-                        Model.vertex1.gsmart();
-                        Model.vertex1.gsmart();
+                        Model.vertex1.gsmarts();
+                        Model.vertex1.gsmarts();
                     }
 
-                    Model.vertex1.gsmart();
+                    Model.vertex1.gsmarts();
                 }
 
                 meta.faceColorsOffset = triangleColorDataOffset;
@@ -286,17 +286,17 @@ export default class Model {
 
             a = 0;
             if ((flags & 0x1) !== 0) {
-                a = Model.point2.gsmart();
+                a = Model.point2.gsmarts();
             }
 
             b = 0;
             if ((flags & 0x2) !== 0) {
-                b = Model.point3.gsmart();
+                b = Model.point3.gsmarts();
             }
 
             c = 0;
             if ((flags & 0x4) !== 0) {
-                c = Model.point4.gsmart();
+                c = Model.point4.gsmarts();
             }
 
             vertexX[v] = dx + a;
@@ -408,25 +408,25 @@ export default class Model {
             const orientation: number = Model.vertex2.g1();
 
             if (orientation === 1) {
-                a = Model.vertex1.gsmart() + last;
+                a = Model.vertex1.gsmarts() + last;
                 last = a;
-                b = Model.vertex1.gsmart() + last;
+                b = Model.vertex1.gsmarts() + last;
                 last = b;
-                c = Model.vertex1.gsmart() + last;
+                c = Model.vertex1.gsmarts() + last;
                 last = c;
             } else if (orientation === 2) {
                 b = c;
-                c = Model.vertex1.gsmart() + last;
+                c = Model.vertex1.gsmarts() + last;
                 last = c;
             } else if (orientation === 3) {
                 a = c;
-                c = Model.vertex1.gsmart() + last;
+                c = Model.vertex1.gsmarts() + last;
                 last = c;
             } else if (orientation === 4) {
                 const tmp: number = a;
                 a = b;
                 b = tmp;
-                c = Model.vertex1.gsmart() + last;
+                c = Model.vertex1.gsmarts() + last;
                 last = c;
             }
 

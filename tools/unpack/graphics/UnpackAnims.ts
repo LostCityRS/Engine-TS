@@ -98,15 +98,15 @@ for (let baseId = 0; baseId < baseCount; baseId++) {
             }
 
             if ((flags & 0x1) != 0) {
-                tran2.gsmarts();
+                tran2.gsmart();
             }
 
             if ((flags & 0x2) != 0) {
-                tran2.gsmarts();
+                tran2.gsmart();
             }
 
             if ((flags & 0x4) != 0) {
-                tran2.gsmarts();
+                tran2.gsmart();
             }
         }
     }

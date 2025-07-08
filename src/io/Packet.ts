@@ -12,33 +12,43 @@ import PrivateKey = forge.pki.rsa.PrivateKey;
 import BigInteger = forge.jsbn.BigInteger;
 
 export default class Packet extends DoublyLinkable {
+    private static readonly CRC32_POLYNOMIAL: number = 0xedb88320;
+
     private static readonly crctable: Int32Array = new Int32Array(256);
     private static readonly bitmask: Uint32Array = new Uint32Array(33);
 
-    /**
-     * Reversed CRC-32 polynomial for Cyclic Redundancy Check (CRC).
-     * This is sometimes referred to as CRC32B.
-     */
-    private static readonly crc32b = 0xedb88320;
+    private static readonly cacheMin: LinkList<Packet> = new LinkList();
+    private static readonly cacheMid: LinkList<Packet> = new LinkList();
+    private static readonly cacheMax: LinkList<Packet> = new LinkList();
+    private static readonly cacheBig: LinkList<Packet> = new LinkList();
+    private static readonly cacheHuge: LinkList<Packet> = new LinkList();
+    private static readonly cacheUnimaginable: LinkList<Packet> = new LinkList();
+
+    private static cacheMinCount: number = 0;
+    private static cacheMidCount: number = 0;
+    private static cacheMaxCount: number = 0;
+    private static cacheBigCount: number = 0;
+    private static cacheHugeCount: number = 0;
+    private static cacheUnimaginableCount: number = 0;
 
     static {
         for (let i: number = 0; i < 32; i++) {
-            this.bitmask[i] = (1 << i) - 1;
+            Packet.bitmask[i] = (1 << i) - 1;
         }
-        this.bitmask[32] = 0xffffffff;
+        Packet.bitmask[32] = 0xffffffff;
 
-        for (let b = 0; b < 256; b++) {
-            let remainder = b;
+        for (let i: number = 0; i < 256; i++) {
+            let remainder: number = i;
 
-            for (let bit = 0; bit < 8; bit++) {
-                if ((remainder & 0x1) == 1) {
-                    remainder = (remainder >>> 1) ^ this.crc32b;
+            for (let bit: number = 0; bit < 8; bit++) {
+                if ((remainder & 1) === 1) {
+                    remainder = (remainder >>> 1) ^ Packet.CRC32_POLYNOMIAL;
                 } else {
-                    remainder >>>= 0x1;
+                    remainder >>>= 1;
                 }
             }
 
-            this.crctable[b] = remainder;
+            Packet.crctable[i] = remainder;
         }
     }
 
@@ -54,33 +64,63 @@ export default class Packet extends DoublyLinkable {
         return Packet.getcrc(src, offset, length) == expected;
     }
 
-    static alloc(type: number): Packet {
-        let packet: Packet | null = null;
+    // constructor
+    private readonly view: DataView;
+    readonly data: Uint8Array;
 
+    // runtime
+    pos: number = 0;
+    bitPos: number = 0;
+
+    constructor(src: Uint8Array | null) {
+        if (!src) {
+            throw new Error();
+        }
+
+        super();
+
+        if (src instanceof Int8Array) {
+            this.data = new Uint8Array(src);
+        } else {
+            this.data = src;
+        }
+
+        this.view = new DataView(this.data.buffer, this.data.byteOffset, this.data.byteLength);
+    }
+
+    get length(): number {
+        return this.view.byteLength;
+    }
+
+    get available(): number {
+        return this.view.byteLength - this.pos;
+    }
+
+    static alloc(type: number): Packet {
+        let cached: Packet | null = null;
         if (type === 0 && this.cacheMinCount > 0) {
-            packet = this.cacheMin.removeHead();
+            cached = this.cacheMin.removeHead();
             this.cacheMinCount--;
         } else if (type === 1 && this.cacheMidCount > 0) {
-            packet = this.cacheMid.removeHead();
+            cached = this.cacheMid.removeHead();
             this.cacheMidCount--;
         } else if (type === 2 && this.cacheMaxCount > 0) {
-            packet = this.cacheMax.removeHead();
+            cached = this.cacheMax.removeHead();
             this.cacheMaxCount--;
         } else if (type === 3 && this.cacheBigCount > 0) {
-            packet = this.cacheBig.removeHead();
+            cached = this.cacheBig.removeHead();
             this.cacheBigCount--;
         } else if (type === 4 && this.cacheHugeCount > 0) {
-            packet = this.cacheHuge.removeHead();
+            cached = this.cacheHuge.removeHead();
             this.cacheHugeCount--;
         } else if (type === 5 && this.cacheUnimaginableCount > 0) {
-            packet = this.cacheUnimaginable.removeHead();
+            cached = this.cacheUnimaginable.removeHead();
             this.cacheUnimaginableCount--;
         }
 
-        if (packet !== null) {
-            packet.pos = 0;
-            packet.bitPos = 0;
-            return packet;
+        if (cached) {
+            cached.pos = 0;
+            return cached;
         }
 
         if (type === 0) {
@@ -100,6 +140,30 @@ export default class Packet extends DoublyLinkable {
         }
     }
 
+    release(): void {
+        this.pos = 0;
+
+        if (this.length === 100 && Packet.cacheMinCount < 1000) {
+            Packet.cacheMin.addTail(this);
+            Packet.cacheMinCount++;
+        } else if (this.length === 5000 && Packet.cacheMidCount < 250) {
+            Packet.cacheMid.addTail(this);
+            Packet.cacheMidCount++;
+        } else if (this.length === 30000 && Packet.cacheMaxCount < 50) {
+            Packet.cacheMax.addTail(this);
+            Packet.cacheMaxCount++;
+        } else if (this.length === 100000 && Packet.cacheBigCount < 10) {
+            Packet.cacheBig.addTail(this);
+            Packet.cacheBigCount++;
+        } else if (this.length === 500000 && Packet.cacheHugeCount < 5) {
+            Packet.cacheHuge.addTail(this);
+            Packet.cacheHugeCount++;
+        } else if (this.length === 2000000 && Packet.cacheUnimaginableCount < 2) {
+            Packet.cacheUnimaginable.addTail(this);
+            Packet.cacheUnimaginableCount++;
+        }
+    }
+
     static load(path: string, seekToEnd: boolean = false): Packet {
         const packet = new Packet(new Uint8Array(fs.readFileSync(path)));
         if (seekToEnd) {
@@ -114,65 +178,6 @@ export default class Packet extends DoublyLinkable {
             packet.pos = packet.data.length;
         }
         return packet;
-    }
-
-    private static cacheMinCount: number = 0;
-    private static cacheMidCount: number = 0;
-    private static cacheMaxCount: number = 0;
-    private static cacheBigCount: number = 0;
-    private static cacheHugeCount: number = 0;
-    private static cacheUnimaginableCount: number = 0;
-
-    private static readonly cacheMin: LinkList<Packet> = new LinkList();
-    private static readonly cacheMid: LinkList<Packet> = new LinkList();
-    private static readonly cacheMax: LinkList<Packet> = new LinkList();
-    private static readonly cacheBig: LinkList<Packet> = new LinkList();
-    private static readonly cacheHuge: LinkList<Packet> = new LinkList();
-    private static readonly cacheUnimaginable: LinkList<Packet> = new LinkList();
-
-    data: Uint8Array;
-    pos: number;
-    bitPos: number;
-
-    constructor(src: Uint8Array) {
-        super();
-
-        this.data = src;
-        this.pos = 0;
-        this.bitPos = 0;
-    }
-
-    get available(): number {
-        return this.data.length - this.pos;
-    }
-
-    get length(): number {
-        return this.data.length;
-    }
-
-    release(): void {
-        this.pos = 0;
-        this.bitPos = 0;
-
-        if (this.data.length === 100 && Packet.cacheMinCount < 1000) {
-            Packet.cacheMin.addTail(this);
-            Packet.cacheMinCount++;
-        } else if (this.data.length === 5000 && Packet.cacheMidCount < 250) {
-            Packet.cacheMid.addTail(this);
-            Packet.cacheMidCount++;
-        } else if (this.data.length === 30000 && Packet.cacheMaxCount < 50) {
-            Packet.cacheMax.addTail(this);
-            Packet.cacheMaxCount++;
-        } else if (this.data.length === 100000 && Packet.cacheBigCount < 10) {
-            Packet.cacheBig.addTail(this);
-            Packet.cacheBigCount++;
-        } else if (this.data.length === 500000 && Packet.cacheHugeCount < 5) {
-            Packet.cacheHuge.addTail(this);
-            Packet.cacheHugeCount++;
-        } else if (this.data.length === 2000000 && Packet.cacheUnimaginableCount < 2) {
-            Packet.cacheUnimaginable.addTail(this);
-            Packet.cacheUnimaginableCount++;
-        }
     }
 
     save(filePath: string, length: number = this.pos, start: number = 0): void {
@@ -201,45 +206,126 @@ export default class Packet extends DoublyLinkable {
         fs.writeFileSync(filePath, compressed);
     }
 
+    // ----
+
+    g1(): number {
+        return this.view.getUint8(this.pos++);
+    }
+
+    g1b(): number {
+        return this.view.getInt8(this.pos++);
+    }
+
+    g2(): number {
+        const result: number = this.view.getUint16(this.pos);
+        this.pos += 2;
+        return result;
+    }
+
+    g2s(): number {
+        const result: number = this.view.getInt16(this.pos);
+        this.pos += 2;
+        return result;
+    }
+
+    ig2(): number {
+        const result: number = this.view.getUint16(this.pos, true);
+        this.pos += 2;
+        return result;
+    }
+
+    g3(): number {
+        const result: number = (this.view.getUint8(this.pos++) << 16) | this.view.getUint16(this.pos);
+        this.pos += 2;
+        return result;
+    }
+
+    g4(): number {
+        const result: number = this.view.getInt32(this.pos);
+        this.pos += 4;
+        return result;
+    }
+
+    g8(): bigint {
+        const result: bigint = this.view.getBigInt64(this.pos);
+        this.pos += 8;
+        return result;
+    }
+
+    gbool(): boolean {
+        return this.g1() === 1;
+    }
+
+    gjstr(terminator: number = 10): string {
+        const view: DataView = this.view;
+        const length: number = view.byteLength;
+        let str: string = '';
+        let b: number;
+        while ((b = view.getUint8(this.pos++)) !== terminator && this.pos < length) {
+            str += String.fromCharCode(b);
+        }
+        return str;
+    }
+
+    gsmart(): number {
+        return this.view.getUint8(this.pos) < 0x80 ? this.g1() - 0x40 : this.g2() - 0xc000;
+    }
+
+    gsmarts(): number {
+        return this.view.getUint8(this.pos) < 0x80 ? this.g1() : this.g2() - 0x8000;
+    }
+
+    gdata(dest: Uint8Array, offset: number, length: number): void {
+        dest.set(this.data.subarray(this.pos, this.pos + length), offset);
+        this.pos += length;
+    }
+
     p1(value: number): void {
-        this.data[this.pos++] = value;
+        this.view.setUint8(this.pos++, value);
     }
 
     p2(value: number): void {
-        this.data[this.pos++] = value >> 8;
-        this.data[this.pos++] = value;
+        this.view.setUint16(this.pos, value);
+        this.pos += 2;
+    }
+
+    ip2(value: number): void {
+        this.view.setUint16(this.pos, value, true);
+        this.pos += 2;
     }
 
     p3(value: number): void {
-        this.data[this.pos++] = value >> 16;
-        this.data[this.pos++] = value >> 8;
-        this.data[this.pos++] = value;
+        this.view.setUint8(this.pos++, value >> 16);
+        this.view.setUint16(this.pos, value);
+        this.pos += 2;
     }
 
     p4(value: number): void {
-        this.data[this.pos++] = value >> 24;
-        this.data[this.pos++] = value >> 16;
-        this.data[this.pos++] = value >> 8;
-        this.data[this.pos++] = value;
+        this.view.setInt32(this.pos, value);
+        this.pos += 4;
+    }
+
+    ip4(value: number): void {
+        this.view.setInt32(this.pos, value, true);
+        this.pos += 4;
     }
 
     p8(value: bigint): void {
-        const low = Number(value >> 32n);
-        const high = Number(value & 0xFFFFFFFFn);
-        this.p4(low);
-        this.p4(high);
+        this.view.setBigInt64(this.pos, value);
+        this.pos += 8;
     }
 
     pbool(value: boolean): void {
         this.p1(value ? 1 : 0);
     }
 
-    pjstr(str: string, terminator: number = 10): void {
+    pjstr(str: string): void {
+        const view: DataView = this.view;
         const length: number = str.length;
         for (let i: number = 0; i < length; i++) {
-            this.p1(str.charCodeAt(i));
+            view.setUint8(this.pos++, str.charCodeAt(i));
         }
-        this.p1(terminator);
+        view.setUint8(this.pos++, 10);
     }
 
     pdata(src: Uint8Array, offset: number, length: number): void {
@@ -248,19 +334,15 @@ export default class Packet extends DoublyLinkable {
     }
 
     psize4(size: number): void {
-        this.data[this.pos - size - 4] = size >> 24;
-        this.data[this.pos - size - 3] = size >> 16;
-        this.data[this.pos - size - 2] = size >> 8;
-        this.data[this.pos - size - 1] = size;
+        this.view.setUint32(this.pos - size - 4, size);
     }
 
     psize2(size: number): void {
-        this.data[this.pos - size - 2] = size >> 8;
-        this.data[this.pos - size - 1] = size;
+        this.view.setUint16(this.pos - size - 2, size);
     }
 
     psize1(size: number): void {
-        this.data[this.pos - size - 1] = size;
+        this.view.setUint8(this.pos - size - 1, size);
     }
 
     psmarts(value: number): void {
@@ -283,144 +365,6 @@ export default class Packet extends DoublyLinkable {
         }
     }
 
-    // ----
-
-    g1(): number {
-        const val = this.data[this.pos];
-        if (typeof val === 'undefined') {
-            throw new Error('Out of bounds');
-        }
-
-        this.pos += 1;
-        return val;
-    }
-
-    g1b(): number {
-        const val = this.data[this.pos];
-        if (typeof val === 'undefined') {
-            throw new Error('Out of bounds');
-        }
-
-        this.pos += 1;
-        return val | (val & 2 ** 7) * 0x1fffffe;
-    }
-
-    g2(): number {
-        const first = this.data[this.pos];
-        const last = this.data[this.pos + 1];
-        if (typeof first === 'undefined' || typeof last === 'undefined') {
-            throw new Error('Out of bounds');
-        }
-
-        this.pos += 2;
-        return first * 2 ** 8 + last;
-    }
-
-    g2s(): number {
-        const first = this.data[this.pos];
-        const last = this.data[this.pos + 1];
-        if (typeof first === 'undefined' || typeof last === 'undefined') {
-            throw new Error('Out of bounds');
-        }
-
-        this.pos += 2;
-
-        const val = first * 2 ** 8 + last;
-        return val | (val & 2 ** 15) * 0x1fffe;
-    }
-
-    ig2(): number {
-        const first = this.data[this.pos];
-        const last = this.data[this.pos + 1];
-        if (typeof first === 'undefined' || typeof last === 'undefined') {
-            throw new Error('Out of bounds');
-        }
-
-        this.pos += 2;
-
-        const val = first * 2 ** 8 + last;
-        return val | (val & 2 ** 15) * 0x1fffe;
-    }
-
-    g3(): number {
-        const first = this.data[this.pos];
-        const last = this.data[this.pos + 2];
-        if (typeof first === 'undefined' || typeof last === 'undefined') {
-            throw new Error('Out of bounds');
-        }
-
-        const val = first * 2 ** 16 + this.data[this.pos + 1] * 2 ** 8 + last;
-
-        this.pos += 3;
-        return val | (val & 2 ** 23) * 0x1fe;
-    }
-
-    g4(): number {
-        const first = this.data[this.pos];
-        const last = this.data[this.pos + 3];
-        if (typeof first === 'undefined' || typeof last === 'undefined') {
-            throw new Error('Out of bounds');
-        }
-
-        const val = (first << 24) + // Overflow
-            this.data[this.pos + 1] * 2 ** 16 +
-            this.data[this.pos + 2] * 2 ** 8 +
-            last;
-
-        this.pos += 4;
-        return val;
-    }
-
-    g8(): bigint {
-        const first = this.data[this.pos];
-        const last = this.data[this.pos + 7];
-        if (first === undefined || last === undefined) {
-            throw new Error('Out of bounds');
-        }
-
-        const hi = first * 2 ** 24 +
-            this.data[this.pos + 1] * 2 ** 16 +
-            this.data[this.pos + 2] * 2 ** 8 +
-            this.data[this.pos + 3];
-
-        const lo = this.data[this.pos + 4] * 2 ** 24 +
-            this.data[this.pos + 5] * 2 ** 16 +
-            this.data[this.pos + 6] * 2 ** 8 +
-            last;
-
-        this.pos += 8;
-        return (BigInt(hi) << 32n) + BigInt(lo);
-    }
-
-    gbool(): boolean {
-        return this.g1() === 1;
-    }
-
-    gjstr(terminator = 10): string {
-        const length: number = this.data.length;
-        let str: string = '';
-        let b: number;
-        while ((b = this.data[this.pos++]) !== terminator && this.pos < length) {
-            str += String.fromCharCode(b);
-        }
-        return str;
-    }
-
-    gdata(dest: Uint8Array, offset: number, length: number): void {
-        dest.set(this.data.subarray(this.pos, this.pos + length), offset);
-        this.pos += length;
-    }
-
-    gsmarts(): number {
-        const n = this.data[this.pos] & 0xFF;
-        return n < 128 ? this.g1() - 64 : this.g2() - 49152;
-    }
-
-    gsmart(): number {
-        const n = this.data[this.pos] & 0xFF;
-        return n < 128 ? this.g1() : this.g2() - 32768;
-    }
-
     bits(): void {
         this.bitPos = this.pos << 3;
     }
@@ -436,14 +380,14 @@ export default class Packet extends DoublyLinkable {
         this.bitPos += n;
 
         for (; n > remaining; remaining = 8) {
-            value += (this.data[bytePos++] & Packet.bitmask[remaining]) << (n - remaining);
+            value += (this.view.getUint8(bytePos++) & Packet.bitmask[remaining]) << (n - remaining);
             n -= remaining;
         }
 
-        if (n == remaining) {
-            value += this.data[bytePos] & Packet.bitmask[remaining];
+        if (n === remaining) {
+            value += this.view.getUint8(bytePos) & Packet.bitmask[remaining];
         } else {
-            value += (this.data[bytePos] >>> (remaining - n)) & Packet.bitmask[n];
+            value += (this.view.getUint8(bytePos) >>> (remaining - n)) & Packet.bitmask[n];
         }
 
         return value;
