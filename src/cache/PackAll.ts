@@ -2,6 +2,8 @@ import child_process from 'child_process';
 import fs from 'fs';
 import { parentPort } from 'worker_threads';
 
+import * as fflate from 'fflate';
+
 import Environment from '#/util/Environment.js';
 import { ModelPack, revalidatePack } from '#/util/PackFile.js';
 import { packClientWordenc } from '#tools/pack/chat/pack.js';
@@ -91,6 +93,21 @@ export async function packClient(modelFlags: number[]) {
     packClientMap(cache);
     packClientMusic(cache);
     packClientVersionList(cache, modelFlags);
+
+    const zipPack: Record<string, Uint8Array> = {};
+    for (let archive = 1; archive <= 4; archive++) {
+        const count = cache.count(archive);
+        for (let file = 0; file < count; file++) {
+            const data = cache.read(archive, file);
+            if (!data) {
+                continue;
+            }
+
+            zipPack[`${archive}.${file}`] = data;
+        }
+    }
+    const zip = fflate.zipSync(zipPack, { level: 0 });
+    fs.writeFileSync('data/pack/ondemand.zip', zip);
 
     if (parentPort) {
         parentPort.postMessage({

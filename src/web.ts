@@ -77,6 +77,8 @@ export async function startWeb() {
                 return new Response(await Bun.file('data/raw/wordenc').bytes());
             } else if (url.pathname.startsWith('/sounds')) {
                 return new Response(await Bun.file('data/pack/client/sounds').bytes());
+            } else if (url.pathname.startsWith('/ondemand.zip')) {
+                return new Response(await Bun.file('data/pack/ondemand.zip').bytes());
             } else if (url.pathname === '/rs2.cgi') {
                 return new Response(await ejs.renderFile('view/client.ejs', {
                     nodeid: 10,
