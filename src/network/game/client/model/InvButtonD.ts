@@ -7,7 +7,8 @@ export default class InvButtonD extends IncomingMessage {
     constructor(
         readonly component: number,
         readonly slot: number,
-        readonly targetSlot: number
+        readonly targetSlot: number,
+        readonly mode: number
     ) {
         super();
     }

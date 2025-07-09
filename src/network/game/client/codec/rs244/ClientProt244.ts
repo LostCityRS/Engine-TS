@@ -83,7 +83,7 @@ export default class ClientProt244 extends ClientProtBase {
     static readonly MOVE_OPCLICK = new ClientProt244(242, 167, -1); // comes with OP packets, name based on other MOVE packets
     static readonly REPORT_ABUSE = new ClientProt244(243, 251, 10);
     static readonly MOVE_MINIMAPCLICK = new ClientProt244(244, 56, -1); // NXT naming
-    static readonly INV_BUTTOND = new ClientProt244(245, 81, 6); // NXT has "IF_BUTTOND" but for our interface system, this makes more sense
+    static readonly INV_BUTTOND = new ClientProt244(245, 81, 7); // NXT has "IF_BUTTOND" but for our interface system, this makes more sense
     static readonly IGNORELIST_DEL = new ClientProt244(246, 207, 8); // NXT naming
     static readonly IGNORELIST_ADD = new ClientProt244(247, 203, 8); // NXT naming
     static readonly IF_PLAYERDESIGN = new ClientProt244(248, 8, 13);

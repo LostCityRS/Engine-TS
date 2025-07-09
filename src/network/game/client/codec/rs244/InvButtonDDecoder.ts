@@ -11,6 +11,7 @@ export default class InvButtonDDecoder extends MessageDecoder<InvButtonD> {
         const component = buf.g2();
         const slot = buf.g2();
         const targetSlot = buf.g2();
-        return new InvButtonD(component, slot, targetSlot);
+        const mode = buf.g1();
+        return new InvButtonD(component, slot, targetSlot, mode);
     }
 }

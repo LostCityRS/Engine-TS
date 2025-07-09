@@ -11,8 +11,8 @@ import Environment from '#/util/Environment.js';
 
 export default class InvButtonDHandler extends MessageHandler<InvButtonD> {
     handle(message: InvButtonD, player: Player): boolean {
-        // jagex has if_buttond
         const { component: comId, slot, targetSlot } = message;
+        // todo: pass message.mode to script
 
         const com = Component.get(comId);
         if (typeof com === 'undefined' || !player.isComponentVisible(com) || !com.draggable) {
