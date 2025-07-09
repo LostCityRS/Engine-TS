@@ -1848,7 +1848,7 @@ export default class Player extends PathingEntity {
 
     // todo: make compiler do this at pack time
     playSong(name: string) {
-        const id = MidiPack.getByName(name.toLowerCase().replace(' ', '_'));
+        const id = MidiPack.getByName(name.toLowerCase().replaceAll(' ', '_'));
         if (id !== -1) {
             this.write(new MidiSong(id));
         }
