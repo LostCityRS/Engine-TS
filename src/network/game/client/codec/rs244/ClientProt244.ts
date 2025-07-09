@@ -65,7 +65,7 @@ export default class ClientProt244 extends ClientProtBase {
     static readonly OPHELD3 = new ClientProt244(162, 221, 6); // name based on runescript trigger
     static readonly OPHELD4 = new ClientProt244(163, 6, 6); // name based on runescript trigger
     static readonly OPHELD5 = new ClientProt244(164, 133, 6); // name based on runescript trigger
-    static readonly OPHELDT = new ClientProt244(168, 142, 8); // name based on runescript trigger
+    static readonly OPHELDT = new ClientProt244(168, 143, 8); // name based on runescript trigger
     static readonly OPHELDU = new ClientProt244(169, 58, 12); // name based on runescript trigger
 
     static readonly INV_BUTTON1 = new ClientProt244(190, 153, 6); // NXT has "IF_BUTTON1" but for our interface system, this makes more sense
