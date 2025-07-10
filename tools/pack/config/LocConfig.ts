@@ -129,9 +129,20 @@ export function parseLocConfig(key: string, value: string): ConfigValue | null |
     } else if (key.startsWith('model')) {
         // don't use this long term in your data :)
         // freshly unpacked! format is model<index>=<modelname>,<shape suffix>
-        const shape = value.split(',')[1];
 
-        return [{ model: ModelPack.getByName(value), shape: LocShapeSuffix[shape as keyof typeof LocShapeSuffix] }];
+        const [modelName, shapeSuffix] = value.split(',');
+
+        const model = ModelPack.getByName(modelName);
+        if (model === -1) {
+            return null;
+        }
+
+        const shape = LocShapeSuffix[shapeSuffix as keyof typeof LocShapeSuffix];
+        if (typeof shape === 'undefined') {
+            return null;
+        }
+
+        return [{ model, shape }];
     } else if (key.startsWith('recol')) {
         const index = parseInt(key[5]);
         if (index > 9) {
