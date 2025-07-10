@@ -12,6 +12,8 @@ import NullClientSocket from '#/server/NullClientSocket.js';
 import WSClientSocket from '#/server/ws/WSClientSocket.js';
 import Environment from '#/util/Environment.js';
 import OnDemand from '#/engine/OnDemand.js';
+import { tryParseInt } from '#/util/TryParse.js';
+import { getPublicPerDeploymentToken } from '#/io/PemUtil.js';
 
 function getIp(req: Request) {
     // todo: environment flag to respect cf-connecting-ip (NOT safe if origin is exposed publicly by IP + proxied)
@@ -62,34 +64,50 @@ export async function startWeb() {
             } else if (url.pathname.startsWith('/crc')) {
                 return new Response(CrcBuffer.data);
             } else if (url.pathname.startsWith('/title')) {
-                return new Response(await Bun.file('data/pack/client/title').bytes());
+                return new Response(OnDemand.cache.read(0, 1));
             } else if (url.pathname.startsWith('/config')) {
-                return new Response(await Bun.file('data/pack/client/config').bytes());
+                return new Response(OnDemand.cache.read(0, 2));
             } else if (url.pathname.startsWith('/interface')) {
-                return new Response(await Bun.file('data/pack/client/interface').bytes());
+                return new Response(OnDemand.cache.read(0, 3));
             } else if (url.pathname.startsWith('/media')) {
-                return new Response(await Bun.file('data/pack/client/media').bytes());
+                return new Response(OnDemand.cache.read(0, 4));
             } else if (url.pathname.startsWith('/versionlist')) {
-                return new Response(await Bun.file('data/pack/client/versionlist').bytes());
+                return new Response(OnDemand.cache.read(0, 5));
             } else if (url.pathname.startsWith('/textures')) {
-                return new Response(await Bun.file('data/pack/client/textures').bytes());
+                return new Response(OnDemand.cache.read(0, 6));
             } else if (url.pathname.startsWith('/wordenc')) {
-                return new Response(await Bun.file('data/raw/wordenc').bytes());
+                return new Response(OnDemand.cache.read(0, 7));
             } else if (url.pathname.startsWith('/sounds')) {
-                return new Response(await Bun.file('data/pack/client/sounds').bytes());
+                return new Response(OnDemand.cache.read(0, 8));
             } else if (url.pathname.startsWith('/ondemand.zip')) {
                 return new Response(await Bun.file('data/pack/ondemand.zip').bytes());
             } else if (url.pathname === '/rs2.cgi') {
-                return new Response(await ejs.renderFile('view/client.ejs', {
-                    nodeid: 10,
-                    lowmem: 0,
-                    members: 1,
-                    per_deployment_token: ''
-                }), {
-                    headers: {
-                        'Content-Type': 'text/html'
-                    }
-                });
+                const plugin = tryParseInt(url.searchParams.get('plugin'), 0);
+                const lowmem = tryParseInt(url.searchParams.get('lowmem'), 0);
+
+                if (Environment.NODE_DEBUG && plugin === 1) {
+                    return new Response(await ejs.renderFile('view/java.ejs', {
+                        nodeid: Environment.NODE_ID,
+                        lowmem,
+                        members: Environment.NODE_MEMBERS,
+                        portoff: Environment.NODE_PORT - 43594
+                    }), {
+                        headers: {
+                            'Content-Type': 'text/html'
+                        }
+                    });
+                } else {
+                    return new Response(await ejs.renderFile('view/client.ejs', {
+                        nodeid: Environment.NODE_ID,
+                        lowmem,
+                        members: Environment.NODE_MEMBERS,
+                        per_deployment_token: Environment.WEB_SOCKET_TOKEN_PROTECTION ? getPublicPerDeploymentToken() : ''
+                    }), {
+                        headers: {
+                            'Content-Type': 'text/html'
+                        }
+                    });
+                }
             } else if (url.pathname.startsWith('/1/') || url.pathname.startsWith('/2/') || url.pathname.startsWith('/3/') || url.pathname.startsWith('/4/')) {
                 const archive = parseInt(url.pathname.slice(1, 2));
                 const file = parseInt(url.pathname.slice(3));
