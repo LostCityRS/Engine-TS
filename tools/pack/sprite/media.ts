@@ -12,6 +12,14 @@ export async function packClientMedia(cache: FileStream) {
     const index = Packet.alloc(3);
 
     const sprites = listFilesExt(`${Environment.BUILD_SRC_DIR}/sprites`, '.png');
+
+    // organize spritesheets to be last (to help with over-reads)
+    sprites.sort((a, b) => {
+        const aExists = fs.existsSync(`${Environment.BUILD_SRC_DIR}/sprites/meta/${path.basename(a, path.extname(a))}.opt`);
+        const bExists = fs.existsSync(`${Environment.BUILD_SRC_DIR}/sprites/meta/${path.basename(b, path.extname(b))}.opt`);
+        return aExists === bExists ? 0 : (aExists && !bExists ? 1 : -1);
+    });
+
     const all = new Map();
     for (const name of sprites) {
         const safeName = path.basename(name, path.extname(name));
