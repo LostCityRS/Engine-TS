@@ -25,14 +25,6 @@ model account {
     registration_ip   String?
     registration_date DateTime @default(now())
 
-    // current login
-    logged_in  Int       @default(0)
-    login_time DateTime?
-
-    // last logout
-    logged_out  Int       @default(0)
-    logout_time DateTime?
-
     muted_until  DateTime?
     banned_until DateTime?
 
@@ -51,6 +43,22 @@ model account {
     tfa_secret_base32 String?
     // How many incorrect attempts have been made in a row
     tfa_incorrect_attempts Int @default(0)
+}
+
+// account logged in status
+model account_login {
+    account_id Int
+    profile String
+
+    // current login
+    logged_in  Int       @default(0)
+    login_time DateTime?
+
+    // last logout
+    logged_out  Int       @default(0)
+    logout_time DateTime?
+
+    @@unique([account_id, profile])
 }
 
 model session {
@@ -172,19 +180,21 @@ model hiscore_large {
 
 model friendlist {
     account_id        Int
+    profile           String @default("main")
     friend_account_id Int
 
     created DateTime @default(now())
 
-    @@id([account_id, friend_account_id])
+    @@id([account_id, profile, friend_account_id])
 }
 
 model ignorelist {
     account_id Int
+    profile    String   @default("main")
     value      String
     created    DateTime @default(now())
 
-    @@id([account_id, value])
+    @@id([account_id, profile, value])
 }
 
 model public_chat {

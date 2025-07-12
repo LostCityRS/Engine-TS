@@ -16,8 +16,9 @@ import { printInfo } from '#/util/Logger.js';
 import { getUnreadMessageCount } from '#/util/Messages.js';
 import { startManagementWeb } from '#/web.js';
 
-async function updateHiscores(username: string, player: Player, profile: string) {
-    const account = await db.selectFrom('account').where('username', '=', username).selectAll().executeTakeFirstOrThrow();
+async function updateHiscores(account: { id: number, staffmodlevel: number } | undefined, player: Player, profile: string) {
+    if (!account)
+        return;
 
     if (account.staffmodlevel > 1) {
         return;
@@ -150,12 +151,13 @@ export default class LoginServer {
 
                     if (type === 'world_startup') {
                         await db
-                            .updateTable('account')
+                            .updateTable('account_login')
                             .set({
                                 logged_in: 0,
                                 login_time: null
                             })
                             .where('logged_in', '=', nodeId)
+                            .where('profile', '=', profile)
                             .execute();
                     } else if (type === 'player_login') {
                         const { replyTo, username, password, uid, socket, remoteAddress, reconnecting, hasSave } = msg;
@@ -185,7 +187,14 @@ export default class LoginServer {
                                 return;
                             }
 
-                            let account = await db.selectFrom('account').where('username', '=', username).selectAll().executeTakeFirst();
+                            let account = await db.selectFrom('account')
+                                .leftJoin('account_login', join => join
+                                    .onRef('account_id', '=', 'id')
+                                    .on('profile', '=', profile)
+                                )
+                                .where('username', '=', username)
+                                .selectAll()
+                                .executeTakeFirst();
 
                             if (!Environment.WEBSITE_REGISTRATION && !account) {
                                 // register the user automatically
@@ -203,7 +212,14 @@ export default class LoginServer {
                                     return;
                                 }
 
-                                account = await db.selectFrom('account').where('username', '=', username).selectAll().executeTakeFirst();
+                                account = await db.selectFrom('account')
+                                    .leftJoin('account_login', join => join
+                                        .onRef('account_id', '=', 'id')
+                                        .on('profile', '=', profile)
+                                    )
+                                    .where('username', '=', username)
+                                    .selectAll()
+                                    .executeTakeFirst();
                             }
 
                             if (account) {
@@ -329,7 +345,7 @@ export default class LoginServer {
                                     );
                                 }
                                 return;
-                            } else if (account.logged_in !== 0) {
+                            } else if (account.logged_in !== null && account.logged_in !== 0) {
                                 // already logged in elsewhere
                                 s.send(
                                     JSON.stringify({
@@ -338,7 +354,12 @@ export default class LoginServer {
                                     })
                                 );
                                 return;
-                            } else if (account.staffmodlevel < 2 && account.logged_out !== 0 && account.logged_out !== nodeId && account.logout_time !== null && new Date(account.logout_time) >= new Date(Date.now() - 45000)) {
+                            } else if (account.staffmodlevel < 2 
+                                && account.logged_out !== null 
+                                && account.logged_out !== 0 
+                                && account.logged_out !== nodeId 
+                                && account.logout_time !== null 
+                                && new Date(account.logout_time) >= new Date(Date.now() - 45000)) {
                                 // rate limited (hop timer)
                                 s.send(
                                     JSON.stringify({
@@ -406,14 +427,25 @@ export default class LoginServer {
                             }
 
                             // Login is valid - update account table
-                            await db
-                                .updateTable('account')
-                                .set({
-                                    logged_in: nodeId,
-                                    login_time: toDbDate(new Date())
-                                })
-                                .where('id', '=', account.id)
-                                .executeTakeFirst();
+                            if (account.account_id) {
+                                await db.updateTable('account_login')
+                                    .set({
+                                        logged_in: nodeId,
+                                        login_time: toDbDate(new Date())
+                                    })
+                                    .where('account_id', '=', account.id)
+                                    .where('profile', '=', profile)
+                                    .executeTakeFirst();
+                            } else {
+                                await db.insertInto('account_login')
+                                    .values({
+                                        account_id: account.id,
+                                        profile: profile,
+                                        logged_in: nodeId,
+                                        login_time: toDbDate(new Date())
+                                    })
+                                    .executeTakeFirst();
+                            }
                         } finally {
                             this.loginRequests.delete(safeName);
                         }
@@ -431,16 +463,28 @@ export default class LoginServer {
                             console.error(username, 'Invalid save file');
                         }
 
-                        await db
-                            .updateTable('account')
-                            .set({
-                                logged_in: 0,
-                                login_time: null,
-                                logged_out: nodeId,
-                                logout_time: toDbDate(new Date())
-                            })
+                        const account = await db.selectFrom('account')
+                            .leftJoin('account_login', join => join
+                                .onRef('account_id', '=', 'id')
+                                .on('profile', '=', profile)
+                            )
                             .where('username', '=', username)
+                            .selectAll()
                             .executeTakeFirst();
+                        
+                        if (account?.account_id) {
+                            await db
+                                .updateTable('account_login')
+                                .set({
+                                    logged_in: 0,
+                                    login_time: null,
+                                    logged_out: nodeId,
+                                    logout_time: toDbDate(new Date())
+                                })
+                                .where('account_id', '=', account.id)
+                                .where('profile', '=', profile)
+                                .executeTakeFirst();
+                        }
 
                         s.send(
                             JSON.stringify({
@@ -449,7 +493,7 @@ export default class LoginServer {
                             })
                         );
 
-                        await updateHiscores(username, PlayerLoading.load(username, new Packet(raw), null), profile);
+                        await updateHiscores(account, PlayerLoading.load(username, new Packet(raw), null), profile);
                     } else if (type === 'player_autosave') {
                         const { username, save } = msg;
 
@@ -466,14 +510,28 @@ export default class LoginServer {
                     } else if (type === 'player_force_logout') {
                         const { username } = msg;
 
-                        await db
-                            .updateTable('account')
-                            .set({
-                                logged_in: 0,
-                                login_time: null
-                            })
+                        const account = await db
+                            .selectFrom('account')
+                            .leftJoin('account_login', join => join
+                                .onRef('account_id', '=', 'id')
+                                .on('profile', '=', profile)
+                            )
                             .where('username', '=', username)
+                            .selectAll()
                             .executeTakeFirst();
+
+                        if (account?.account_id) {
+                            await db
+                                .updateTable('account_login')
+                                .set({
+                                    logged_in: 0,
+                                    login_time: null
+                                })
+                                .where('account_id', '=', account.id)
+                                .where('profile', '=', profile)
+                                .executeTakeFirst();
+                        }
+                        
                     } else if (type === 'player_ban') {
                         const { _staff, username, until } = msg;
 
