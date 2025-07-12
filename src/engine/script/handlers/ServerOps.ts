@@ -11,7 +11,7 @@ import { HuntVis } from '#/engine/entity/hunt/HuntVis.js';
 import { MapFindSquareType } from '#/engine/entity/MapFindSquareType.js';
 import Npc from '#/engine/entity/Npc.js';
 import Player from '#/engine/entity/Player.js';
-import { isIndoors, isLineOfSight, isLineOfWalk, isMapBlocked, layerForLocShape } from '#/engine/GameMap.js';
+import { isIndoors, isLineOfSight, isLineOfWalk, isMapBlocked } from '#/engine/GameMap.js';
 import { HuntIterator, NpcHuntAllCommandIterator } from '#/engine/script/ScriptIterators.js';
 import { ScriptOpcode } from '#/engine/script/ScriptOpcode.js';
 import { ActiveNpc, ActivePlayer } from '#/engine/script/ScriptPointer.js';
@@ -368,7 +368,7 @@ const ServerOps: CommandHandlers = {
                 continue;
             }
 
-            const layer = layerForLocShape(loc.shape);
+            const layer = loc.layer;
 
             if (!loc.isActive && layer === LocLayer.WALL) {
                 continue;
