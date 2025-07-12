@@ -13,10 +13,6 @@ export type account = {
     oauth_provider: string | null;
     registration_ip: string | null;
     registration_date: Generated<string>;
-    logged_in: Generated<number>;
-    login_time: string | null;
-    logged_out: Generated<number>;
-    logout_time: string | null;
     muted_until: string | null;
     banned_until: string | null;
     staffmodlevel: Generated<number>;
@@ -27,6 +23,14 @@ export type account = {
     tfa_last_code: Generated<number>;
     tfa_secret_base32: string | null;
     tfa_incorrect_attempts: Generated<number>;
+};
+export type account_login = {
+    account_id: number;
+    profile: string;
+    logged_in: Generated<number>;
+    login_time: string | null;
+    logged_out: Generated<number>;
+    logout_time: string | null;
 };
 export type account_session = {
     id: Generated<number>;
@@ -45,6 +49,7 @@ export type account_tag = {
 };
 export type friendlist = {
     account_id: number;
+    profile: Generated<string>;
     friend_account_id: number;
     created: Generated<string>;
 };
@@ -66,6 +71,7 @@ export type hiscore_large = {
 };
 export type ignorelist = {
     account_id: number;
+    profile: Generated<string>;
     value: string;
     created: Generated<string>;
 };
@@ -208,6 +214,7 @@ export type wealth_event = {
 };
 export type DB = {
     account: account;
+    account_login: account_login;
     account_session: account_session;
     account_tag: account_tag;
     friendlist: friendlist;
