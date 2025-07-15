@@ -146,8 +146,8 @@ class World {
     readonly npcEventQueue: LinkList<NpcEventRequest>;
 
     // debug data
-    readonly lastCycleStats: Uint8Array;
-    readonly cycleStats: Uint8Array;
+    readonly lastCycleStats: Uint16Array;
+    readonly cycleStats: Uint16Array;
 
     tickRate: number = World.TICKRATE; // speeds up when we're processing server shutdown
     currentTick: number = 0; // the current tick of the game world.
@@ -172,8 +172,8 @@ class World {
         this.locObjTracker = new LinkList();
         this.queue = new LinkList();
         this.npcEventQueue = new LinkList();
-        this.lastCycleStats = new Uint8Array(13);
-        this.cycleStats = new Uint8Array(13);
+        this.lastCycleStats = new Uint16Array(13);
+        this.cycleStats = new Uint16Array(13);
 
         if (Environment.STANDALONE_BUNDLE) {
             if (this.loginThread instanceof Worker) {
