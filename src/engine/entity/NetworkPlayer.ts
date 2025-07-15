@@ -187,10 +187,7 @@ export class NetworkPlayer extends Player {
     }
 
     writeInner(message: OutgoingMessage): void {
-        const client = this.client;
-        if (!client) {
-            return;
-        }
+        const client: ClientSocket = this.client;
 
         const encoder: MessageEncoder<OutgoingMessage> | undefined = ServerProtProvider.ServerProtRepository.getEncoder(message);
         if (!encoder) {
@@ -207,16 +204,12 @@ export class NetworkPlayer extends Player {
 
         buf.pos = 0;
 
-        if (client.encryptor) {
-            buf.p1(prot.id + client.encryptor.nextInt());
-        } else {
-            buf.p1(prot.id);
-        }
+        buf.p1(prot.id + (client.encryptor?.nextInt() ?? 0));
 
         if (prot.length === -1) {
-            buf.p1(0);
+            buf.pos += 1;
         } else if (prot.length === -2) {
-            buf.p2(0);
+            buf.pos += 2;
         }
 
         const start: number = buf.pos;

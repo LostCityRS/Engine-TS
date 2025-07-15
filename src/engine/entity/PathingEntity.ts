@@ -339,6 +339,14 @@ export default abstract class PathingEntity extends Entity {
     }
 
     /**
+     * Unfocus from a possible targeted pathing entity.
+     */
+    unfocusTargetEntity(): void {
+        this.masks |= this.entitymask;
+        this.faceEntity = -1;
+    }
+
+    /**
      * Try to focus back on a possible target.
      * This is needed because the target can move.
      * This should be done after all pathing entities have moved.
@@ -623,8 +631,7 @@ export default abstract class PathingEntity extends Entity {
         this.faceZ = -1;
 
         if (!this.target && this.faceEntity !== -1) {
-            this.masks |= this.entitymask;
-            this.faceEntity = -1;
+            this.unfocusTargetEntity();
         }
     }
 

@@ -64,7 +64,6 @@ export default class Npc extends PathingEntity {
     huntMode: number = -1;
     huntTarget: Entity | null = null;
     huntrange: number = 0;
-    spawnTriggerPending: boolean = true;
 
     nextPatrolTick: number = -1;
     nextPatrolPoint: number = 0;
@@ -160,7 +159,7 @@ export default class Npc extends PathingEntity {
             if (hunt.nobodyNear !== HuntNobodyNear.PAUSEHUNT || rsbuf.getNpcObservers(this.nid) > 0 || hunt.type === HuntModeType.PLAYER) {
                 // - hunt npc/obj/loc
                 if (hunt && hunt.type !== HuntModeType.PLAYER) {
-                    this.huntAll();
+                    this.huntAll(hunt);
                 }
 
                 // Increment huntclock
@@ -244,10 +243,8 @@ export default class Npc extends PathingEntity {
 
     // https://x.com/JagexAsh/status/1821236327150710829
     // https://x.com/JagexAsh/status/1799793914595131463
-    huntAll(): void {
+    huntAll(hunt: HuntType): void {
         this.huntTarget = null;
-
-        const hunt: HuntType = HuntType.get(this.huntMode);
 
         // If a huntrate is defined, this acts as a throttle
         if (this.huntClock < hunt.rate - 1) {
@@ -272,8 +269,7 @@ export default class Npc extends PathingEntity {
 
         // Pick randomly from the hunted entities
         if (hunted.length > 0) {
-            const entity: Entity = hunted[Math.floor(Math.random() * hunted.length)];
-            this.huntTarget = entity;
+            this.huntTarget = hunted[Math.floor(Math.random() * hunted.length)];
         }
     }
 
@@ -292,10 +288,7 @@ export default class Npc extends PathingEntity {
 
             for (let i = 0; i < this.vars.length; i++) {
                 const varn = VarNpcType.get(i);
-                if (varn.type === ScriptVarType.STRING) {
-                    // todo: "null"? another value?
-                    continue;
-                } else {
+                if (varn.type !== ScriptVarType.STRING) {
                     this.vars[i] = varn.type === ScriptVarType.INT ? 0 : -1;
                 }
             }
@@ -402,16 +395,14 @@ export default class Npc extends PathingEntity {
     clearInteraction(): void {
         super.clearInteraction();
         this.targetOp = NpcMode.NONE;
-        this.faceEntity = -1;
-        this.masks |= NpcInfoProt.FACE_ENTITY;
+        this.unfocusTargetEntity();
     }
 
     resetDefaults(): void {
         this.clearInteraction();
         const type: NpcType = NpcType.get(this.type);
         this.targetOp = type.defaultmode;
-        this.faceEntity = -1;
-        this.masks |= this.entitymask;
+        this.unfocusTargetEntity();
 
         const npcType: NpcType = NpcType.get(this.type);
         this.huntMode = npcType.huntmode;

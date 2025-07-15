@@ -543,6 +543,9 @@ export default class Player extends PathingEntity {
         }
         this.write(new UpdateRunEnergy(this.runenergy));
         this.write(new ResetAnims());
+        if (!this.target) {
+            this.unfocusTargetEntity();
+        }
         this.moveSpeed = MoveSpeed.INSTANT;
         this.tele = true;
         this.jump = true;

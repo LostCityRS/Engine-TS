@@ -79,6 +79,7 @@ import {
     trackCycleBandwidthOutBytes,
     trackCycleClientInTime,
     trackCycleClientOutTime,
+    trackCycleInfoTime,
     trackCycleLoginTime,
     trackCycleLogoutTime,
     trackCycleNpcTime,
@@ -145,8 +146,8 @@ class World {
     readonly npcEventQueue: LinkList<NpcEventRequest>;
 
     // debug data
-    readonly lastCycleStats: number[];
-    readonly cycleStats: number[];
+    readonly lastCycleStats: Uint8Array;
+    readonly cycleStats: Uint8Array;
 
     tickRate: number = World.TICKRATE; // speeds up when we're processing server shutdown
     currentTick: number = 0; // the current tick of the game world.
@@ -171,8 +172,8 @@ class World {
         this.locObjTracker = new LinkList();
         this.queue = new LinkList();
         this.npcEventQueue = new LinkList();
-        this.lastCycleStats = new Array(12).fill(0);
-        this.cycleStats = new Array(12).fill(0);
+        this.lastCycleStats = new Uint8Array(13);
+        this.cycleStats = new Uint8Array(13);
 
         if (Environment.STANDALONE_BUNDLE) {
             if (this.loginThread instanceof Worker) {
@@ -274,10 +275,7 @@ class World {
 
             for (let i = 0; i < this.vars.length; i++) {
                 const varsh = VarSharedType.get(i);
-                if (varsh.type === ScriptVarType.STRING) {
-                    // todo: "null"? another value?
-                    continue;
-                } else {
+                if (varsh.type !== ScriptVarType.STRING) {
                     this.vars[i] = varsh.type === ScriptVarType.INT ? 0 : -1;
                 }
             }
@@ -358,12 +356,8 @@ class World {
     cycle(): void {
         try {
             const start: number = Date.now();
+            // the deviation the thread took from sleeping last tick until now.
             const drift: number = Math.max(0, start - this.nextTick);
-
-            // world processing
-            // - world queue
-            // - npc hunt
-            this.processWorld();
 
             // client input
             // - calculate afk event readiness
@@ -432,20 +426,33 @@ class World {
             // - reset invs
             this.processCleanup();
 
-            // ----
-
-            const tick: number = this.currentTick;
-
             if (this.shutdown) {
                 this.processShutdown();
             }
 
-            if (tick % World.PLAYER_SAVERATE === 0 && tick > 0) {
+            // ----
+            // - increment tick before processing world queues.
+            // - world queues can't happen on tick 0.
+            // - logging is technically tick+1 but that's ok idc.
+            // - tick will ALWAYS be > 0 from here on...
+
+            this.currentTick++;
+            this.nextTick += this.tickRate;
+
+            // world processing
+            // - world queue
+            // - npc hunt
+            this.processWorld();
+
+            // ----
+            // - do logging and stuff from here on, no more cycle stuff.
+
+            if (this.currentTick % World.PLAYER_SAVERATE === 0) {
                 // auto-save players every 15 mins
                 this.savePlayers();
             }
 
-            if (tick % World.PLAYER_COORDLOGRATE === 0 && tick > 0) {
+            if (this.currentTick % World.PLAYER_COORDLOGRATE === 0) {
                 for (const player of this.players) {
                     player.addSessionLog(LoggerEventType.MODERATOR, 'Server check in');
                 }
@@ -486,6 +493,7 @@ class World {
             this.lastCycleStats[WorldStat.LOGOUT] = this.cycleStats[WorldStat.LOGOUT];
             this.lastCycleStats[WorldStat.LOGIN] = this.cycleStats[WorldStat.LOGIN];
             this.lastCycleStats[WorldStat.ZONE] = this.cycleStats[WorldStat.ZONE];
+            this.lastCycleStats[WorldStat.INFO] = this.cycleStats[WorldStat.INFO];
             this.lastCycleStats[WorldStat.CLIENT_OUT] = this.cycleStats[WorldStat.CLIENT_OUT];
             this.lastCycleStats[WorldStat.CLEANUP] = this.cycleStats[WorldStat.CLEANUP];
             this.lastCycleStats[WorldStat.BANDWIDTH_IN] = this.cycleStats[WorldStat.BANDWIDTH_IN];
@@ -503,6 +511,7 @@ class World {
                 trackCycleNpcTime.observe(this.cycleStats[WorldStat.NPC]);
                 trackCyclePlayerTime.observe(this.cycleStats[WorldStat.PLAYER]);
                 trackCycleZoneTime.observe(this.cycleStats[WorldStat.ZONE]);
+                trackCycleInfoTime.observe(this.cycleStats[WorldStat.INFO]);
                 trackCycleLoginTime.observe(this.cycleStats[WorldStat.LOGIN]);
                 trackCycleLogoutTime.observe(this.cycleStats[WorldStat.LOGOUT]);
 
@@ -514,12 +523,9 @@ class World {
                 printInfo(`tick ${this.currentTick}: ${this.cycleStats[WorldStat.CYCLE]}/${this.tickRate} ms, ${Math.trunc(process.memoryUsage().heapTotal / 1024 / 1024)} MB heap`);
                 printDebug(`${this.getTotalPlayers()}/${World.PLAYERS} players | ${this.getTotalNpcs()}/${World.NPCS} npcs | ${this.gameMap.getTotalZones()} zones | ${this.gameMap.getTotalLocs()} locs | ${this.gameMap.getTotalObjs()} objs`);
                 printDebug(
-                    `${this.cycleStats[WorldStat.WORLD]} ms world | ${this.cycleStats[WorldStat.CLIENT_IN]} ms client in | ${this.cycleStats[WorldStat.NPC]} ms npcs | ${this.cycleStats[WorldStat.PLAYER]} ms players | ${this.cycleStats[WorldStat.LOGOUT]} ms logout | ${this.cycleStats[WorldStat.LOGIN]} ms login | ${this.cycleStats[WorldStat.ZONE]} ms zones | ${this.cycleStats[WorldStat.CLIENT_OUT]} ms client out | ${this.cycleStats[WorldStat.CLEANUP]} ms cleanup`
+                    `${this.cycleStats[WorldStat.WORLD]} ms world | ${this.cycleStats[WorldStat.CLIENT_IN]} ms client in | ${this.cycleStats[WorldStat.NPC]} ms npcs | ${this.cycleStats[WorldStat.PLAYER]} ms players | ${this.cycleStats[WorldStat.LOGOUT]} ms logout | ${this.cycleStats[WorldStat.LOGIN]} ms login | ${this.cycleStats[WorldStat.ZONE]} ms zones | ${this.cycleStats[WorldStat.INFO]} ms infos | ${this.cycleStats[WorldStat.CLIENT_OUT]} ms client out | ${this.cycleStats[WorldStat.CLEANUP]} ms cleanup`
                 );
             }
-
-            this.currentTick++;
-            this.nextTick += this.tickRate;
 
             // ----
 
@@ -589,7 +595,7 @@ class World {
                     const hunt = HuntType.get(npc.huntMode);
 
                     if (hunt && hunt.type === HuntModeType.PLAYER) {
-                        npc.huntAll();
+                        npc.huntAll(hunt);
                     }
                 }
             }
@@ -626,15 +632,10 @@ class World {
                         }
 
                         if ((!player.target || player.target instanceof Loc || player.target instanceof Obj) && player.faceEntity !== -1) {
-                            player.faceEntity = -1;
-                            player.masks |= player.entitymask;
+                            player.unfocusTargetEntity();
                         }
 
-                        if (!player.busy() && player.opcalled) {
-                            player.moveClickRequest = false;
-                        } else {
-                            player.moveClickRequest = true;
-                        }
+                        player.moveClickRequest = !(!player.busy() && player.opcalled);
 
                         if (!followingPlayer && player.opcalled && (player.userPath.length === 0 || !Environment.NODE_CLIENT_ROUTEFINDER)) {
                             player.pathToTarget();
@@ -988,13 +989,11 @@ class World {
     // - convert npc movements
     // - compute npc info
     private processInfo(): void {
-        // TODO: benchmark this?
+        const start: number = Date.now();
         for (const player of this.players) {
             player.reorient();
             player.buildArea.rebuildNormal(); // set origin before compute player is why this is above.
-
-            const appearance = player.masks & PlayerInfoProt.APPEARANCE ? player.generateAppearance() : (player.lastAppearanceBytes ?? player.generateAppearance());
-
+            // TODO possible optimization to only compute when actually needed?
             rsbuf.computePlayer(
                 player.x,
                 player.level,
@@ -1009,7 +1008,7 @@ class World {
                 player.visibility,
                 player.isActive,
                 player.masks,
-                appearance,
+                player.masks & PlayerInfoProt.APPEARANCE ? player.generateAppearance() : (player.lastAppearanceBytes ?? player.generateAppearance()),
                 player.lastAppearance,
                 player.faceEntity,
                 player.faceX,
@@ -1042,6 +1041,7 @@ class World {
 
         for (const npc of this.npcs) {
             npc.reorient();
+            // TODO possible optimization to only compute when actually needed?
             rsbuf.computeNpc(
                 npc.x,
                 npc.level,
@@ -1070,6 +1070,7 @@ class World {
                 npc.graphicDelay
             );
         }
+        this.cycleStats[WorldStat.INFO] = Date.now() - start;
     }
 
     // - map update
@@ -1168,13 +1169,13 @@ class World {
                 }
                 // Item stock is under min
                 if (item.count < invType.stockcount[index] && tick % invType.stockrate[index] === 0) {
-                    inv.add(item?.id, 1, index, true, false, false);
+                    inv.add(item.id, 1, index, true, false, false);
                     inv.update = true;
                     continue;
                 }
                 // Item stock is over min
                 if (item.count > invType.stockcount[index] && tick % invType.stockrate[index] === 0) {
-                    inv.remove(item?.id, 1, index, true);
+                    inv.remove(item.id, 1, index, true);
                     inv.update = true;
                     continue;
                 }
@@ -1182,7 +1183,7 @@ class World {
                 // Item stock is not listed, such as general stores
                 // Tested on low and high player count worlds, ever 1 minute stock decreases.
                 if (invType.allstock && !invType.stockcount[index] && tick % World.INV_STOCKRATE === 0) {
-                    inv.remove(item?.id, 1, index, true);
+                    inv.remove(item.id, 1, index, true);
                     inv.update = true;
                 }
             }
@@ -1577,11 +1578,6 @@ class World {
             username: player.username,
             target: targetUsername37
         });
-    }
-
-    addPlayer(player: Player): void {
-        this.newPlayers.add(player);
-        player.isActive = true;
     }
 
     sendPrivateChatModeToFriendsServer(player: Player): void {

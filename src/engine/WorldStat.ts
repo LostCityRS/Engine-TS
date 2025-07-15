@@ -7,6 +7,7 @@ export const enum WorldStat {
     LOGOUT,
     LOGIN,
     ZONE,
+    INFO,
     CLIENT_OUT,
     CLEANUP,
     BANDWIDTH_IN,

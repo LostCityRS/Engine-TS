@@ -45,6 +45,12 @@ export const trackCycleZoneTime = new Histogram({
     buckets: [10, 20, 30, 40, 50, 100]
 });
 
+export const trackCycleInfoTime = new Histogram({
+    name: 'lostcity_cycle_info_ms',
+    help: 'Info processing duration in milliseconds.',
+    buckets: [10, 20, 30, 40, 50, 100]
+});
+
 export const trackCycleLoginTime = new Histogram({
     name: 'lostcity_cycle_login_ms',
     help: 'Login processing duration in milliseconds.',
