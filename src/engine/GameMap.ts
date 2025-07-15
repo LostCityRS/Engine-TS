@@ -112,9 +112,9 @@ export default class GameMap {
                     continue;
                 }
                 const npcType: NpcType = NpcType.get(id);
-                const size: number = npcType.size;
-                const npc: Npc = new Npc(level, absoluteX, absoluteZ, size, size, EntityLifeCycle.RESPAWN, World.getNextNid(), npcType.id, npcType.moverestrict, npcType.blockwalk);
                 if ((npcType.members && this.members) || !npcType.members) {
+                    const size: number = npcType.size;
+                    const npc: Npc = new Npc(level, absoluteX, absoluteZ, size, size, EntityLifeCycle.RESPAWN, World.getNextNid(), npcType.id, npcType.moverestrict, npcType.blockwalk);
                     World.addNpc(npc, -1);
                 }
             }
@@ -134,8 +134,8 @@ export default class GameMap {
                     continue;
                 }
                 const objType: ObjType = ObjType.get(id);
-                const obj: Obj = new Obj(level, absoluteX, absoluteZ, EntityLifeCycle.RESPAWN, objType.id, count);
                 if ((objType.members && this.members) || !objType.members) {
+                    const obj: Obj = new Obj(level, absoluteX, absoluteZ, EntityLifeCycle.RESPAWN, objType.id, count);
                     this.getZone(obj.x, obj.z, obj.level).addStaticObj(obj);
                 }
             }
