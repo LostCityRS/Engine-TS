@@ -315,7 +315,7 @@ export default class Player extends PathingEntity {
     webClient: boolean = false;
     combatLevel: number = 3;
     headicons: number = 0;
-    appearance: number = -1;
+    appearance: number = InvType.WORN;
     lastAppearance: number = 0;
     lastAppearanceBytes: Uint8Array | null = null;
     baseLevels = new Uint8Array(21);
@@ -444,7 +444,6 @@ export default class Player extends PathingEntity {
         this.timers.clear();
         this.heroPoints.clear();
         this.buildArea.clear(false);
-        this.appearance = -1;
         this.lastAppearance = 0;
         this.lastAppearanceBytes = null;
         this.isActive = false;
@@ -462,7 +461,6 @@ export default class Player extends PathingEntity {
         this.messageType = null;
         this.message = null;
         this.logMessage = null;
-        this.appearance = -1;
         this.socialProtect = false;
         this.reportAbuseProtect = false;
     }
@@ -544,6 +542,7 @@ export default class Player extends PathingEntity {
         this.write(new UpdateRunEnergy(this.runenergy));
         this.write(new ResetAnims());
         this.masks |= this.entitymask;
+        this.masks |= PlayerInfoProt.APPEARANCE;
         this.moveSpeed = MoveSpeed.INSTANT;
         this.tele = true;
         this.jump = true;
@@ -1751,7 +1750,7 @@ export default class Player extends PathingEntity {
 
         if (this.combatLevel != this.getCombatLevel()) {
             this.combatLevel = this.getCombatLevel();
-            this.buildAppearance(InvType.WORN);
+            this.buildAppearance(this.appearance);
         }
     }
 
@@ -1771,7 +1770,7 @@ export default class Player extends PathingEntity {
 
         if (this.getCombatLevel() != this.combatLevel) {
             this.combatLevel = this.getCombatLevel();
-            this.buildAppearance(InvType.WORN);
+            this.buildAppearance(this.appearance);
         }
     }
 
