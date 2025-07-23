@@ -6,7 +6,6 @@ import { register } from 'prom-client';
 
 import { CrcBuffer } from '#/cache/CrcTable.js';
 import World from '#/engine/World.js';
-// import { getPublicPerDeploymentToken } from '#/io/PemUtil.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import NullClientSocket from '#/server/NullClientSocket.js';
 import WSClientSocket from '#/server/ws/WSClientSocket.js';
@@ -108,15 +107,6 @@ export async function startWeb() {
                         }
                     });
                 }
-            } else if (url.pathname.startsWith('/1/') || url.pathname.startsWith('/2/') || url.pathname.startsWith('/3/') || url.pathname.startsWith('/4/')) {
-                const archive = parseInt(url.pathname.slice(1, 2));
-                const file = parseInt(url.pathname.slice(3));
-
-                return new Response(OnDemand.cache.read(archive, file), {
-                    headers: {
-                        'Content-Type': 'application/octet-stream'
-                    }
-                });
             } else if (fs.existsSync(`public${url.pathname}`)) {
                 return new Response(await Bun.file(`public${url.pathname}`).bytes(), {
                     headers: {
