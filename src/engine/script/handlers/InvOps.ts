@@ -15,6 +15,7 @@ import { CommandHandlers } from '#/engine/script/ScriptRunner.js';
 import { CategoryTypeValid, check, CoordValid, DurationValid, InvTypeValid, NumberNotNull, ObjStackValid, ObjTypeValid } from '#/engine/script/ScriptValidators.js';
 import World from '#/engine/World.js';
 import { WealthEventType } from '#/server/logger/WealthEventType.js';
+import Environment from '#/util/Environment.js';
 
 const InvOps: CommandHandlers = {
     // inv config
@@ -175,13 +176,15 @@ const InvOps: CommandHandlers = {
         }
 
         const player = state.activePlayer;
+        const staffMod = (player.staffModLevel == 2) && Environment.NODE_PRODUCTION;
         const completed = player.invDel(invType.id, objType.id, count);
         if (completed == 0) {
             return;
         }
-
         const floorObj: Obj = new Obj(position.level, position.x, position.z, EntityLifeCycle.DESPAWN, objType.id, completed);
-        World.addObj(floorObj, player.hash64, duration);
+        if (!staffMod) {
+            World.addObj(floorObj, player.hash64, duration);
+        }
         state.activeObj = floorObj;
         state.pointerAdd(ActiveObj[state.intOperand]);
     }),
@@ -238,6 +241,7 @@ const InvOps: CommandHandlers = {
         }
 
         const player = state.activePlayer;
+        const staffMod = (state.activePlayer.staffModLevel == 2) && Environment.NODE_PRODUCTION;
         const completed = player.invDel(invType.id, obj.id, obj.count, slot);
         if (completed === 0) {
             return;
@@ -246,15 +250,17 @@ const InvOps: CommandHandlers = {
         if (!objType.stackable || completed === 1) {
             for (let i = 0; i < completed; i++) {
                 const floorObj: Obj = new Obj(position.level, position.x, position.z, EntityLifeCycle.DESPAWN, obj.id, 1);
-                World.addObj(floorObj, player.hash64, duration);
-
+                if (!staffMod) {
+                    World.addObj(floorObj, player.hash64, duration);
+                }
                 state.activeObj = floorObj;
                 state.pointerAdd(ActiveObj[state.intOperand]);
             }
         } else {
             const floorObj: Obj = new Obj(position.level, position.x, position.z, EntityLifeCycle.DESPAWN, obj.id, completed);
-            World.addObj(floorObj, player.hash64, duration);
-
+            if (!staffMod) {
+                World.addObj(floorObj, player.hash64, duration);
+            }
             state.activeObj = floorObj;
             state.pointerAdd(ActiveObj[state.intOperand]);
         }
@@ -517,6 +523,10 @@ const InvOps: CommandHandlers = {
         }
 
         const player: Player = state.activePlayer;
+        if (toInvType.debugname == 'partyroom_tempinv' && player.staffModLevel == 2 && Environment.NODE_PRODUCTION) {
+            player.messageGame('You cannot add items to the Party Room Chest.');
+            return;
+        }
         const completed = player.invDel(fromInvType.id, objType.id, count);
         if (completed == 0) {
             return;
@@ -588,6 +598,24 @@ const InvOps: CommandHandlers = {
         }
 
         const player: Player = state.activePlayer;
+        if (player.staffModLevel == 2 && Environment.NODE_PRODUCTION) {
+            if (fromInvType.scope == InvType.SCOPE_SHARED) {
+                const completed = player.invDel(fromInvType.id, objType.id, count);
+                if (completed == 0) {
+                    return;
+                }
+                return;
+
+            } else if (toInvType.scope == InvType.SCOPE_SHARED) {
+                let finalObj = objType.id;
+                if (objType.certtemplate >= 0 && objType.certlink >= 0) {
+                    finalObj = objType.certlink;
+                }
+                player.invAdd(toInvType.id, finalObj, count);
+                return;
+            }
+        }
+
         const completed = player.invDel(fromInvType.id, objType.id, count);
         if (completed == 0) {
             return;
@@ -734,6 +762,8 @@ const InvOps: CommandHandlers = {
         const invType: InvType = check(inv, InvTypeValid);
         check(duration, DurationValid);
         const position: CoordGrid = check(coord, CoordValid);
+        // >=2 is intentional, to prevent unintentional death drops from all staff mods, not just 2
+        const staffMod = (state.activePlayer.staffModLevel >= 2) && Environment.NODE_PRODUCTION;
 
         if (!state.pointerGet(ProtectedActivePlayer[state.intOperand]) && invType.protect && invType.scope !== InvType.SCOPE_SHARED) {
             throw new Error(`$inv requires protected access: ${invType.debugname}`);
@@ -773,8 +803,10 @@ const InvOps: CommandHandlers = {
             if (!objType.tradeable) {
                 continue; // stop untradables after delete.
             }
-
-            World.addObj(new Obj(position.level, position.x, position.z, EntityLifeCycle.DESPAWN, obj.id, obj.count), Obj.NO_RECEIVER, duration);
+            
+	        if (!staffMod) {
+                World.addObj(new Obj(position.level, position.x, position.z, EntityLifeCycle.DESPAWN, obj.id, obj.count), Obj.NO_RECEIVER, duration);
+            }
         }
 
         if (wealthLog.size > 0) {

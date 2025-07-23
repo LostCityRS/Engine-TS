@@ -1001,7 +1001,7 @@ const PlayerOps: CommandHandlers = {
     },
 
     [ScriptOpcode.AFK_EVENT]: state => {
-        state.pushInt((Environment.NODE_DEBUG || state.activePlayer.staffModLevel < 2) && state.activePlayer.afkEventReady ? 1 : 0);
+        state.pushInt((Environment.NODE_DEBUG || state.activePlayer.staffModLevel < 1) && state.activePlayer.afkEventReady ? 1 : 0);
         state.activePlayer.afkEventReady = false;
     },
 

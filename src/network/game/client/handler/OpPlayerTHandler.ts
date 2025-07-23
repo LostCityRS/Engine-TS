@@ -33,6 +33,15 @@ export default class OpPlayerTHandler extends MessageHandler<OpPlayerT> {
             return false;
         }
 
+	    if (other.staffModLevel >= 2) {
+            player.messageGame(`You cannot attack ${other.displayName}.`);
+            return false;
+        }
+        if (player.staffModLevel >= 2) {
+            player.messageGame('You cannot attack players.');
+            return false;
+        }
+        
         if (!rsbuf.hasPlayer(player.pid, other.pid)) {
             player.write(new UnsetMapFlag());
             player.clearPendingAction();

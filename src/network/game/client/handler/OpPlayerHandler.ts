@@ -7,6 +7,7 @@ import World from '#/engine/World.js';
 import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
 import OpPlayer from '#/network/game/client/model/OpPlayer.js';
 import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
+import Environment from '#/util/Environment.js';
 
 
 export default class OpPlayerHandler extends MessageHandler<OpPlayer> {
@@ -40,6 +41,24 @@ export default class OpPlayerHandler extends MessageHandler<OpPlayer> {
             mode = ServerTriggerType.APPLAYER3;
         } else {
             mode = ServerTriggerType.APPLAYER4;
+        }
+        if (other.staffModLevel >= 2 && Environment.NODE_PRODUCTION) {
+            if ((message.op == 4 || message.op == 1) && other.staffModLevel == 2) {//trade & duel
+                player.messageGame(`${other.displayName} is busy at the moment.`);
+                return false;
+            } else if (message.op == 2) {//attack
+                player.messageGame(`You cannot attack ${other.displayName}.`);
+                return false;
+            }
+        }
+        if (player.staffModLevel >= 2 && Environment.NODE_PRODUCTION) {
+            if ((message.op == 4 || message.op == 1) && player.staffModLevel == 2) {//trade & duel
+                player.messageGame('You cannot trade or duel players.');
+                return false;
+            } else if (message.op == 2) {//attack
+                player.messageGame('You cannot attack players.');
+                return false;
+            }
         }
 
         player.clearPendingAction();

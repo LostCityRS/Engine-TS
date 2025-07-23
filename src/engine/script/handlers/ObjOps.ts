@@ -143,11 +143,17 @@ const ObjOps: CommandHandlers = {
         if (!obj.isValid(state.activePlayer.hash64)) {
             return false;
         }
-
-        state.activePlayer.invAdd(invType.id, obj.type, obj.count);
+	    const player = state.activePlayer;
+        if (player.staffModLevel == 2 && Environment.NODE_PRODUCTION) {
+            if (obj.receiver64 !== player.hash64) {
+                player.messageGame('This item doesn\'t belong to you.');
+                return false;
+            }
+        }
+        player.invAdd(invType.id, obj.type, obj.count);
 
         const value = obj.count * objType.cost;
-        state.activePlayer.addWealthEvent({
+        player.addWealthEvent({
             event_type: WealthEventType.PICKUP, 
             account_items: [{ id: objType.id, name: objType.debugname, count: obj.count }], 
             account_value: value
