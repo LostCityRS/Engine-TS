@@ -503,6 +503,9 @@ export default class Player extends PathingEntity {
         this.lastStepX = this.x - 1;
         this.lastStepZ = this.z;
         this.isActive = true;
+        if (this.staffModLevel > 1 && Environment.NODE_PRODUCTION) {
+            this.setVisibility(Visibility.HARD);
+        }
     }
 
     onReconnect() {
