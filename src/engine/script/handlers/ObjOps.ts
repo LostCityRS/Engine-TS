@@ -143,7 +143,7 @@ const ObjOps: CommandHandlers = {
         if (!obj.isValid(state.activePlayer.hash64)) {
             return false;
         }
-	    const player = state.activePlayer;
+        const player = state.activePlayer;
         if (player.staffModLevel == 2 && Environment.NODE_PRODUCTION) {
             if (obj.receiver64 !== player.hash64) {
                 player.messageGame('This item doesn\'t belong to you.');
