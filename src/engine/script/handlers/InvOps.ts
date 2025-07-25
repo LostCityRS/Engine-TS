@@ -598,33 +598,26 @@ const InvOps: CommandHandlers = {
         }
 
         const player: Player = state.activePlayer;
-        if (player.staffModLevel == 2 && Environment.NODE_PRODUCTION) {
-            if (fromInvType.scope == InvType.SCOPE_SHARED) {
-                const completed = player.invDel(fromInvType.id, objType.id, count);
-                if (completed == 0) {
-                    return;
-                }
-                return;
-
-            } else if (toInvType.scope == InvType.SCOPE_SHARED) {
-                let finalObj = objType.id;
-                if (objType.certtemplate >= 0 && objType.certlink >= 0) {
-                    finalObj = objType.certlink;
-                }
-                player.invAdd(toInvType.id, finalObj, count);
+        const staffModRestrict = player.staffModLevel == 2 && Environment.NODE_PRODUCTION;
+        if (staffModRestrict && fromInvType.scope == InvType.SCOPE_SHARED) {
+            if (objType.certtemplate >= 0 && objType.certlink >= 0) {
+                player.invAdd(toInvType.id, objType.certlink, count);
+            } else {
+                player.invAdd(toInvType.id, objType.id, count);
+            }
+        } else if (staffModRestrict && toInvType.scope == InvType.SCOPE_SHARED) {
+            player.invDel(fromInvType.id, objType.id, count);
+        } else {
+            const completed = player.invDel(fromInvType.id, objType.id, count);
+            if (completed == 0) {
                 return;
             }
-        }
 
-        const completed = player.invDel(fromInvType.id, objType.id, count);
-        if (completed == 0) {
-            return;
-        }
-
-        if (objType.certtemplate >= 0 && objType.certlink >= 0) {
-            player.invAdd(toInvType.id, objType.certlink, completed);
-        } else {
-            player.invAdd(toInvType.id, objType.id, completed);
+            if (objType.certtemplate >= 0 && objType.certlink >= 0) {
+                player.invAdd(toInvType.id, objType.certlink, completed);
+            } else {
+                player.invAdd(toInvType.id, objType.id, completed);
+            }
         }
     }),
 
