@@ -241,7 +241,7 @@ const InvOps: CommandHandlers = {
         }
 
         const player = state.activePlayer;
-        const staffMod = (state.activePlayer.staffModLevel == 2) && Environment.NODE_PRODUCTION;
+        const staffMod = (player.staffModLevel == 2) && Environment.NODE_PRODUCTION;
         const completed = player.invDel(invType.id, obj.id, obj.count, slot);
         if (completed === 0) {
             return;
