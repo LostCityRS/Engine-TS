@@ -160,7 +160,7 @@ export default class LoginServer {
                             .where('profile', '=', profile)
                             .execute();
                     } else if (type === 'player_login') {
-                        const { replyTo, username, password, uid, socket, remoteAddress, reconnecting, hasSave } = msg;
+                        const { nodeMembers, replyTo, username, password, uid, socket, remoteAddress, reconnecting, hasSave } = msg;
                         const safeName = toSafeName(username);
                         
                         if (this.loginRequests.has(safeName)) {
@@ -280,7 +280,7 @@ export default class LoginServer {
                                 return;
                             }
 
-                            if (Environment.NODE_MEMBERS && !account.members) {
+                            if (nodeMembers && !account.members) {
                                 if (Environment.NODE_AUTO_SUBSCRIBE_MEMBERS) {
                                     // Set members=1 for the account and proceed with login
                                     await db.updateTable('account').where('id', '=', account.id).set('members', 1).executeTakeFirstOrThrow();
