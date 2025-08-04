@@ -37,6 +37,7 @@ export class LoginClient extends InternalClient {
             type: 'player_login',
             nodeId: this.nodeId,
             nodeTime: Date.now(),
+            nodeMembers: Environment.NODE_MEMBERS,
             profile: Environment.NODE_PROFILE,
             username,
             password,
