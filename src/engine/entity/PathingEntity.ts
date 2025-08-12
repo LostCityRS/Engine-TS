@@ -662,10 +662,6 @@ export default abstract class PathingEntity extends Entity {
             return dir;
         }
 
-        if (!Environment.NODE_MEMBERS && !World.gameMap.isFreeToPlay(this.x + dx, this.z + dz)) {
-            return -1;
-        }
-
         // check current direction if can travel to chosen dest.
         if (canTravel(this.level, this.x, this.z, dx, dz, this.width, extraFlag, collisionStrategy)) {
             return dir;
