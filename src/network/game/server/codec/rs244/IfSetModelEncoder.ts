@@ -7,7 +7,7 @@ export default class IfSetModelEncoder extends MessageEncoder<IfSetModel> {
     prot = ServerProt244.IF_SETMODEL;
 
     encode(buf: Packet, message: IfSetModel): void {
-        buf.p2(message.component);
-        buf.p2(message.model);
+        buf.p2_alt3(message.model);
+        buf.p2_alt3(message.component);
     }
 }

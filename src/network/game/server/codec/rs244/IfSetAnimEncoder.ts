@@ -7,7 +7,7 @@ export default class IfSetAnimEncoder extends MessageEncoder<IfSetAnim> {
     prot = ServerProt244.IF_SETANIM;
 
     encode(buf: Packet, message: IfSetAnim): void {
-        buf.p2(message.component);
-        buf.p2(message.seq);
+        buf.p2_alt3(message.component);
+        buf.p2_alt2(message.seq);
     }
 }

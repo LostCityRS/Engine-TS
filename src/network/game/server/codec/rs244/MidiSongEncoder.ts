@@ -7,7 +7,7 @@ export default class MidiSongEncoder extends MessageEncoder<MidiSong> {
     prot = ServerProt244.MIDI_SONG;
 
     encode(buf: Packet, message: MidiSong): void {
-        buf.p2(message.id);
+        buf.p2_alt3(message.id);
     }
 
     test(_message: MidiSong): number {

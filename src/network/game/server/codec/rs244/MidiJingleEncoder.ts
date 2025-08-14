@@ -7,8 +7,8 @@ export default class MidiJingleEncoder extends MessageEncoder<MidiJingle> {
     prot = ServerProt244.MIDI_JINGLE;
 
     encode(buf: Packet, message: MidiJingle): void {
-        buf.p2(message.id);
-        buf.p2(message.delay);
+        buf.p2_alt1(message.id);
+        buf.p3_alt2(message.delay);
     }
 
     test(_message: MidiJingle): number {

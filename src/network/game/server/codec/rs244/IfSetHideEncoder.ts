@@ -7,7 +7,7 @@ export default class IfSetHideEncoder extends MessageEncoder<IfSetHide> {
     prot = ServerProt244.IF_SETHIDE;
 
     encode(buf: Packet, message: IfSetHide): void {
-        buf.p2(message.component);
         buf.pbool(message.hidden);
+        buf.p2(message.component);
     }
 }

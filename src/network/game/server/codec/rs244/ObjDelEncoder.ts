@@ -8,7 +8,7 @@ export default class ObjDelEncoder extends ZoneMessageEncoder<ObjDel> {
     prot = ZoneProt.OBJ_DEL;
 
     encode(buf: Packet, message: ObjDel): void {
-        buf.p1(message.coord);
-        buf.p2(message.obj);
+        buf.p2_alt2(message.obj);
+        buf.p1_alt1(message.coord);
     }
 }

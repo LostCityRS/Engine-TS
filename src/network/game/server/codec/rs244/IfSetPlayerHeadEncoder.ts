@@ -7,6 +7,6 @@ export default class IfSetPlayerHeadEncoder extends MessageEncoder<IfSetPlayerHe
     prot = ServerProt244.IF_SETPLAYERHEAD;
 
     encode(buf: Packet, message: IfSetPlayerHead): void {
-        buf.p2(message.component);
+        buf.p2_alt3(message.component);
     }
 }

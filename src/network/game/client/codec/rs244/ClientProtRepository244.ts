@@ -3,7 +3,6 @@ import ChatSetModeDecoder from '#/network/game/client/codec/rs244/ChatSetModeDec
 import ClientCheatDecoder from '#/network/game/client/codec/rs244/ClientCheatDecoder.js';
 import ClientProt244 from '#/network/game/client/codec/rs244/ClientProt244.js';
 import CloseModalDecoder from '#/network/game/client/codec/rs244/CloseModalDecoder.js';
-import EventTrackingDecoder from '#/network/game/client/codec/rs244/EventTrackingDecoder.js';
 import FriendListAddDecoder from '#/network/game/client/codec/rs244/FriendListAddDecoder.js';
 import FriendListDelDecoder from '#/network/game/client/codec/rs244/FriendListDelDecoder.js';
 import IdleTimerDecoder from '#/network/game/client/codec/rs244/IdleTimerDecoder.js';
@@ -38,7 +37,6 @@ import TutorialClickSideDecoder from '#/network/game/client/codec/rs244/Tutorial
 import ChatSetModeHandler from '#/network/game/client/handler/ChatSetModeHandler.js';
 import ClientCheatHandler from '#/network/game/client/handler/ClientCheatHandler.js';
 import CloseModalHandler from '#/network/game/client/handler/CloseModalHandler.js';
-import EventTrackingHandler from '#/network/game/client/handler/EventTrackingHandler.js';
 import FriendListAddHandler from '#/network/game/client/handler/FriendListAddHandler.js';
 import FriendListDelHandler from '#/network/game/client/handler/FriendListDelHandler.js';
 import IdleTimerHandler from '#/network/game/client/handler/IdleTimerHandler.js';
@@ -134,7 +132,6 @@ export default class ClientProtRepository244 extends ClientProtRepository {
         this.bind(new ResumePCountDialogDecoder(), new ResumePCountDialogHandler());
         this.bind(new TutorialClickSideDecoder(), new TutorialClickSideHandler());
         this.bind(new ChatSetModeDecoder(), new ChatSetModeHandler());
-        this.bind(new EventTrackingDecoder(), new EventTrackingHandler());
         this.bind(new ReportAbuseDecoder(), new ReportAbuseHandler());
     }
 }

@@ -8,8 +8,8 @@ export default class ObjAddEncoder extends ZoneMessageEncoder<ObjAdd> {
     prot = ZoneProt.OBJ_ADD;
 
     encode(buf: Packet, message: ObjAdd): void {
-        buf.p1(message.coord);
         buf.p2(message.obj);
-        buf.p2(Math.min(message.count, 65535));
+        buf.p1_alt2(message.coord);
+        buf.p2_alt2(Math.min(message.count, 65535));
     }
 }

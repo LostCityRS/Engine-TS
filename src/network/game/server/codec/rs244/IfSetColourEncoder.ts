@@ -8,6 +8,6 @@ export default class IfSetColourEncoder extends MessageEncoder<IfSetColour> {
 
     encode(buf: Packet, message: IfSetColour): void {
         buf.p2(message.component);
-        buf.p2(message.colour);
+        buf.p2_alt2(message.colour);
     }
 }

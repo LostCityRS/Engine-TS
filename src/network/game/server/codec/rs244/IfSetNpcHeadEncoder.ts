@@ -7,7 +7,7 @@ export default class IfSetNpcHeadEncoder extends MessageEncoder<IfSetNpcHead> {
     prot = ServerProt244.IF_SETNPCHEAD;
 
     encode(buf: Packet, message: IfSetNpcHead): void {
-        buf.p2(message.component);
-        buf.p2(message.npc);
+        buf.p2_alt2(message.npc);
+        buf.p2_alt1(message.component);
     }
 }

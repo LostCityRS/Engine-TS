@@ -7,6 +7,6 @@ export default class UpdateRebootTimerEncoder extends MessageEncoder<UpdateReboo
     prot = ServerProt244.UPDATE_REBOOT_TIMER;
 
     encode(buf: Packet, message: UpdateRebootTimer): void {
-        buf.p2(message.ticks);
+        buf.p2_alt1(message.ticks);
     }
 }

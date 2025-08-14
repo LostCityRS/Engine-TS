@@ -3,8 +3,6 @@ import CamMoveToEncoder from '#/network/game/server/codec/rs244/CamMoveToEncoder
 import CamResetEncoder from '#/network/game/server/codec/rs244/CamResetEncoder.js';
 import CamShakeEncoder from '#/network/game/server/codec/rs244/CamShakeEncoder.js';
 import ChatFilterSettingsEncoder from '#/network/game/server/codec/rs244/ChatFilterSettingsEncoder.js';
-import EnableTrackingEncoder from '#/network/game/server/codec/rs244/EnableTrackingEncoder.js';
-import FinishTrackingEncoder from '#/network/game/server/codec/rs244/FinishTrackingEncoder.js';
 import HintArrowEncoder from '#/network/game/server/codec/rs244/HintArrowEncoder.js';
 import IfCloseEncoder from '#/network/game/server/codec/rs244/IfCloseEncoder.js';
 import IfOpenChatEncoder from '#/network/game/server/codec/rs244/IfOpenChatEncoder.js';
@@ -70,8 +68,6 @@ import CamMoveTo from '#/network/game/server/model/CamMoveTo.js';
 import CamReset from '#/network/game/server/model/CamReset.js';
 import CamShake from '#/network/game/server/model/CamShake.js';
 import ChatFilterSettings from '#/network/game/server/model/ChatFilterSettings.js';
-import EnableTracking from '#/network/game/server/model/EnableTracking.js';
-import FinishTracking from '#/network/game/server/model/FinishTracking.js';
 import HintArrow from '#/network/game/server/model/HintArrow.js';
 import IfClose from '#/network/game/server/model/IfClose.js';
 import IfOpenChat from '#/network/game/server/model/IfOpenChat.js';
@@ -141,8 +137,6 @@ export default class ServerProtRepository244 extends ServerProtRepository {
         this.bind(CamReset, new CamResetEncoder());
         this.bind(CamShake, new CamShakeEncoder());
         this.bind(ChatFilterSettings, new ChatFilterSettingsEncoder());
-        this.bind(EnableTracking, new EnableTrackingEncoder());
-        this.bind(FinishTracking, new FinishTrackingEncoder());
         this.bind(HintArrow, new HintArrowEncoder());
         this.bind(IfClose, new IfCloseEncoder());
         this.bind(IfOpenChat, new IfOpenChatEncoder());

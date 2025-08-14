@@ -7,8 +7,8 @@ export default class IfSetObjectEncoder extends MessageEncoder<IfSetObject> {
     prot = ServerProt244.IF_SETOBJECT;
 
     encode(buf: Packet, message: IfSetObject): void {
-        buf.p2(message.component);
-        buf.p2(message.obj);
         buf.p2(message.scale);
+        buf.p2_alt1(message.obj);
+        buf.p2_alt3(message.component);
     }
 }

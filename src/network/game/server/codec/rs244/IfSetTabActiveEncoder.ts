@@ -7,6 +7,6 @@ export default class IfSetTabEncoder extends MessageEncoder<IfSetTabActive> {
     prot = ServerProt244.IF_SETTAB_ACTIVE;
 
     encode(buf: Packet, message: IfSetTabActive): void {
-        buf.p1(message.tab);
+        buf.p1_alt2(message.tab);
     }
 }

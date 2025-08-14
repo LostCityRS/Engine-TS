@@ -30,7 +30,7 @@ import StructType from '#/cache/config/StructType.js';
 import VarNpcType from '#/cache/config/VarNpcType.js';
 import VarPlayerType from '#/cache/config/VarPlayerType.js';
 import VarSharedType from '#/cache/config/VarSharedType.js';
-import { CrcBuffer32, makeCrcs } from '#/cache/CrcTable.js';
+import { CrcTable, makeCrcs } from '#/cache/CrcTable.js';
 import WordEnc from '#/cache/wordenc/WordEnc.js';
 import { BlockWalk } from '#/engine/entity/BlockWalk.js';
 import { EntityLifeCycle } from '#/engine/entity/EntityLifeCycle.js';
@@ -931,14 +931,7 @@ class World {
                 }
 
                 player.client.state = 1;
-
-                if (player.staffModLevel >= 2) {
-                    player.client.send(Uint8Array.from([19]));
-                } else if (player.staffModLevel >= 1) {
-                    player.client.send(Uint8Array.from([18]));
-                } else {
-                    player.client.send(Uint8Array.from([2]));
-                }
+                player.client.send(Uint8Array.from([2, 0, 0]));
             }
 
             // insert player into first available slot
@@ -2149,7 +2142,10 @@ class World {
             seed.p4(Math.floor(Math.random() * 0xffffffff));
             client.send(seed.data);
         } else if (client.opcode === 16 || client.opcode === 18) {
-            const rev = World.loginBuf.g1();
+            let rev = World.loginBuf.g1();
+            if (rev === 255) {
+                rev = World.loginBuf.g2();
+            }
             if (rev !== Environment.ENGINE_REVISION) {
                 client.send(Uint8Array.from([6]));
                 client.close();
@@ -2159,13 +2155,16 @@ class World {
             const info = World.loginBuf.g1();
             const lowMemory = (info & 0x1) !== 0;
 
-            const crcs = new Uint8Array(9 * 4);
-            World.loginBuf.gdata(crcs, 0, crcs.length);
+            const crcs = new Array(9 * 4);
+            for (let i = 0; i < 9; i++) {
+                crcs[i] = World.loginBuf.g4s();
 
-            if (CrcBuffer32 !== Packet.getcrc(crcs, 0, crcs.length)) {
-                client.send(Uint8Array.from([6]));
-                client.close();
-                return;
+                if (crcs[i] !== CrcTable[i]) {
+                    console.log(crcs[i], CrcTable[i]);
+                    client.send(Uint8Array.from([6]));
+                    client.close();
+                    return;
+                }
             }
 
             World.loginBuf.rsadec(priv);

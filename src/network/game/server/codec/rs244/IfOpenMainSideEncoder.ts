@@ -7,7 +7,7 @@ export default class IfOpenMainSideEncoder extends MessageEncoder<IfOpenMainSide
     prot = ServerProt244.IF_OPENMAIN_SIDE;
 
     encode(buf: Packet, message: IfOpenMainSide): void {
-        buf.p2(message.main);
-        buf.p2(message.side);
+        buf.p2_alt2(message.main);
+        buf.p2_alt3(message.side);
     }
 }

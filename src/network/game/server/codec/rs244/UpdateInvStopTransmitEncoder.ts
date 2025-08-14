@@ -7,6 +7,6 @@ export default class UpdateInvStopTransmitEncoder extends MessageEncoder<UpdateI
     prot = ServerProt244.UPDATE_INV_STOP_TRANSMIT;
 
     encode(buf: Packet, message: UpdateInvStopTransmit): void {
-        buf.p2(message.component);
+        buf.p2_alt1(message.component);
     }
 }

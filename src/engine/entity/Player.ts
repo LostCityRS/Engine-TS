@@ -34,7 +34,6 @@ import PathingEntity from '#/engine/entity/PathingEntity.js';
 import { PlayerLoading } from '#/engine/entity/PlayerLoading.js';
 import { PlayerQueueRequest, PlayerQueueType, QueueType, ScriptArgument } from '#/engine/entity/PlayerQueueRequest.js';
 import { PlayerStat, PlayerStatEnabled, PlayerStatFree, PlayerStatNameMap } from '#/engine/entity/PlayerStat.js';
-import InputTracking from '#/engine/entity/tracking/InputTracking.js';
 import { WealthEventParams } from '#/engine/entity/tracking/WealthEvent.js';
 import { changeNpcCollision, changePlayerCollision, findNaivePath, reachedEntity, reachedLoc, reachedObj } from '#/engine/GameMap.js';
 import { Inventory, InventoryListener } from '#/engine/Inventory.js';
@@ -304,7 +303,6 @@ export default class Player extends PathingEntity {
 
     // input tracking
     account_id: number = -1;
-    input: InputTracking;
     submitInput: boolean = false;
 
     // runtime variables
@@ -417,7 +415,6 @@ export default class Player extends PathingEntity {
         this.varsString = new Array(VarPlayerType.count);
         this.lastStats.fill(-1);
         this.lastLevels.fill(-1);
-        this.input = new InputTracking(this);
 
         for (let i = 0; i < this.vars.length; i++) {
             const varp = VarPlayerType.get(i);
@@ -1223,7 +1220,6 @@ export default class Player extends PathingEntity {
     }
 
     processInputTracking(): void {
-        this.input.onCycle();
     }
 
     // ----
@@ -1265,7 +1261,8 @@ export default class Player extends PathingEntity {
         const stream = Packet.alloc(0);
 
         stream.p1(this.gender);
-        stream.p1(this.headicons);
+        stream.p1(0xFF); // prayer icon?
+        stream.p1(0xFF); // skull icon?
 
         const skippedSlots = [];
 
@@ -1328,6 +1325,7 @@ export default class Player extends PathingEntity {
 
         stream.p8(this.username37);
         stream.p1(this.combatLevel);
+        stream.p2(0); // skill level
 
         const appearance: Uint8Array = new Uint8Array(stream.pos);
         stream.pos = 0;

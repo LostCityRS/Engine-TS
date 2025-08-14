@@ -8,8 +8,8 @@ export default class LocAddChangeEncoder extends ZoneMessageEncoder<LocAddChange
     prot = ZoneProt.LOC_ADD_CHANGE;
 
     encode(buf: Packet, message: LocAddChange): void {
-        buf.p1(message.coord);
-        buf.p1((message.shape << 2) | (message.angle & 0x3));
-        buf.p2(message.loc);
+        buf.p1_alt2((message.shape << 2) | (message.angle & 0x3));
+        buf.p2_alt3(message.loc);
+        buf.p1_alt1(message.coord);
     }
 }

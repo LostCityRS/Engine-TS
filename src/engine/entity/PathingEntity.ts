@@ -271,7 +271,7 @@ export default abstract class PathingEntity extends Entity {
         }
         level = Math.max(0, Math.min(level, 3));
 
-        if (!isZoneAllocated(level, x, z)) {
+        if (!isZoneAllocated(level, x, z) && (!(this instanceof Player) || this.staffModLevel < 3)) {
             if (this instanceof Player) {
                 this.messageGame('Invalid teleport!');
             }

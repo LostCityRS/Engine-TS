@@ -8,9 +8,9 @@ export default class ObjRevealEncoder extends ZoneMessageEncoder<ObjReveal> {
     prot = ZoneProt.OBJ_REVEAL;
 
     encode(buf: Packet, message: ObjReveal): void {
-        buf.p1(message.coord);
-        buf.p2(message.obj);
-        buf.p2(Math.min(message.count, 65535));
-        buf.p2(message.receiverId);
+        buf.p1_alt1(message.coord);
+        buf.p2_alt3(Math.min(message.count, 65535));
+        buf.p2_alt2(message.obj);
+        buf.p2_alt2(message.receiverId);
     }
 }

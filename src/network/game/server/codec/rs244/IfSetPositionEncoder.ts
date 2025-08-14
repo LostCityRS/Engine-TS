@@ -7,8 +7,8 @@ export default class IfSetPositionEncoder extends MessageEncoder<IfSetPosition> 
     prot = ServerProt244.IF_SETPOSITION;
 
     encode(buf: Packet, message: IfSetPosition): void {
+        buf.p2_alt1(message.y);
+        buf.p2_alt1(message.x);
         buf.p2(message.component);
-        buf.p2(message.x);
-        buf.p2(message.y);
     }
 }

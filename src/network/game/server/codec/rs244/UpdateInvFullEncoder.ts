@@ -15,22 +15,22 @@ export default class UpdateInvFullEncoder extends MessageEncoder<UpdateInvFull> 
 
         // todo: size should be the index of the last non-empty slot
         buf.p2(component);
-        buf.p1(size);
+        buf.p2(size);
         for (let slot = 0; slot < size; slot++) {
             const obj = inv.get(slot);
 
             if (obj) {
-                buf.p2(obj.id + 1);
+                buf.p2_alt3(obj.id + 1);
 
                 if (obj.count >= 255) {
-                    buf.p1(255);
-                    buf.p4(obj.count);
+                    buf.p1_alt2(255);
+                    buf.p4_alt1(obj.count);
                 } else {
-                    buf.p1(obj.count);
+                    buf.p1_alt2(obj.count);
                 }
             } else {
-                buf.p2(0);
-                buf.p1(0);
+                buf.p2_alt3(0);
+                buf.p1_alt2(0);
             }
         }
     }

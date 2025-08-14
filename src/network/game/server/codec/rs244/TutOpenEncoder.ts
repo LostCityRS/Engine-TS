@@ -7,6 +7,6 @@ export default class TutOpenEncoder extends MessageEncoder<TutOpen> {
     prot = ServerProt244.TUT_OPEN;
 
     encode(buf: Packet, message: TutOpen): void {
-        buf.p2(message.component);
+        buf.p2_alt1(message.component);
     }
 }

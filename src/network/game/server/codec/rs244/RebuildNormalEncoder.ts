@@ -7,8 +7,8 @@ export default class RebuildNormalEncoder extends MessageEncoder<RebuildNormal> 
     prot = ServerProt244.REBUILD_NORMAL;
 
     encode(buf: Packet, message: RebuildNormal): void {
-        buf.p2(message.zoneX);
         buf.p2(message.zoneZ);
+        buf.p2_alt3(message.zoneX);
     }
 
     test(_message: RebuildNormal): number {

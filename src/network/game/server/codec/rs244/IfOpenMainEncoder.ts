@@ -7,6 +7,6 @@ export default class IfOpenMainEncoder extends MessageEncoder<IfOpenMain> {
     prot = ServerProt244.IF_OPENMAIN;
 
     encode(buf: Packet, message: IfOpenMain): void {
-        buf.p2(message.component);
+        buf.p2_alt3(message.component);
     }
 }

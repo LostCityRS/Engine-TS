@@ -8,7 +8,7 @@ export default class LocDelEncoder extends ZoneMessageEncoder<LocDel> {
     prot = ZoneProt.LOC_DEL;
 
     encode(buf: Packet, message: LocDel): void {
-        buf.p1(message.coord);
-        buf.p1((message.shape << 2) | (message.angle & 0x3));
+        buf.p1_alt3(message.coord);
+        buf.p1_alt3((message.shape << 2) | (message.angle & 0x3));
     }
 }
