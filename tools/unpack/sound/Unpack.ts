@@ -199,8 +199,8 @@ class Envelope {
 
     unpack(buf: Packet) {
         this.form = buf.g1();
-        this.start = buf.g4();
-        this.end = buf.g4();
+        this.start = buf.g4s();
+        this.end = buf.g4s();
 
         this.length = buf.g1();
         for (let i = 0; i < this.length; i++) {

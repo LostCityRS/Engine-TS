@@ -5,7 +5,6 @@ import zlib from 'zlib';
 import forge from 'node-forge';
 
 import DoublyLinkable from '#/util/DoublyLinkable.js';
-import Environment from '#/util/Environment.js';
 import LinkList from '#/util/LinkList.js';
 
 import PrivateKey = forge.pki.rsa.PrivateKey;
@@ -181,18 +180,12 @@ export default class Packet extends DoublyLinkable {
     }
 
     save(filePath: string, length: number = this.pos, start: number = 0): void {
-        if (Environment.STANDALONE_BUNDLE) {
-            const blob = new Blob([this.data.subarray(start, start + length)], { type: 'application/octet-stream' });
-            const url = URL.createObjectURL(blob);
-            self.postMessage({ type: 'save', value: url, path: filePath });
-        } else {
-            const dir: string = path.dirname(filePath);
-            if (!fs.existsSync(dir)) {
-                fs.mkdirSync(dir, { recursive: true });
-            }
-
-            fs.writeFileSync(filePath, this.data.subarray(start, start + length));
+        const dir: string = path.dirname(filePath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
         }
+
+        fs.writeFileSync(filePath, this.data.subarray(start, start + length));
     }
 
     saveGz(filePath: string, length: number = this.pos, start: number = 0): void {
@@ -235,12 +228,27 @@ export default class Packet extends DoublyLinkable {
     }
 
     g3(): number {
-        const result: number = (this.view.getUint8(this.pos++) << 16) | this.view.getUint16(this.pos);
-        this.pos += 2;
-        return result;
+        this.pos += 3;
+        return (this.data[this.pos - 3] << 16) +
+            (this.data[this.pos - 2] << 8) +
+            this.data[this.pos - 1];
+    }
+
+    g3s() {
+        this.pos += 3;
+        const v = (this.data[this.pos - 3] << 16) +
+            (this.data[this.pos - 2] << 8) +
+            this.data[this.pos - 1];
+        return v > 0xFFFFFF ? v - 0x1000000 : v;
     }
 
     g4(): number {
+        const result: number = this.view.getUint32(this.pos);
+        this.pos += 4;
+        return result;
+    }
+
+    g4s(): number {
         const result: number = this.view.getInt32(this.pos);
         this.pos += 4;
         return result;
@@ -452,6 +460,269 @@ export default class Packet extends DoublyLinkable {
         this.pos = 0;
     }
 
-    // later revs have tinyenc/tinydec methods
-    // later revs have alt methods for packet obfuscation
+    p1_alt1(v: number) {
+        this.data[this.pos++] = (v + 128) & 0xFF;
+    }
+
+    p1_alt2(v: number) {
+        this.data[this.pos++] = (0 - v) & 0xFF;
+    }
+
+    p1_alt3(v: number) {
+        this.data[this.pos++] = (128 - v) & 0xFF;
+    }
+
+    g1_alt1() {
+        return (this.data[this.pos++] - 128) & 0xFF;
+    }
+
+    g1_alt2() {
+        return (0 - this.data[this.pos++]) & 0xFF;
+    }
+
+    g1_alt3() {
+        return (128 - this.data[this.pos++]) & 0xFF;
+    }
+
+    g1b_alt1() {
+        const v = (this.data[this.pos++] - 128) & 0xFF;
+        return v > 127 ? v - 256 : v;
+    }
+
+    g1b_alt2() {
+        const v = (0 - this.data[this.pos++]) & 0xFF;
+        return v > 127 ? v - 256 : v;
+    }
+
+    g1b_alt3() {
+        const v = (128 - this.data[this.pos++]) & 0xFF;
+        return v > 127 ? v - 256 : v;
+    }
+
+    p2_alt1(v: number) {
+        this.data[this.pos++] = v & 0xFF;
+        this.data[this.pos++] = (v >> 8) & 0xFF;
+    }
+
+    p2_alt2(v: number) {
+        this.data[this.pos++] = (v >> 8) & 0xFF;
+        this.data[this.pos++] = (v + 128) & 0xFF;
+    }
+
+    p2_alt3(v: number) {
+        this.data[this.pos++] = (v + 128) & 0xFF;
+        this.data[this.pos++] = (v >> 8) & 0xFF;
+    }
+
+    g2_alt1() {
+        this.pos += 2;
+        return (this.data[this.pos - 1] << 8) +
+            this.data[this.pos - 2];
+    }
+
+    g2_alt2() {
+        this.pos += 2;
+        return (this.data[this.pos - 2] << 8) +
+            ((this.data[this.pos - 1] - 128) & 0xFF);
+    }
+
+    g2_alt3() {
+        this.pos += 2;
+        return (this.data[this.pos - 1] << 8) +
+            ((this.data[this.pos - 2] - 128) & 0xFF);
+    }
+
+    g2s_alt1() {
+        this.pos += 2;
+        const v = (this.data[this.pos - 1] << 8) +
+            this.data[this.pos - 2];
+        return v > 32767 ? v - 65536 : v;
+    }
+
+    g2s_alt2() {
+        this.pos += 2;
+        const v = (this.data[this.pos - 2] << 8) +
+            ((this.data[this.pos - 1] - 128) & 0xFF);
+        return v > 32767 ? v - 65536 : v;
+    }
+
+    g2s_alt3() {
+        this.pos += 2;
+        const v = (this.data[this.pos - 1] << 8) +
+            ((this.data[this.pos - 2] - 128) & 0xFF);
+        return v > 32767 ? v - 65536 : v;
+    }
+
+    p3_alt1(v: number) {
+        this.data[this.pos++] = v & 0xFF;
+        this.data[this.pos++] = (v >> 8) & 0xFF;
+        this.data[this.pos++] = (v >> 16) & 0xFF;
+    }
+
+    p3_alt2(v: number) {
+        this.data[this.pos++] = (v >> 16) & 0xFF;
+        this.data[this.pos++] = v & 0xFF;
+        this.data[this.pos++] = (v >> 8) & 0xFF;
+    }
+
+    p3_alt3(v: number) {
+        this.data[this.pos++] = (v >> 8) & 0xFF;
+        this.data[this.pos++] = (v >> 16) & 0xFF;
+        this.data[this.pos++] = v & 0xFF;
+    }
+
+    g3_alt1() {
+        this.pos += 3;
+        return ((this.data[this.pos - 1] & 0xFF) << 16) +
+            ((this.data[this.pos - 2] & 0xFF) << 8) +
+            (this.data[this.pos - 3] & 0xFF);
+    }
+
+    g3_alt2() {
+        this.pos += 3;
+        return ((this.data[this.pos - 3] & 0xFF) << 16) +
+            ((this.data[this.pos - 1] & 0xFF) << 8) +
+            (this.data[this.pos - 2] & 0xFF);
+    }
+
+    g3_alt3() {
+        this.pos += 3;
+        return ((this.data[this.pos - 2] & 0xFF) << 16) +
+            ((this.data[this.pos - 3] & 0xFF) << 8) +
+            (this.data[this.pos - 1] & 0xFF);
+    }
+
+    g3s_alt1() {
+        this.pos += 3;
+        const v = ((this.data[this.pos - 1] & 0xFF) << 16) + 
+            ((this.data[this.pos - 2] & 0xFF) << 8) +
+            (this.data[this.pos - 3] & 0xFF);
+        return v > 0xFFFFFF ? v - 0x1000000 : v;
+    }
+
+    g3s_alt2() {
+        this.pos += 3;
+        const v = ((this.data[this.pos - 3] & 0xFF) << 16) +
+            ((this.data[this.pos - 1] & 0xFF) << 8) +
+            (this.data[this.pos - 2] & 0xFF);
+        return v > 0xFFFFFF ? v - 0x1000000 : v;
+    }
+
+    g3s_alt3() {
+        this.pos += 3;
+        const v = ((this.data[this.pos - 2] & 0xFF) << 16) +
+            ((this.data[this.pos - 3] & 0xFF) << 8) + 
+            (this.data[this.pos - 1] & 0xFF);
+        return v > 0xFFFFFF ? v - 0x1000000 : v;
+    }
+
+    p4_alt1(v: number) {
+        this.data[this.pos++] = v & 255;
+        this.data[this.pos++] = (v >> 8) & 255;
+        this.data[this.pos++] = (v >> 16) & 255;
+        this.data[this.pos++] = (v >> 24) & 255;
+    }
+
+    p4_alt2(v: number) {
+        this.data[this.pos++] = (v >> 8) & 255;
+        this.data[this.pos++] = v & 255;
+        this.data[this.pos++] = (v >> 24) & 255;
+        this.data[this.pos++] = (v >> 16) & 255;
+    }
+
+    p4_alt3(v: number) {
+        this.data[this.pos++] = (v >> 16) & 255;
+        this.data[this.pos++] = (v >> 24) & 255;
+        this.data[this.pos++] = v & 255;
+        this.data[this.pos++] = (v >> 8) & 255;
+    }
+
+    g4_alt1() {
+        this.pos += 4;
+        return ((this.data[this.pos - 1] & 255) << 24) +
+            ((this.data[this.pos - 2] & 255) << 16) +
+            ((this.data[this.pos - 3] & 255) << 8) +
+            (this.data[this.pos - 4] & 255);
+    }
+
+    g4_alt2() {
+        this.pos += 4;
+        return ((this.data[this.pos - 2] & 255) << 24) +
+            ((this.data[this.pos - 1] & 255) << 16) +
+            ((this.data[this.pos - 4] & 255) << 8) +
+            (this.data[this.pos - 3] & 255);
+    }
+
+    g4_alt3() {
+        this.pos += 4;
+        return ((this.data[this.pos - 3] & 255) << 24) +
+            ((this.data[this.pos - 4] & 255) << 16) +
+            ((this.data[this.pos - 1] & 255) << 8) +
+            (this.data[this.pos - 2] & 255);
+    }
+
+    g4s_alt1() {
+        this.pos += 4;
+        const i = ((this.data[this.pos - 1] & 255) << 24) +
+            ((this.data[this.pos - 2] & 255) << 16) +
+            ((this.data[this.pos - 3] & 255) << 8) +
+            (this.data[this.pos - 4] & 255);
+        return i > 0x7FFFFFFF ? i - 0x100000000 : i;
+    }
+
+    g4s_alt2() {
+        this.pos += 4;
+        const i = ((this.data[this.pos - 2] & 255) << 24) +
+            ((this.data[this.pos - 1] & 255) << 16) +
+            ((this.data[this.pos - 4] & 255) << 8) +
+            (this.data[this.pos - 3] & 255);
+        return i > 0x7FFFFFFF ? i - 0x100000000 : i;
+    }
+
+    g4s_alt3() {
+        this.pos += 4;
+        const i = ((this.data[this.pos - 3] & 255) << 24) +
+            ((this.data[this.pos - 4] & 255) << 16) +
+            ((this.data[this.pos - 1] & 255) << 8) +
+            (this.data[this.pos - 2] & 255);
+        return i > 0x7FFFFFFF ? i - 0x100000000 : i;
+    }
+
+    // todo: g8/p8 has alt methods too
+
+    pdata_alt1(src: Uint8Array, off: number, len: number) {
+        for (let i = off + len - 1; i >= off; i--) {
+            this.data[this.pos++] = src[i];
+        }
+    }
+
+    pdata_alt2(src: Uint8Array, off: number, len: number) {
+        for (let i = off; i < off + len; i++) {
+            this.data[this.pos++] = (src[i] + 128) & 0xFF;
+        }
+    }
+
+    pdata_alt3(src: Uint8Array, off: number, len: number) {
+        for (let i = off + len - 1; i >= off; i--) {
+            this.data[this.pos++] = (src[i] + 128) & 0xFF;
+        }
+    }
+
+    gdata_alt1(dst: Uint8Array, off: number, len: number) {
+        for (let i = len - 1; i >= off; i--) {
+            dst[i] = this.data[this.pos++];
+        }
+    }
+
+    gdata_alt2(dst: Uint8Array, off: number, len: number) {
+        for (let i = off; i < len; i++) {
+            dst[i] = (this.data[this.pos++] - 128) & 0xFF;
+        }
+    }
+
+    gdata_alt3(dst: Uint8Array, off: number, len: number) {
+        for (let i = len - 1; i >= off; i--) {
+            dst[i] = (this.data[this.pos++] - 128) & 0xFF;
+        }
+    }
 }

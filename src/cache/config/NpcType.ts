@@ -235,7 +235,7 @@ export default class NpcType extends ConfigType {
             this.patrolDelay = new Array(count);
 
             for (let j = 0; j < count; j++) {
-                this.patrolCoord[j] = dat.g4();
+                this.patrolCoord[j] = dat.g4s();
                 this.patrolDelay[j] = dat.g1();
             }
         } else if (code === 213) {

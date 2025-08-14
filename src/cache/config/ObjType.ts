@@ -208,7 +208,7 @@ export default class ObjType extends ConfigType {
         } else if (code === 11) {
             this.stackable = true;
         } else if (code === 12) {
-            this.cost = dat.g4();
+            this.cost = dat.g4s();
         } else if (code === 13) {
             this.wearpos = dat.g1();
         } else if (code === 14) {

@@ -33,7 +33,7 @@ export const ParamHelper = {
             if (isString) {
                 params.set(key, dat.gjstr());
             } else {
-                params.set(key, dat.g4());
+                params.set(key, dat.g4s());
             }
         }
         return params;

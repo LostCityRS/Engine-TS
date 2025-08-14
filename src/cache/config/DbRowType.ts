@@ -124,7 +124,7 @@ export default class DbRowType extends ConfigType {
                 if (type === ScriptVarType.STRING) {
                     values[index] = dat.gjstr();
                 } else {
-                    values[index] = dat.g4();
+                    values[index] = dat.g4s();
                 }
             }
         }

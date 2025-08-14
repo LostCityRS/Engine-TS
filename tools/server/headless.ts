@@ -40,7 +40,7 @@ function connectTcp(username: string, host = '127.0.0.1', port = 43594) {
             const buf = new Packet(data);
 
             if (state === -1) {
-                const seed = [Math.trunc(Math.random() * 9.9999999e7), Math.trunc(Math.random() * 9.9999999e7), buf.g4(), buf.g4()];
+                const seed = [Math.trunc(Math.random() * 9.9999999e7), Math.trunc(Math.random() * 9.9999999e7), buf.g4s(), buf.g4s()];
 
                 const out = Packet.alloc(1);
                 out.p1(10);

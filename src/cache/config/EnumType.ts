@@ -83,18 +83,18 @@ export default class EnumType extends ConfigType {
         } else if (code === 3) {
             this.defaultString = dat.gjstr();
         } else if (code === 4) {
-            this.defaultInt = dat.g4();
+            this.defaultInt = dat.g4s();
         } else if (code === 5) {
             const count = dat.g2();
 
             for (let i = 0; i < count; i++) {
-                this.values.set(dat.g4(), dat.gjstr());
+                this.values.set(dat.g4s(), dat.gjstr());
             }
         } else if (code === 6) {
             const count = dat.g2();
 
             for (let i = 0; i < count; i++) {
-                this.values.set(dat.g4(), dat.g4());
+                this.values.set(dat.g4s(), dat.g4s());
             }
         } else if (code === 250) {
             this.debugname = dat.gjstr();

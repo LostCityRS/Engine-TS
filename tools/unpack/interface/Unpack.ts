@@ -191,12 +191,12 @@ class IfType {
             }
 
             if (com.comType === ComponentType.TYPE_UNUSED || com.comType === ComponentType.TYPE_RECT || com.comType === ComponentType.TYPE_TEXT) {
-                com.colour = dat.g4();
+                com.colour = dat.g4s();
             }
 
             if (com.comType === ComponentType.TYPE_RECT || com.comType === ComponentType.TYPE_TEXT) {
-                com.activeColour = dat.g4();
-                com.overColour = dat.g4();
+                com.activeColour = dat.g4s();
+                com.overColour = dat.g4s();
             }
 
             if (com.comType === ComponentType.TYPE_GRAPHIC) {
@@ -239,7 +239,7 @@ class IfType {
                 com.font = dat.g1();
 
                 com.shadowed = dat.gbool();
-                com.colour = dat.g4();
+                com.colour = dat.g4s();
                 com.marginX = dat.g2s();
                 com.marginY = dat.g2s();
                 com.interactable = dat.gbool();

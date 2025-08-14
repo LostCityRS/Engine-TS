@@ -63,7 +63,7 @@ export default class Jagfile {
 
         let pos: number = src.pos + this.fileCount * 10;
         for (let i: number = 0; i < this.fileCount; i++) {
-            this.fileHash[i] = src.g4();
+            this.fileHash[i] = src.g4s();
             const hashMatch: number = KNOWN_HASHES.findIndex((x: number): boolean => x === this.fileHash[i]);
             if (hashMatch !== -1) {
                 this.fileName[i] = KNOWN_NAMES[hashMatch];

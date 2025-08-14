@@ -53,7 +53,7 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
         } else if (code === 11) {
             def.push('stackable=yes');
         } else if (code === 12) {
-            const cost = dat.g4();
+            const cost = dat.g4s();
             def.push(`cost=${cost}`);
         } else if (code === 16) {
             def.push('members=yes');
