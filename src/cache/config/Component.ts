@@ -60,8 +60,6 @@ export default class Component {
             com.id = id;
             com.rootLayer = rootLayer;
 
-            console.log(id);
-
             com.comName = dat.gjstr();
             com.overlay = dat.gbool();
 
@@ -243,8 +241,6 @@ export default class Component {
                     com.option = dat.gjstr();
                     break;
             }
-
-            console.log(com);
 
             Component.components[id] = com;
 
