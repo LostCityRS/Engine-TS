@@ -8,6 +8,8 @@ import { NpcMode } from '#/engine/entity/NpcMode.js';
 import { NpcStat } from '#/engine/entity/NpcStat.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
+import { printFatalError } from '#/util/Logger.js';
+import kleur from 'kleur';
 
 export default class NpcType extends ConfigType {
     static configNames = new Map();
@@ -102,6 +104,11 @@ export default class NpcType extends ConfigType {
     ambient = 0;
     contrast = 0;
     headicon = -1;
+    turnspeed = 32;
+    multivarbit = -1;
+    multivarp = -1;
+    multinpc: number[] = [];
+    active = true;
 
     // server-side
     regenRate = 100;
@@ -206,6 +213,22 @@ export default class NpcType extends ConfigType {
             this.contrast = dat.g1b();
         } else if (code === 102) {
             this.headicon = dat.g1();
+        } else if (code === 103) {
+            this.turnspeed = dat.g2();
+        } else if (code === 106) {
+            this.multivarbit = dat.g2();
+            this.multivarp = dat.g2();
+
+            const count = dat.g1();
+            this.multinpc = new Array(count + 1);
+            for (let i = 0; i <= count; i++) {
+                this.multinpc[i] = dat.g2();
+                if (this.multinpc[i] === 65535) {
+                    this.multinpc[i] = -1;
+                }
+            }
+        } else if (code === 107) {
+            this.active = false;
         } else if (code === 200) {
             this.wanderrange = dat.g1();
         } else if (code === 201) {
@@ -245,7 +268,7 @@ export default class NpcType extends ConfigType {
         } else if (code === 250) {
             this.debugname = dat.gjstr();
         } else {
-            throw new Error(`Unrecognized npc config code: ${code}`);
+            printFatalError(`Unrecognized npc config code: ${code}\nThis error comes from the packed data being out of sync, try running ` + kleur.green().bold('npm run build') + ', then restarting this.');
         }
     }
 }

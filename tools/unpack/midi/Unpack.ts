@@ -14,6 +14,9 @@ if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/songs`)) {
 
 const cache = new FileStream('data/unpack', false, true);
 
+fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/jingles`, { recursive: true });
+fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/songs`, { recursive: true });
+
 const existing = [...listFilesExt(`${Environment.BUILD_SRC_DIR}/songs`, '.mid'), ...listFilesExt(`${Environment.BUILD_SRC_DIR}/jingles`, '.mid')];
 const crcs: Map<number, string> = new Map();
 

@@ -4,7 +4,7 @@ import FileStream from '#/io/FileStream.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import { printFatalError, printInfo } from '#/util/Logger.js';
-import { LocPack, NpcPack, ObjPack, SeqPack } from '#/util/PackFile.js';
+import { FloPack, IdkPack, LocPack, NpcPack, ObjPack, SeqPack, SpotAnimPack, VarbitPack, VarpPack } from '#/util/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 import { unpackSeqConfig } from './SeqConfig.js';
@@ -12,6 +12,11 @@ import Environment from '#/util/Environment.js';
 import { unpackNpcConfig } from './NpcConfig.js';
 import { unpackLocConfig } from './LocConfig.js';
 import { unpackObjConfig } from './ObjConfig.js';
+import { unpackIdkConfig } from './IdkConfig.js';
+import { unpackFloConfig } from './FloConfig.js';
+import { unpackVarpConfig } from './VarpPack.js';
+import { unpackVarbitConfig } from './VarbitPack.js';
+import { unpackSpotAnimType } from './SpotAnimType.js';
 
 function readConfigIdx(idx: Packet | null, dat: Packet | null): ConfigIdx {
     if (!idx || !dat) {
@@ -47,6 +52,16 @@ function unpackConfigNames(type: string, config: Jagfile) {    let pack = null;
         pack = ObjPack;
     } else if (type === 'seq') {
         pack = SeqPack;
+    } else if (type === 'idk') {
+        pack = IdkPack;
+    } else if (type === 'flo') {
+        pack = FloPack;
+    } else if (type === 'varp') {
+        pack = VarpPack;
+    } else if (type === 'varbit') {
+        pack = VarbitPack;
+    } else if (type === 'spotanim') {
+        pack = SpotAnimPack;
     }
 
     if (!pack) {
@@ -61,6 +76,35 @@ function unpackConfigNames(type: string, config: Jagfile) {    let pack = null;
         }
     }
     pack.save();
+}
+
+function reorderUnpacked(config: string[], descLast: boolean = true) {
+    const debugname: string[] = [];
+    const others: string[] = [];
+
+    // these properties get encoded last, and for readability we want them first
+    // every other property is the source order
+    const name: string[] = [];
+    const desc: string[] = [];
+    const model: string[] = [];
+    const recol: string[] = [];
+
+    for (const line of config) {
+        if (line.startsWith('[')) {
+            debugname.push(line);
+        } else if (line.startsWith('name=')) {
+            name.push(line);
+        } else if (line.startsWith('desc=') && descLast) {
+            desc.push(line);
+        } else if (line.startsWith('unpacked_') || line.startsWith('unpacked2_') || line.startsWith('model')) {
+            model.push(line);
+        } else if (line.startsWith('recol')) {
+            recol.push(line);
+        } else if (!line.startsWith('hasalpha=')){
+            others.push(line);
+        }
+    }
+    return [...debugname, ...name, ...desc, ...model, ...recol, ...others];
 }
 
 type UnpackConfigImpl = (source: ConfigIdx, id: number) => string[];
@@ -82,26 +126,34 @@ function unpackConfig(revision: string, type: string, unpack: UnpackConfigImpl, 
     fs.writeFileSync(out, '');
 
     for (let id = 0; id < sourceIdx.size; id++) {
-        const unpacked = unpack(sourceIdx, id);
+        const unpacked = reorderUnpacked(unpack(sourceIdx, id));
         unpacked.push('');
 
         if (compareIdx) {
             if (id < compareIdx.size) {
-                const unpacked2 = unpack(compareIdx, id);
+                const unpacked2 = reorderUnpacked(unpack(compareIdx, id));
                 unpacked2.push('');
 
-                if (sourceIdx.len[id] !== compareIdx.len[id]) {
-                    fs.appendFileSync(`${out}.merge`, unpacked.join('\n') + '\n');
-                    fs.appendFileSync(`${out}.merge`, unpacked2.join('\n') + '\n\n');
-                } else {
-                    for (let i = 0; i < unpacked2.length; i++) {
-                        if (unpacked[i] !== unpacked2[i]) {
-                            fs.appendFileSync(`${out}.merge`, unpacked.join('\n') + '\n');
-                            fs.appendFileSync(`${out}.merge`, unpacked2.join('\n') + '\n\n');
-                            break;
-                        }
+                for (let i = 0; i < unpacked2.length; i++) {
+                    if (unpacked[i] !== unpacked2[i]) {
+                        fs.appendFileSync(`${out}.merge`, '// --------\n' + unpacked.join('\n') + '\n');
+                        fs.appendFileSync(`${out}.merge`, unpacked2.join('\n') + '\n');
+                        break;
                     }
                 }
+
+                // if (sourceIdx.len[id] !== compareIdx.len[id]) {
+                //     fs.appendFileSync(`${out}.merge`, unpacked.join('\n') + '\n');
+                //     fs.appendFileSync(`${out}.merge`, unpacked2.join('\n') + '\n\n');
+                // } else {
+                //     for (let i = 0; i < unpacked2.length; i++) {
+                //         if (unpacked[i] !== unpacked2[i]) {
+                //             fs.appendFileSync(`${out}.merge`, unpacked.join('\n') + '\n');
+                //             fs.appendFileSync(`${out}.merge`, unpacked2.join('\n') + '\n\n');
+                //             break;
+                //         }
+                //     }
+                // }
             } else {
                 fs.appendFileSync(out, unpacked.join('\n') + '\n');
             }
@@ -125,13 +177,13 @@ function unpackConfigs(revision: string) {
     const config = new Jagfile(new Packet(temp));
 
     let config2;
-    if (fs.existsSync('data/pack/main_file_cache.dat')) {
-        const cache2 = new FileStream('data/pack');
-        const temp = cache2.read(0, 2);
-        if (temp) {
-            config2 = new Jagfile(new Packet(temp));
-        }
-    }
+    // if (fs.existsSync('data/pack/main_file_cache.dat')) {
+    //     const cache2 = new FileStream('data/pack');
+    //     const temp = cache2.read(0, 2);
+    //     if (temp) {
+    //         config2 = new Jagfile(new Packet(temp));
+    //     }
+    // }
 
     printInfo(`Unpacking rev ${revision} into ${Environment.BUILD_SRC_DIR}/scripts`);
 
@@ -139,13 +191,23 @@ function unpackConfigs(revision: string) {
     unpackConfigNames('npc', config);
     unpackConfigNames('obj', config);
     unpackConfigNames('seq', config);
+    unpackConfigNames('idk', config);
+    unpackConfigNames('flo', config);
+    unpackConfigNames('spotanim', config);
+    unpackConfigNames('varp', config);
+    unpackConfigNames('varbit', config);
 
     unpackConfig(revision, 'loc', unpackLocConfig, config, config2);
     unpackConfig(revision, 'npc', unpackNpcConfig, config, config2);
     unpackConfig(revision, 'obj', unpackObjConfig, config, config2);
     unpackConfig(revision, 'seq', unpackSeqConfig, config, config2);
+    unpackConfig(revision, 'idk', unpackIdkConfig, config, config2);
+    unpackConfig(revision, 'flo', unpackFloConfig, config, config2);
+    unpackConfig(revision, 'spotanim', unpackSpotAnimType, config, config2);
+    unpackConfig(revision, 'varp', unpackVarpConfig, config, config2);
+    unpackConfig(revision, 'varbit', unpackVarbitConfig, config, config2);
 
     printInfo('Done! Manual post processing may be required.');
 }
 
-unpackConfigs('244');
+unpackConfigs('377');

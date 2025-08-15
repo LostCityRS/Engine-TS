@@ -150,9 +150,8 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
             const objId = dat.g2();
             const count = dat.g2();
 
-            const obj = ObjPack.getById(objId) || 'obj_' + objId;
-            def.push(`countobj${index}=${obj}`);
-            def.push(`countco${index}=${count}`);
+            const objName = ObjPack.getById(objId) || 'obj_' + objId;
+            def.push(`count${index}=${objName},${count}`);
         } else if (code === 110) {
             const resizex = dat.g2();
             def.push(`resizex=${resizex}`);
@@ -168,6 +167,9 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
         } else if (code === 114) {
             const contrast = dat.g1b();
             def.push(`contrast=${contrast}`);
+        } else if (code === 115) {
+            const team = dat.g1();
+            def.push(`team=${team}`);
         } else {
             printWarning(`unknown obj code ${code}`);
         }

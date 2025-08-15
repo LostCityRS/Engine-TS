@@ -1,6 +1,6 @@
 import ColorConversion from '#/util/ColorConversion.js';
-import { printWarning } from '#/util/Logger.js';
-import { LocPack, ModelPack, SeqPack } from '#/util/PackFile.js';
+import { printFatalError, printWarning } from '#/util/Logger.js';
+import { LocPack, ModelPack, SeqPack, VarbitPack, VarpPack } from '#/util/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 
@@ -37,24 +37,33 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
     const def: string[] = [];
     def.push(`[${LocPack.getById(id)}]`);
 
+    let decodedModels = false;
+    let lastCode = 0;
+
     while (true) {
         const code = dat.g1();
         if (code === 0) {
             break;
         }
 
-        if (code === 1) {
+        if (code === 1 || code === 5) {
             const count = dat.g1();
 
             for (let i = 0; i < count; i++) {
                 const index = i + 1;
                 const modelId = dat.g2();
-                const shape = dat.g1();
+                const shape = code === 1 ? dat.g1() : 10;
 
+                // this needs to be post-processed to become a single model line!
                 const model = ModelPack.getById(modelId) || 'model_' + modelId;
-                def.push(`model${index}=${model},${LocShapeSuffix[shape]}`);
-                // the comma is intentional as this needs to be post-processed to become a single model line!
+                if (!decodedModels) {
+                    def.push(`unpacked_${index}=${model},${LocShapeSuffix[shape]}`);
+                } else {
+                    def.push(`unpacked2_${index}=${model},${LocShapeSuffix[shape]}`);
+                }
             }
+
+            decodedModels = true;
         } else if (code === 2) {
             const name = dat.gjstr();
             def.push(`name=${name}`);
@@ -150,19 +159,47 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
 
             def.push(`forceapproach=${forceapproach}`);
         } else if (code === 70) {
-            const xoff = dat.g2s();
-            def.push(`xoff=${xoff}`);
+            const offsetx = dat.g2s();
+            def.push(`offsetx=${offsetx}`);
         } else if (code === 71) {
-            const yoff = dat.g2s();
-            def.push(`yoff=${yoff}`);
+            const offsety = dat.g2s();
+            def.push(`offsety=${offsety}`);
         } else if (code === 72) {
-            const zoff = dat.g2s();
-            def.push(`zoff=${zoff}`);
+            const offsetz = dat.g2s();
+            def.push(`offsetz=${offsetz}`);
         } else if (code === 73) {
             def.push('forcedecor=yes');
+        } else if (code === 74) {
+            def.push('breakroutefinding=yes');
+        } else if (code === 75) {
+            const raiseobject = dat.gbool();
+            def.push(`raiseobject=${raiseobject ? 'yes' : 'no'}`);
+        } else if (code === 77) {
+            const varbit = dat.g2();
+            const varp = dat.g2();
+
+            if (varbit === 65535) {
+                const name = VarpPack.getById(varp) || 'varp_' + varp;
+                def.push(`multivar=${name}`);
+            } else {
+                const name = VarbitPack.getById(varbit) || 'varbit_' + varbit;
+                def.push(`multivar=${name}`);
+            }
+
+            const states = dat.g1();
+            for (let i = 0; i <= states; i++) {
+                const multiloc = dat.g2();
+
+                if (multiloc !== 65535) {
+                    const name = LocPack.getById(multiloc) || 'loc_' + multiloc;
+                    def.push(`multiloc=${i},${name}`);
+                }
+            }
         } else {
-            printWarning(`unknown loc code ${code}`);
+            printFatalError(`unknown loc code ${code}, last code ${lastCode}`);
         }
+
+        lastCode = code;
     }
 
     if (dat.pos !== pos[id] + len[id]) {

@@ -7,6 +7,7 @@ import Environment from '#/util/Environment.js';
 import { printFatalError, printWarning } from '#/util/Logger.js';
 import { PackFile } from '#/util/PackFileBase.js';
 import { listFilesExt } from '#/util/Parse.js';
+import { VarbitPack } from '#/util/PackFile.js';
 
 export const InterfacePack = new PackFile('interface');
 export const ObjPack = new PackFile('obj');
@@ -53,8 +54,8 @@ const STATS = [
     'herblore',
     'agility',
     'thieving',
-    'stat18',
-    'stat19',
+    'slayer',
+    'farming',
     'runecraft'
 ];
 
@@ -90,7 +91,7 @@ class IfType {
             com.clientCode = dat.g2();
             com.width = dat.g2();
             com.height = dat.g2();
-            com.alpha = dat.g1();
+            com.trans = dat.g1();
 
             com.overLayer = dat.g1();
             if (com.overLayer === 0) {
@@ -149,6 +150,7 @@ class IfType {
                 com.draggable = dat.gbool();
                 com.interactable = dat.gbool();
                 com.usable = dat.gbool();
+                com.swappable = dat.gbool();
                 com.marginX = dat.g1();
                 com.marginY = dat.g1();
 
@@ -197,6 +199,7 @@ class IfType {
             if (com.comType === ComponentType.TYPE_RECT || com.comType === ComponentType.TYPE_TEXT) {
                 com.activeColour = dat.g4s();
                 com.overColour = dat.g4s();
+                com.activeOverColour = dat.g4s();
             }
 
             if (com.comType === ComponentType.TYPE_GRAPHIC) {
@@ -253,6 +256,10 @@ class IfType {
                         com.iops[i] = null;
                     }
                 }
+            }
+
+            if (com.comType === 8) {
+                com.text = dat.gjstr();
             }
 
             if (com.buttonType === ButtonType.BUTTON_TARGET || com.comType === ComponentType.TYPE_INV) {
@@ -365,6 +372,9 @@ class IfType {
                 case 7:
                     temp.push('type=invtext');
                     break;
+                case 8:
+                    temp.push('type=8');
+                    break;
                 default:
                     printWarning(`Unknown comType: ${this.comType} when packing ${this.id} ${InterfacePack.getById(this.id)}`);
                     break;
@@ -406,16 +416,14 @@ class IfType {
                 temp.push(`height=${this.height}`);
             }
 
-            if (this.alpha) {
-                temp.push(`alpha=${this.alpha}`);
+            if (this.trans) {
+                temp.push(`trans=${this.trans}`);
             }
 
             if (this.overLayer !== -1) {
                 temp.push(`overlayer=${InterfacePack.getById(this.overLayer).split(':')[1]}`);
             }
         }
-
-        // todo: scripts
 
         if (this.script) {
             for (let i = 0; i < this.script.length; i++) {
@@ -477,10 +485,10 @@ class IfType {
                         case 7:
                             str += 'op7';
                             break;
-                        case 8:
+                        case 8: // combat level
                             str += 'op8';
                             break;
-                        case 9:
+                        case 9: // total level
                             str += 'op9';
                             break;
                         case 10: {
@@ -501,32 +509,63 @@ class IfType {
                             str += `testbit,${VarpPack.getById(varp) || 'varp_' + varp},${bit}`;
                             break;
                         }
+                        case 14: {
+                            const varbit = popStack();
+                            str += `push_varbit,${VarbitPack.getById(varbit) || 'varbit_' + varbit}`;
+                            break;
+                        }
+                        case 15:
+                            str += 'subtract';
+                            break;
+                        case 16:
+                            str += 'divide';
+                            break;
+                        case 17:
+                            str += 'multiply';
+                            break;
+                        case 18:
+                            str += 'coordx';
+                            break;
+                        case 19:
+                            str += 'coordz';
+                            break;
+                        case 20: {
+                            const value = popStack();
+                            str += `push_constant,${value}`;
+                            break;
+                        }
+                        default:
+                            printFatalError('Unknown script opcode: ' + op);
+                            break;
                     }
 
                     temp.push(str);
                 }
+            }
+        }
 
-                if (this.scriptComparator && this.scriptComparator[i] && this.scriptOperand) {
-                    let str = `script${i + 1}=`;
+        if (this.scriptComparator && this.scriptOperand) {
+            // script can be absent if the comparator was left in
+            for (let i = 0; i < this.scriptComparator.length; i++) {
+                let str = `script${i + 1}=`;
 
-                    switch (this.scriptComparator[i]) {
-                        case 1:
-                            str += 'eq';
-                            break;
-                        case 2:
-                            str += 'lt';
-                            break;
-                        case 3:
-                            str += 'gt';
-                            break;
-                        case 4:
-                            str += 'neq';
-                            break;
-                    }
-
-                    str += `,${this.scriptOperand[i]}`;
-                    temp.push(str);
+                switch (this.scriptComparator[i]) {
+                    case 1:
+                        str += 'eq';
+                        break;
+                    case 2:
+                        str += 'lt';
+                        break;
+                    case 3:
+                        str += 'gt';
+                        break;
+                    case 4:
+                        str += 'neq';
+                        break;
                 }
+
+                str += `,${this.scriptOperand[i]}`;
+                temp.push(str);
             }
         }
 
@@ -553,13 +592,17 @@ class IfType {
                 temp.push('usable=yes');
             }
 
+            if (this.swappable) {
+                temp.push('swappable=yes');
+            }
+
             if (this.marginX || this.marginY) {
                 temp.push(`margin=${this.marginX},${this.marginY}`);
             }
 
             if (this.invSlotSprite && this.invSlotOffsetX && this.invSlotOffsetY) {
                 for (let i = 0; i < 20; i++) {
-                    if (this.invSlotSprite[i]) {
+                    if (typeof this.invSlotSprite[i] !== 'undefined') {
                         if (this.invSlotOffsetX[i] || this.invSlotOffsetY[i]) {
                             temp.push(`slot${i + 1}=${this.invSlotSprite[i]}:${this.invSlotOffsetX[i]},${this.invSlotOffsetY[i]}`);
                         } else {
@@ -591,16 +634,16 @@ class IfType {
 
             switch (this.font) {
                 case 0:
-                    temp.push('font=p11');
+                    temp.push('font=p11_full');
                     break;
                 case 1:
-                    temp.push('font=p12');
+                    temp.push('font=p12_full');
                     break;
                 case 2:
-                    temp.push('font=b12');
+                    temp.push('font=b12_full');
                     break;
                 case 3:
-                    temp.push('font=q8');
+                    temp.push('font=q8_full');
                     break;
             }
 
@@ -632,6 +675,10 @@ class IfType {
 
             if (this.overColour) {
                 temp.push(`overcolour=0x${this.overColour.toString(16).toUpperCase().padStart(6, '0')}`);
+            }
+
+            if (this.activeOverColour) {
+                temp.push(`activeovercolour=0x${this.activeOverColour.toString(16).toUpperCase().padStart(6, '0')}`);
             }
         }
 
@@ -682,16 +729,16 @@ class IfType {
 
             switch (this.font) {
                 case 0:
-                    temp.push('font=p11');
+                    temp.push('font=p11_full');
                     break;
                 case 1:
-                    temp.push('font=p12');
+                    temp.push('font=p12_full');
                     break;
                 case 2:
-                    temp.push('font=b12');
+                    temp.push('font=b12_full');
                     break;
                 case 3:
-                    temp.push('font=q8');
+                    temp.push('font=q8_full');
                     break;
             }
 
@@ -709,7 +756,7 @@ class IfType {
 
             if (this.invSlotSprite && this.invSlotOffsetX && this.invSlotOffsetY) {
                 for (let i = 0; i < 20; i++) {
-                    if (this.invSlotSprite[i]) {
+                    if (typeof this.invSlotSprite[i] !== 'undefined') {
                         if (this.invSlotOffsetX[i] || this.invSlotOffsetY[i]) {
                             temp.push(`slot${i + 1}=${this.invSlotSprite[i]}:${this.invSlotOffsetX[i]},${this.invSlotOffsetY[i]}`);
                         } else {
@@ -725,6 +772,12 @@ class IfType {
                         temp.push(`option${i + 1}=${this.iops[i]}`);
                     }
                 }
+            }
+        }
+
+        if (this.comType === 8) {
+            if (this.text) {
+                temp.push(`text=${this.text}`);
             }
         }
 
@@ -787,7 +840,7 @@ class IfType {
     clientCode: number = 0;
     width: number = 0;
     height: number = 0;
-    alpha: number = 0;
+    trans: number = 0;
     overLayer: number = -1;
     scriptComparator: Uint8Array | null = null;
     scriptOperand: Uint16Array | null = null;
@@ -797,6 +850,7 @@ class IfType {
     draggable: boolean = false;
     interactable: boolean = false;
     usable: boolean = false;
+    swappable: boolean = false;
     marginX: number = 0;
     marginY: number = 0;
     invSlotOffsetX: Int16Array | null = null;
@@ -812,6 +866,7 @@ class IfType {
     colour: number = 0;
     activeColour: number = 0;
     overColour: number = 0;
+    activeOverColour: number = 0;
     graphic: string | null = null;
     activeGraphic: string | null = null;
     model: number = -1;

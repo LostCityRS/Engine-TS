@@ -54,78 +54,78 @@ export default class FontType {
     drawWidth: Uint8Array = new Uint8Array(256);
     height: number = 0;
 
-    constructor(title: Jagfile, font: string) {
-        const dat = title.read(`${font}.dat`);
-        const idx = title.read('index.dat');
-        if (!dat || !idx) {
-            return;
-        }
+    constructor(_title: Jagfile, _font: string) {
+        // const dat = title.read(`${font}.dat`);
+        // const idx = title.read('index.dat');
+        // if (!dat || !idx) {
+        //     return;
+        // }
 
-        idx.pos = dat.g2() + 4;
-        const off = idx.g1();
-        if (off > 0) {
-            idx.pos += (off - 1) * 3;
-        }
+        // idx.pos = dat.g2() + 4;
+        // const off = idx.g1();
+        // if (off > 0) {
+        //     idx.pos += (off - 1) * 3;
+        // }
 
-        for (let i = 0; i < 94; i++) {
-            this.charOffsetX[i] = idx.g1();
-            this.charOffsetY[i] = idx.g1();
+        // for (let i = 0; i < 94; i++) {
+        //     this.charOffsetX[i] = idx.g1();
+        //     this.charOffsetY[i] = idx.g1();
 
-            const w = (this.charMaskWidth[i] = idx.g2());
-            const h = (this.charMaskHeight[i] = idx.g2());
+        //     const w = (this.charMaskWidth[i] = idx.g2());
+        //     const h = (this.charMaskHeight[i] = idx.g2());
 
-            const type = idx.g1();
-            const len = w * h;
+        //     const type = idx.g1();
+        //     const len = w * h;
 
-            this.charMask[i] = new Uint8Array(len);
+        //     this.charMask[i] = new Uint8Array(len);
 
-            if (type == 0) {
-                for (let j = 0; j < len; j++) {
-                    this.charMask[i][j] = dat.g1();
-                }
-            } else if (type == 1) {
-                for (let x = 0; x < w; x++) {
-                    for (let y = 0; y < h; y++) {
-                        this.charMask[i][x + y * w] = dat.g1();
-                    }
-                }
-            }
+        //     if (type == 0) {
+        //         for (let j = 0; j < len; j++) {
+        //             this.charMask[i][j] = dat.g1();
+        //         }
+        //     } else if (type == 1) {
+        //         for (let x = 0; x < w; x++) {
+        //             for (let y = 0; y < h; y++) {
+        //                 this.charMask[i][x + y * w] = dat.g1();
+        //             }
+        //         }
+        //     }
 
-            if (h > this.height) {
-                this.height = h;
-            }
+        //     if (h > this.height) {
+        //         this.height = h;
+        //     }
 
-            this.charOffsetX[i] = 1;
-            this.charAdvance[i] = w + 2;
+        //     this.charOffsetX[i] = 1;
+        //     this.charAdvance[i] = w + 2;
 
-            // ----
+        //     // ----
 
-            let space = 0;
-            for (let y = Math.floor(h / 7); y < h; y++) {
-                space += this.charMask[i][y * w];
-            }
+        //     let space = 0;
+        //     for (let y = Math.floor(h / 7); y < h; y++) {
+        //         space += this.charMask[i][y * w];
+        //     }
 
-            if (space <= Math.floor(h / 7)) {
-                this.charAdvance[i]--;
-                this.charOffsetX[i] = 0;
-            }
+        //     if (space <= Math.floor(h / 7)) {
+        //         this.charAdvance[i]--;
+        //         this.charOffsetX[i] = 0;
+        //     }
 
-            // ----
+        //     // ----
 
-            space = 0;
-            for (let y = Math.floor(h / 7); y < h; y++) {
-                space += this.charMask[i][w + y * w - 1];
-            }
+        //     space = 0;
+        //     for (let y = Math.floor(h / 7); y < h; y++) {
+        //         space += this.charMask[i][w + y * w - 1];
+        //     }
 
-            if (space <= Math.floor(h / 7)) {
-                this.charAdvance[i]--;
-            }
-        }
+        //     if (space <= Math.floor(h / 7)) {
+        //         this.charAdvance[i]--;
+        //     }
+        // }
 
-        this.charAdvance[94] = this.charAdvance[8];
-        for (let c = 0; c < 256; c++) {
-            this.drawWidth[c] = this.charAdvance[FontType.CHAR_LOOKUP[c]];
-        }
+        // this.charAdvance[94] = this.charAdvance[8];
+        // for (let c = 0; c < 256; c++) {
+        //     this.drawWidth[c] = this.charAdvance[FontType.CHAR_LOOKUP[c]];
+        // }
     }
 
     stringWidth(str: string) {

@@ -134,7 +134,9 @@ export function parseSeqConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
     } else if (key === 'duplicatebehavior') {
-        if (value === 'reset') {
+        if (value === '0') {
+            return 0;
+        } else if (value === 'reset') {
             return 1;
         } else if (value === 'reset_loop') {
             return 2;

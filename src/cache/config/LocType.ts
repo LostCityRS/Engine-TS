@@ -114,10 +114,15 @@ export default class LocType extends ConfigType {
     resizey = 128;
     resizez = 128;
     forceapproach = 0;
-    xoff = 0;
-    yoff = 0;
-    zoff = 0;
+    offsetx = 0;
+    offsety = 0;
+    offsetz = 0;
     forcedecor = false;
+    breakroutefinding = false;
+    raiseobject = -1;
+    multivarbit = -1;
+    multivarp = -1;
+    multiloc: number[] = [];
 
     // server-side
     category = -1;
@@ -201,13 +206,29 @@ export default class LocType extends ConfigType {
         } else if (code === 69) {
             this.forceapproach = dat.g1();
         } else if (code === 70) {
-            this.xoff = dat.g2s();
+            this.offsetx = dat.g2s();
         } else if (code === 71) {
-            this.yoff = dat.g2s();
+            this.offsety = dat.g2s();
         } else if (code === 72) {
-            this.zoff = dat.g2s();
+            this.offsetz = dat.g2s();
         } else if (code === 73) {
             this.forcedecor = true;
+        } else if (code === 74) {
+            this.breakroutefinding = true;
+        } else if (code === 75) {
+            this.raiseobject = dat.g1();
+        } else if (code === 77) {
+            this.multivarbit = dat.g2();
+            this.multivarp = dat.g2();
+
+            const count = dat.g1();
+            this.multiloc = new Array(count + 1);
+            for (let i = 0; i <= count; i++) {
+                this.multiloc[i] = dat.g2();
+                if (this.multiloc[i] === 65535) {
+                    this.multiloc[i] = -1;
+                }
+            }
         } else if (code === 249) {
             this.params = ParamHelper.decodeParams(dat);
         } else if (code === 250) {

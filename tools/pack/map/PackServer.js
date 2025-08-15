@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-import Packet2 from '#/io/Packet.js';
+import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { shouldBuild, shouldBuildFile } from '#/util/PackFile.js';
 
@@ -236,7 +236,7 @@ export function packServerMap() {
             //     }
             // }
 
-            let out = Packet2.alloc(3);
+            let out = Packet.alloc(3);
             for (let level = 0; level < 4; level++) {
                 for (let x = 0; x < 64; x++) {
                     for (let z = 0; z < 64; z++) {
@@ -339,7 +339,7 @@ export function packServerMap() {
             let locIds = Object.keys(locs)
                 .map(id => parseInt(id))
                 .sort((a, b) => a - b);
-            let out = Packet2.alloc(2);
+            let out = Packet.alloc(3);
             let lastLocId = -1;
             for (let i = 0; i < locIds.length; i++) {
                 let locId = locIds[i];
@@ -370,7 +370,7 @@ export function packServerMap() {
 
         // encode npc data
         {
-            let out = Packet2.alloc(1);
+            let out = Packet.alloc(1);
 
             for (let level = 0; level < 4; level++) {
                 if (!map.npc[level]) {
@@ -406,7 +406,7 @@ export function packServerMap() {
 
         // encode obj data
         {
-            let out = Packet2.alloc(1);
+            let out = Packet.alloc(1);
 
             for (let level = 0; level < 4; level++) {
                 if (!map.obj[level]) {

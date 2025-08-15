@@ -60,15 +60,17 @@ export default class Component {
             com.id = id;
             com.rootLayer = rootLayer;
 
+            console.log(id);
+
             com.comName = dat.gjstr();
             com.overlay = dat.gbool();
 
-            com.type = dat.g1();
+            com.comType = dat.g1();
             com.buttonType = dat.g1();
             com.clientCode = dat.g2();
             com.width = dat.g2();
             com.height = dat.g2();
-            com.alpha = dat.g1();
+            com.trans = dat.g1();
 
             com.overLayer = dat.g1();
             if (com.overLayer == 0) {
@@ -102,7 +104,7 @@ export default class Component {
                 }
             }
 
-            switch (com.type) {
+            switch (com.comType) {
                 case Component.TYPE_LAYER: {
                     com.scroll = dat.g2();
                     com.hide = dat.gbool();
@@ -128,6 +130,7 @@ export default class Component {
                     com.draggable = dat.gbool();
                     com.interactable = dat.gbool();
                     com.usable = dat.gbool();
+                    com.swappable = dat.gbool();
                     com.marginX = dat.g1();
                     com.marginY = dat.g1();
 
@@ -158,6 +161,7 @@ export default class Component {
                     com.colour = dat.g4s();
                     com.activeColour = dat.g4s();
                     com.overColour = dat.g4s();
+                    com.activeOverColour = dat.g4s();
                     break;
                 case Component.TYPE_TEXT:
                     com.center = dat.gbool();
@@ -168,6 +172,7 @@ export default class Component {
                     com.colour = dat.g4s();
                     com.activeColour = dat.g4s();
                     com.overColour = dat.g4s();
+                    com.activeOverColour = dat.g4s();
                     break;
                 case Component.TYPE_SPRITE:
                     com.graphic = dat.gjstr();
@@ -217,6 +222,10 @@ export default class Component {
                     }
                     break;
                 }
+                case 8: {
+                    com.text = dat.gjstr();
+                    break;
+                }
             }
 
             switch (com.buttonType) {
@@ -234,6 +243,8 @@ export default class Component {
                     com.option = dat.gjstr();
                     break;
             }
+
+            console.log(com);
 
             Component.components[id] = com;
 
@@ -265,12 +276,12 @@ export default class Component {
     rootLayer: number = -1;
     comName: string | null = null;
     overlay: boolean = false;
-    type: number = -1;
+    comType: number = -1;
     buttonType: number = -1;
     clientCode: number = 0;
     width: number = 0;
     height: number = 0;
-    alpha: number = 0;
+    trans: number = 0;
     overLayer: number = -1;
     scriptComparator: Uint8Array | null = null;
     scriptOperand: Uint16Array | null = null;
@@ -280,6 +291,7 @@ export default class Component {
     draggable = false;
     interactable = false;
     usable = false;
+    swappable = false;
     marginX: number = 0;
     marginY: number = 0;
     inventorySlotOffsetX: Uint16Array | null = null;
@@ -295,6 +307,7 @@ export default class Component {
     colour: number = 0;
     activeColour: number = 0;
     overColour: number = 0;
+    activeOverColour: number = 0;
     graphic: string | null = null;
     activeGraphic: string | null = null;
     model: number = -1;

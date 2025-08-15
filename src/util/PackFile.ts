@@ -109,7 +109,7 @@ function validateConfigPack(pack: PackFile, ext: string, regen: boolean = false,
         }
     }
 
-    if (missing.length > 0) {
+    if (Environment.BUILD_VERIFY && missing.length > 0) {
         for (const name of missing) {
             console.log(name);
         }
@@ -118,7 +118,7 @@ function validateConfigPack(pack: PackFile, ext: string, regen: boolean = false,
     }
 
     for (const name of pack.names) {
-        if (!configNames.has(name) && !name.startsWith('cert_')) {
+        if (Environment.BUILD_VERIFY && !configNames.has(name) && !name.startsWith('cert_')) {
             throw new Error(`${pack.type}: ${name} was not found in any ${ext} files, you may need to edit ${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
         }
     }
@@ -218,6 +218,7 @@ export const SpotAnimPack = new PackFile('spotanim', validateConfigPack, '.spota
 export const StructPack = new PackFile('struct', validateConfigPack, '.struct', true, false, false, true);
 export const TexturePack = new PackFile('texture', validateImagePack, `${Environment.BUILD_SRC_DIR}/textures`, '.png');
 export const VarpPack = new PackFile('varp', validateConfigPack, '.varp', true);
+export const VarbitPack = new PackFile('varbit', validateConfigPack, '.varbit', true);
 export const VarnPack = new PackFile('varn', validateConfigPack, '.varn', true, false, false, true);
 export const VarsPack = new PackFile('vars', validateConfigPack, '.vars', true, false, false, true);
 

@@ -5,7 +5,7 @@ export function parseFloConfig(key: string, value: string): ConfigValue | null |
     const stringKeys: string[] = [];
     // prettier-ignore
     const numberKeys = [
-        'rgb'
+        'colour', 'mapcolour'
     ];
     // prettier-ignore
     const booleanKeys = [
@@ -71,7 +71,7 @@ export function packFloConfigs(configs: Map<string, ConfigLine[]>): { client: Pa
         for (let j = 0; j < config.length; j++) {
             const { key, value } = config[j];
 
-            if (key === 'rgb') {
+            if (key === 'colour') {
                 client.p1(1);
                 client.p3(value as number);
             } else if (key === 'texture') {
@@ -85,6 +85,9 @@ export function packFloConfigs(configs: Map<string, ConfigLine[]>): { client: Pa
                 if (value === false) {
                     client.p1(5);
                 }
+            } else if (key === 'mapcolour') {
+                client.p1(7);
+                client.p3(value as number);
             }
         }
 

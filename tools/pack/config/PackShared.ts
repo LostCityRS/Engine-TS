@@ -7,7 +7,7 @@ import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { loadDir } from '#/util/NameMap.js';
-import { VarnPack, VarpPack, VarsPack, shouldBuild, CategoryPack, shouldBuildFile } from '#/util/PackFile.js';
+import { VarnPack, VarpPack, VarsPack, shouldBuild, CategoryPack, shouldBuildFile, VarbitPack } from '#/util/PackFile.js';
 import { packDbRowConfigs, parseDbRowConfig } from '#tools/pack/config/DbRowConfig.js';
 import { packDbTableConfigs, parseDbTableConfig } from '#tools/pack/config/DbTableConfig.js';
 import { packEnumConfigs, parseEnumConfig } from '#tools/pack/config/EnumConfig.js';
@@ -26,6 +26,7 @@ import { packStructConfigs, parseStructConfig } from '#tools/pack/config/StructC
 import { packVarnConfigs, parseVarnConfig } from '#tools/pack/config/VarnConfig.js';
 import { packVarpConfigs, parseVarpConfig } from '#tools/pack/config/VarpConfig.js';
 import { packVarsConfigs, parseVarsConfig } from '#tools/pack/config/VarsConfig.js';
+import { packVarbitConfigs, parseVarbitConfig } from './VarbitConfig.js';
 
 export function isConfigBoolean(input: string): boolean {
     return input === 'yes' || input === 'no' || input === 'true' || input === 'false' || input === '1' || input === '0';
@@ -136,6 +137,7 @@ export type ConfigSaveCallback = (dat: Packet, idx: Packet) => void;
 export type ConfigValidateCallback = (server: Packet, client: Packet) => boolean;
 
 export async function readConfigs(dirTree: Set<string>, extension: string, requiredProperties: string[], modelFlags: number[], parse: ConfigParseCallback, pack: ConfigPackCallback, saveClient: ConfigSaveCallback, saveServer: ConfigSaveCallback, validate?: ConfigValidateCallback) {
+    console.time('pack ' + extension);
     const files = findFiles(dirTree, extension);
 
     const configs = new Map<string, ConfigLine[]>();
@@ -251,6 +253,7 @@ export async function readConfigs(dirTree: Set<string>, extension: string, requi
 
     saveClient(client.dat, client.idx);
     saveServer(server.dat, server.idx);
+    console.timeEnd('pack ' + extension);
 }
 
 function noOp() {}
@@ -286,25 +289,30 @@ export async function packConfigs(modelFlags: number[]) {
     });
 
     // var domains are global, so we need to check for conflicts
-
-    for (let id = 0; id < VarpPack.size; id++) {
-        const name = VarpPack.getById(id);
-
-        if (VarnPack.getByName(name) !== -1) {
-            throw new Error(`Varp and varn name conflict: ${name}\nPick a different name for one of them!`);
+    const names = new Set<string>();
+    for (const [name, _id] of VarpPack.names.entries()) {
+        if (names.has(name)) {
+            throw new Error(`Non-unique var name found: ${name}`);
         }
-
-        if (VarsPack.getByName(name) !== -1) {
-            throw new Error(`Varp and vars name conflict: ${name}\nPick a different name for one of them!`);
-        }
+        names.add(name);
     }
-
-    for (let id = 0; id < VarnPack.size; id++) {
-        const name = VarnPack.getById(id);
-
-        if (VarsPack.getByName(name) !== -1) {
-            throw new Error(`Varn and vars name conflict: ${name}\nPick a different name for one of them!`);
+    for (const [name, _id] of VarbitPack.names.entries()) {
+        if (names.has(name)) {
+            throw new Error(`Non-unique var name found: ${name}`);
         }
+        names.add(name);
+    }
+    for (const [name, _id] of VarnPack.names.entries()) {
+        if (names.has(name)) {
+            throw new Error(`Non-unique var name found: ${name}`);
+        }
+        names.add(name);
+    }
+    for (const [name, _id] of VarsPack.names.entries()) {
+        if (names.has(name)) {
+            throw new Error(`Non-unique var name found: ${name}`);
+        }
+        names.add(name);
     }
 
     const dirTree = new Set<string>();
@@ -333,17 +341,6 @@ export async function packConfigs(modelFlags: number[]) {
     ParamType.load('data/pack');
 
     const jag = new Jagfile();
-
-    /* client order:
-    'seq.dat',      'seq.idx',
-    'loc.dat',      'loc.idx',
-    'flo.dat',      'flo.idx',
-    'spotanim.dat', 'spotanim.idx',
-    'obj.dat',      'obj.idx',
-    'npc.dat',      'npc.idx',
-    'idk.dat',      'idk.idx',
-    'varp.dat',     'varp.idx'
-    */
 
     const rebuildClient = true;
     // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.seq', 'data/pack/client/config') ||
@@ -644,6 +641,30 @@ export async function packConfigs(modelFlags: number[]) {
             },
             (client: Packet, _server: Packet): boolean => {
                 return Packet.checkcrc(client.data, 0, client.pos, 705633567);
+            }
+        );
+    }
+
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varbit', 'data/pack/server/varbit.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/varbit.dat')) {
+        await readConfigs(
+            dirTree,
+            '.varbit',
+            [],
+            modelFlags,
+            parseVarbitConfig,
+            packVarbitConfigs,
+            (dat: Packet, idx: Packet) => {
+                jag.write('varbit.dat', dat);
+                jag.write('varbit.idx', idx);
+            },
+            (dat: Packet, idx: Packet) => {
+                dat.save('data/pack/server/varbit.dat');
+                idx.save('data/pack/server/varbit.idx');
+                dat.release();
+                idx.release();
+            },
+            (_client: Packet, _server: Packet): boolean => {
+                return true;
             }
         );
     }

@@ -396,7 +396,7 @@ export function generateServerSymbols() {
 
     fs.writeFileSync('data/symbols/locshape.sym', locshapes.map((name, index) => `${index}\t${name}`).join('\n') + '\n');
 
-    const fonts = ['p11', 'p12', 'b12', 'q8'];
+    const fonts = ['p11_full', 'p12_full', 'b12_full', 'q8_full'];
     fs.writeFileSync('data/symbols/fontmetrics.sym', fonts.map((name, index) => `${index}\t${name}`).join('\n') + '\n');
 
     const npcmodes = Array.from(NpcModeMap.entries())

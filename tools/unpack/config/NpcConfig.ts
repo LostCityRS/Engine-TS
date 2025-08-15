@@ -1,6 +1,6 @@
 import ColorConversion from '#/util/ColorConversion.js';
 import { printWarning } from '#/util/Logger.js';
-import { ModelPack, NpcPack, SeqPack } from '#/util/PackFile.js';
+import { ModelPack, NpcPack, SeqPack, VarbitPack, VarpPack } from '#/util/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 
@@ -115,6 +115,32 @@ export function unpackNpcConfig(config: ConfigIdx, id: number): string[] {
         } else if (code === 102) {
             const headicon = dat.g2();
             def.push(`headicon=${headicon}`);
+        } else if (code === 103) {
+            const turnspeed = dat.g2();
+            def.push(`turnspeed=${turnspeed}`);
+        } else if (code === 106) {
+            const varbit = dat.g2();
+            const varp = dat.g2();
+
+            if (varbit === 65535) {
+                const name = VarpPack.getById(varp) || 'varp_' + varp;
+                def.push(`multivar=${name}`);
+            } else {
+                const name = VarbitPack.getById(varbit) || 'varbit_' + varbit;
+                def.push(`multivar=${name}`);
+            }
+
+            const states = dat.g1();
+            for (let i = 0; i <= states; i++) {
+                const multinpc = dat.g2();
+
+                if (multinpc !== 65535) {
+                    const name = NpcPack.getById(multinpc) || 'npc_' + multinpc;
+                    def.push(`multinpc=${i},${name}`);
+                }
+            }
+        } else if (code === 107) {
+            def.push('active=no');
         } else {
             printWarning(`unknown npc code ${code}`);
         }

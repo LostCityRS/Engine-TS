@@ -1,7 +1,7 @@
 import ParamType from '#/cache/config/ParamType.js';
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import ColorConversion from '#/util/ColorConversion.js';
-import { CategoryPack, LocPack, ModelPack, SeqPack, TexturePack } from '#/util/PackFile.js';
+import { CategoryPack, LocPack, ModelPack, SeqPack, TexturePack, VarbitPack, VarpPack } from '#/util/PackFile.js';
 import { LocModelShape, ConfigValue, ConfigLine, ParamValue, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 import { lookupParamValue } from '#tools/pack/config/ParamConfig.js';
 
@@ -36,7 +36,8 @@ export function parseLocConfig(key: string, value: string): ConfigValue | null |
     // prettier-ignore
     const stringKeys = [
         'name', 'desc',
-        'op1', 'op2', 'op3', 'op4', 'op5'
+        'op1', 'op2', 'op3', 'op4', 'op5',
+        'multivar', 'multiloc', // defer parsing to packing stage
     ];
     // prettier-ignore
     const numberKeys = [
@@ -54,7 +55,8 @@ export function parseLocConfig(key: string, value: string): ConfigValue | null |
         'active', 'hillskew', 'sharelight', 'occlude',
         'hasalpha',
         'mirror', 'shadow',
-        'forcedecor'
+        'forcedecor',
+        'breakroutefinding', 'raiseobject'
     ];
 
     if (stringKeys.includes(key)) {
@@ -126,9 +128,9 @@ export function parseLocConfig(key: string, value: string): ConfigValue | null |
         }
 
         return null;
-    } else if (key.startsWith('model')) {
+    } else if (key.startsWith('unpacked_') || key.startsWith('unpacked2_')) {
         // don't use this long term in your data :)
-        // freshly unpacked! format is model<index>=<modelname>,<shape suffix>
+        // freshly unpacked! format is unpacked_<index>=<modelname>,<shape suffix>
 
         const [modelName, shapeSuffix] = value.split(',');
 
@@ -227,10 +229,14 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
         const recol_s: number[] = [];
         const recol_d: number[] = [];
         let models: LocModelShape[] = [];
+        let models2: LocModelShape[] = [];
         let name: string | null = null;
         let active: number = -1; // not written last, but affects name output
         let desc: string | null = null;
         const params: ParamValue[] = [];
+        let multivarp = -1;
+        let multivarbit = -1;
+        const multiloc: number[] = [];
 
         for (let j = 0; j < config.length; j++) {
             const { key, value } = config[j];
@@ -241,10 +247,16 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 desc = value as string;
             } else if (key === 'model') {
                 models = value as LocModelShape[];
-            } else if (key.startsWith('model')) {
+            } else if (key === 'model2') {
+                models2 = value as LocModelShape[];
+            } else if (key.startsWith('unpacked_')) {
                 // refreshly unpacked!
                 const index = parseInt(key[5]) - 1;
                 models[index] = (value as LocModelShape[])[0];
+            } else if (key.startsWith('unpacked2_')) {
+                // refreshly unpacked!
+                const index = parseInt(key[5]) - 1;
+                models2[index] = (value as LocModelShape[])[0];
             } else if (key.startsWith('recol')) {
                 const index = parseInt(key[5]) - 1;
                 if (key.endsWith('s')) {
@@ -354,6 +366,33 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 if (value === true) {
                     client.p1(73);
                 }
+            } else if (key === 'breakroutefinding') {
+                if (value === true) {
+                    client.p1(74);
+                }
+            } else if (key === 'raiseobject') {
+                client.p1(75);
+                client.pbool(value as boolean);
+            } else if (key === 'multivar') {
+                const varpId = VarpPack.getByName(value as string);
+                if (varpId === -1) {
+                    const varbitId = VarbitPack.getByName(value as string);
+                    if (varbitId === -1) {
+                        throw new Error(`Unknown multivar: ${value}`);
+                    }
+
+                    multivarbit = varbitId;
+                } else {
+                    multivarp = varpId;
+                }
+            } else if (key === 'multiloc') {
+                const [index, loc] = (value as string).split(',');
+                const locId = LocPack.getByName(loc);
+                if (locId === -1) {
+                    throw new Error(`Unknown multiloc: ${loc}`);
+                }
+
+                multiloc[parseInt(index)] = locId;
             }
         }
 
@@ -406,6 +445,21 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
         if (desc !== null) {
             client.p1(3);
             client.pjstr(desc);
+        }
+
+        if (multivarp !== -1 || multivarbit !== -1) {
+            client.p1(77);
+            client.p2(multivarbit);
+            client.p2(multivarp);
+
+            client.p1(multiloc.length - 1);
+            for (let k = 0; k < multiloc.length; k++) {
+                if (typeof multiloc[k] !== 'undefined') {
+                    client.p2(multiloc[k]);
+                } else {
+                    client.p2(65535);
+                }
+            }
         }
 
         if (params.length > 0) {

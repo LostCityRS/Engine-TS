@@ -2,7 +2,7 @@ import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printError } from '#/util/Logger.js';
 import { loadDir, loadOrder } from '#/util/NameMap.js';
-import { InterfacePack, ModelPack, ObjPack, SeqPack, VarpPack } from '#/util/PackFile.js';
+import { InterfacePack, ModelPack, ObjPack, SeqPack, VarbitPack, VarpPack } from '#/util/PackFile.js';
 
 function nameToType(name: string) {
     switch (name) {
@@ -21,6 +21,8 @@ function nameToType(name: string) {
             return 6;
         case 'invtext':
             return 7;
+        case '8':
+            return 8;
     }
 
     return -1;
@@ -88,6 +90,20 @@ function nameToScript(name: string) {
             return 12;
         case 'testbit':
             return 13;
+        case 'push_varbit':
+            return 14;
+        case 'subtract':
+            return 15;
+        case 'divide':
+            return 16;
+        case 'multiply':
+            return 17;
+        case 'coordx':
+            return 18;
+        case 'coordz':
+            return 19;
+        case 'push_constant':
+            return 20;
     }
 
     return 0;
@@ -131,6 +147,10 @@ function nameToStat(name: string) {
             return 16;
         case 'thieving':
             return 17;
+        case 'slayer':
+            return 18;
+        case 'farming':
+            return 19;
         case 'runecraft':
             return 20;
     }
@@ -140,13 +160,13 @@ function nameToStat(name: string) {
 
 function nameToFont(name: string) {
     switch (name) {
-        case 'p11':
+        case 'p11_full':
             return 0;
-        case 'p12':
+        case 'p12_full':
             return 1;
-        case 'b12':
+        case 'b12_full':
             return 2;
-        case 'q8':
+        case 'q8_full':
             return 3;
     }
 
@@ -256,8 +276,8 @@ export function packInterface(server: boolean, modelFlags: number[]) {
             data.pbool(src.type === 'overlay');
         }
 
-        const type = nameToType(src.type as string);
-        data.p1(type);
+        const comType = nameToType(src.type as string);
+        data.p1(comType);
 
         const buttonType = nameToButtonType(src.buttontype as string);
         data.p1(buttonType);
@@ -266,8 +286,8 @@ export function packInterface(server: boolean, modelFlags: number[]) {
         data.p2(parseInt(src.width as string));
         data.p2(parseInt(src.height as string));
 
-        if (src.alpha) {
-            data.p1(parseInt(src.alpha as string));
+        if (src.trans) {
+            data.p1(parseInt(src.trans as string));
         } else {
             data.p1(0);
         }
@@ -303,7 +323,7 @@ export function packInterface(server: boolean, modelFlags: number[]) {
         data.p1(scriptCount);
         for (let j = 1; j <= scriptCount; j++) {
             let opCount = 0;
-            for (let k = 0; k <= 5; k++) {
+            for (let k = 1; k <= 20; k++) {
                 const op = src[`script${j}op${k}`];
 
                 if (typeof op !== 'undefined') {
@@ -335,6 +355,12 @@ export function packInterface(server: boolean, modelFlags: number[]) {
                         case 'testbit':
                             opCount += 2;
                             break;
+                        case 'push_varbit':
+                            opCount += 1;
+                            break;
+                        case 'push_constant':
+                            opCount += 1;
+                            break;
                     }
                 }
             }
@@ -345,7 +371,7 @@ export function packInterface(server: boolean, modelFlags: number[]) {
             } else {
                 data.p2(opCount + 1);
             }
-            for (let k = 0; k <= opCount; k++) {
+            for (let k = 1; k <= opCount; k++) {
                 const op = src[`script${j}op${k}`];
 
                 if (op) {
@@ -414,6 +440,19 @@ export function packInterface(server: boolean, modelFlags: number[]) {
                             data.p2(parseInt(parts[2]));
                             break;
                         }
+                        case 'push_varbit': {
+                            const varbitLink = VarbitPack.getByName(parts[1]);
+                            if (varbitLink === -1) {
+                                printError(`${com.root} invalid lookup ${parts[1]}`);
+                            }
+
+                            data.p2(varbitLink);
+                            break;
+                        }
+                        case 'push_constant': {
+                            data.p2(parseInt(parts[1]));
+                            break;
+                        }
                     }
                 }
             }
@@ -423,7 +462,7 @@ export function packInterface(server: boolean, modelFlags: number[]) {
             }
         }
 
-        if (type === 0) {
+        if (comType === 0) {
             data.p2(parseInt(src.scroll as string));
             data.pbool(src.hide === 'yes');
 
@@ -436,10 +475,11 @@ export function packInterface(server: boolean, modelFlags: number[]) {
             }
         }
 
-        if (type === 2) {
+        if (comType === 2) {
             data.pbool(src.draggable === 'yes');
             data.pbool(src.interactable === 'yes');
             data.pbool(src.usable === 'yes');
+            data.pbool(src.swappable === 'yes');
 
             if (src.margin) {
                 data.p1(parseInt((src.margin as string).split(',')[0]));
@@ -477,11 +517,11 @@ export function packInterface(server: boolean, modelFlags: number[]) {
             }
         }
 
-        if (type === 3) {
+        if (comType === 3) {
             data.pbool(src.fill === 'yes');
         }
 
-        if (type === 4) {
+        if (comType === 4) {
             data.pbool(src.center === 'yes');
             data.p1(nameToFont(src.font as string));
             data.pbool(src.shadowed === 'yes');
@@ -489,18 +529,19 @@ export function packInterface(server: boolean, modelFlags: number[]) {
             data.pjstr((src.activetext as string) ?? '');
         }
 
-        if (type === 3 || type === 4) {
+        if (comType === 3 || comType === 4) {
             data.p4(parseInt(src.colour as string));
             data.p4(parseInt(src.activecolour as string));
             data.p4(parseInt(src.overcolour as string));
+            data.p4(parseInt(src.activeovercolour as string));
         }
 
-        if (type === 5) {
+        if (comType === 5) {
             data.pjstr((src.graphic as string) ?? '');
             data.pjstr((src.activegraphic as string) ?? '');
         }
 
-        if (type === 6) {
+        if (comType === 6) {
             if (src.model) {
                 const modelId = ModelPack.getByName(src.model as string);
                 if (modelId === -1) {
@@ -548,7 +589,7 @@ export function packInterface(server: boolean, modelFlags: number[]) {
             data.p2(parseInt(src.yan as string));
         }
 
-        if (type === 7) {
+        if (comType === 7) {
             data.pbool(src.center === 'yes');
             data.p1(nameToFont(src.font as string));
             data.pbool(src.shadowed === 'yes');
@@ -569,7 +610,11 @@ export function packInterface(server: boolean, modelFlags: number[]) {
             }
         }
 
-        if (buttonType === 2 || type === 2) {
+        if (comType === 8) {
+            data.pjstr((src.text as string) ?? '');
+        }
+
+        if (buttonType === 2 || comType === 2) {
             data.pjstr((src.actionverb as string) ?? '');
             data.pjstr((src.action as string) ?? '');
 
