@@ -8,10 +8,11 @@ export default class OpObjTDecoder extends MessageDecoder<OpObjT> {
     prot = ClientProt244.OPOBJT;
 
     decode(buf: Packet) {
-        const x = buf.g2();
+        const obj = buf.g2_alt1();
         const z = buf.g2();
-        const obj = buf.g2();
-        const spellComponent = buf.g2();
+        const spellComponent = buf.g2_alt1();
+        const x = buf.g2_alt3();
+
         return new OpObjT(x, z, obj, spellComponent);
     }
 }

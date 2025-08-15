@@ -9,11 +9,12 @@ export default class OpHeldUDecoder extends MessageDecoder<OpHeldU> {
 
     decode(buf: Packet) {
         const obj = buf.g2();
-        const slot = buf.g2();
-        const component = buf.g2();
-        const useObj = buf.g2();
-        const useSlot = buf.g2();
-        const useComponent = buf.g2();
+        const useSlot = buf.g2_alt1();
+        const useObj = buf.g2_alt1();
+        const useComponent = buf.g2_alt3();
+        const slot = buf.g2_alt2();
+        const component = buf.g2_alt2();
+
         return new OpHeldU(obj, slot, component, useObj, useSlot, useComponent);
     }
 }

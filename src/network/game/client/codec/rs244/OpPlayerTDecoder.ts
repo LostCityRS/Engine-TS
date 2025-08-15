@@ -9,7 +9,8 @@ export default class OpPlayerTDecoder extends MessageDecoder<OpPlayerT> {
 
     decode(buf: Packet) {
         const pid = buf.g2();
-        const spellComponent = buf.g2();
+        const spellComponent = buf.g2_alt1();
+
         return new OpPlayerT(pid, spellComponent);
     }
 }

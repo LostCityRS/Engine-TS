@@ -13,9 +13,32 @@ export default class OpLocDecoder extends MessageDecoder<OpLoc> {
     }
 
     decode(buf: Packet) {
-        const x = buf.g2();
-        const z = buf.g2();
-        const loc = buf.g2();
+        let x = -1;
+        let z = -1;
+        let loc = -1;
+
+        if (this.op === 1) {
+            x = buf.g2_alt2();
+            z = buf.g2_alt1();
+            loc = buf.g2_alt1();
+        } else if (this.op === 2) {
+            x = buf.g2();
+            z = buf.g2();
+            loc = buf.g2_alt2();
+        } else if (this.op === 3) {
+            z = buf.g2_alt2();
+            loc = buf.g2_alt1();
+            x = buf.g2_alt3();
+        } else if (this.op === 4) {
+            x = buf.g2();
+            z = buf.g2_alt1();
+            loc = buf.g2();
+        } else if (this.op === 5) {
+            loc = buf.g2_alt1();
+            z = buf.g2_alt1();
+            x = buf.g2();
+        }
+
         return new OpLoc(this.op, x, z, loc);
     }
 }

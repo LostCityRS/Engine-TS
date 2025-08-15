@@ -8,8 +8,9 @@ export default class OpNpcTDecoder extends MessageDecoder<OpNpcT> {
     prot = ClientProt244.OPNPCT;
 
     decode(buf: Packet) {
-        const nid = buf.g2();
-        const spellComponent = buf.g2();
+        const spellComponent = buf.g2_alt2();
+        const nid = buf.g2_alt1();
+
         return new OpNpcT(nid, spellComponent);
     }
 }

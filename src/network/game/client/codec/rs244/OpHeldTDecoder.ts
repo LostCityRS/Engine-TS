@@ -8,10 +8,11 @@ export default class OpHeldTDecoder extends MessageDecoder<OpHeldT> {
     prot = ClientProt244.OPHELDT;
 
     decode(buf: Packet) {
-        const obj = buf.g2();
-        const slot = buf.g2();
-        const component = buf.g2();
         const spellComponent = buf.g2();
+        const component = buf.g2_alt2();
+        const slot = buf.g2_alt2();
+        const obj = buf.g2_alt2();
+
         return new OpHeldT(obj, slot, component, spellComponent);
     }
 }

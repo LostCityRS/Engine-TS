@@ -13,7 +13,20 @@ export default class OpPlayerDecoder extends MessageDecoder<OpPlayer> {
     }
 
     decode(buf: Packet) {
-        const pid = buf.g2();
+        let pid = -1;
+
+        if (this.op === 1) {
+            pid = buf.g2_alt3();
+        } else if (this.op === 2) {
+            pid = buf.g2_alt2();
+        } else if (this.op === 3) {
+            pid = buf.g2_alt1();
+        } else if (this.op === 4) {
+            pid = buf.g2_alt1();
+        } else if (this.op === 5) {
+            pid = buf.g2_alt2();
+        }
+
         return new OpPlayer(this.op, pid);
     }
 }

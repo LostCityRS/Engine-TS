@@ -8,10 +8,11 @@ export default class OpPlayerUDecoder extends MessageDecoder<OpPlayerU> {
     prot = ClientProt244.OPPLAYERU;
 
     decode(buf: Packet) {
-        const pid = buf.g2();
-        const useObj = buf.g2();
-        const useSlot = buf.g2();
+        const useObj = buf.g2_alt1();
+        const useSlot = buf.g2_alt3();
         const useComponent = buf.g2();
+        const pid = buf.g2_alt2();
+
         return new OpPlayerU(pid, useObj, useSlot, useComponent);
     }
 }

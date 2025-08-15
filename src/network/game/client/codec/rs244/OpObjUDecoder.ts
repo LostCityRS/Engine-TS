@@ -8,12 +8,13 @@ export default class OpObjUDecoder extends MessageDecoder<OpObjU> {
     prot = ClientProt244.OPOBJU;
 
     decode(buf: Packet) {
-        const x = buf.g2();
-        const z = buf.g2();
-        const obj = buf.g2();
-        const useObj = buf.g2();
-        const useSlot = buf.g2();
-        const useComponent = buf.g2();
+        const useSlot = buf.g2_alt3();
+        const useObj = buf.g2_alt2();
+        const z = buf.g2_alt3();
+        const x = buf.g2_alt3();
+        const useComponent = buf.g2_alt1();
+        const obj = buf.g2_alt1();
+
         return new OpObjU(x, z, obj, useObj, useSlot, useComponent);
     }
 }

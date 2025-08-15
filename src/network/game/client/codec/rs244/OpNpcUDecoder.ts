@@ -9,9 +9,10 @@ export default class OpNpcUDecoder extends MessageDecoder<OpNpcU> {
 
     decode(buf: Packet) {
         const nid = buf.g2();
-        const useObj = buf.g2();
+        const useObj = buf.g2_alt1();
+        const useComponent = buf.g2_alt3();
         const useSlot = buf.g2();
-        const useComponent = buf.g2();
+
         return new OpNpcU(nid, useObj, useSlot, useComponent);
     }
 }
