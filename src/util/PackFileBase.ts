@@ -64,7 +64,9 @@ export class PackFile {
 
     refreshNames() {
         this.names = new Set(this.pack.values());
-        this.max = Math.max(...Array.from(this.pack.keys())) + 1;
+        if (this.names.size) {
+            this.max = Math.max(...Array.from(this.pack.keys())) + 1;
+        }
     }
 
     save() {

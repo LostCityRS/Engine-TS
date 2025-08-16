@@ -251,11 +251,11 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 models2 = value as LocModelShape[];
             } else if (key.startsWith('unpacked_')) {
                 // refreshly unpacked!
-                const index = parseInt(key[5]) - 1;
+                const index = parseInt(key['unpacked_'.length]) - 1;
                 models[index] = (value as LocModelShape[])[0];
             } else if (key.startsWith('unpacked2_')) {
                 // refreshly unpacked!
-                const index = parseInt(key[5]) - 1;
+                const index = parseInt(key['unpacked2_'.length]) - 1;
                 models2[index] = (value as LocModelShape[])[0];
             } else if (key.startsWith('recol')) {
                 const index = parseInt(key[5]) - 1;
