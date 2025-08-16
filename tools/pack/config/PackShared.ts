@@ -137,7 +137,6 @@ export type ConfigSaveCallback = (dat: Packet, idx: Packet) => void;
 export type ConfigValidateCallback = (server: Packet, client: Packet) => boolean;
 
 export async function readConfigs(dirTree: Set<string>, extension: string, requiredProperties: string[], modelFlags: number[], parse: ConfigParseCallback, pack: ConfigPackCallback, saveClient: ConfigSaveCallback, saveServer: ConfigSaveCallback, validate?: ConfigValidateCallback) {
-    console.time('pack ' + extension);
     const files = findFiles(dirTree, extension);
 
     const configs = new Map<string, ConfigLine[]>();
@@ -253,7 +252,6 @@ export async function readConfigs(dirTree: Set<string>, extension: string, requi
 
     saveClient(client.dat, client.idx);
     saveServer(server.dat, server.idx);
-    console.timeEnd('pack ' + extension);
 }
 
 function noOp() {}
@@ -649,7 +647,7 @@ export async function packConfigs(modelFlags: number[]) {
         await readConfigs(
             dirTree,
             '.varbit',
-            [],
+            ['basevar', 'startbit', 'endbit'],
             modelFlags,
             parseVarbitConfig,
             packVarbitConfigs,

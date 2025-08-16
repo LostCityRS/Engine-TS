@@ -34,25 +34,15 @@ export async function packServer(modelFlags: number[]) {
         });
     }
 
-    console.time('revalidate');
     revalidatePack();
-    console.timeEnd('revalidate');
 
     for (let i = 0; i < ModelPack.max; i++) {
         modelFlags[i] = 0;
     }
 
-    console.time('config');
     await packConfigs(modelFlags);
-    console.timeEnd('config');
-
-    console.time('interface');
     packServerInterface(modelFlags);
-    console.timeEnd('interface');
-
-    console.time('map');
     packServerMap();
-    console.time('map');
 
     generateServerSymbols();
 
@@ -91,57 +81,28 @@ export async function packClient(modelFlags: number[]) {
     const cache = new FileStream('data/pack', true);
     const unpack = new FileStream('data/unpack');
 
-    console.time('title');
     await packClientTitle(cache);
-    console.timeEnd('title');
-
-    console.time('config');
     cache.write(0, 2, fs.readFileSync('data/pack/client/config'));
-    console.timeEnd('config');
-
-    console.time('interface');
     packClientInterface(cache, modelFlags);
-    console.timeEnd('interface');
-
-    console.time('media');
     await packClientMedia(cache);
-    console.timeEnd('media');
-
-    console.time('texture');
     await packClientTexture(cache);
-    console.timeEnd('texture');
 
-    console.time('wordenc');
     // packClientWordenc(cache);
     const wordenc = unpack.read(0, 7);
     if (wordenc) {
         cache.write(0, 7, wordenc);
     }
-    console.timeEnd('wordenc');
 
-    console.time('sound');
     // packClientSound(cache);
     const sounds = unpack.read(0, 8);
     if (sounds) {
         cache.write(0, 8, sounds);
     }
-    console.timeEnd('sound');
 
-    console.time('model');
     packClientModel(cache);
-    console.timeEnd('model');
-
-    console.time('map');
     packClientMap(cache);
-    console.timeEnd('map');
-
-    console.time('music');
     packClientMusic(cache);
-    console.timeEnd('music');
-
-    console.time('versionlist');
     packClientVersionList(cache, modelFlags);
-    console.timeEnd('versionlist');
 
     // const zipPack: Record<string, Uint8Array> = {};
     // for (let archive = 1; archive <= 4; archive++) {
