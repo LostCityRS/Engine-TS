@@ -407,13 +407,58 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
         }
 
         if (models.length > 0) {
-            client.p1(1);
-
-            client.p1(models.length);
+            let onlyCentrepiece = true;
             for (let k = 0; k < models.length; k++) {
                 modelFlags[models[k].model] |= 0x4;
-                client.p2(models[k].model);
-                client.p1(models[k].shape);
+
+                if (models[k].shape !== 10) {
+                    onlyCentrepiece = false;
+                }
+            }
+
+            if (onlyCentrepiece) {
+                client.p1(5);
+
+                client.p1(models.length);
+                for (let k = 0; k < models.length; k++) {
+                    client.p2(models[k].model);
+                }
+            } else {
+                client.p1(1);
+
+                client.p1(models.length);
+                for (let k = 0; k < models.length; k++) {
+                    client.p2(models[k].model);
+                    client.p1(models[k].shape);
+                }
+            }
+        }
+
+        if (models2.length > 0) {
+            let onlyCentrepiece = true;
+            for (let k = 0; k < models2.length; k++) {
+                modelFlags[models2[k].model] |= 0x4;
+
+                if (models2[k].shape !== 10) {
+                    onlyCentrepiece = false;
+                }
+            }
+
+            if (onlyCentrepiece) {
+                client.p1(5);
+
+                client.p1(models2.length);
+                for (let k = 0; k < models2.length; k++) {
+                    client.p2(models2[k].model);
+                }
+            } else {
+                client.p1(1);
+
+                client.p1(models2.length);
+                for (let k = 0; k < models2.length; k++) {
+                    client.p2(models2[k].model);
+                    client.p1(models2[k].shape);
+                }
             }
         }
 

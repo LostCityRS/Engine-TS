@@ -142,6 +142,13 @@ export default class LocType extends ConfigType {
             this.name = dat.gjstr();
         } else if (code === 3) {
             this.desc = dat.gjstr();
+        } else if (code === 5) {
+            const count = dat.g1();
+            this.models = new Uint16Array(count);
+
+            for (let i = 0; i < count; i++) {
+                this.models[i] = dat.g2();
+            }
         } else if (code === 14) {
             this.width = dat.g1();
         } else if (code === 15) {
