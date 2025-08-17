@@ -957,36 +957,8 @@ export default class Player extends PathingEntity {
 
             if (this.target instanceof Npc) {
                 type = NpcType.get(this.target.type);
-
-                if (type.multivarp !== -1) {
-                    const state = this.getVar(type.multivarp) as number;
-
-                    if (state >= 0 && state < type.multinpc.length && type.multinpc[state] !== -1) {
-                        type = NpcType.get(type.multinpc[state]);
-                    }
-                } else if (type.multivarbit !== -1) {
-                    const state = this.getVarBit(type.multivarbit);
-
-                    if (state >= 0 && state < type.multinpc.length && type.multinpc[state] !== -1) {
-                        type = NpcType.get(type.multinpc[state]);
-                    }
-                }
             } else if (this.target instanceof Loc) {
                 type = LocType.get(this.target.type);
-
-                if (type.multivarp !== -1) {
-                    const state = this.getVar(type.multivarp) as number;
-
-                    if (state >= 0 && state < type.multiloc.length && type.multiloc[state] !== -1) {
-                        type = LocType.get(type.multiloc[state]);
-                    }
-                } else if (type.multivarbit !== -1) {
-                    const state = this.getVarBit(type.multivarbit);
-
-                    if (state >= 0 && state < type.multiloc.length && type.multiloc[state] !== -1) {
-                        type = LocType.get(type.multiloc[state]);
-                    }
-                }
             } else if (this.target instanceof Obj) {
                 type = ObjType.get(this.target.type);
             }
@@ -1019,36 +991,8 @@ export default class Player extends PathingEntity {
 
             if (this.target instanceof Npc) {
                 type = NpcType.get(this.target.type);
-
-                if (type.multivarp !== -1) {
-                    const state = this.getVar(type.multivarp) as number;
-
-                    if (state >= 0 && state < type.multinpc.length && type.multinpc[state] !== -1) {
-                        type = NpcType.get(type.multinpc[state]);
-                    }
-                } else if (type.multivarbit !== -1) {
-                    const state = this.getVarBit(type.multivarbit);
-
-                    if (state >= 0 && state < type.multinpc.length && type.multinpc[state] !== -1) {
-                        type = NpcType.get(type.multinpc[state]);
-                    }
-                }
             } else if (this.target instanceof Loc) {
                 type = LocType.get(this.target.type);
-
-                if (type.multivarp !== -1) {
-                    const state = this.getVar(type.multivarp) as number;
-
-                    if (state >= 0 && state < type.multiloc.length && type.multiloc[state] !== -1) {
-                        type = LocType.get(type.multiloc[state]);
-                    }
-                } else if (type.multivarbit !== -1) {
-                    const state = this.getVarBit(type.multivarbit);
-
-                    if (state >= 0 && state < type.multiloc.length && type.multiloc[state] !== -1) {
-                        type = LocType.get(type.multiloc[state]);
-                    }
-                }
             } else if (this.target instanceof Obj) {
                 type = ObjType.get(this.target.type);
             }
@@ -1112,40 +1056,10 @@ export default class Player extends PathingEntity {
         if (!Environment.NODE_PRODUCTION && !opTrigger && !apTrigger) {
             let debugname = '_';
             if (this.target instanceof Npc) {
-                let type = NpcType.get(this.target.type);
-
-                if (type.multivarp !== -1) {
-                    const state = this.getVar(type.multivarp) as number;
-
-                    if (state >= 0 && state < type.multinpc.length && type.multinpc[state] !== -1) {
-                        type = NpcType.get(type.multinpc[state]);
-                    }
-                } else if (type.multivarbit !== -1) {
-                    const state = this.getVarBit(type.multivarbit);
-
-                    if (state >= 0 && state < type.multinpc.length && type.multinpc[state] !== -1) {
-                        type = NpcType.get(type.multinpc[state]);
-                    }
-                }
-
+                const type = NpcType.get(this.target.type);
                 debugname = type.debugname ?? this.target.type.toString();
             } else if (this.target instanceof Loc) {
-                let type = LocType.get(this.target.type);
-
-                if (type.multivarp !== -1) {
-                    const state = this.getVar(type.multivarp) as number;
-
-                    if (state >= 0 && state < type.multiloc.length && type.multiloc[state] !== -1) {
-                        type = LocType.get(type.multiloc[state]);
-                    }
-                } else if (type.multivarbit !== -1) {
-                    const state = this.getVarBit(type.multivarbit);
-
-                    if (state >= 0 && state < type.multiloc.length && type.multiloc[state] !== -1) {
-                        type = LocType.get(type.multiloc[state]);
-                    }
-                }
-
+                const type = LocType.get(this.target.type);
                 debugname = type.debugname ?? this.target.type.toString();
             } else if (this.target instanceof Obj) {
                 debugname = ObjType.get(this.target.type)?.debugname ?? this.target.type.toString();
