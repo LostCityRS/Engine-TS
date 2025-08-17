@@ -28,6 +28,7 @@ import { NpcMode } from '#/engine/entity/NpcMode.js';
 import { NpcStat } from '#/engine/entity/NpcStat.js';
 import { PlayerStat } from '#/engine/entity/PlayerStat.js';
 import { Inventory } from '#/engine/Inventory.js';
+import VarBitType from '#/cache/config/VarBitType.js';
 
 interface ScriptValidator<T, R> {
     validate(input: T): R;
@@ -126,6 +127,7 @@ export const HuntVisValid: ScriptValidator<number, HuntVis> = new ScriptInputRan
 export const FindSquareValid: ScriptValidator<number, MapFindSquareType> = new ScriptInputRangeValidator(MapFindSquareType.LINEOFWALK, MapFindSquareType.NONE, 'FindSquare');
 export const SeqTypeValid: ScriptValidator<number, SeqType> = new ScriptInputConfigTypeValidator(SeqType.get, (input: number) => input >= 0 && input < SeqType.count, 'Seq');
 export const VarPlayerValid: ScriptValidator<number, VarPlayerType> = new ScriptInputConfigTypeValidator(VarPlayerType.get, (input: number) => input >= 0 && input < VarPlayerType.count, 'Varp');
+export const VarBitValid: ScriptValidator<number, VarBitType> = new ScriptInputConfigTypeValidator(VarBitType.get, (input: number) => input >= 0 && input < VarBitType.count, 'VarBit');
 export const VarNpcValid: ScriptValidator<number, VarNpcType> = new ScriptInputConfigTypeValidator(VarNpcType.get, (input: number) => input >= 0 && input < VarNpcType.count, 'Varn');
 export const VarSharedValid: ScriptValidator<number, VarSharedType> = new ScriptInputConfigTypeValidator(VarSharedType.get, (input: number) => input >= 0 && input < VarSharedType.count, 'Vars');
 export const FontTypeValid: ScriptValidator<number, FontType> = new ScriptInputConfigTypeValidator(FontType.get, (input: number) => input >= 0 && input < FontType.count, 'Font');

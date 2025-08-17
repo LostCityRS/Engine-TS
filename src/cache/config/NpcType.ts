@@ -217,7 +217,14 @@ export default class NpcType extends ConfigType {
             this.turnspeed = dat.g2();
         } else if (code === 106) {
             this.multivarbit = dat.g2();
+            if (this.multivarbit === 65535) {
+                this.multivarbit = -1;
+            }
+
             this.multivarp = dat.g2();
+            if (this.multivarp === 65535) {
+                this.multivarp = -1;
+            }
 
             const count = dat.g1();
             this.multinpc = new Array(count + 1);

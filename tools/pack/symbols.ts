@@ -15,6 +15,7 @@ import { ScriptOpcodeMap } from '#/engine/script/ScriptOpcode.js';
 import ScriptOpcodePointers from '#/engine/script/ScriptOpcodePointers.js';
 import Environment from '#/util/Environment.js';
 import { loadDir, loadPack } from '#/util/NameMap.js';
+import VarBitType from '#/cache/config/VarBitType.js';
 
 export function generateServerSymbols() {
     fs.mkdirSync('data/symbols', { recursive: true });
@@ -163,6 +164,20 @@ export function generateServerSymbols() {
         varpSymbols += `${i}\t${varp.debugname}\t${ScriptVarType.getType(varp.type)}\t${varp.protect}\n`;
     }
     fs.writeFileSync('data/symbols/varp.sym', varpSymbols);
+
+    VarBitType.load('data/pack');
+    let varbitSymbols = '';
+    const varbs = loadPack(`${Environment.BUILD_SRC_DIR}/pack/varbit.pack`);
+    for (let i = 0; i < varbs.length; i++) {
+        if (!varbs[i]) {
+            continue;
+        }
+
+        const varbit = VarBitType.get(i);
+        const basevar = VarPlayerType.get(varbit.basevar);
+        varbitSymbols += `${i}\t${varbit.debugname}\t${ScriptVarType.getType(basevar.type)}\t${basevar.protect}\n`;
+    }
+    fs.writeFileSync('data/symbols/varbit.sym', varbitSymbols);
 
     VarNpcType.load('data/pack');
     let varnSymbols = '';

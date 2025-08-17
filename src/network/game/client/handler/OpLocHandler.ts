@@ -34,7 +34,21 @@ export default class OpLocHandler extends MessageHandler<OpLoc> {
             return false;
         }
 
-        const locType = LocType.get(loc.type);
+        let locType = LocType.get(loc.type);
+        if (locType.multivarp !== -1) {
+            const state = player.getVar(locType.multivarp) as number;
+
+            if (state >= 0 && state < locType.multiloc.length && locType.multiloc[state] !== -1) {
+                locType = LocType.get(locType.multiloc[state]);
+            }
+        } else if (locType.multivarbit !== -1) {
+            const state = player.getVarBit(locType.multivarbit);
+
+            if (state >= 0 && state < locType.multiloc.length && locType.multiloc[state] !== -1) {
+                locType = LocType.get(locType.multiloc[state]);
+            }
+        }
+
         if (!locType.op || !locType.op[message.op - 1]) {
             player.write(new UnsetMapFlag());
             player.clearPendingAction();

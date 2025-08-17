@@ -22,9 +22,9 @@ export default class OpLocDecoder extends MessageDecoder<OpLoc> {
             z = buf.g2_alt1();
             loc = buf.g2_alt1();
         } else if (this.op === 2) {
+            loc = buf.g2();
             x = buf.g2();
-            z = buf.g2();
-            loc = buf.g2_alt2();
+            z = buf.g2_alt2();
         } else if (this.op === 3) {
             z = buf.g2_alt2();
             loc = buf.g2_alt1();

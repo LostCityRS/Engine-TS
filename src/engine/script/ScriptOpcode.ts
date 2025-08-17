@@ -17,8 +17,8 @@ export const enum ScriptOpcode {
     GOSUB,
     JUMP,
     SWITCH,
-    // 25 = push_varbit
-    // 27 = pop_varbit
+    POP_VARBIT = 25, // official, see cs2
+    PUSH_VARBIT = 27, // official, see cs2
     BRANCH_LESS_THAN_OR_EQUALS = 31, // official, see cs2
     BRANCH_GREATER_THAN_OR_EQUALS, // official, see cs2
     PUSH_INT_LOCAL, // official, see cs2
@@ -474,6 +474,8 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['GOSUB', ScriptOpcode.GOSUB],
     ['JUMP', ScriptOpcode.JUMP],
     ['SWITCH', ScriptOpcode.SWITCH],
+    ['PUSH_VARBIT', ScriptOpcode.PUSH_VARBIT],
+    ['POP_VARBIT', ScriptOpcode.POP_VARBIT],
     ['BRANCH_LESS_THAN_OR_EQUALS', ScriptOpcode.BRANCH_LESS_THAN_OR_EQUALS],
     ['BRANCH_GREATER_THAN_OR_EQUALS', ScriptOpcode.BRANCH_GREATER_THAN_OR_EQUALS],
     ['PUSH_INT_LOCAL', ScriptOpcode.PUSH_INT_LOCAL],

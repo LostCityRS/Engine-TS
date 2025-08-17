@@ -32,7 +32,21 @@ export default class OpNpcHandler extends MessageHandler<OpNpc> {
             return false;
         }
 
-        const npcType = NpcType.get(npc.type);
+        let npcType = NpcType.get(npc.type);
+        if (npcType.multivarp !== -1) {
+            const state = player.getVar(npcType.multivarp) as number;
+
+            if (state >= 0 && state < npcType.multinpc.length && npcType.multinpc[state] !== -1) {
+                npcType = NpcType.get(npcType.multinpc[state]);
+            }
+        } else if (npcType.multivarbit !== -1) {
+            const state = player.getVarBit(npcType.multivarbit);
+
+            if (state >= 0 && state < npcType.multinpc.length && npcType.multinpc[state] !== -1) {
+                npcType = NpcType.get(npcType.multinpc[state]);
+            }
+        }
+
         if (!npcType.op || !npcType.op[message.op - 1]) {
             player.write(new UnsetMapFlag());
             player.clearPendingAction();

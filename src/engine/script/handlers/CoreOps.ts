@@ -10,7 +10,7 @@ import { ProtectedActivePlayer } from '#/engine/script/ScriptPointer.js';
 import ScriptProvider from '#/engine/script/ScriptProvider.js';
 import { CommandHandlers } from '#/engine/script/ScriptRunner.js';
 import ScriptState from '#/engine/script/ScriptState.js';
-import { check, VarNpcValid, VarPlayerValid, VarSharedValid } from '#/engine/script/ScriptValidators.js';
+import { check, VarBitValid, VarNpcValid, VarPlayerValid, VarSharedValid } from '#/engine/script/ScriptValidators.js';
 import World from '#/engine/World.js';
 
 const CoreOps: CommandHandlers = {
@@ -56,6 +56,35 @@ const CoreOps: CommandHandlers = {
         } else {
             player.setVar(varpType.id, state.popInt());
         }
+    },
+
+    [ScriptOpcode.PUSH_VARBIT]: state => {
+        const secondary: number = (state.intOperand >> 16) & 0x1;
+        const player: Player | null = secondary ? state._activePlayer2 : state._activePlayer;
+
+        if (!player) {
+            throw new Error(`No ${secondary ? 'secondary' : 'primary'} active_player.`);
+        }
+
+        const varbit = check(state.intOperand & 0xffff, VarBitValid);
+        state.pushInt(player.getVarBit(varbit.id));
+    },
+
+    [ScriptOpcode.POP_VARBIT]: state => {
+        const secondary: number = (state.intOperand >> 16) & 0x1;
+        const player: Player | null = secondary ? state._activePlayer2 : state._activePlayer;
+
+        if (!player) {
+            throw new Error(`No ${secondary ? 'secondary' : 'primary'} active_player.`);
+        }
+
+        const varbit = check(state.intOperand & 0xffff, VarBitValid);
+        const basevar = VarPlayerType.get(varbit.basevar);
+        if (!state.pointerGet(ProtectedActivePlayer[secondary]) && basevar.protect) {
+            throw new Error(`%${varbit.debugname} requires protected access`);
+        }
+
+        player.setVarBit(varbit.id, state.popInt());
     },
 
     [ScriptOpcode.PUSH_VARN]: state => {

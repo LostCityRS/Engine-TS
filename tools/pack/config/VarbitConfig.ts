@@ -64,16 +64,16 @@ export function packVarbitConfigs(configs: Map<string, ConfigLine[]>): { client:
                 basevar = value as number;
             } else if (key === 'startbit') {
                 startbit = value as number;
-            } else if (key === 'protect') {
+            } else if (key === 'endbit') {
                 endbit = value as number;
             }
         }
 
         if (basevar !== null && startbit !== null && endbit !== null) {
-            server.p1(1);
-            server.p2(basevar);
-            server.p1(startbit);
-            server.p1(endbit);
+            client.p1(1);
+            client.p2(basevar);
+            client.p1(startbit);
+            client.p1(endbit);
         }
 
         server.p1(250);

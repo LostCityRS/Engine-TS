@@ -98,6 +98,7 @@ import { createWorker } from '#/util/WorkerFactory.js';
 import InputTrackingBlob from './entity/tracking/InputEvent.js';
 import OnDemand from './OnDemand.js';
 import { ObjDelayedRequest } from './entity/ObjDelayedRequest.js';
+import VarBitType from '#/cache/config/VarBitType.js';
 
 const priv = forge.pki.privateKeyFromPem(Environment.STANDALONE_BUNDLE ? await (await fetch('data/config/private.pem')).text() : fs.readFileSync('data/config/private.pem', 'ascii'));
 
@@ -230,6 +231,7 @@ class World {
 
     reload(clearInvs: boolean = true): void {
         VarPlayerType.load('data/pack');
+        VarBitType.load('data/pack');
         ParamType.load('data/pack');
         ObjType.load('data/pack');
         LocType.load('data/pack');

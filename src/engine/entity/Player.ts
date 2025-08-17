@@ -72,6 +72,7 @@ import Environment from '#/util/Environment.js';
 import { toDisplayName } from '#/util/JString.js';
 import LinkList from '#/util/LinkList.js';
 import { MidiPack } from '#/util/PackFile.js';
+import VarBitType from '#/cache/config/VarBitType.js';
 
 const levelExperience = new Int32Array(99);
 
@@ -952,7 +953,48 @@ export default class Player extends PathingEntity {
 
         // prio trigger details by target<type<com
         if (this.target instanceof Npc || this.target instanceof Loc || this.target instanceof Obj) {
-            const type = this.target instanceof Npc ? NpcType.get(this.target.type) : this.target instanceof Loc ? LocType.get(this.target.type) : ObjType.get(this.target.type);
+            let type: NpcType | LocType | ObjType | null = null;
+
+            if (this.target instanceof Npc) {
+                type = NpcType.get(this.target.type);
+
+                if (type.multivarp !== -1) {
+                    const state = this.getVar(type.multivarp) as number;
+
+                    if (state >= 0 && state < type.multinpc.length && type.multinpc[state] !== -1) {
+                        type = NpcType.get(type.multinpc[state]);
+                    }
+                } else if (type.multivarbit !== -1) {
+                    const state = this.getVarBit(type.multivarbit);
+
+                    if (state >= 0 && state < type.multinpc.length && type.multinpc[state] !== -1) {
+                        type = NpcType.get(type.multinpc[state]);
+                    }
+                }
+            } else if (this.target instanceof Loc) {
+                type = LocType.get(this.target.type);
+
+                if (type.multivarp !== -1) {
+                    const state = this.getVar(type.multivarp) as number;
+
+                    if (state >= 0 && state < type.multiloc.length && type.multiloc[state] !== -1) {
+                        type = LocType.get(type.multiloc[state]);
+                    }
+                } else if (type.multivarbit !== -1) {
+                    const state = this.getVarBit(type.multivarbit);
+
+                    if (state >= 0 && state < type.multiloc.length && type.multiloc[state] !== -1) {
+                        type = LocType.get(type.multiloc[state]);
+                    }
+                }
+            } else if (this.target instanceof Obj) {
+                type = ObjType.get(this.target.type);
+            }
+
+            if (!type) {
+                return null;
+            }
+
             typeId = type.id;
             categoryId = type.category;
         }
@@ -973,7 +1015,48 @@ export default class Player extends PathingEntity {
 
         // prio trigger details by target<type<com
         if (this.target instanceof Npc || this.target instanceof Loc || this.target instanceof Obj) {
-            const type = this.target instanceof Npc ? NpcType.get(this.target.type) : this.target instanceof Loc ? LocType.get(this.target.type) : ObjType.get(this.target.type);
+            let type: NpcType | LocType | ObjType | null = null;
+
+            if (this.target instanceof Npc) {
+                type = NpcType.get(this.target.type);
+
+                if (type.multivarp !== -1) {
+                    const state = this.getVar(type.multivarp) as number;
+
+                    if (state >= 0 && state < type.multinpc.length && type.multinpc[state] !== -1) {
+                        type = NpcType.get(type.multinpc[state]);
+                    }
+                } else if (type.multivarbit !== -1) {
+                    const state = this.getVarBit(type.multivarbit);
+
+                    if (state >= 0 && state < type.multinpc.length && type.multinpc[state] !== -1) {
+                        type = NpcType.get(type.multinpc[state]);
+                    }
+                }
+            } else if (this.target instanceof Loc) {
+                type = LocType.get(this.target.type);
+
+                if (type.multivarp !== -1) {
+                    const state = this.getVar(type.multivarp) as number;
+
+                    if (state >= 0 && state < type.multiloc.length && type.multiloc[state] !== -1) {
+                        type = LocType.get(type.multiloc[state]);
+                    }
+                } else if (type.multivarbit !== -1) {
+                    const state = this.getVarBit(type.multivarbit);
+
+                    if (state >= 0 && state < type.multiloc.length && type.multiloc[state] !== -1) {
+                        type = LocType.get(type.multiloc[state]);
+                    }
+                }
+            } else if (this.target instanceof Obj) {
+                type = ObjType.get(this.target.type);
+            }
+
+            if (!type) {
+                return null;
+            }
+
             typeId = type.id;
             categoryId = type.category;
         }
@@ -1029,9 +1112,41 @@ export default class Player extends PathingEntity {
         if (!Environment.NODE_PRODUCTION && !opTrigger && !apTrigger) {
             let debugname = '_';
             if (this.target instanceof Npc) {
-                debugname = NpcType.get(this.target.type)?.debugname ?? this.target.type.toString();
+                let type = NpcType.get(this.target.type);
+
+                if (type.multivarp !== -1) {
+                    const state = this.getVar(type.multivarp) as number;
+
+                    if (state >= 0 && state < type.multinpc.length && type.multinpc[state] !== -1) {
+                        type = NpcType.get(type.multinpc[state]);
+                    }
+                } else if (type.multivarbit !== -1) {
+                    const state = this.getVarBit(type.multivarbit);
+
+                    if (state >= 0 && state < type.multinpc.length && type.multinpc[state] !== -1) {
+                        type = NpcType.get(type.multinpc[state]);
+                    }
+                }
+
+                debugname = type.debugname ?? this.target.type.toString();
             } else if (this.target instanceof Loc) {
-                debugname = LocType.get(this.target.type)?.debugname ?? this.target.type.toString();
+                let type = LocType.get(this.target.type);
+
+                if (type.multivarp !== -1) {
+                    const state = this.getVar(type.multivarp) as number;
+
+                    if (state >= 0 && state < type.multiloc.length && type.multiloc[state] !== -1) {
+                        type = LocType.get(type.multiloc[state]);
+                    }
+                } else if (type.multivarbit !== -1) {
+                    const state = this.getVarBit(type.multivarbit);
+
+                    if (state >= 0 && state < type.multiloc.length && type.multiloc[state] !== -1) {
+                        type = LocType.get(type.multiloc[state]);
+                    }
+                }
+
+                debugname = type.debugname ?? this.target.type.toString();
             } else if (this.target instanceof Obj) {
                 debugname = ObjType.get(this.target.type)?.debugname ?? this.target.type.toString();
             } else if ((this.targetSubject.com !== -1 && this.targetOp === ServerTriggerType.APNPCT) || this.targetOp === ServerTriggerType.APPLAYERT || this.targetOp === ServerTriggerType.APLOCT || this.targetOp === ServerTriggerType.APOBJT) {
@@ -1666,6 +1781,35 @@ export default class Player extends PathingEntity {
                 this.writeVarp(id, value);
             }
         }
+    }
+
+    getVarBit(id: number) {
+        const varbit = VarBitType.get(id);
+        if (!varbit) {
+            return 0;
+        }
+
+        const { basevar, startbit, endbit } = varbit;
+        const mask = Packet.bitmask[endbit - startbit + 1];
+
+        return this.vars[basevar] >> startbit & mask;
+    }
+
+    setVarBit(id: number, value: number) {
+        const varbit = VarBitType.get(id);
+        if (!varbit) {
+            return 0;
+        }
+
+        const { basevar, startbit, endbit } = varbit;
+        let mask = Packet.bitmask[endbit - startbit + 1];
+
+        if (value < 0 || value > mask) {
+            value = 0;
+        }
+
+        mask <<= startbit;
+        this.setVar(basevar, mask & value << startbit | this.vars[basevar] & ~mask);
     }
 
     private writeVarp(id: number, value: number): void {

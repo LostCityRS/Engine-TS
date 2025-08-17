@@ -27,6 +27,7 @@ import ClientCheat from '#/network/game/client/model/ClientCheat.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import Environment from '#/util/Environment.js';
 import { tryParseInt } from '#/util/TryParse.js';
+import VarBitType from '#/cache/config/VarBitType.js';
 
 
 export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
@@ -191,7 +192,29 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     return false;
                 }
 
-                const varp = VarPlayerType.getByName(args[0]);
+                const debugname = args[0];
+                const value = Math.max(-0x80000000, Math.min(tryParseInt(args[1], 0), 0x7fffffff));
+
+                let varp: VarPlayerType | null = null;
+                const varbit = VarBitType.getByName(debugname);
+                if (varbit) {
+                    varp = VarPlayerType.get(varbit.basevar);
+
+                    if (varp.protect) {
+                        player.closeModal();
+
+                        if (!player.canAccess()) {
+                            player.messageGame('Please finish what you are doing first.');
+                            return false;
+                        }
+
+                        player.clearInteraction();
+                        player.unsetMapFlag();
+                    }
+                } else {
+                    varp = VarPlayerType.getByName(debugname);
+                }
+
                 if (!varp) {
                     return false;
                 }
@@ -208,9 +231,13 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     player.unsetMapFlag();
                 }
 
-                const value = Math.max(-0x80000000, Math.min(tryParseInt(args[1], 0), 0x7fffffff));
-                player.setVar(varp.id, value);
-                player.messageGame('set ' + varp.debugname + ': to ' + value);
+                if (varbit) {
+                    player.setVarBit(varbit.id, value);
+                    player.messageGame('set ' + varbit.debugname + ': to ' + value);
+                } else {
+                    player.setVar(varp.id, value);
+                    player.messageGame('set ' + varp.debugname + ': to ' + value);
+                }
             } else if (cmd === 'setvarother' && Environment.NODE_PRODUCTION) {
                 // custom
                 if (args.length < 3) {
@@ -252,13 +279,39 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     return false;
                 }
 
-                const varp = VarPlayerType.getByName(args[0]);
+                const debugname = args[0];
+
+                let varp: VarPlayerType | null = null;
+                const varbit = VarBitType.getByName(debugname);
+                if (varbit) {
+                    varp = VarPlayerType.get(varbit.basevar);
+
+                    if (varp.protect) {
+                        player.closeModal();
+
+                        if (!player.canAccess()) {
+                            player.messageGame('Please finish what you are doing first.');
+                            return false;
+                        }
+
+                        player.clearInteraction();
+                        player.unsetMapFlag();
+                    }
+                } else {
+                    varp = VarPlayerType.getByName(debugname);
+                }
+
                 if (!varp) {
                     return false;
                 }
 
-                const value = player.getVar(varp.id);
-                player.messageGame('get ' + varp.debugname + ': ' + value);
+                if (varbit) {
+                    const value = player.getVarBit(varbit.id);
+                    player.messageGame('get ' + varbit.debugname + ': ' + value);
+                } else {
+                    const value = player.getVar(varp.id);
+                    player.messageGame('get ' + varp.debugname + ': ' + value);
+                }
             } else if (cmd === 'getvarother' && Environment.NODE_PRODUCTION) {
                 // custom
                 if (args.length < 2) {
