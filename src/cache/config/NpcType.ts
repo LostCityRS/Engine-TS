@@ -212,7 +212,7 @@ export default class NpcType extends ConfigType {
         } else if (code === 101) {
             this.contrast = dat.g1b();
         } else if (code === 102) {
-            this.headicon = dat.g1();
+            this.headicon = dat.g2();
         } else if (code === 103) {
             this.turnspeed = dat.g2();
         } else if (code === 106) {

@@ -251,11 +251,11 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 models2 = value as LocModelShape[];
             } else if (key.startsWith('unpacked_')) {
                 // refreshly unpacked!
-                const index = parseInt(key['unpacked_'.length]) - 1;
+                const index = parseInt(key.split('_')[1]) - 1;
                 models[index] = (value as LocModelShape[])[0];
             } else if (key.startsWith('unpacked2_')) {
                 // refreshly unpacked!
-                const index = parseInt(key['unpacked2_'.length]) - 1;
+                const index = parseInt(key.split('_')[1]) - 1;
                 models2[index] = (value as LocModelShape[])[0];
             } else if (key.startsWith('recol')) {
                 const index = parseInt(key[5]) - 1;
@@ -462,7 +462,7 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
             }
         }
 
-        if (name === null && active !== 0) {
+        if (name === null && active !== 0 && multivarbit === -1 && multivarp === -1) {
             // edge case: a loc has no name= property but contains a centrepiece_straight shape or active=yes
             //   we have to transmit a name - so we fall back to the debugname
             let shouldTransmit: boolean = active === 1;

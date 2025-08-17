@@ -329,6 +329,7 @@ export function modelHasTexture(modelId: number, textureId: number): boolean {
         return false;
     }
 
+    // todo: ignore transparent faces?
     for (let i = 0; i < model.faceCount; i++) {
         if (model.faceInfo && (model.faceInfo[i] & 0x3) > 1 && model.faceColour[i] === textureId) {
             return true;

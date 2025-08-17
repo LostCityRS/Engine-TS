@@ -288,6 +288,7 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
         let multivarp = -1;
         let multivarbit = -1;
         const multinpc: number[] = [];
+        let active = true;
 
         for (let j = 0; j < config.length; j++) {
             const { key, value } = config[j];
@@ -298,7 +299,7 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 const index = parseInt(key.substring('model'.length)) - 1;
                 models[index] = value as number;
                 modelFlags[value as number] |= 0x4;
-            } else if (key.startsWith('head')) {
+            } else if (key.match(/head\d+/)) {
                 const index = parseInt(key.substring('head'.length)) - 1;
                 heads[index] = value as number;
                 modelFlags[value as number] |= 0x4;
@@ -420,6 +421,7 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
             } else if (key === 'active') {
                 if (value === false) {
                     client.p1(107);
+                    active = false;
                 }
             } else if (key === 'wanderrange') {
                 server.p1(200);
@@ -474,7 +476,7 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
             }
         }
 
-        if (name === null) {
+        if (name === null && active && multivarbit === -1 && multivarp === -1) {
             name = debugname;
         }
 

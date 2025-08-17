@@ -4,7 +4,7 @@ import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import ColorConversion from '#/util/ColorConversion.js';
 import { printWarning } from '#/util/Logger.js';
 import { CategoryPack, ModelPack, ObjPack, SeqPack } from '#/util/PackFile.js';
-import { ParamValue, ConfigValue, ConfigLine, packStepError, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
+import { ParamValue, ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 import { lookupParamValue } from '#tools/pack/config/ParamConfig.js';
 
 export function parseObjConfig(key: string, value: string): ConfigValue | null | undefined {
@@ -206,39 +206,40 @@ export function packObjConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
 
     for (let i = 0; i < ObjPack.size; i++) {
         const debugname = ObjPack.getById(i);
-        let config;
+        const config = configs.get(debugname)!;
 
-        if (debugname.startsWith('cert_')) {
-            const uncert = ObjPack.getByName(debugname.substring('cert_'.length));
-            if (uncert === -1) {
-                throw packStepError(debugname, 'Cert does not link to anything based on its name.');
-            }
+        // todo: cert_ config names get used... what to do now...
+        // if (debugname.startsWith('cert_')) {
+        //     const uncert = ObjPack.getByName(debugname.substring('cert_'.length));
+        //     if (uncert === -1) {
+        //         throw packStepError(debugname, 'Cert does not link to anything based on its name.');
+        //     }
 
-            config = [
-                { key: 'certlink', value: uncert },
-                { key: 'certtemplate', value: template_for_cert }
-            ];
-        } else {
-            config = configs.get(debugname)!;
+        //     config = [
+        //         { key: 'certlink', value: uncert },
+        //         { key: 'certtemplate', value: template_for_cert }
+        //     ];
+        // } else {
+        //     config = configs.get(debugname)!;
 
-            // if no name we fill with the debug name
-            let hasName = false;
-            let hasModel = false;
-            for (let j = 0; j < config.length; j++) {
-                const key = config[j].key;
+        //     // if no name we fill with the debug name
+        //     let hasName = false;
+        //     let hasModel = false;
+        //     for (let j = 0; j < config.length; j++) {
+        //         const key = config[j].key;
 
-                if (key === 'name') {
-                    hasName = true;
-                } else if (key === 'model') {
-                    hasModel = true;
-                }
-            }
+        //         if (key === 'name') {
+        //             hasName = true;
+        //         } else if (key === 'model') {
+        //             hasModel = true;
+        //         }
+        //     }
 
-            if (!hasName && hasModel) {
-                const name = debugname.charAt(0).toUpperCase() + debugname.slice(1).replace(/_/g, ' ');
-                config.push({ key: 'name', value: name });
-            }
-        }
+        //     if (!hasName && hasModel) {
+        //         const name = debugname.charAt(0).toUpperCase() + debugname.slice(1).replace(/_/g, ' ');
+        //         config.push({ key: 'name', value: name });
+        //     }
+        // }
 
         // collect these to write at the end
         const recol_s: number[] = [];
