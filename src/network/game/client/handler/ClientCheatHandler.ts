@@ -376,7 +376,7 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     while (random === -1) {
                         random = Math.trunc(Math.random() * ObjType.count);
                         const obj = ObjType.get(random);
-                        if ((!Environment.NODE_MEMBERS && obj.members) || obj.dummyitem != 0) {
+                        if ((!Environment.NODE_MEMBERS && obj.members) || obj.dummyitem !== 0 || obj.certtemplate !== -1) {
                             random = -1;
                         }
                     }
@@ -508,6 +508,19 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     return false;
                 }
                 World.addNpc(new Npc(player.level, player.x, player.z, type.size, type.size, EntityLifeCycle.DESPAWN, World.getNextNid(), type.id, type.moverestrict, type.blockwalk), 500);
+            } else if (cmd === 'openmain') {
+                if (args.length < 1) {
+                    return false;
+                }
+
+                const name: string = args[0];
+                const type: Component | null = Component.getByName(name);
+
+                if (!type || type.rootLayer !== type.id) {
+                    return false;
+                }
+
+                player.openMainModal(type.id);
             }
         }
 
