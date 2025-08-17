@@ -79,12 +79,14 @@ const CoreOps: CommandHandlers = {
         }
 
         const varbit = check(state.intOperand & 0xffff, VarBitValid);
+
         const basevar = VarPlayerType.get(varbit.basevar);
         if (!state.pointerGet(ProtectedActivePlayer[secondary]) && basevar.protect) {
             throw new Error(`%${varbit.debugname} requires protected access`);
         }
 
-        player.setVarBit(varbit.id, state.popInt());
+        const value = state.popInt();
+        player.setVarBit(varbit.id, value);
     },
 
     [ScriptOpcode.PUSH_VARN]: state => {

@@ -17,8 +17,8 @@ export const enum ScriptOpcode {
     GOSUB,
     JUMP,
     SWITCH,
-    POP_VARBIT = 25, // official, see cs2
-    PUSH_VARBIT = 27, // official, see cs2
+    PUSH_VARBIT = 25, // official, see cs2
+    POP_VARBIT = 27, // official, see cs2
     BRANCH_LESS_THAN_OR_EQUALS = 31, // official, see cs2
     BRANCH_GREATER_THAN_OR_EQUALS, // official, see cs2
     PUSH_INT_LOCAL, // official, see cs2
