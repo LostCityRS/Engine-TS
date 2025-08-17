@@ -1,6 +1,7 @@
+import { modelsHaveTexture } from '#/cache/graphics/Model.js';
 import ColorConversion from '#/util/ColorConversion.js';
 import { printWarning } from '#/util/Logger.js';
-import { ModelPack, ObjPack, SeqPack } from '#/util/PackFile.js';
+import { ModelPack, ObjPack, SeqPack, TexturePack } from '#/util/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 
@@ -11,6 +12,10 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
     const def: string[] = [];
     def.push(`[${ObjPack.getById(id)}]`);
 
+    const modelIds: number[] = [];
+    const recolSrc: number[] = [];
+    const recolDst: number[] = [];
+
     while (true) {
         const code = dat.g1();
         if (code === 0) {
@@ -19,6 +24,8 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
 
         if (code === 1) {
             const modelId = dat.g2();
+
+            modelIds.push(modelId);
 
             const model = ModelPack.getById(modelId) || 'model_' + modelId;
             def.push(`model=${model}`);
@@ -61,10 +68,14 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
             const modelId = dat.g2();
             const offset = dat.g1b();
 
+            modelIds.push(modelId);
+
             const model = ModelPack.getById(modelId) || 'model_' + modelId;
             def.push(`manwear=${model},${offset}`);
         } else if (code === 24) {
             const modelId = dat.g2();
+
+            modelIds.push(modelId);
 
             const model = ModelPack.getById(modelId) || 'model_' + modelId;
             def.push(`manwear2=${model}`);
@@ -72,10 +83,14 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
             const modelId = dat.g2();
             const offset = dat.g1b();
 
+            modelIds.push(modelId);
+
             const model = ModelPack.getById(modelId) || 'model_' + modelId;
             def.push(`womanwear=${model},${offset}`);
         } else if (code === 26) {
             const modelId = dat.g2();
+
+            modelIds.push(modelId);
 
             const model = ModelPack.getById(modelId) || 'model_' + modelId;
             def.push(`womanwear2=${model}`);
@@ -91,44 +106,48 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
             const count = dat.g1();
 
             for (let i = 0; i < count; i++) {
-                const index = i + 1;
-                const src = dat.g2();
-                const dst = dat.g2();
-
-                // todo: retex detection (no rgb value || model flags)
-                const srcRgb = ColorConversion.reverseHsl(src)[0];
-                const dstRgb = ColorConversion.reverseHsl(dst)[0];
-
-                def.push(`recol${index}s=${srcRgb || src}`);
-                def.push(`recol${index}d=${dstRgb || dst}`);
+                recolSrc[i] = dat.g2();
+                recolDst[i] = dat.g2();
             }
         } else if (code === 78) {
             const modelId = dat.g2();
+
+            modelIds.push(modelId);
 
             const model = ModelPack.getById(modelId) || 'model_' + modelId;
             def.push(`manwear3=${model}`);
         } else if (code === 79) {
             const modelId = dat.g2();
 
+            modelIds.push(modelId);
+
             const model = ModelPack.getById(modelId) || 'model_' + modelId;
             def.push(`womanwear3=${model}`);
         } else if (code === 90) {
             const modelId = dat.g2();
+
+            modelIds.push(modelId);
 
             const model = ModelPack.getById(modelId) || 'model_' + modelId;
             def.push(`manhead=${model}`);
         } else if (code === 91) {
             const modelId = dat.g2();
 
+            modelIds.push(modelId);
+
             const model = ModelPack.getById(modelId) || 'model_' + modelId;
             def.push(`womanhead=${model}`);
         } else if (code === 92) {
             const modelId = dat.g2();
 
+            modelIds.push(modelId);
+
             const model = ModelPack.getById(modelId) || 'model_' + modelId;
             def.push(`manhead2=${model}`);
         } else if (code === 93) {
             const modelId = dat.g2();
+
+            modelIds.push(modelId);
 
             const model = ModelPack.getById(modelId) || 'model_' + modelId;
             def.push(`womanhead2=${model}`);
@@ -177,6 +196,31 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
 
     if (dat.pos !== pos[id] + len[id]) {
         printWarning(`incomplete read: ${dat.pos} != ${pos[id] + len[id]}`);
+    }
+
+    const recolCount = recolSrc.length;
+    for (let i = 0; i < recolCount; i++) {
+        const index = i + 1;
+
+        const srcRaw = recolSrc[i];
+        const dstRaw = recolDst[i];
+
+        const srcRgb = ColorConversion.reverseHsl(srcRaw)[0];
+        const dstRgb = ColorConversion.reverseHsl(dstRaw)[0];
+
+        if (srcRaw >= 50 || dstRaw >= 50) {
+            // texture ids cap at 50, so we can save time knowing it's not a texture id - output as rgb
+            def.push(`recol${index}s=${srcRgb ?? srcRaw}`);
+            def.push(`recol${index}d=${dstRgb ?? dstRaw}`);
+        } else if (modelsHaveTexture(modelIds, srcRaw)) {
+            // model has the source as a texture - output as texture
+            def.push(`retex${index}s=${TexturePack.getById(srcRaw)}`);
+            def.push(`retex${index}d=${TexturePack.getById(dstRaw)}`);
+        } else {
+            // output as rgb
+            def.push(`recol${index}s=${srcRgb ?? srcRaw}`);
+            def.push(`recol${index}d=${dstRgb ?? dstRaw}`);
+        }
     }
 
     return def;

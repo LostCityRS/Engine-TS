@@ -1,5 +1,7 @@
+import { modelsHaveTexture } from '#/cache/graphics/Model.js';
+import ColorConversion from '#/util/ColorConversion.js';
 import { printWarning } from '#/util/Logger.js';
-import { IdkPack, ModelPack } from '#/util/PackFile.js';
+import { IdkPack, ModelPack, TexturePack } from '#/util/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 
@@ -26,6 +28,10 @@ export function unpackIdkConfig(config: ConfigIdx, id: number): string[] {
     const def: string[] = [];
     def.push(`[${IdkPack.getById(id)}]`);
 
+    const modelIds: number[] = [];
+    const recolSrc: number[] = [];
+    const recolDst: number[] = [];
+
     dat.pos = pos[id];
     while (true) {
         const code = dat.g1();
@@ -41,25 +47,29 @@ export function unpackIdkConfig(config: ConfigIdx, id: number): string[] {
             const count = dat.g1();
             for (let i = 0; i < count; i++) {
                 const modelId = dat.g2();
-                const model = ModelPack.getById(modelId) || 'model_' + modelId;
 
+                modelIds.push(modelId);
+
+                const model = ModelPack.getById(modelId) || 'model_' + modelId;
                 def.push(`model${i + 1}=${model}`);
             }
         } else if (code === 3) {
             def.push('disable=yes');
         } else if (code >= 40 && code < 50) {
-            const index = code - 40 + 1;
+            const index = code - 40;
             const recol = dat.g2();
 
-            def.push(`recol${index}s=${recol}`);
+            recolSrc[index] = recol;
         } else if (code >= 50 && code < 60) {
-            const index = code - 50 + 1;
+            const index = code - 50;
             const recol = dat.g2();
 
-            def.push(`recol${index}d=${recol}`);
+            recolDst[index] = recol;
         } else if (code >= 60 && code < 70) {
             const index = code - 60 + 1;
             const modelId = dat.g2();
+
+            modelIds.push(modelId);
 
             const model = ModelPack.getById(modelId) || 'model_' + modelId;
             def.push(`head${index}=${model}`);
@@ -70,6 +80,35 @@ export function unpackIdkConfig(config: ConfigIdx, id: number): string[] {
 
     if (dat.pos !== pos[id] + len[id]) {
         printWarning(`incomplete read: ${dat.pos} != ${pos[id] + len[id]}`);
+    }
+
+    const recolCount = recolSrc.length;
+    for (let i = 0; i < recolCount; i++) {
+        if (typeof recolSrc[i] === 'undefined') {
+            continue;
+        }
+
+        const index = i + 1;
+
+        const srcRaw = recolSrc[i];
+        const dstRaw = recolDst[i];
+
+        const srcRgb = ColorConversion.reverseHsl(srcRaw)[0];
+        const dstRgb = ColorConversion.reverseHsl(dstRaw)[0];
+
+        if (srcRaw >= 50 || dstRaw >= 50) {
+            // texture ids cap at 50, so we can save time knowing it's not a texture id - output as rgb
+            def.push(`recol${index}s=${srcRgb ?? srcRaw}`);
+            def.push(`recol${index}d=${dstRgb ?? dstRaw}`);
+        } else if (modelsHaveTexture(modelIds, srcRaw)) {
+            // model has the source as a texture - output as texture
+            def.push(`retex${index}s=${TexturePack.getById(srcRaw)}`);
+            def.push(`retex${index}d=${TexturePack.getById(dstRaw)}`);
+        } else {
+            // output as rgb
+            def.push(`recol${index}s=${srcRgb ?? srcRaw}`);
+            def.push(`recol${index}d=${dstRgb ?? dstRaw}`);
+        }
     }
 
     return def;

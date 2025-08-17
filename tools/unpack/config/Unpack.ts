@@ -4,7 +4,7 @@ import FileStream from '#/io/FileStream.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import { printFatalError, printInfo } from '#/util/Logger.js';
-import { FloPack, IdkPack, LocPack, NpcPack, ObjPack, SeqPack, SpotAnimPack, VarbitPack, VarpPack } from '#/util/PackFile.js';
+import { FloPack, IdkPack, LocPack, ModelPack, NpcPack, ObjPack, SeqPack, SpotAnimPack, VarbitPack, VarpPack } from '#/util/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 import { unpackSeqConfig } from './SeqConfig.js';
@@ -17,6 +17,7 @@ import { unpackFloConfig } from './FloConfig.js';
 import { unpackVarpConfig } from './VarpPack.js';
 import { unpackVarbitConfig } from './VarbitPack.js';
 import { unpackSpotAnimType } from './SpotAnimType.js';
+import Model from '#/cache/graphics/Model.js';
 
 function readConfigIdx(idx: Packet | null, dat: Packet | null): ConfigIdx {
     if (!idx || !dat) {
@@ -98,7 +99,7 @@ function reorderUnpacked(config: string[], descLast: boolean = true) {
             desc.push(line);
         } else if (line.startsWith('unpacked_') || line.startsWith('unpacked2_') || line.startsWith('model')) {
             model.push(line);
-        } else if (line.startsWith('recol')) {
+        } else if (line.startsWith('recol') || line.startsWith('retex')) {
             recol.push(line);
         } else if (!line.startsWith('hasalpha=')){
             others.push(line);
@@ -186,6 +187,11 @@ function unpackConfigs(revision: string) {
     // }
 
     printInfo(`Unpacking rev ${revision} into ${Environment.BUILD_SRC_DIR}/scripts`);
+
+    for (let id = 0; id < ModelPack.max; id++) {
+        const data = cache.read(1, id, true);
+        Model.unpack(id, data);
+    }
 
     unpackConfigNames('loc', config);
     unpackConfigNames('npc', config);

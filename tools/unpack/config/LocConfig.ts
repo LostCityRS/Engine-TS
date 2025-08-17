@@ -1,6 +1,7 @@
+import { modelsHaveTexture } from '#/cache/graphics/Model.js';
 import ColorConversion from '#/util/ColorConversion.js';
 import { printFatalError, printWarning } from '#/util/Logger.js';
-import { LocPack, ModelPack, SeqPack, VarbitPack, VarpPack } from '#/util/PackFile.js';
+import { LocPack, ModelPack, SeqPack, TexturePack, VarbitPack, VarpPack } from '#/util/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 
@@ -40,6 +41,10 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
     let decodedModels = false;
     let lastCode = 0;
 
+    const modelIds: number[] = [];
+    const recolSrc: number[] = [];
+    const recolDst: number[] = [];
+
     while (true) {
         const code = dat.g1();
         if (code === 0) {
@@ -53,6 +58,8 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
                 const index = i + 1;
                 const modelId = dat.g2();
                 const shape = code === 1 ? dat.g1() : 10;
+
+                modelIds.push(modelId);
 
                 // this needs to be post-processed to become a single model line!
                 const model = ModelPack.getById(modelId) || 'model_' + modelId;
@@ -113,16 +120,8 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
             const count = dat.g1();
 
             for (let i = 0; i < count; i++) {
-                const index = i + 1;
-                const src = dat.g2();
-                const dst = dat.g2();
-
-                // todo: retex detection (no rgb value || model flags)
-                const srcRgb = ColorConversion.reverseHsl(src)[0];
-                const dstRgb = ColorConversion.reverseHsl(dst)[0];
-
-                def.push(`recol${index}s=${srcRgb || src}`);
-                def.push(`recol${index}d=${dstRgb || dst}`);
+                recolSrc[i] = dat.g2();
+                recolDst[i] = dat.g2();
             }
         } else if (code === 60) {
             const mapfunction = dat.g2();
@@ -204,6 +203,31 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
 
     if (dat.pos !== pos[id] + len[id]) {
         printWarning(`incomplete read: ${dat.pos} != ${pos[id] + len[id]}`);
+    }
+
+    const recolCount = recolSrc.length;
+    for (let i = 0; i < recolCount; i++) {
+        const index = i + 1;
+
+        const srcRaw = recolSrc[i];
+        const dstRaw = recolDst[i];
+
+        const srcRgb = ColorConversion.reverseHsl(srcRaw)[0];
+        const dstRgb = ColorConversion.reverseHsl(dstRaw)[0];
+
+        if (srcRaw >= 50 || dstRaw >= 50) {
+            // texture ids cap at 50, so we can save time knowing it's not a texture id - output as rgb
+            def.push(`recol${index}s=${srcRgb ?? srcRaw}`);
+            def.push(`recol${index}d=${dstRgb ?? dstRaw}`);
+        } else if (typeof srcRgb === 'undefined' || typeof dstRgb === 'undefined' || modelsHaveTexture(modelIds, srcRaw)) {
+            // model has the source as a texture - output as texture
+            def.push(`retex${index}s=${TexturePack.getById(srcRaw)}`);
+            def.push(`retex${index}d=${TexturePack.getById(dstRaw)}`);
+        } else {
+            // output as rgb
+            def.push(`recol${index}s=${srcRgb ?? srcRaw}`);
+            def.push(`recol${index}d=${dstRgb ?? dstRaw}`);
+        }
     }
 
     return def;
