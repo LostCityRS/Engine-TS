@@ -118,6 +118,14 @@ export function parseNpcConfig(key: string, value: string): ConfigValue | null |
         }
 
         return ColorConversion.rgb15toHsl16(parseInt(value));
+    } else if (key.startsWith('hslrecol')) {
+        // inauthentic but needed for an edge case
+        const index = parseInt(key[5]);
+        if (index > 9) {
+            return null;
+        }
+
+        return parseInt(value);
     } else if (key === 'readyanim') {
         const index = SeqPack.getByName(value);
         if (index === -1) {
@@ -280,6 +288,7 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
         const recol_s: number[] = [];
         const recol_d: number[] = [];
         let name: string | null = null;
+        let desc: string | null = null;
         const models: number[] = [];
         const heads: number[] = [];
         const params: ParamValue[] = [];
@@ -310,11 +319,18 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 } else {
                     recol_d[index] = value as number;
                 }
+            } else if (key.startsWith('hslrecol')) {
+                // inauthentic but needed for an edge case
+                const index = parseInt(key.substring('hslrecol'.length, key.length - 1)) - 1;
+                if (key.endsWith('s')) {
+                    recol_s[index] = value as number;
+                } else {
+                    recol_d[index] = value as number;
+                }
             } else if (key === 'param') {
                 params.push(value as ParamValue);
             } else if (key === 'desc') {
-                client.p1(3);
-                client.pjstr(value as string);
+                desc = value as string;
             } else if (key === 'size') {
                 client.p1(12);
                 client.p1(value as number);
@@ -483,6 +499,11 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
         if (name !== null) {
             client.p1(2);
             client.pjstr(name);
+        }
+
+        if (desc !== null) {
+            client.p1(3);
+            client.pjstr(desc);
         }
 
         if (models.length > 0) {

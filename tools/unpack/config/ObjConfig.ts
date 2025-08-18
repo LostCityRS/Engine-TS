@@ -153,7 +153,7 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
             def.push(`womanhead2=${model}`);
         } else if (code === 95) {
             const zan2d = dat.g2();
-            def.push(`2dyof=${zan2d}`);
+            def.push(`2dzan=${zan2d}`);
         } else if (code === 97) {
             const objId = dat.g2();
 

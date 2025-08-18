@@ -79,7 +79,7 @@ function unpackConfigNames(type: string, config: Jagfile) {    let pack = null;
     pack.save();
 }
 
-function reorderUnpacked(config: string[], descLast: boolean = true) {
+function reorderUnpacked(config: string[], settings: { moveName: boolean, moveDesc: boolean, moveRecol: boolean, moveModel: boolean }) {
     const debugname: string[] = [];
     const others: string[] = [];
 
@@ -93,13 +93,13 @@ function reorderUnpacked(config: string[], descLast: boolean = true) {
     for (const line of config) {
         if (line.startsWith('[')) {
             debugname.push(line);
-        } else if (line.startsWith('name=')) {
+        } else if (settings.moveName && line.startsWith('name=')) {
             name.push(line);
-        } else if (line.startsWith('desc=') && descLast) {
+        } else if (settings.moveDesc && line.startsWith('desc=')) {
             desc.push(line);
-        } else if (line.startsWith('unpacked_') || line.startsWith('unpacked2_') || line.startsWith('model')) {
+        } else if (settings.moveModel && (line.startsWith('unpacked_') || line.startsWith('unpacked2_') || line.startsWith('model'))) {
             model.push(line);
-        } else if (line.startsWith('recol') || line.startsWith('retex')) {
+        } else if (settings.moveRecol && (line.startsWith('recol') || line.startsWith('retex'))) {
             recol.push(line);
         } else if (!line.startsWith('hasalpha=')){
             others.push(line);
@@ -119,6 +119,21 @@ function unpackConfig(revision: string, type: string, unpack: UnpackConfigImpl, 
         compareIdx = readConfigIdx(config2.read(type + '.idx'), config2.read(type + '.dat'));
     }
 
+    // const dat1 = config.read(type + '.dat')!;
+    // const dat2 = config2!.read(type + '.dat')!;
+    // const check1 = Packet.getcrc(dat1.data, 0, dat1.length);
+    // const check2 = Packet.getcrc(dat2.data, 0, dat2.length);
+
+    // if (check1 !== check2) {
+    //     console.log(type, 'mismatch');
+    //     dat1.save(`dump/${type}1.dat`, dat1.length);
+    //     dat2.save(`dump/${type}2.dat`, dat2.length);
+    // } else {
+    //     console.log(type, 'match');
+    // }
+
+    // return;
+
     if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/scripts/_unpack/${revision}`)) {
         fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/scripts/_unpack/${revision}`, { recursive: true });
     }
@@ -126,13 +141,29 @@ function unpackConfig(revision: string, type: string, unpack: UnpackConfigImpl, 
     const out = `${Environment.BUILD_SRC_DIR}/scripts/_unpack/${revision}/all.${type}`;
     fs.writeFileSync(out, '');
 
+    const settings = { moveName: false, moveDesc: false, moveRecol: false, moveModel: false };
+
+    if (type === 'loc' || type === 'npc' || type === 'obj') {
+        settings.moveName = true;
+        settings.moveDesc = true;
+        settings.moveRecol = true;
+    }
+
+    if (type === 'idk') {
+        settings.moveRecol = true;
+    }
+
+    if (type === 'loc' || type === 'npc') {
+        settings.moveModel = true;
+    }
+
     for (let id = 0; id < sourceIdx.size; id++) {
-        const unpacked = reorderUnpacked(unpack(sourceIdx, id));
+        const unpacked = reorderUnpacked(unpack(sourceIdx, id), settings);
         unpacked.push('');
 
         if (compareIdx) {
             if (id < compareIdx.size) {
-                const unpacked2 = reorderUnpacked(unpack(compareIdx, id));
+                const unpacked2 = reorderUnpacked(unpack(compareIdx, id), settings);
                 unpacked2.push('');
 
                 for (let i = 0; i < unpacked2.length; i++) {

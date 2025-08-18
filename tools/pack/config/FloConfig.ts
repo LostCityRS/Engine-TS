@@ -91,9 +91,11 @@ export function packFloConfigs(configs: Map<string, ConfigLine[]>): { client: Pa
             }
         }
 
-        // yes, this was originally transmitted!
-        client.p1(6);
-        client.pjstr(debugname);
+        if (!debugname.startsWith('flo_')) {
+            // yes, this was originally transmitted!
+            client.p1(6);
+            client.pjstr(debugname);
+        }
 
         client.next();
         server.next();

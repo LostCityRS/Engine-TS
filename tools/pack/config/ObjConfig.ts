@@ -245,6 +245,7 @@ export function packObjConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
         const recol_s: number[] = [];
         const recol_d: number[] = [];
         let name: string | null = null;
+        let desc: string | null = null;
         const params: ParamValue[] = [];
 
         // used for model_index
@@ -271,8 +272,7 @@ export function packObjConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 client.p2(value as number);
                 model.push(value as number);
             } else if (key === 'desc') {
-                client.p1(3);
-                client.pjstr(value as string);
+                desc = value as string;
             } else if (key === '2dzoom') {
                 client.p1(4);
                 client.p2(value as number);
@@ -459,6 +459,11 @@ export function packObjConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
         if (name !== null) {
             client.p1(2);
             client.pjstr(name);
+        }
+
+        if (desc !== null) {
+            client.p1(3);
+            client.pjstr(desc);
         }
 
         if (params.length > 0) {
