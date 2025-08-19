@@ -5,44 +5,44 @@
 const enabled = new WeakSet();
 
 const ActionDebugger = {
-	/**
-	 * @param {any} player
-	 * @returns {boolean}
-	 */
-	isEnabled(player) {
-		return enabled.has(player);
-	},
+    /**
+     * @param {any} player
+     * @returns {boolean}
+     */
+    isEnabled(player) {
+        return enabled.has(player);
+    },
 
-	/**
-	 * Toggles debugging for the given player.
-	 * @param {any} player
-	 * @returns {boolean} true if now enabled, false if disabled
-	 */
-	toggle(player) {
-		if (enabled.has(player)) {
-			enabled.delete(player);
-			return false;
-		}
-		enabled.add(player);
-		return true;
-	},
+    /**
+     * Toggles debugging for the given player.
+     * @param {any} player
+     * @returns {boolean} true if now enabled, false if disabled
+     */
+    toggle(player) {
+        if (enabled.has(player)) {
+            enabled.delete(player);
+            return false;
+        }
+        enabled.add(player);
+        return true;
+    },
 
-	/**
-	 * Logs a message to the player if debugging is enabled.
-	 * @param {any} player
-	 * @param {...any} parts
-	 */
-	log(player, ...parts) {
-		if (!enabled.has(player)) return;
-		try {
-			const msg = parts.map((p) => (typeof p === 'string' ? p : JSON.stringify(p))).join(' ');
-			if (typeof (player?.messageGame) === 'function') {
-				player.messageGame(`[debug] ${msg}`);
-			}
-		} catch {
-			// ignore
-		}
-	}
+    /**
+     * Logs a message to the player if debugging is enabled.
+     * @param {any} player
+     * @param {...any} parts
+     */
+    log(player, ...parts) {
+        if (!enabled.has(player)) return;
+        try {
+            const msg = parts.map((p) => (typeof p === 'string' ? p : JSON.stringify(p))).join(' ');
+            if (typeof (player?.messageGame) === 'function') {
+                player.messageGame(`[debug] ${msg}`);
+            }
+        } catch {
+            // ignore
+        }
+    }
 };
 
 export default ActionDebugger;
