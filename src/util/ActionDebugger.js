@@ -35,8 +35,8 @@ const ActionDebugger = {
 	log(player, ...parts) {
 		if (!enabled.has(player)) return;
 		try {
-			const msg = parts.map(p => (typeof p === 'string' ? p : JSON.stringify(p))).join(' ');
-			if (typeof player?.messageGame === 'function') {
+			const msg = parts.map((p) => (typeof p === 'string' ? p : JSON.stringify(p))).join(' ');
+			if (typeof (player?.messageGame) === 'function') {
 				player.messageGame(`[debug] ${msg}`);
 			}
 		} catch {
