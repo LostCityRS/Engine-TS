@@ -12,10 +12,10 @@ function renameModel(id: number, name: string) {
     let model = ModelPack.getById(id);
     if (model.startsWith('model_')) {
         if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`)) {
-            let attempt = name;
+            let attempt = `${!name.startsWith('npc_') ? 'npc_' : ''}${name}`;
             let i = 2;
             while (ModelPack.getByName(attempt) !== -1) {
-                attempt = `${name}_${i}`;
+                attempt = `${!name.startsWith('npc_') ? 'npc_' : ''}${name}i${i}`;
                 i++;
             }
             if (attempt !== name) {
@@ -193,8 +193,8 @@ export function unpackNpcConfig(config: ConfigIdx, id: number): string[] {
         const srcRgb = ColorConversion.reverseHsl(srcRaw)[0];
         const dstRgb = ColorConversion.reverseHsl(dstRaw)[0];
 
-        if (srcRaw >= 50 || dstRaw >= 50) {
-            // texture ids cap at 50, so we can save time knowing it's not a texture id - output as rgb
+        if (srcRaw >= 100 || dstRaw >= 100) {
+            // output as rgb
             def.push(`recol${index}s=${srcRgb ?? srcRaw}`);
             def.push(`recol${index}d=${dstRgb ?? dstRaw}`);
         } else if (modelsHaveTexture(modelIds, srcRaw)) {

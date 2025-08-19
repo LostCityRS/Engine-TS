@@ -1,49 +1,167 @@
-import fs from 'fs';
-
 import { modelsHaveTexture } from '#/cache/graphics/Model.js';
 import ColorConversion from '#/util/ColorConversion.js';
-import Environment from '#/util/Environment.js';
 import { printFatalError, printWarning } from '#/util/Logger.js';
 import { LocPack, ModelPack, SeqPack, TexturePack, VarbitPack, VarpPack } from '#/util/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 
-function renameModel(id: number, debugname: string, shape: string, ld: boolean) {
+function renameModel(id: number, shape: number) {
     let model = ModelPack.getById(id);
-    if (model.startsWith('model_')) {
-        let name = `${debugname}${shape}${ld ? '_ld' : ''}`;
-
-        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`)) {
-            let attempt = name;
-            let i = 2;
-            while (ModelPack.getByName(attempt) !== -1) {
-                attempt = `${debugname}_${i}${shape}${ld ? '_ld' : ''}`;
-                i++;
-            }
-            if (attempt !== name) {
-                console.log(`Resolving name conflict, using ${attempt} instead of ${name}`);
-                name = attempt;
-            }
-
-            console.log(`Renaming ${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2 -> ${Environment.BUILD_SRC_DIR}/models/loc/${name}.ob2`);
-            fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`, `${Environment.BUILD_SRC_DIR}/models/loc/${name}.ob2`);
-        } else {
-            console.error('Model does not exist');
-        }
-
-        model = name;
-        ModelPack.register(id, model);
-    }
 
     if (model.endsWith('_ld')) {
         model = model.substring(0, model.length - 3);
     }
 
-    model = model.substring(0, model.length - 2);
+    if (model.endsWith(LocShapeSuffix[shape])) {
+        model = model.substring(0, model.length - 2);
+    }
+
     return model;
 }
 
-enum LocShapeSuffix {
+type LocModelShape = { model: number, shape: number };
+export type LocModels = { models: LocModelShape[], ldModels: LocModelShape[] };
+
+export function unpackLocModels(config: ConfigIdx, id: number): LocModels {
+    const { dat, pos } = config;
+    dat.pos = pos[id];
+
+    const models: LocModelShape[] = [];
+    const ldModels: LocModelShape[] = [];
+
+    let decodedModels = false;
+    while (true) {
+        const code = dat.g1();
+        if (code === 0) {
+            break;
+        }
+
+        if (code === 1) {
+            // 1 model per shape
+            const count = dat.g1();
+
+            for (let i = 0; i < count; i++) {
+                const model = dat.g2();
+                const shape = dat.g1();
+
+                if (!decodedModels) {
+                    models.push({
+                        model,
+                        shape
+                    });
+                } else {
+                    ldModels.push({
+                        model,
+                        shape
+                    });
+                }
+            }
+
+            decodedModels = true;
+        } else if (code === 2) {
+            dat.gjstr();
+        } else if (code === 3) {
+            dat.gjstr();
+        } else if (code === 5) {
+            // multiple models for the default shape
+            const count = dat.g1();
+
+            for (let i = 0; i < count; i++) {
+                const model = dat.g2();
+                const shape = LocShapeSuffix._8;
+
+                if (!decodedModels) {
+                    models.push({
+                        model,
+                        shape
+                    });
+                } else {
+                    ldModels.push({
+                        model,
+                        shape
+                    });
+                }
+            }
+
+            decodedModels = true;
+        } else if (code === 14) {
+            dat.g1();
+        } else if (code === 15) {
+            dat.g1();
+        } else if (code === 17) {
+            // no-op
+        } else if (code === 18) {
+            // no-op
+        } else if (code === 19) {
+            dat.gbool();
+        } else if (code === 21) {
+            // no-op
+        } else if (code === 22) {
+            // no-op
+        } else if (code === 23) {
+            // no-op
+        } else if (code === 24) {
+            dat.g2();
+        } else if (code === 25) {
+            // no-op
+        } else if (code === 28) {
+            dat.g1();
+        } else if (code === 29) {
+            dat.g1b();
+        } else if (code === 39) {
+            dat.g1b();
+        } else if (code >= 30 && code < 35) {
+            dat.gjstr();
+        } else if (code === 40) {
+            const count = dat.g1();
+
+            for (let i = 0; i < count; i++) {
+                dat.g2();
+                dat.g2();
+            }
+        } else if (code === 60) {
+            dat.g2();
+        } else if (code === 62) {
+            // no-op
+        } else if (code === 64) {
+            // no-op
+        } else if (code === 65) {
+            dat.g2();
+        } else if (code === 66) {
+            dat.g2();
+        } else if (code === 67) {
+            dat.g2();
+        } else if (code === 68) {
+            dat.g2();
+        } else if (code === 69) {
+            dat.g1();
+        } else if (code === 70) {
+            dat.g2s();
+        } else if (code === 71) {
+            dat.g2s();
+        } else if (code === 72) {
+            dat.g2s();
+        } else if (code === 73) {
+            // no-op
+        } else if (code === 74) {
+            // no-op
+        } else if (code === 75) {
+            dat.gbool();
+        } else if (code === 77) {
+            dat.g2();
+            dat.g2();
+
+            const states = dat.g1();
+            for (let i = 0; i <= states; i++) {
+                dat.g2();
+            }
+        }
+    }
+
+    return { models, ldModels };
+}
+
+export enum LocShapeSuffix {
     _1 = 0, // wall_straight
     _2 = 1, // wall_diagonalcorner
     _3 = 2, // wall_l
@@ -101,14 +219,13 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
 
                 modelIds.push(modelId);
 
-                const newName = renameModel(modelId, debugname, LocShapeSuffix[shape], decodedModels);
-                if (!decodedModels) {
-                    name = newName;
-                }
+                name = renameModel(modelId, shape);
             }
 
             if (!decodedModels) {
                 def.push(`model=${name}`);
+            } else {
+                def.push(`ldmodel=${name}`);
             }
 
             decodedModels = true;
@@ -119,7 +236,7 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
             const desc = dat.gjstr();
             def.push(`desc=${desc}`);
         } else if (code === 5) {
-            // multiple models for shape 10
+            // only shape 10 / multiple models for shape 10
             const count = dat.g1();
 
             for (let i = 0; i < count; i++) {
@@ -129,12 +246,11 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
 
                 modelIds.push(modelId);
 
-                let name = debugname;
-
-                const newName = renameModel(modelId, debugname, LocShapeSuffix[shape], decodedModels);
+                const name = renameModel(modelId, shape);
                 if (!decodedModels) {
-                    name = newName;
                     def.push(`model${index > 1 ? index : ''}=${name}`);
+                } else {
+                    def.push(`ldmodel${index > 1 ? index : ''}=${name}`);
                 }
             }
 
@@ -277,8 +393,8 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
         const srcRgb = ColorConversion.reverseHsl(srcRaw)[0];
         const dstRgb = ColorConversion.reverseHsl(dstRaw)[0];
 
-        if (srcRaw >= 50 || dstRaw >= 50) {
-            // texture ids cap at 50, so we can save time knowing it's not a texture id - output as rgb
+        if (srcRaw >= 100 || dstRaw >= 100) {
+            // output as rgb
             def.push(`recol${index}s=${srcRgb ?? srcRaw}`);
             def.push(`recol${index}d=${dstRgb ?? dstRaw}`);
         } else if (typeof srcRgb === 'undefined' || typeof dstRgb === 'undefined' || modelsHaveTexture(modelIds, srcRaw)) {

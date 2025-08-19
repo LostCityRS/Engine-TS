@@ -10,7 +10,7 @@ import { ConfigIdx } from './Common.js';
 import { unpackSeqConfig } from './SeqConfig.js';
 import Environment from '#/util/Environment.js';
 import { unpackNpcConfig } from './NpcConfig.js';
-import { unpackLocConfig } from './LocConfig.js';
+import { LocModels, LocShapeSuffix, unpackLocConfig, unpackLocModels } from './LocConfig.js';
 import { unpackObjConfig } from './ObjConfig.js';
 import { unpackIdkConfig } from './IdkConfig.js';
 import { unpackFloConfig } from './FloConfig.js';
@@ -44,7 +44,8 @@ function readConfigIdx(idx: Packet | null, dat: Packet | null): ConfigIdx {
     };
 }
 
-function unpackConfigNames(type: string, config: Jagfile) {    let pack = null;
+function unpackConfigNames(type: string, config: Jagfile) {
+    let pack = null;
     if (type === 'loc') {
         pack = LocPack;
     } else if (type === 'npc') {
@@ -101,7 +102,7 @@ function reorderUnpacked(config: string[], settings: { moveName: boolean, moveDe
             model.push(line);
         } else if (settings.moveRecol && (line.startsWith('recol') || line.startsWith('retex'))) {
             recol.push(line);
-        } else if (!line.startsWith('hasalpha=')){
+        } else if (!line.startsWith('hasalpha=')) {
             others.push(line);
         }
     }
@@ -195,6 +196,90 @@ function unpackConfig(revision: string, type: string, unpack: UnpackConfigImpl, 
     }
 }
 
+type UnpackModelImpl = (source: ConfigIdx, id: number) => number[] | LocModels;
+
+function unpackModelNames(type: string, unpack: UnpackModelImpl, config: Jagfile) {
+    const sourceIdx = readConfigIdx(config.read(type + '.idx'), config.read(type + '.dat'));
+
+    const locs: LocModels[] = [];
+    for (let id = 0; id < sourceIdx.size; id++) {
+        locs[id] = unpack(sourceIdx, id) as LocModels;
+    }
+
+    const seenAsNonCentrepiece: boolean[] = [];
+    for (const config of locs) {
+        for (const info of config.models) {
+            if (info.shape !== 10) {
+                seenAsNonCentrepiece[info.model] = true;
+            }
+        }
+
+        for (const info of config.ldModels) {
+            if (info.shape !== 10) {
+                seenAsNonCentrepiece[info.model] = true;
+            }
+        }
+    }
+
+    for (let id = 0; id < locs.length; id++) {
+        const config = locs[id];
+        let debugname = LocPack.getById(id);
+
+        for (let shape = 0; shape <= 22; shape++) {
+            if (debugname.endsWith(LocShapeSuffix[shape])) {
+                debugname = debugname.substring(0, debugname.lastIndexOf('_')) + debugname.substring(debugname.length - 1);
+                break;
+            }
+        }
+
+        for (const info of config.models) {
+            const { model, shape } = info;
+            if (shape === LocShapeSuffix._8 && seenAsNonCentrepiece[model]) {
+                continue;
+            }
+
+            const modelName = ModelPack.getById(model);
+            if (!modelName.startsWith('model_')) {
+                continue;
+            }
+
+            let name = `${debugname}${LocShapeSuffix[shape]}`;
+            let i = 2;
+            while (ModelPack.getByName(name) !== -1) {
+                name = `${debugname}i${i}${LocShapeSuffix[shape]}`;
+                i++;
+            }
+
+            fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${modelName}.ob2`, `${Environment.BUILD_SRC_DIR}/models/loc/${name}.ob2`);
+            ModelPack.register(model, name);
+        }
+
+        for (const info of config.ldModels) {
+            const { model, shape } = info;
+            if (shape === LocShapeSuffix._8 && seenAsNonCentrepiece[model]) {
+                continue;
+            }
+
+            const modelName = ModelPack.getById(model);
+            if (!modelName.startsWith('model_')) {
+                continue;
+            }
+
+            let name = `${debugname}_ld${LocShapeSuffix[shape]}`;
+            let i = 2;
+            while (ModelPack.getByName(name) !== -1) {
+                name = `${debugname}i${i}_ld${LocShapeSuffix[shape]}`;
+                i++;
+            }
+
+            fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${modelName}.ob2`, `${Environment.BUILD_SRC_DIR}/models/loc/${name}.ob2`);
+            ModelPack.register(model, name);
+        }
+    }
+
+    ModelPack.save();
+}
+
 function unpackConfigs(revision: string) {
     if (!fs.existsSync('data/unpack/main_file_cache.dat')) {
         printFatalError('Place a functional cache inside data/unpack to continue.');
@@ -253,6 +338,8 @@ function unpackConfigs(revision: string) {
     if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/npc`)) {
         fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/models/npc`, { recursive: true });
     }
+
+    unpackModelNames('loc', unpackLocModels, config);
 
     unpackConfig(revision, 'loc', unpackLocConfig, config, config2);
     unpackConfig(revision, 'obj', unpackObjConfig, config, config2);

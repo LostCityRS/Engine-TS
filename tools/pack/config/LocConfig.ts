@@ -39,6 +39,7 @@ export function parseLocConfig(key: string, value: string): ConfigValue | null |
         'op1', 'op2', 'op3', 'op4', 'op5',
         // defer parsing to packing stage:
         'model', 'model2', 'model3', 'model4',
+        'ldmodel', 'ldmodel2', 'ldmodel3', 'ldmodel4',
         'multivar', 'multiloc',
     ];
     // prettier-ignore
@@ -181,6 +182,7 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
         const recol_s: number[] = [];
         const recol_d: number[] = [];
         const srcModels: string[] = [];
+        const srcLdModels: string[] = [];
         let name: string | null = null;
         let active: number = -1; // not written last, but affects name output
         let desc: string | null = null;
@@ -198,6 +200,8 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 desc = value as string;
             } else if (key.startsWith('model')) {
                 srcModels.push(value as string);
+            } else if (key.startsWith('ldmodel')) {
+                srcLdModels.push(value as string);
             } else if (key.startsWith('recol')) {
                 const index = parseInt(key[5]) - 1;
                 if (key.endsWith('s')) {
@@ -353,7 +357,6 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
         }
 
         const models: LocModelShape[] = [];
-        const ldModels: LocModelShape[] = [];
         for (let i = 0; i < srcModels.length; i++) {
             let directReference = ModelPack.getByName(srcModels[i]) !== -1;
             for (let shape = 0; shape <= 22; shape++) {
@@ -361,8 +364,7 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                     continue;
                 }
 
-                if (ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}`) !== -1 ||
-                    ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}_ld`) !== -1) {
+                if (ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}`) !== -1) {
                     directReference = false;
                     break;
                 }
@@ -371,32 +373,62 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
             if (directReference) {
                 // if a model directly points to a shape, we are forcing that shape to appear as centrepiece_straight
                 const forceModelId = ModelPack.getByName(srcModels[i]);
-                const ldForceModelId = ModelPack.getByName(`${srcModels[i]}_ld`);
-
-                if (forceModelId !== -1 || ldForceModelId !== -1) {
-                    if (forceModelId !== -1) {
-                        modelFlags[forceModelId] |= 0x4;
-                        models.push({ model: forceModelId, shape: LocShapeSuffix._8 });
-                    }
-
-                    if (ldForceModelId !== -1) {
-                        modelFlags[ldForceModelId] |= 0x4;
-                        ldModels.push({ model: ldForceModelId, shape: LocShapeSuffix._8 });
-                    }
-
+                if (forceModelId !== -1) {
+                    modelFlags[forceModelId] |= 0x4;
+                    models.push({ model: forceModelId, shape: LocShapeSuffix._8 });
                     continue;
                 }
             }
 
             // centrepiece_straight comes first in their data, so we check it first
             const modelId = ModelPack.getByName(`${srcModels[i]}_8`);
-            const ldModelId = ModelPack.getByName(`${srcModels[i]}_8_ld`);
 
             if (modelId !== -1) {
                 modelFlags[modelId] |= 0x4;
                 models.push({ model: modelId, shape: LocShapeSuffix._8 });
             }
 
+            // now we can check the rest of the shapes
+            for (let shape = 0; shape <= 22; shape++) {
+                if (shape === LocShapeSuffix._8) {
+                    continue;
+                }
+
+                const modelId = ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}`);
+                if (modelId !== -1) {
+                    modelFlags[modelId] |= 0x4;
+                    models.push({ model: modelId, shape });
+                }
+            }
+        }
+
+        const ldModels: LocModelShape[] = [];
+        for (let i = 0; i < srcLdModels.length; i++) {
+            let directReference = ModelPack.getByName(srcLdModels[i]) !== -1;
+            for (let shape = 0; shape <= 22; shape++) {
+                if (shape === 10) {
+                    continue;
+                }
+
+                if (ModelPack.getByName(`${srcLdModels[i]}${LocShapeSuffix[shape]}`) !== -1) {
+                    directReference = false;
+                    break;
+                }
+            }
+
+            if (directReference) {
+                // if a model directly points to a shape, we are forcing that shape to appear as centrepiece_straight
+                const ldForceModelId = ModelPack.getByName(`${srcLdModels[i]}`);
+
+                if (ldForceModelId !== -1) {
+                    modelFlags[ldForceModelId] |= 0x4;
+                    ldModels.push({ model: ldForceModelId, shape: LocShapeSuffix._8 });
+                    continue;
+                }
+            }
+
+            // centrepiece_straight comes first in their data, so we check it first
+            const ldModelId = ModelPack.getByName(`${srcLdModels[i]}_8`);
             if (ldModelId !== -1) {
                 modelFlags[ldModelId] |= 0x4;
                 ldModels.push({ model: ldModelId, shape: LocShapeSuffix._8 });
@@ -408,14 +440,7 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                     continue;
                 }
 
-                const modelId = ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}`);
-                const ldModelId = ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}_ld`);
-
-                if (modelId !== -1) {
-                    modelFlags[modelId] |= 0x4;
-                    models.push({ model: modelId, shape });
-                }
-
+                const ldModelId = ModelPack.getByName(`${srcLdModels[i]}${LocShapeSuffix[shape]}`);
                 if (ldModelId !== -1) {
                     modelFlags[ldModelId] |= 0x4;
                     ldModels.push({ model: ldModelId, shape });

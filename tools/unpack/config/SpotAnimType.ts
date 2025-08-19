@@ -12,10 +12,10 @@ function renameModel(id: number, name: string) {
     let model = ModelPack.getById(id);
     if (model.startsWith('model_')) {
         if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`)) {
-            let attempt = name;
+            let attempt = `${!name.startsWith('spot_') ? 'spot_' : ''}${name}`;
             let i = 2;
             while (ModelPack.getByName(attempt) !== -1) {
-                attempt = `${name}_${i}`;
+                attempt = `${!name.startsWith('spot_') ? 'spot_' : ''}${name}_${i}`;
                 i++;
             }
             if (attempt !== name) {

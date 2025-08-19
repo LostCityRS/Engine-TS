@@ -5,15 +5,32 @@ import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printFatalError, printWarning } from '#/util/Logger.js';
-import { PackFile } from '#/util/PackFileBase.js';
 import { listFilesExt } from '#/util/Parse.js';
-import { VarbitPack } from '#/util/PackFile.js';
+import { InterfacePack, ModelPack, ObjPack, SeqPack, VarbitPack, VarpPack } from '#/util/PackFile.js';
 
-export const InterfacePack = new PackFile('interface');
-export const ObjPack = new PackFile('obj');
-export const SeqPack = new PackFile('seq');
-export const VarpPack = new PackFile('varp');
-export const ModelPack = new PackFile('model');
+function renameModel(id: number) {
+    let model = ModelPack.getById(id);
+    if (model.startsWith('model_')) {
+        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`)) {
+            let name = 'com_i1';
+            let i = 2;
+            while (ModelPack.getByName(name) !== -1) {
+                name = `com_i${i}`;
+                i++;
+            }
+
+            console.log(`Renaming ${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2 -> ${Environment.BUILD_SRC_DIR}/models/com/${name}.ob2`);
+            fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`, `${Environment.BUILD_SRC_DIR}/models/com/${name}.ob2`);
+
+            model = name;
+            ModelPack.register(id, model);
+        } else {
+            console.error('Model does not exist');
+        }
+    }
+
+    return model;
+}
 
 const enum ComponentType {
     TYPE_LAYER = 0,
@@ -694,11 +711,11 @@ class IfType {
 
         if (this.comType === 6) {
             if (this.model) {
-                temp.push(`model=${ModelPack.getById(this.model) || 'model_' + this.model}`);
+                temp.push(`model=${renameModel(this.model)}`);
             }
 
             if (this.activeModel) {
-                temp.push(`activemodel=${ModelPack.getById(this.activeModel) || 'model_' + this.activeModel}`);
+                temp.push(`activemodel=${renameModel(this.activeModel)}`);
             }
 
             if (this.anim !== -1) {
@@ -893,6 +910,12 @@ if (!interfaceData) {
     process.exit(1);
 }
 
+if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/com`)) {
+    fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/models/com`, { recursive: true });
+}
+
 IfType.unpack(new Jagfile(new Packet(interfaceData)));
 IfType.exportOrder();
 IfType.exportSrc();
+
+ModelPack.save();

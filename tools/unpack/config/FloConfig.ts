@@ -19,7 +19,7 @@ export function unpackFloConfig(config: ConfigIdx, id: number): string[] {
         if (code === 1) {
             const colour = dat.g3();
 
-            def.push(`colour=0x${colour.toString(16).padStart(6, '0')}`);
+            def.push(`colour=0x${colour.toString(16).toUpperCase().padStart(6, '0')}`);
         } else if (code === 2) {
             const texture = dat.g1();
 
@@ -37,7 +37,7 @@ export function unpackFloConfig(config: ConfigIdx, id: number): string[] {
         } else if (code === 7) {
             const mapcolour = dat.g3();
 
-            def.push(`mapcolour=0x${mapcolour.toString(16).padStart(6, '0')}`);
+            def.push(`mapcolour=0x${mapcolour.toString(16).toUpperCase().padStart(6, '0')}`);
         } else {
             printWarning(`unknown flo code ${code}`);
         }
