@@ -4,6 +4,19 @@
 /** @type {WeakSet<any>} */
 const enabled = new WeakSet();
 
+function toDebugPart(v) {
+    if (typeof v === 'string') return v;
+    try {
+        return JSON.stringify(v);
+    } catch {
+        try {
+            return String(v);
+        } catch {
+            return '[unserializable]';
+        }
+    }
+}
+
 const ActionDebugger = {
     /**
    * Check if debugging is enabled for a player.
@@ -17,27 +30,23 @@ const ActionDebugger = {
     /**
    * Enable debugging for a player.
    * @param {any} player
-   * @returns {boolean} true if just enabled, false if already enabled
+   * @returns {boolean} true if it was just enabled, false if it was already enabled
    */
     enable(player) {
-        if (!enabled.has(player)) {
-            enabled.add(player);
-            return true;
-        }
-        return false;
+        const wasEnabled = enabled.has(player);
+        if (!wasEnabled) enabled.add(player);
+        return !wasEnabled;
     },
 
     /**
    * Disable debugging for a player.
    * @param {any} player
-   * @returns {boolean} true if just disabled, false if already disabled
+   * @returns {boolean} true if it was just disabled, false if it was already disabled
    */
     disable(player) {
-        if (enabled.has(player)) {
-            enabled.delete(player);
-            return true;
-        }
-        return false;
+        const wasEnabled = enabled.has(player);
+        if (wasEnabled) enabled.delete(player);
+        return wasEnabled;
     },
 
     /**
@@ -62,16 +71,7 @@ const ActionDebugger = {
     log(player, ...parts) {
         if (!enabled.has(player)) return;
         try {
-            const msg = parts
-                .map((p) => {
-                    if (typeof p === 'string') return p;
-                    try {
-                        return JSON.stringify(p);
-                    } catch {
-                        return String(p);
-                    }
-                })
-                .join(' ');
+            const msg = parts.map(toDebugPart).join(' ');
             if (typeof player?.messageGame === 'function') {
                 player.messageGame(`[debug] ${msg}`);
             }
