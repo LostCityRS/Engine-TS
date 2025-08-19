@@ -27,6 +27,7 @@ const ActionDebugger = {
         return true;
     },
 
+<<<<<<< HEAD
     /**
      * Logs a message to the player if debugging is enabled.
      * @param {any} player
@@ -43,6 +44,24 @@ const ActionDebugger = {
             // ignore
         }
     }
+=======
+	/**
+	 * Logs a message to the player if debugging is enabled.
+	 * @param {any} player
+	 * @param {...any} parts
+	 */
+	log(player, ...parts) {
+		if (!enabled.has(player)) return;
+		try {
+			const msg = parts.map((p) => (typeof p === 'string' ? p : JSON.stringify(p))).join(' ');
+			if (typeof (player?.messageGame) === 'function') {
+				player.messageGame(`[debug] ${msg}`);
+			}
+		} catch {
+			// ignore
+		}
+	}
+>>>>>>> d8d31ae5f202b7b6c67cb88b9e374730f336a694
 };
 
 export default ActionDebugger;
