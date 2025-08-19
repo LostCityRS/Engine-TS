@@ -1,9 +1,40 @@
+import fs from 'fs';
+
 import { modelsHaveTexture } from '#/cache/graphics/Model.js';
 import ColorConversion from '#/util/ColorConversion.js';
+import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
 import { IdkPack, ModelPack, TexturePack } from '#/util/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
+
+function renameModel(id: number, name: string) {
+    let model = ModelPack.getById(id);
+    if (model.startsWith('model_')) {
+        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`)) {
+            let attempt = name;
+            let i = 2;
+            while (ModelPack.getByName(attempt) !== -1) {
+                attempt = `${name}_${i}`;
+                i++;
+            }
+            if (attempt !== name) {
+                console.log(`Resolving name conflict, using ${attempt} instead of ${name}`);
+                name = attempt;
+            }
+
+            console.log(`Renaming ${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2 -> ${Environment.BUILD_SRC_DIR}/models/idk/${name}.ob2`);
+            fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`, `${Environment.BUILD_SRC_DIR}/models/idk/${name}.ob2`);
+        } else {
+            console.error('Model does not exist');
+        }
+
+        model = name;
+        ModelPack.register(id, model);
+    }
+
+    return model;
+}
 
 enum IdkPartType {
     man_hair = 0,
@@ -25,8 +56,9 @@ enum IdkPartType {
 export function unpackIdkConfig(config: ConfigIdx, id: number): string[] {
     const { dat, pos, len } = config;
 
+    const debugname = IdkPack.getById(id);
     const def: string[] = [];
-    def.push(`[${IdkPack.getById(id)}]`);
+    def.push(`[${debugname}]`);
 
     const modelIds: number[] = [];
     const recolSrc: number[] = [];
@@ -50,7 +82,7 @@ export function unpackIdkConfig(config: ConfigIdx, id: number): string[] {
 
                 modelIds.push(modelId);
 
-                const model = ModelPack.getById(modelId) || 'model_' + modelId;
+                const model = renameModel(modelId, debugname);
                 def.push(`model${i + 1}=${model}`);
             }
         } else if (code === 3) {
@@ -71,7 +103,7 @@ export function unpackIdkConfig(config: ConfigIdx, id: number): string[] {
 
             modelIds.push(modelId);
 
-            const model = ModelPack.getById(modelId) || 'model_' + modelId;
+            const model = renameModel(modelId, `${debugname}_head`);
             def.push(`head${index}=${model}`);
         } else {
             printWarning(`unknown idk code ${code}`);

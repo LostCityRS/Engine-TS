@@ -1,16 +1,48 @@
+import fs from 'fs';
+
 import { modelsHaveTexture } from '#/cache/graphics/Model.js';
 import ColorConversion from '#/util/ColorConversion.js';
+import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
 import { ModelPack, ObjPack, SeqPack, TexturePack } from '#/util/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 
+function renameModel(id: number, name: string) {
+    let model = ModelPack.getById(id);
+    if (model.startsWith('model_')) {
+        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`)) {
+            let attempt = name;
+            let i = 2;
+            while (ModelPack.getByName(attempt) !== -1) {
+                attempt = `${name}_${i}`;
+                i++;
+            }
+            if (attempt !== name) {
+                console.log(`Renaming name conflict, using ${attempt} instead of ${name}`);
+                name = attempt;
+            }
+
+            console.log(`Resolving ${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2 -> ${Environment.BUILD_SRC_DIR}/models/obj/${name}.ob2`);
+            fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`, `${Environment.BUILD_SRC_DIR}/models/obj/${name}.ob2`);
+        } else {
+            console.error('Model does not exist');
+        }
+
+        model = name;
+        ModelPack.register(id, model);
+    }
+
+    return model;
+}
+
 export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
     const { dat, pos, len } = config;
     dat.pos = pos[id];
 
+    const debugname = ObjPack.getById(id);
     const def: string[] = [];
-    def.push(`[${ObjPack.getById(id)}]`);
+    def.push(`[${debugname}]`);
 
     const modelIds: number[] = [];
     const recolSrc: number[] = [];
@@ -27,7 +59,7 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
 
             modelIds.push(modelId);
 
-            const model = ModelPack.getById(modelId) || 'model_' + modelId;
+            const model = renameModel(modelId, debugname);
             def.push(`model=${model}`);
         } else if (code === 2) {
             const name = dat.gjstr();
@@ -70,14 +102,14 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
 
             modelIds.push(modelId);
 
-            const model = ModelPack.getById(modelId) || 'model_' + modelId;
+            const model = renameModel(modelId, `${debugname}_manwear`);
             def.push(`manwear=${model},${offset}`);
         } else if (code === 24) {
             const modelId = dat.g2();
 
             modelIds.push(modelId);
 
-            const model = ModelPack.getById(modelId) || 'model_' + modelId;
+            const model = renameModel(modelId, `${debugname}_manwear2`);
             def.push(`manwear2=${model}`);
         } else if (code === 25) {
             const modelId = dat.g2();
@@ -85,14 +117,14 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
 
             modelIds.push(modelId);
 
-            const model = ModelPack.getById(modelId) || 'model_' + modelId;
+            const model = renameModel(modelId, `${debugname}_womanwear`);
             def.push(`womanwear=${model},${offset}`);
         } else if (code === 26) {
             const modelId = dat.g2();
 
             modelIds.push(modelId);
 
-            const model = ModelPack.getById(modelId) || 'model_' + modelId;
+            const model = renameModel(modelId, `${debugname}_womanwear2`);
             def.push(`womanwear2=${model}`);
         } else if (code >= 30 && code < 35) {
             const index = (code - 30) + 1;
@@ -114,42 +146,42 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
 
             modelIds.push(modelId);
 
-            const model = ModelPack.getById(modelId) || 'model_' + modelId;
+            const model = renameModel(modelId, `${debugname}_manwear3`);
             def.push(`manwear3=${model}`);
         } else if (code === 79) {
             const modelId = dat.g2();
 
             modelIds.push(modelId);
 
-            const model = ModelPack.getById(modelId) || 'model_' + modelId;
+            const model = renameModel(modelId, `${debugname}_womanwear3`);
             def.push(`womanwear3=${model}`);
         } else if (code === 90) {
             const modelId = dat.g2();
 
             modelIds.push(modelId);
 
-            const model = ModelPack.getById(modelId) || 'model_' + modelId;
+            const model = renameModel(modelId, `${debugname}_manhead`);
             def.push(`manhead=${model}`);
         } else if (code === 91) {
             const modelId = dat.g2();
 
             modelIds.push(modelId);
 
-            const model = ModelPack.getById(modelId) || 'model_' + modelId;
+            const model = renameModel(modelId, `${debugname}_womanhead`);
             def.push(`womanhead=${model}`);
         } else if (code === 92) {
             const modelId = dat.g2();
 
             modelIds.push(modelId);
 
-            const model = ModelPack.getById(modelId) || 'model_' + modelId;
+            const model = renameModel(modelId, `${debugname}_manhead2`);
             def.push(`manhead2=${model}`);
         } else if (code === 93) {
             const modelId = dat.g2();
 
             modelIds.push(modelId);
 
-            const model = ModelPack.getById(modelId) || 'model_' + modelId;
+            const model = renameModel(modelId, `${debugname}_womanhead2`);
             def.push(`womanhead2=${model}`);
         } else if (code === 95) {
             const zan2d = dat.g2();

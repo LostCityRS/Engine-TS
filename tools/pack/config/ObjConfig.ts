@@ -76,7 +76,7 @@ export function parseObjConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
 
-        return ColorConversion.rgb15toHsl16(parseInt(value));
+        return parseInt(value);
     } else if (key === 'code10') {
         const index = SeqPack.getByName(value);
         if (index === -1) {
@@ -451,8 +451,13 @@ export function packObjConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
             client.p1(recol_s.length);
 
             for (let k = 0; k < recol_s.length; k++) {
-                client.p2(recol_s[k]);
-                client.p2(recol_d[k]);
+                if (recol_s[k] >= 100 || recol_d[k] >= 100) {
+                    client.p2(ColorConversion.rgb15toHsl16(recol_s[k]));
+                    client.p2(ColorConversion.rgb15toHsl16(recol_d[k]));
+                } else {
+                    client.p2(recol_s[k]);
+                    client.p2(recol_d[k]);
+                }
             }
         }
 

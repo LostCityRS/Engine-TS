@@ -117,14 +117,6 @@ export function parseNpcConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
 
-        return ColorConversion.rgb15toHsl16(parseInt(value));
-    } else if (key.startsWith('hslrecol')) {
-        // inauthentic but needed for an edge case
-        const index = parseInt(key[5]);
-        if (index > 9) {
-            return null;
-        }
-
         return parseInt(value);
     } else if (key === 'readyanim') {
         const index = SeqPack.getByName(value);
@@ -319,14 +311,6 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 } else {
                     recol_d[index] = value as number;
                 }
-            } else if (key.startsWith('hslrecol')) {
-                // inauthentic but needed for an edge case
-                const index = parseInt(key.substring('hslrecol'.length, key.length - 1)) - 1;
-                if (key.endsWith('s')) {
-                    recol_s[index] = value as number;
-                } else {
-                    recol_d[index] = value as number;
-                }
             } else if (key === 'param') {
                 params.push(value as ParamValue);
             } else if (key === 'desc') {
@@ -487,8 +471,13 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
             client.p1(recol_s.length);
 
             for (let k = 0; k < recol_s.length; k++) {
-                client.p2(recol_s[k]);
-                client.p2(recol_d[k]);
+                if (recol_s[k] >= 100 || recol_d[k] >= 100) {
+                    client.p2(ColorConversion.rgb15toHsl16(recol_s[k]));
+                    client.p2(ColorConversion.rgb15toHsl16(recol_d[k]));
+                } else {
+                    client.p2(recol_s[k]);
+                    client.p2(recol_d[k]);
+                }
             }
         }
 

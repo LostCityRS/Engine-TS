@@ -1,9 +1,47 @@
+import fs from 'fs';
+
 import { modelsHaveTexture } from '#/cache/graphics/Model.js';
 import ColorConversion from '#/util/ColorConversion.js';
+import Environment from '#/util/Environment.js';
 import { printFatalError, printWarning } from '#/util/Logger.js';
 import { LocPack, ModelPack, SeqPack, TexturePack, VarbitPack, VarpPack } from '#/util/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
+
+function renameModel(id: number, debugname: string, shape: string, ld: boolean) {
+    let model = ModelPack.getById(id);
+    if (model.startsWith('model_')) {
+        let name = `${debugname}${shape}${ld ? '_ld' : ''}`;
+
+        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`)) {
+            let attempt = name;
+            let i = 2;
+            while (ModelPack.getByName(attempt) !== -1) {
+                attempt = `${debugname}_${i}${shape}${ld ? '_ld' : ''}`;
+                i++;
+            }
+            if (attempt !== name) {
+                console.log(`Resolving name conflict, using ${attempt} instead of ${name}`);
+                name = attempt;
+            }
+
+            console.log(`Renaming ${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2 -> ${Environment.BUILD_SRC_DIR}/models/loc/${name}.ob2`);
+            fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`, `${Environment.BUILD_SRC_DIR}/models/loc/${name}.ob2`);
+        } else {
+            console.error('Model does not exist');
+        }
+
+        model = name;
+        ModelPack.register(id, model);
+    }
+
+    if (model.endsWith('_ld')) {
+        model = model.substring(0, model.length - 3);
+    }
+
+    model = model.substring(0, model.length - 2);
+    return model;
+}
 
 enum LocShapeSuffix {
     _1 = 0, // wall_straight
@@ -35,8 +73,9 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
     const { dat, pos, len } = config;
     dat.pos = pos[id];
 
+    const debugname = LocPack.getById(id);
     const def: string[] = [];
-    def.push(`[${LocPack.getById(id)}]`);
+    def.push(`[${debugname}]`);
 
     let decodedModels = false;
     let lastCode = 0;
@@ -51,23 +90,25 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
             break;
         }
 
-        if (code === 1 || code === 5) {
+        if (code === 1) {
+            // 1 model per shape
             const count = dat.g1();
 
+            let name = debugname;
             for (let i = 0; i < count; i++) {
-                const index = i + 1;
                 const modelId = dat.g2();
-                const shape = code === 1 ? dat.g1() : 10;
+                const shape = dat.g1();
 
                 modelIds.push(modelId);
 
-                // this needs to be post-processed to become a single model line!
-                const model = ModelPack.getById(modelId) || 'model_' + modelId;
+                const newName = renameModel(modelId, debugname, LocShapeSuffix[shape], decodedModels);
                 if (!decodedModels) {
-                    def.push(`unpacked_${index}=${model},${LocShapeSuffix[shape]}`);
-                } else {
-                    def.push(`unpacked2_${index}=${model},${LocShapeSuffix[shape]}`);
+                    name = newName;
                 }
+            }
+
+            if (!decodedModels) {
+                def.push(`model=${name}`);
             }
 
             decodedModels = true;
@@ -77,6 +118,27 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
         } else if (code === 3) {
             const desc = dat.gjstr();
             def.push(`desc=${desc}`);
+        } else if (code === 5) {
+            // multiple models for shape 10
+            const count = dat.g1();
+
+            for (let i = 0; i < count; i++) {
+                const index = i + 1;
+                const modelId = dat.g2();
+                const shape = 10;
+
+                modelIds.push(modelId);
+
+                let name = debugname;
+
+                const newName = renameModel(modelId, debugname, LocShapeSuffix[shape], decodedModels);
+                if (!decodedModels) {
+                    name = newName;
+                    def.push(`model${index > 1 ? index : ''}=${name}`);
+                }
+            }
+
+            decodedModels = true;
         } else if (code === 14) {
             const width = dat.g1();
             def.push(`width=${width}`);

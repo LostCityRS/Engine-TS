@@ -234,15 +234,37 @@ function unpackConfigs(revision: string) {
     unpackConfigNames('varp', config);
     unpackConfigNames('varbit', config);
 
+    if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/obj`)) {
+        fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/models/obj`, { recursive: true });
+    }
+
+    if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/spot`)) {
+        fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/models/spot`, { recursive: true });
+    }
+
+    if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/idk`)) {
+        fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/models/idk`, { recursive: true });
+    }
+
+    if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/loc`)) {
+        fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/models/loc`, { recursive: true });
+    }
+
+    if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/npc`)) {
+        fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/models/npc`, { recursive: true });
+    }
+
     unpackConfig(revision, 'loc', unpackLocConfig, config, config2);
-    unpackConfig(revision, 'npc', unpackNpcConfig, config, config2);
     unpackConfig(revision, 'obj', unpackObjConfig, config, config2);
-    unpackConfig(revision, 'seq', unpackSeqConfig, config, config2);
-    unpackConfig(revision, 'idk', unpackIdkConfig, config, config2);
-    unpackConfig(revision, 'flo', unpackFloConfig, config, config2);
     unpackConfig(revision, 'spotanim', unpackSpotAnimType, config, config2);
+    unpackConfig(revision, 'idk', unpackIdkConfig, config, config2);
+    unpackConfig(revision, 'npc', unpackNpcConfig, config, config2);
+    unpackConfig(revision, 'seq', unpackSeqConfig, config, config2);
+    unpackConfig(revision, 'flo', unpackFloConfig, config, config2);
     unpackConfig(revision, 'varp', unpackVarpConfig, config, config2);
     unpackConfig(revision, 'varbit', unpackVarbitConfig, config, config2);
+
+    ModelPack.save();
 
     printInfo('Done! Manual post processing may be required.');
 }

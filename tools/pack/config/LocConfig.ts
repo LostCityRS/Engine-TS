@@ -37,7 +37,9 @@ export function parseLocConfig(key: string, value: string): ConfigValue | null |
     const stringKeys = [
         'name', 'desc',
         'op1', 'op2', 'op3', 'op4', 'op5',
-        'multivar', 'multiloc', // defer parsing to packing stage
+        // defer parsing to packing stage:
+        'model', 'model2', 'model3', 'model4',
+        'multivar', 'multiloc',
     ];
     // prettier-ignore
     const numberKeys = [
@@ -95,63 +97,13 @@ export function parseLocConfig(key: string, value: string): ConfigValue | null |
         }
 
         return getConfigBoolean(value);
-    } else if (key === 'model') {
-        // models are unique in locs, they may specify a model key to match against for a supported shapes
-        const models: LocModelShape[] = [];
-
-        // if a model matches directly, we know that they want to make another suffix act like _8
-        let model = ModelPack.getByName(value);
-        if (model !== -1) {
-            models.push({ model, shape: LocShapeSuffix._8 });
-            return models;
-        }
-
-        // if it doesn't match, we'll have to lookup all model suffixes to see what's supported
-        // this shape (centrepiece_default) comes first in their check, so we do it separately
-        model = ModelPack.getByName(value + '_8');
-        if (model !== -1) {
-            models.push({ model, shape: LocShapeSuffix._8 });
-        }
-        for (let i = 0; i <= 22; i++) {
-            if (i === 10) {
-                continue;
-            }
-
-            model = ModelPack.getByName(value + LocShapeSuffix[i]);
-            if (model !== -1) {
-                models.push({ model, shape: i });
-            }
-        }
-
-        if (models.length > 0) {
-            return models;
-        }
-
-        return null;
-    } else if (key.startsWith('unpacked_') || key.startsWith('unpacked2_')) {
-        // don't use this long term in your data :)
-        // freshly unpacked! format is unpacked_<index>=<modelname>,<shape suffix>
-
-        const [modelName, shapeSuffix] = value.split(',');
-
-        const model = ModelPack.getByName(modelName);
-        if (model === -1) {
-            return null;
-        }
-
-        const shape = LocShapeSuffix[shapeSuffix as keyof typeof LocShapeSuffix];
-        if (typeof shape === 'undefined') {
-            return null;
-        }
-
-        return [{ model, shape }];
     } else if (key.startsWith('recol')) {
         const index = parseInt(key[5]);
         if (index > 9) {
             return null;
         }
 
-        return ColorConversion.rgb15toHsl16(parseInt(value));
+        return parseInt(value);
     } else if (key.startsWith('retex')) {
         const index = parseInt(key[5]);
         if (index > 9) {
@@ -228,8 +180,7 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
         // collect these to write at the end
         const recol_s: number[] = [];
         const recol_d: number[] = [];
-        let models: LocModelShape[] = [];
-        let models2: LocModelShape[] = [];
+        const srcModels: string[] = [];
         let name: string | null = null;
         let active: number = -1; // not written last, but affects name output
         let desc: string | null = null;
@@ -245,18 +196,8 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 name = value as string;
             } else if (key === 'desc') {
                 desc = value as string;
-            } else if (key === 'model') {
-                models = value as LocModelShape[];
-            } else if (key === 'model2') {
-                models2 = value as LocModelShape[];
-            } else if (key.startsWith('unpacked_')) {
-                // refreshly unpacked!
-                const index = parseInt(key.split('_')[1]) - 1;
-                models[index] = (value as LocModelShape[])[0];
-            } else if (key.startsWith('unpacked2_')) {
-                // refreshly unpacked!
-                const index = parseInt(key.split('_')[1]) - 1;
-                models2[index] = (value as LocModelShape[])[0];
+            } else if (key.startsWith('model')) {
+                srcModels.push(value as string);
             } else if (key.startsWith('recol')) {
                 const index = parseInt(key[5]) - 1;
                 if (key.endsWith('s')) {
@@ -401,63 +342,129 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
             client.p1(recol_s.length);
 
             for (let k = 0; k < recol_s.length; k++) {
-                client.p2(recol_s[k]);
-                client.p2(recol_d[k]);
+                if (recol_s[k] >= 100 || recol_d[k] >= 100) {
+                    client.p2(ColorConversion.rgb15toHsl16(recol_s[k]));
+                    client.p2(ColorConversion.rgb15toHsl16(recol_d[k]));
+                } else {
+                    client.p2(recol_s[k]);
+                    client.p2(recol_d[k]);
+                }
+            }
+        }
+
+        const models: LocModelShape[] = [];
+        const ldModels: LocModelShape[] = [];
+        for (let i = 0; i < srcModels.length; i++) {
+            let directReference = ModelPack.getByName(srcModels[i]) !== -1;
+            for (let shape = 0; shape <= 22; shape++) {
+                if (shape === 10) {
+                    continue;
+                }
+
+                if (ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}`) !== -1 ||
+                    ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}_ld`) !== -1) {
+                    directReference = false;
+                    break;
+                }
+            }
+
+            if (directReference) {
+                // if a model directly points to a shape, we are forcing that shape to appear as centrepiece_straight
+                const forceModelId = ModelPack.getByName(srcModels[i]);
+                const ldForceModelId = ModelPack.getByName(`${srcModels[i]}_ld`);
+
+                if (forceModelId !== -1 || ldForceModelId !== -1) {
+                    if (forceModelId !== -1) {
+                        modelFlags[forceModelId] |= 0x4;
+                        models.push({ model: forceModelId, shape: LocShapeSuffix._8 });
+                    }
+
+                    if (ldForceModelId !== -1) {
+                        modelFlags[ldForceModelId] |= 0x4;
+                        ldModels.push({ model: ldForceModelId, shape: LocShapeSuffix._8 });
+                    }
+
+                    continue;
+                }
+            }
+
+            // centrepiece_straight comes first in their data, so we check it first
+            const modelId = ModelPack.getByName(`${srcModels[i]}_8`);
+            const ldModelId = ModelPack.getByName(`${srcModels[i]}_8_ld`);
+
+            if (modelId !== -1) {
+                modelFlags[modelId] |= 0x4;
+                models.push({ model: modelId, shape: LocShapeSuffix._8 });
+            }
+
+            if (ldModelId !== -1) {
+                modelFlags[ldModelId] |= 0x4;
+                ldModels.push({ model: ldModelId, shape: LocShapeSuffix._8 });
+            }
+
+            // now we can check the rest of the shapes
+            for (let shape = 0; shape <= 22; shape++) {
+                if (shape === LocShapeSuffix._8) {
+                    continue;
+                }
+
+                const modelId = ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}`);
+                const ldModelId = ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}_ld`);
+
+                if (modelId !== -1) {
+                    modelFlags[modelId] |= 0x4;
+                    models.push({ model: modelId, shape });
+                }
+
+                if (ldModelId !== -1) {
+                    modelFlags[ldModelId] |= 0x4;
+                    ldModels.push({ model: ldModelId, shape });
+                }
             }
         }
 
         if (models.length > 0) {
-            let onlyCentrepiece = true;
-            for (let k = 0; k < models.length; k++) {
-                modelFlags[models[k].model] |= 0x4;
-
-                if (models[k].shape !== 10) {
-                    onlyCentrepiece = false;
+            let centrepieceOnly = true;
+            for (let i = 0; i < models.length; i++) {
+                if (models[i].shape !== LocShapeSuffix._8) {
+                    centrepieceOnly = false;
+                    break;
                 }
             }
 
-            if (onlyCentrepiece) {
+            if (centrepieceOnly) {
                 client.p1(5);
 
                 client.p1(models.length);
-                for (let k = 0; k < models.length; k++) {
-                    client.p2(models[k].model);
+                for (let i = 0; i < models.length; i++) {
+                    client.p2(models[i].model);
+                }
+
+                if (ldModels.length > 0) {
+                    client.p1(5);
+
+                    client.p1(ldModels.length);
+                    for (let i = 0; i < ldModels.length; i++) {
+                        client.p2(ldModels[i].model);
+                    }
                 }
             } else {
                 client.p1(1);
 
                 client.p1(models.length);
-                for (let k = 0; k < models.length; k++) {
-                    client.p2(models[k].model);
-                    client.p1(models[k].shape);
+                for (let i = 0; i < models.length; i++) {
+                    client.p2(models[i].model);
+                    client.p1(models[i].shape);
                 }
-            }
-        }
 
-        if (models2.length > 0) {
-            let onlyCentrepiece = true;
-            for (let k = 0; k < models2.length; k++) {
-                modelFlags[models2[k].model] |= 0x4;
+                if (ldModels.length > 0) {
+                    client.p1(1);
 
-                if (models2[k].shape !== 10) {
-                    onlyCentrepiece = false;
-                }
-            }
-
-            if (onlyCentrepiece) {
-                client.p1(5);
-
-                client.p1(models2.length);
-                for (let k = 0; k < models2.length; k++) {
-                    client.p2(models2[k].model);
-                }
-            } else {
-                client.p1(1);
-
-                client.p1(models2.length);
-                for (let k = 0; k < models2.length; k++) {
-                    client.p2(models2[k].model);
-                    client.p1(models2[k].shape);
+                    client.p1(ldModels.length);
+                    for (let i = 0; i < ldModels.length; i++) {
+                        client.p2(ldModels[i].model);
+                        client.p1(ldModels[i].shape);
+                    }
                 }
             }
         }
@@ -468,8 +475,8 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
             let shouldTransmit: boolean = active === 1;
 
             if (active === -1) {
-                for (let k = 0; k < models.length; k++) {
-                    if (models[k].shape === LocShapeSuffix._8) {
+                for (let i = 0; i < models.length; i++) {
+                    if (models[i].shape === LocShapeSuffix._8) {
                         // the presence of any _8 shape means we have to transmit a name
                         shouldTransmit = true;
                         break;

@@ -1,15 +1,47 @@
+import fs from 'fs';
+
 import { modelsHaveTexture } from '#/cache/graphics/Model.js';
 import ColorConversion from '#/util/ColorConversion.js';
+import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
 import { ModelPack, SeqPack, SpotAnimPack, TexturePack } from '#/util/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 
+function renameModel(id: number, name: string) {
+    let model = ModelPack.getById(id);
+    if (model.startsWith('model_')) {
+        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`)) {
+            let attempt = name;
+            let i = 2;
+            while (ModelPack.getByName(attempt) !== -1) {
+                attempt = `${name}_${i}`;
+                i++;
+            }
+            if (attempt !== name) {
+                console.log(`Resolving name conflict, using ${attempt} instead of ${name}`);
+                name = attempt;
+            }
+
+            console.log(`Renaming ${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2 -> ${Environment.BUILD_SRC_DIR}/models/spot/${name}.ob2`);
+            fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`, `${Environment.BUILD_SRC_DIR}/models/spot/${name}.ob2`);
+        } else {
+            console.error('Model does not exist');
+        }
+
+        model = name;
+        ModelPack.register(id, model);
+    }
+
+    return model;
+}
+
 export function unpackSpotAnimType(config: ConfigIdx, id: number): string[] {
     const { dat, pos, len } = config;
 
+    const debugname = SpotAnimPack.getById(id);
     const def: string[] = [];
-    def.push(`[${SpotAnimPack.getById(id)}]`);
+    def.push(`[${debugname}]`);
 
     const modelIds: number[] = [];
     const recolSrc: number[] = [];
@@ -27,8 +59,8 @@ export function unpackSpotAnimType(config: ConfigIdx, id: number): string[] {
 
             modelIds.push(modelId);
 
-            const modelName = ModelPack.getById(modelId) || `model_${modelId}`;
-            def.push(`model=${modelName}`);
+            const model = renameModel(modelId, debugname);
+            def.push(`model=${model}`);
         } else if (code === 2) {
             const seqId = dat.g2();
 
