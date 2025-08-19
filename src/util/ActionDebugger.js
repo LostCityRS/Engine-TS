@@ -29,8 +29,11 @@ const ActionDebugger = {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 692b0b2cf083bb1707ec8bd82cfa05d850cde162
+=======
+>>>>>>> b838d3ac7311f4bfd708be65fc4536cde843e637
     /**
      * Logs a message to the player if debugging is enabled.
      * @param {any} player
@@ -48,6 +51,9 @@ const ActionDebugger = {
         }
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b838d3ac7311f4bfd708be65fc4536cde843e637
 =======
 	/**
 	 * Logs a message to the player if debugging is enabled.
@@ -66,8 +72,11 @@ const ActionDebugger = {
 		}
 	}
 >>>>>>> d8d31ae5f202b7b6c67cb88b9e374730f336a694
+<<<<<<< HEAD
 =======
 >>>>>>> 692b0b2cf083bb1707ec8bd82cfa05d850cde162
+=======
+>>>>>>> b838d3ac7311f4bfd708be65fc4536cde843e637
 };
 
 export default ActionDebugger;
