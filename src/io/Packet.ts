@@ -709,19 +709,19 @@ export default class Packet extends DoublyLinkable {
     }
 
     gdata_alt1(dst: Uint8Array, off: number, len: number) {
-        for (let i = len - 1; i >= off; i--) {
+        for (let i = off + len - 1; i >= off; i--) {
             dst[i] = this.data[this.pos++];
         }
     }
 
     gdata_alt2(dst: Uint8Array, off: number, len: number) {
-        for (let i = off; i < len; i++) {
+        for (let i = off; i < off + len; i++) {
             dst[i] = (this.data[this.pos++] - 128) & 0xFF;
         }
     }
 
     gdata_alt3(dst: Uint8Array, off: number, len: number) {
-        for (let i = len - 1; i >= off; i--) {
+        for (let i = off + len - 1; i >= off; i--) {
             dst[i] = (this.data[this.pos++] - 128) & 0xFF;
         }
     }
