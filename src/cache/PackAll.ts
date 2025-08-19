@@ -6,7 +6,7 @@ import { parentPort } from 'worker_threads';
 
 import Environment from '#/util/Environment.js';
 import { ModelPack, revalidatePack } from '#/util/PackFile.js';
-// import { packClientWordenc } from '#tools/pack/chat/pack.js';
+import { packClientWordenc } from '#tools/pack/chat/pack.js';
 import { packConfigs } from '#tools/pack/config/PackShared.js';
 import { packClientModel } from '#tools/pack/graphics/pack.js';
 import { packClientInterface } from '#tools/pack/interface/PackClient.js';
@@ -14,7 +14,7 @@ import { packServerInterface } from '#tools/pack/interface/PackServer.js';
 import { packClientMap } from '#tools/pack/map/PackClient.js';
 import { packServerMap } from '#tools/pack/map/PackServer.js';
 import { packClientMusic } from '#tools/pack/midi/pack.js';
-// import { packClientSound } from '#tools/pack/sound/pack.js';
+import { packClientSound } from '#tools/pack/sound/pack.js';
 import { packClientMedia } from '#tools/pack/sprite/media.js';
 import { packClientTexture } from '#tools/pack/sprite/textures.js';
 import { packClientTitle } from '#tools/pack/sprite/title.js';
@@ -79,7 +79,6 @@ export async function packClient(modelFlags: number[]) {
     }
 
     const cache = new FileStream('data/pack', true);
-    const unpack = new FileStream('data/unpack');
 
     await packClientTitle(cache);
     cache.write(0, 2, fs.readFileSync('data/pack/client/config'));
@@ -87,18 +86,8 @@ export async function packClient(modelFlags: number[]) {
     await packClientMedia(cache);
     await packClientTexture(cache);
 
-    // packClientWordenc(cache);
-    const wordenc = unpack.read(0, 7);
-    if (wordenc) {
-        cache.write(0, 7, wordenc);
-    }
-
-    // packClientSound(cache);
-    const sounds = unpack.read(0, 8);
-    if (sounds) {
-        cache.write(0, 8, sounds);
-    }
-
+    packClientWordenc(cache);
+    packClientSound(cache);
     packClientModel(cache);
     packClientMap(cache);
     packClientMusic(cache);

@@ -16,7 +16,7 @@ export function packClientSound(cache: FileStream) {
 
     const jag = new Jagfile();
 
-    const out = Packet.alloc(4);
+    const out = Packet.alloc(5);
     for (let i = 0; i < order.length; i++) {
         const id = Number(order[i]);
         const name = SynthPack.getById(id);

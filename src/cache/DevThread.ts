@@ -67,6 +67,10 @@ function trackFileChange(filename: string) {
 }
 
 function trackDir(dir: string) {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+
     const files = fs.readdirSync(dir);
 
     for (const file of files) {
