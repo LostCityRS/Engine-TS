@@ -21,10 +21,10 @@ export default class ActionDebugger {
 		return true;
 	}
 
-	static log(player: PlayerLike, ...parts: any[]): void {
+	static log(player: PlayerLike, ...parts: unknown[]): void {
 		if (!enabled.has(player)) return;
 		try {
-			const msg = parts.map(p => (typeof p === 'string' ? p : JSON.stringify(p))).join(' ');
+			const msg = parts.map((p) => (typeof p === 'string' ? p : JSON.stringify(p))).join(' ');
 			player.messageGame?.(`[debug] ${msg}`);
 		} catch {
 			// ignore
