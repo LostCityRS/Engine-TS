@@ -1,5 +1,5 @@
 <div align="center">
-    <h1>Lost City - May 18, 2004</h1>
+    <h1>Lost City - May 2, 2006</h1>
 </div>
 
 > [!NOTE]
@@ -15,8 +15,6 @@
 3. Open the folder you downloaded: **Run the quickstart script and follow the on-screen prompts.** You may disregard any severity warnings you see.
 
 Once your setup process has completed, wait for it to tell you the world has started before trying to play.
-
-The server includes its own web client, so you don't have to download a client!
 
 ## Dependencies
 
