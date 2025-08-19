@@ -247,6 +247,10 @@ export default class Component {
         return Component.components[id];
     }
 
+    static get count(): number {
+        return this.components.length;
+    }
+
     static getId(name: string): number {
         return Component.componentNames.get(name) ?? -1;
     }

@@ -27,6 +27,7 @@ import ClientCheat from '#/network/game/client/model/ClientCheat.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import Environment from '#/util/Environment.js';
 import { tryParseInt } from '#/util/TryParse.js';
+import ActionDebugger from '#/util/ActionDebugger.js';
 
 
 export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
@@ -36,6 +37,10 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
         }
 
         const { input: cheat } = message;
+        // Optional developer-side action debugging
+        if (!Environment.NODE_PRODUCTION && ActionDebugger.isEnabled(player)) {
+            ActionDebugger.log(player, 'cheat input:', cheat);
+        }
 
         const args: string[] = cheat.toLowerCase().split(' ');
         const cmd: string | undefined = args.shift();
@@ -177,6 +182,9 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                 player.messageGame(`Naive move strategy: ${player.moveStrategy === MoveStrategy.NAIVE ? 'naive' : 'smart'}`);
             } else if (cmd === 'random') {
                 player.afkEventReady = true;
+            } else if (cmd === 'actiondebug') {
+                const on = ActionDebugger.toggle(player);
+                player.messageGame(`Action debug: ${on ? 'on' : 'off'}`);
             }
         }
 
