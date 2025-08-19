@@ -98,7 +98,7 @@ function reorderUnpacked(config: string[], settings: { moveName: boolean, moveDe
             name.push(line);
         } else if (settings.moveDesc && line.startsWith('desc=')) {
             desc.push(line);
-        } else if (settings.moveModel && (line.startsWith('unpacked_') || line.startsWith('unpacked2_') || line.startsWith('model'))) {
+        } else if (settings.moveModel && (line.startsWith('model') || line.startsWith('ldmodel'))) {
             model.push(line);
         } else if (settings.moveRecol && (line.startsWith('recol') || line.startsWith('retex'))) {
             recol.push(line);

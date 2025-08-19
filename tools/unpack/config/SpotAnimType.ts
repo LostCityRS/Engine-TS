@@ -19,11 +19,9 @@ function renameModel(id: number, name: string) {
                 i++;
             }
             if (attempt !== name) {
-                console.log(`Resolving name conflict, using ${attempt} instead of ${name}`);
                 name = attempt;
             }
 
-            console.log(`Renaming ${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2 -> ${Environment.BUILD_SRC_DIR}/models/spot/${name}.ob2`);
             fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`, `${Environment.BUILD_SRC_DIR}/models/spot/${name}.ob2`);
         } else {
             console.error('Model does not exist');

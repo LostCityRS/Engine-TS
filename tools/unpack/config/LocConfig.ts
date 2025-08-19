@@ -209,23 +209,27 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
         }
 
         if (code === 1) {
-            // 1 model per shape
             const count = dat.g1();
 
-            let name = debugname;
+            let written = 1;
+            let lastName;
             for (let i = 0; i < count; i++) {
                 const modelId = dat.g2();
                 const shape = dat.g1();
 
                 modelIds.push(modelId);
 
-                name = renameModel(modelId, shape);
-            }
+                const name = renameModel(modelId, shape);
+                if (lastName !== name) {
+                    if (!decodedModels) {
+                        def.push(`model${written > 1 ? written : ''}=${name}`);
+                    } else {
+                        def.push(`ldmodel${written > 1 ? written : ''}=${name}`);
+                    }
 
-            if (!decodedModels) {
-                def.push(`model=${name}`);
-            } else {
-                def.push(`ldmodel=${name}`);
+                    written++;
+                    lastName = name;
+                }
             }
 
             decodedModels = true;
@@ -236,7 +240,6 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
             const desc = dat.gjstr();
             def.push(`desc=${desc}`);
         } else if (code === 5) {
-            // only shape 10 / multiple models for shape 10
             const count = dat.g1();
 
             for (let i = 0; i < count; i++) {

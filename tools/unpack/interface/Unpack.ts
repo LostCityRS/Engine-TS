@@ -19,7 +19,6 @@ function renameModel(id: number) {
                 i++;
             }
 
-            console.log(`Renaming ${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2 -> ${Environment.BUILD_SRC_DIR}/models/com/${name}.ob2`);
             fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`, `${Environment.BUILD_SRC_DIR}/models/com/${name}.ob2`);
 
             model = name;
