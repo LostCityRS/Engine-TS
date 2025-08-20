@@ -66,6 +66,7 @@ export default class ServerProt244 extends ServerProtBase {
     static readonly SET_MULTIWAY = new ServerProt244(233, 1);
     static readonly P_NAMEDIALOG = new ServerProt244(6, 0);
     static readonly SET_PLAYER_OP = new ServerProt244(157, -1);
+    static readonly MINIMAP_TOGGLE = new ServerProt244(156, 1);
 
     // maps
     static readonly REBUILD_NORMAL = new ServerProt244(222, 4); // NXT naming

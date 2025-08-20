@@ -21,6 +21,7 @@ import IfClose from '#/network/game/server/model/IfClose.js';
 import IfOpenChat from '#/network/game/server/model/IfOpenChat.js';
 import IfOpenMain from '#/network/game/server/model/IfOpenMain.js';
 import IfOpenMainSide from '#/network/game/server/model/IfOpenMainSide.js';
+import IfOpenOverlay from '#/network/game/server/model/IfOpenOverlay.js';
 import IfOpenSide from '#/network/game/server/model/IfOpenSide.js';
 import Logout from '#/network/game/server/model/Logout.js';
 import NpcInfo from '#/network/game/server/model/NpcInfo.js';
@@ -177,6 +178,11 @@ export class NetworkPlayer extends Player {
             }
 
             this.refreshModal = false;
+        }
+
+        if (this.overlay !== this.lastOverlay) {
+            this.write(new IfOpenOverlay(this.overlay));
+            this.lastOverlay = this.overlay;
         }
 
         for (const message of this.buffer) {

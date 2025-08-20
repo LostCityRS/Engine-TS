@@ -8,6 +8,7 @@ import IfCloseEncoder from '#/network/game/server/codec/rs244/IfCloseEncoder.js'
 import IfOpenChatEncoder from '#/network/game/server/codec/rs244/IfOpenChatEncoder.js';
 import IfOpenMainEncoder from '#/network/game/server/codec/rs244/IfOpenMainEncoder.js';
 import IfOpenMainSideEncoder from '#/network/game/server/codec/rs244/IfOpenMainSideEncoder.js';
+import IfOpenOverlayEncoder from '#/network/game/server/codec/rs244/IfOpenOverlayEncoder.js';
 import IfOpenSideEncoder from '#/network/game/server/codec/rs244/IfOpenSideEncoder.js';
 import IfSetAnimEncoder from '#/network/game/server/codec/rs244/IfSetAnimEncoder.js';
 import IfSetColourEncoder from '#/network/game/server/codec/rs244/IfSetColourEncoder.js';
@@ -32,6 +33,7 @@ import MessageGameEncoder from '#/network/game/server/codec/rs244/MessageGameEnc
 import MessagePrivateEncoder from '#/network/game/server/codec/rs244/MessagePrivateEncoder.js';
 import MidiJingleEncoder from '#/network/game/server/codec/rs244/MidiJingleEncoder.js';
 import MidiSongEncoder from '#/network/game/server/codec/rs244/MidiSongEncoder.js';
+import MinimapToggleEncoder from '#/network/game/server/codec/rs244/MinimapToggleEncoder.js';
 import NpcInfoEncoder from '#/network/game/server/codec/rs244/NpcInfoEncoder.js';
 import ObjAddEncoder from '#/network/game/server/codec/rs244/ObjAddEncoder.js';
 import ObjCountEncoder from '#/network/game/server/codec/rs244/ObjCountEncoder.js';
@@ -73,6 +75,7 @@ import IfClose from '#/network/game/server/model/IfClose.js';
 import IfOpenChat from '#/network/game/server/model/IfOpenChat.js';
 import IfOpenMain from '#/network/game/server/model/IfOpenMain.js';
 import IfOpenMainSide from '#/network/game/server/model/IfOpenMainSide.js';
+import IfOpenOverlay from '#/network/game/server/model/IfOpenOverlay.js';
 import IfOpenSide from '#/network/game/server/model/IfOpenSide.js';
 import IfSetAnim from '#/network/game/server/model/IfSetAnim.js';
 import IfSetColour from '#/network/game/server/model/IfSetColour.js';
@@ -97,6 +100,7 @@ import MessageGame from '#/network/game/server/model/MessageGame.js';
 import MessagePrivate from '#/network/game/server/model/MessagePrivate.js';
 import MidiJingle from '#/network/game/server/model/MidiJingle.js';
 import MidiSong from '#/network/game/server/model/MidiSong.js';
+import MinimapToggle from '#/network/game/server/model/MinimapToggle.js';
 import NpcInfo from '#/network/game/server/model/NpcInfo.js';
 import ObjAdd from '#/network/game/server/model/ObjAdd.js';
 import ObjCount from '#/network/game/server/model/ObjCount.js';
@@ -142,6 +146,7 @@ export default class ServerProtRepository244 extends ServerProtRepository {
         this.bind(IfOpenChat, new IfOpenChatEncoder());
         this.bind(IfOpenMain, new IfOpenMainEncoder());
         this.bind(IfOpenMainSide, new IfOpenMainSideEncoder());
+        this.bind(IfOpenOverlay, new IfOpenOverlayEncoder());
         this.bind(IfOpenSide, new IfOpenSideEncoder());
         this.bind(IfSetTab, new IfSetTabEncoder());
         this.bind(IfSetAnim, new IfSetAnimEncoder());
@@ -166,6 +171,7 @@ export default class ServerProtRepository244 extends ServerProtRepository {
         this.bind(MessagePrivate, new MessagePrivateEncoder());
         this.bind(MidiJingle, new MidiJingleEncoder());
         this.bind(MidiSong, new MidiSongEncoder());
+        this.bind(MinimapToggle, new MinimapToggleEncoder());
         this.bind(NpcInfo, new NpcInfoEncoder());
         this.bind(ObjAdd, new ObjAddEncoder());
         this.bind(ObjCount, new ObjCountEncoder());

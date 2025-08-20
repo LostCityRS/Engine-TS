@@ -370,6 +370,8 @@ export default class Player extends PathingEntity {
     modalSide = -1;
     lastModalSide = -1;
     modalTutorial = -1;
+    overlay = -1;
+    lastOverlay = -1;
     refreshModal = false;
     refreshModalClose = false;
     requestModalClose = false;
@@ -1935,6 +1937,13 @@ export default class Player extends PathingEntity {
         this.modalState |= ModalState.MAIN;
         this.modalMain = com;
         this.refreshModal = true;
+    }
+
+    openOverlay(com: number) {
+        if (this.overlay === com) {
+            return;
+        }
+        this.overlay = com;
     }
 
     openChat(com: number) {
