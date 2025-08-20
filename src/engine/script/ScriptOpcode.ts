@@ -115,7 +115,7 @@ export const enum ScriptOpcode {
     IF_OPENCHAT,
     TUT_OPEN,
     IF_OPENMAIN,
-    // IF_OPENOVERLAY comes later
+    IF_OPENOVERLAY,
     IF_OPENMAIN_SIDE,
     IF_OPENSIDE,
     IF_SETANIM, // official
@@ -206,6 +206,7 @@ export const enum ScriptOpcode {
     WEALTH_EVENT, // custom
     P_RUN, // todo: real command name?
     PLAYERMEMBER, // official
+    MINIMAP_TOGGLE,
 
     // Npc ops (2500-2999)
     NPC_ADD = 2500, // official
@@ -567,6 +568,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['TUT_OPEN', ScriptOpcode.TUT_OPEN],
     ['IF_OPENMAIN', ScriptOpcode.IF_OPENMAIN],
     ['IF_OPENMAIN_SIDE', ScriptOpcode.IF_OPENMAIN_SIDE],
+    ['IF_OPENOVERLAY', ScriptOpcode.IF_OPENOVERLAY],
     ['IF_OPENSIDE', ScriptOpcode.IF_OPENSIDE],
     ['IF_SETANIM', ScriptOpcode.IF_SETANIM],
     ['IF_SETCOLOUR', ScriptOpcode.IF_SETCOLOUR],
@@ -594,6 +596,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['MES', ScriptOpcode.MES],
     ['MIDI_JINGLE', ScriptOpcode.MIDI_JINGLE],
     ['MIDI_SONG', ScriptOpcode.MIDI_SONG],
+    ['MINIMAP_TOGGLE', ScriptOpcode.MINIMAP_TOGGLE],
     ['NAME', ScriptOpcode.NAME],
     ['P_APRANGE', ScriptOpcode.P_APRANGE],
     ['P_ARRIVEDELAY', ScriptOpcode.P_ARRIVEDELAY],

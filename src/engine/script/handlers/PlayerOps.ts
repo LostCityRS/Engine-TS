@@ -46,6 +46,7 @@ import IfSetPlayerHead from '#/network/game/server/model/IfSetPlayerHead.js';
 import IfSetPosition from '#/network/game/server/model/IfSetPosition.js';
 import IfSetTabActive from '#/network/game/server/model/IfSetTabActive.js';
 import IfSetText from '#/network/game/server/model/IfSetText.js';
+import MinimapToggle from '#/network/game/server/model/MinimapToggle.js';
 import PCountDialog from '#/network/game/server/model/PCountDialog.js';
 import SynthSound from '#/network/game/server/model/SynthSound.js';
 import TutFlash from '#/network/game/server/model/TutFlash.js';
@@ -663,6 +664,10 @@ const PlayerOps: CommandHandlers = {
         state.activePlayer.openMainModal(check(state.popInt(), NumberNotNull));
     }),
 
+    [ScriptOpcode.IF_OPENOVERLAY]: checkedHandler(ActivePlayer, state => {
+        state.activePlayer.openOverlayModal(check(state.popInt(), NumberNotNull));
+    }),
+
     [ScriptOpcode.TUT_OPEN]: checkedHandler(ActivePlayer, state => {
         state.activePlayer.openTutorial(check(state.popInt(), NumberNotNull));
     }),
@@ -756,6 +761,11 @@ const PlayerOps: CommandHandlers = {
         }
         player.playJingle(delay, name);
     },
+
+    [ScriptOpcode.MINIMAP_TOGGLE]: checkedHandler(ActivePlayer, state => {
+        const type = check(state.popInt(), NumberNotNull);
+        state.activePlayer.write(new MinimapToggle(type));
+    }),
 
     [ScriptOpcode.SOFTTIMER]: checkedHandler(ActivePlayer, state => {
         const args = popScriptArgs(state);

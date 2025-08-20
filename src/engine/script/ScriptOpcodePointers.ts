@@ -189,6 +189,10 @@ const ScriptOpcodePointers: {
         require: ['active_player'],
         require2: ['active_player2']
     },
+    [ScriptOpcode.IF_OPENOVERLAY]: {
+        require: ['active_player'],
+        require2: ['active_player2']
+    },
     [ScriptOpcode.IF_OPENSIDE]: {
         require: ['active_player']
     },
@@ -276,6 +280,9 @@ const ScriptOpcodePointers: {
         require: ['active_player']
     },
     [ScriptOpcode.MIDI_SONG]: {
+        require: ['active_player']
+    },
+    [ScriptOpcode.MINIMAP_TOGGLE]: {
         require: ['active_player']
     },
     [ScriptOpcode.NAME]: {
