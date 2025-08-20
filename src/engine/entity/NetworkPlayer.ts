@@ -180,9 +180,9 @@ export class NetworkPlayer extends Player {
             this.refreshModal = false;
         }
 
-        if (this.modalOverlay !== this.lastModalOverlay) {
-            this.write(new IfOpenOverlay(this.modalOverlay));
-            this.lastModalOverlay = this.modalOverlay;
+        if (this.overlay !== this.lastOverlay) {
+            this.write(new IfOpenOverlay(this.overlay));
+            this.lastOverlay = this.overlay;
         }
 
         for (const message of this.buffer) {
