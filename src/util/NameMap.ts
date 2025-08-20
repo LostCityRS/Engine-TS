@@ -3,6 +3,10 @@ import fs from 'fs';
 // cached directory listings
 export const dirCache: Map<string, string[]> = new Map();
 
+export function clearDirCache() {
+    dirCache.clear();
+}
+
 export function listDir(path: string): string[] {
     if (path.endsWith('/')) {
         path = path.substring(0, path.length - 1);

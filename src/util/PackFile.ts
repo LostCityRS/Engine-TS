@@ -249,6 +249,7 @@ export function revalidatePack() {
     VarpPack.reload();
     VarnPack.reload();
     VarsPack.reload();
+    VarbitPack.reload();
 }
 
 export function crawlConfigNames(ext: string, includeBrackets = false) {

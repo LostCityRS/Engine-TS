@@ -21,6 +21,7 @@ import { packClientTitle } from '#tools/pack/sprite/title.js';
 import { generateServerSymbols } from '#tools/pack/symbols.js';
 import FileStream from '#/io/FileStream.js';
 import { packClientVersionList } from '#tools/pack/versionlist/pack.js';
+import { clearDirCache } from '#/util/NameMap.js';
 
 export async function packServer(modelFlags: number[]) {
     if (!fs.existsSync('RuneScriptCompiler.jar')) {
@@ -34,6 +35,7 @@ export async function packServer(modelFlags: number[]) {
         });
     }
 
+    clearDirCache();
     revalidatePack();
 
     for (let i = 0; i < ModelPack.max; i++) {
