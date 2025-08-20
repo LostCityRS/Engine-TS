@@ -61,19 +61,29 @@ function readMap(map) {
 export function packClientMap(cache) {
     const maps = listFilesExt(`${Environment.BUILD_SRC_DIR}/maps`, '.jm2');
 
+    if (!fs.existsSync('data/pack/client/maps')) {
+        fs.mkdirSync('data/pack/client/maps', { recursive: true });
+    }
+
     for (const file of maps) {
         const basename = path.basename(file, path.extname(file));
         const [mapX, mapZ] = basename.slice(1).split('_');
+        const mapFile = `data/pack/client/maps/m${mapX}_${mapZ}`;
+        const locFile = `data/pack/client/maps/l${mapX}_${mapZ}`;
 
-        const data = fs
-            .readFileSync(file, 'utf8')
-            .replace(/\r/g, '')
-            .split('\n')
-            .filter(x => x.length);
-        const map = readMap(data);
+        let data = null;
+        let map = null;
+        if (!fs.existsSync(mapFile) || !fs.existsSync(locFile)) {
+            data = fs
+                .readFileSync(file, 'utf8')
+                .replace(/\r/g, '')
+                .split('\n')
+                .filter(x => x.length);
+            map = readMap(data);
+        }
 
         // encode land data
-        {
+        if (!fs.existsSync(mapFile)) {
             let levelHeightmap = [];
             let levelTileOverlayIds = [];
             let levelTileOverlayShape = [];
@@ -226,12 +236,12 @@ export function packClientMap(cache) {
                 }
             }
 
-            cache.write(4, MapPack.getByName(`m${mapX}_${mapZ}`), compressGz(out.data.subarray(0, out.pos)), 1);
+            fs.writeFileSync(mapFile, compressGz(out.data.subarray(0, out.pos)));
             out.release();
         }
 
         // encode loc data
-        {
+        if (!fs.existsSync(locFile)) {
             let locs = {};
 
             for (let level = 0; level < 4; level++) {
@@ -305,8 +315,11 @@ export function packClientMap(cache) {
             }
 
             out.psmart(0); // end of map
-            cache.write(4, MapPack.getByName(`l${mapX}_${mapZ}`), compressGz(out.data.subarray(0, out.pos)), 1);
+            fs.writeFileSync(locFile, compressGz(out.data.subarray(0, out.pos)));
             out.release();
         }
+
+        cache.write(4, MapPack.getByName(`m${mapX}_${mapZ}`), fs.readFileSync(mapFile), 1);
+        cache.write(4, MapPack.getByName(`l${mapX}_${mapZ}`), fs.readFileSync(locFile), 1);
     }
 }
