@@ -17,8 +17,8 @@ export const enum PlayerStat {
     HERBLORE,
     AGILITY,
     THIEVING,
-    STAT18,
-    STAT19,
+    SLAYER,
+    FARMING,
     RUNECRAFT
 }
 
@@ -41,8 +41,8 @@ export const PlayerStatMap: Map<string, number> = new Map([
     ['HERBLORE', PlayerStat.HERBLORE],
     ['AGILITY', PlayerStat.AGILITY],
     ['THIEVING', PlayerStat.THIEVING],
-    ['STAT18', PlayerStat.STAT18],
-    ['STAT19', PlayerStat.STAT19],
+    ['SLAYER', PlayerStat.SLAYER],
+    ['FARMING', PlayerStat.FARMING],
     ['RUNECRAFT', PlayerStat.RUNECRAFT],
 ]);
 

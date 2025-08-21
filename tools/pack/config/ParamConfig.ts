@@ -21,8 +21,8 @@ const stats: (string | null)[] = [
     'herblore',
     'agility',
     'thieving',
-    null,
-    null,
+    'slayer',
+    'farming',
     'runecraft'
 ];
 
