@@ -43,7 +43,7 @@ export function parseInvConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
 
-        if (key === 'size' && (number < 0 || number > 500)) {
+        if (key === 'size' && (number < 0 || number > 65535)) {
             return null;
         }
 

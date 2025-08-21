@@ -1407,13 +1407,17 @@ export default class Player extends PathingEntity {
 
         if (invType.scope === InvType.SCOPE_SHARED) {
             container = World.getInventory(inv);
-        } else {
+        } else if (invType.scope === InvType.SCOPE_PERM) {
             container = this.invs.get(inv);
 
             if (!container) {
                 container = Inventory.fromType(inv);
                 this.invs.set(inv, container);
             }
+        } else {
+            // always construct a new inv in case it changes
+            container = Inventory.fromType(inv);
+            this.invs.set(inv, container);
         }
 
         return container;
@@ -1426,8 +1430,7 @@ export default class Player extends PathingEntity {
 
         const index = this.invListeners.findIndex(l => l.type === inv && l.com === com);
         if (index !== -1) {
-            // already listening
-            return;
+            this.invListeners.splice(index, 1);
         }
 
         const invType = InvType.get(inv);
