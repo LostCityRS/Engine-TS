@@ -103,7 +103,8 @@ export class PlayerLoading {
         const invCount = sav.g1();
         for (let i = 0; i < invCount; i++) {
             const type = sav.g2();
-            const size = version >= 5 ? sav.g2() : InvType.get(type).size;
+            const invType = InvType.get(type);
+            const size = version >= 5 ? sav.g2() : invType.size;
 
             const objs = [];
             for (let slot = 0; slot < size; slot++) {
@@ -120,10 +121,12 @@ export class PlayerLoading {
                 objs.push({ slot, id, count });
             }
 
-            const inv = player.getInventory(type);
-            if (inv) {
-                for (const obj of objs) {
-                    inv.set(obj.slot, { id: obj.id, count: obj.count });
+            if (invType.scope === InvType.SCOPE_PERM) {
+                const inv = player.getInventory(type);
+                if (inv) {
+                    for (const obj of objs) {
+                        inv.set(obj.slot, { id: obj.id, count: obj.count });
+                    }
                 }
             }
         }
