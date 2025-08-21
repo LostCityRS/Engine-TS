@@ -247,7 +247,7 @@ export async function readConfigs(dirTree: Set<string>, extension: string, requi
     const { client, server } = pack(configs, modelFlags);
 
     if (Environment.BUILD_VERIFY && validate && !validate(client.dat, server.dat)) {
-        throw new Error(`${extension} verification failed! Custom data detected.\nSet BUILD_VERIFY=false in your .env file if this is intended.`);
+        throw new Error(`${extension} checksum mismatch!\nYou can disable this safety check by setting BUILD_VERIFY=false`);
     }
 
     saveClient(client.dat, client.idx);
@@ -450,7 +450,7 @@ export async function packConfigs(modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, 1638136604);
+                return Packet.checkcrc(client.data, 0, client.pos, 1122990828);
             }
         );
     }
@@ -474,7 +474,7 @@ export async function packConfigs(modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, 891497087);
+                return Packet.checkcrc(client.data, 0, client.pos, 967458629);
             }
         );
     }
@@ -498,7 +498,7 @@ export async function packConfigs(modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, 1976597026);
+                return Packet.checkcrc(client.data, 0, client.pos, 691874834);
             }
         );
     }
@@ -522,7 +522,7 @@ export async function packConfigs(modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, -1279835623);
+                return Packet.checkcrc(client.data, 0, client.pos, 2029068104);
             }
         );
     }
@@ -546,7 +546,7 @@ export async function packConfigs(modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, -2140681882);
+                return Packet.checkcrc(client.data, 0, client.pos, 455764595);
             }
         );
     }
@@ -570,27 +570,7 @@ export async function packConfigs(modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, -840233510);
-
-                // ObjType.load('data/ref');
-                // const current = ObjType.configs;
-
-                // ObjType.parse(null, client);
-                // const proposed = ObjType.configs;
-
-                // for (const obj of current) {
-                //     obj.debugname = '';
-                // }
-
-                // for (const obj of proposed) {
-                //     obj.debugname = '';
-                // }
-
-                // const diff = _.differenceWith(current, proposed, _.isEqual);
-                // console.log(current[diff[0].id]);
-                // console.log(proposed[diff[0].id]);
-
-                // return false;
+                return Packet.checkcrc(client.data, 0, client.pos, 122666554);
             }
         );
     }
@@ -614,7 +594,7 @@ export async function packConfigs(modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, -359342366);
+                return Packet.checkcrc(client.data, 0, client.pos, -182730988);
             }
         );
     }
@@ -638,7 +618,7 @@ export async function packConfigs(modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, 705633567);
+                return Packet.checkcrc(client.data, 0, client.pos, -1587312319);
             }
         );
     }
@@ -661,8 +641,8 @@ export async function packConfigs(modelFlags: number[]) {
                 dat.release();
                 idx.release();
             },
-            (_client: Packet, _server: Packet): boolean => {
-                return true;
+            (client: Packet, _server: Packet): boolean => {
+                return Packet.checkcrc(client.data, 0, client.pos, -1350285786);
             }
         );
     }

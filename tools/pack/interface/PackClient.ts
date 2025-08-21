@@ -10,8 +10,8 @@ export function packClientInterface(cache: FileStream, modelFlags: number[]) {
     const jag = new Jagfile();
     const data = packInterface(false, modelFlags);
 
-    if (Environment.BUILD_VERIFY && !Packet.checkcrc(data.data, 0, data.pos, -2146838800)) {
-        console.error('.if CRC check failed! Custom data detected.');
+    if (Environment.BUILD_VERIFY && !Packet.checkcrc(data.data, 0, data.pos, 1151502861)) {
+        console.error('.if checksum mismatch!\nYou can disable this safety check by setting BUILD_VERIFY=false');
         process.exit(1);
     }
 

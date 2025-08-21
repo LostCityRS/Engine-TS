@@ -271,9 +271,10 @@ export function crawlConfigNames(ext: string, includeBrackets = false) {
                 }
 
                 if (Environment.BUILD_VERIFY_FOLDER) {
+                    const parentParent = basename(dirname(dirname(dirname(file))));
                     const parent = basename(dirname(dirname(file)));
                     const dir = basename(dirname(file));
-                    if (dir !== '_unpack' && ext !== '.flo') {
+                    if ((dir !== '_unpack' && parent !== '_unpack' && parentParent !== '_unpack') && ext !== '.flo') {
                         if (ext === '.rs2' && dir !== 'scripts' && parent !== 'scripts') {
                             throw new Error(`Script file ${file} must be located inside a "scripts" directory.`);
                         } else if (ext !== '.rs2' && dir !== 'configs' && parent !== 'configs') {

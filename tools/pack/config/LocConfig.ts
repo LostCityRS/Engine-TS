@@ -2,7 +2,7 @@ import ParamType from '#/cache/config/ParamType.js';
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import ColorConversion from '#/util/ColorConversion.js';
 import { CategoryPack, LocPack, ModelPack, SeqPack, TexturePack, VarbitPack, VarpPack } from '#/util/PackFile.js';
-import { LocModelShape, ConfigValue, ConfigLine, ParamValue, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
+import { LocModelShape, ConfigValue, ConfigLine, ParamValue, PackedData, isConfigBoolean, getConfigBoolean, packStepError } from '#tools/pack/config/PackShared.js';
 import { lookupParamValue } from '#tools/pack/config/ParamConfig.js';
 
 // these suffixes are simply the map editor keybinds
@@ -441,6 +441,10 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                     ldModels.push({ model: ldModelId, shape });
                 }
             }
+        }
+
+        if ((srcModels.length > 0 && models.length === 0) || (srcLdModels.length > 0 && ldModels.length === 0)) {
+            throw packStepError(debugname, 'Failed to find suitable loc models');
         }
 
         if (models.length > 0) {
