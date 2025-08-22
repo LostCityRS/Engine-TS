@@ -18,6 +18,10 @@ import ScriptPointer, { ActiveNpc, checkedHandler } from '#/engine/script/Script
 import { CommandHandlers } from '#/engine/script/ScriptRunner.js';
 import ScriptState from '#/engine/script/ScriptState.js';
 import { CategoryTypeValid, check, CoordValid, DurationValid, HitTypeValid, HuntTypeValid, HuntVisValid, NpcModeValid, NpcStatValid, NpcTypeValid, NumberNotNull, ParamTypeValid, QueueValid, SpotAnimTypeValid } from '#/engine/script/ScriptValidators.js';
+import { isMaxHitDebug } from '#/network/game/client/handler/ClientCheatHandler.js';
+import { HitType } from '#/engine/entity/HitType.js';
+import VarPlayerType from '#/cache/config/VarPlayerType.js';
+import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
 
@@ -142,8 +146,34 @@ const NpcOps: CommandHandlers = {
     // https://x.com/JagexAsh/status/1570357528172859392
     [ScriptOpcode.NPC_QUEUE]: checkedHandler(ActiveNpc, state => {
         const delay = check(state.popInt(), NumberNotNull);
-        const arg = state.popInt();
+        let arg = state.popInt();
         const queueId = check(state.popInt(), QueueValid);
+
+        // For player-origin combat queue (queueId 2 = damage application), enforce max hit when cheat enabled.
+        const attacker = state._activePlayer;
+        if (queueId === 2 && attacker && isMaxHitDebug(attacker)) {
+            try {
+                const npcType: NpcType = check(state.activeNpc.type, NpcTypeValid);
+                const npcMaxDealt = ParamHelper.getIntParam(100, npcType, 0); // max_dealt
+                // Resolve player's computed max hit varp (com_maxhit). Fallback if name missing.
+                const comMaxHitId = VarPlayerType.getId('com_maxhit');
+                let playerMax = 0;
+                if (comMaxHitId !== -1) {
+                    const varpType = VarPlayerType.get(comMaxHitId);
+                    if (varpType.type === ScriptVarType.INT) {
+                        playerMax = attacker.getVar(comMaxHitId) as number;
+                    }
+                }
+                const effectiveCap = npcMaxDealt > 0 ? Math.min(playerMax > 0 ? playerMax : npcMaxDealt, npcMaxDealt) : (playerMax > 0 ? playerMax : 0);
+                if (effectiveCap > 0) {
+                    arg = effectiveCap;
+                } else if (arg <= 0) {
+                    arg = 1; // still avoid pure 0 if everything else failed
+                }
+            } catch (_e) {
+                // ignore
+            }
+        }
 
         state.activeNpc.enqueueScript(ServerTriggerType.AI_QUEUE1 + queueId - 1, delay, arg);
     }),
@@ -256,8 +286,28 @@ const NpcOps: CommandHandlers = {
     }),
 
     [ScriptOpcode.NPC_DAMAGE]: checkedHandler(ActiveNpc, state => {
-        const amount = check(state.popInt(), NumberNotNull);
-        const type = check(state.popInt(), HitTypeValid);
+        let amount = check(state.popInt(), NumberNotNull);
+        let type = check(state.popInt(), HitTypeValid);
+
+        // Max-hit cheat enforcement (final stage): if the active player attacked and has cheat enabled,
+        // convert any block (or low damage) into a full max_dealt hit.
+        const attacker = state._activePlayer;
+        if (attacker && isMaxHitDebug(attacker) && (type === HitType.DAMAGE || type === HitType.BLOCK)) {
+            try {
+                const npcType: NpcType = check(state.activeNpc.type, NpcTypeValid);
+                const npcMaxDealt = ParamHelper.getIntParam(100, npcType, 0); // max_dealt
+                if (npcMaxDealt > 0) {
+                    amount = npcMaxDealt;
+                    type = HitType.DAMAGE; // ensure shown as damage
+                } else if (amount === 0) {
+                    // If no explicit cap, at least do 1 damage so cheat isn't a splash fest.
+                    amount = 1;
+                    type = HitType.DAMAGE;
+                }
+            } catch (_e) {
+                // ignore errors silently
+            }
+        }
 
         state.activeNpc.applyDamage(amount, type);
     }),

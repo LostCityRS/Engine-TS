@@ -47,8 +47,21 @@ interface CheatFlags {
     infiniteRunes?: boolean;
     /** Toggle for guaranteed maximum hits */
     maxHitDebug?: boolean;
+    /** UI movement blink-walk toggle */
+    blinkWalkEnabled?: boolean;
+    /** Saved hooks for restoration */
     _originalUpdateEnergy?: () => void;
 }
+
+/* Augmented view used in all-in-1 mode without casting to any */
+type GodModeAugmentedPlayer = Player & {
+    godModeEnabled?: boolean;
+    _origUpdateEnergy?: () => void;
+    _origApplyDamage?: (damage: number, type: number) => void;
+    _origInvDel?: Player['invDel'];
+    _origInvDelSlot?: Player['invDelSlot'];
+    _origInvTotal?: Player['invTotal'];
+};
 
 const CHEAT_FLAGS = new WeakMap<Player, CheatFlags>();
 function getCheat(player: Player): CheatFlags {
@@ -58,6 +71,13 @@ function getCheat(player: Player): CheatFlags {
         CHEAT_FLAGS.set(player, flags);
     }
     return flags;
+}
+
+/** Public helper so other subsystems (e.g. NumberOps) can observe cheat flags without mutating */
+export function isMaxHitDebug(player: Player | undefined | null): boolean {
+    if (!player) return false;
+    const flags = CHEAT_FLAGS.get(player);
+    return !!flags?.maxHitDebug;
 }
 
 /**
@@ -221,17 +241,10 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                 const on = (args[0] ?? '').toLowerCase();
                 const enable = on === 'on' ? true : on === 'off' ? false : undefined;
 
-                if (enable === undefined) {
-                    const flags = getCheat(player) as any;
-                    flags.blinkWalkEnabled = !flags.blinkWalkEnabled;
-                    setBlinkWalk(player, flags.blinkWalkEnabled);
-                    player.messageGame(`Blink-walk: ${flags.blinkWalkEnabled ? 'ON' : 'OFF'}`);
-                } else {
-                    setBlinkWalk(player, enable);
-                    const flags = getCheat(player) as any;
-                    flags.blinkWalkEnabled = enable;
-                    player.messageGame(`Blink-walk: ${enable ? 'ON' : 'OFF'}`);
-                }
+                const flags = getCheat(player);
+                flags.blinkWalkEnabled = enable ?? !flags.blinkWalkEnabled;
+                setBlinkWalk(player, !!flags.blinkWalkEnabled);
+                player.messageGame(`Blink-walk: ${flags.blinkWalkEnabled ? 'ON' : 'OFF'}`);
                 return true;
             }
 
@@ -262,7 +275,7 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     }
                     player.setVar(varp.id, tryParseInt(args[1], 0));
                     player.messageGame(`set ${varp.debugname}: to ${args[1]}`);
-                    break;
+                    return true;
                 }
 
                 case 'setvarother': {
@@ -287,7 +300,7 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     }
                     other.setVar(varp.id, tryParseInt(args[2], 0));
                     player.messageGame(`set ${args[1]}: to ${args[2]} on ${other.username}`);
-                    break;
+                    return true;
                 }
 
                 case 'getvar': {
@@ -296,7 +309,7 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     const varp = VarPlayerType.getByName(args[0]);
                     if (!varp) return false;
                     player.messageGame(`get ${varp.debugname}: ${player.getVar(varp.id)}`);
-                    break;
+                    return true;
                 }
 
                 case 'getvarother': {
@@ -310,7 +323,7 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     const varp = VarPlayerType.getByName(args[1]);
                     if (!varp) return false;
                     player.messageGame(`get ${varp.debugname}: ${other.getVar(varp.id)} on ${other.username}`);
-                    break;
+                    return true;
                 }
 
                 // NEW copy command: stats, quests, worn gear, backpack, bank, appearance
@@ -418,7 +431,7 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                         const vp = VarPlayerType.getByName(name);
                         if (vp) player.messageGame(`${name}: ${player.getVar(vp.id)}`);
                     });
-                    break;
+                    return true;
                 }
 
                 // ALL-IN-1 GOD-MODE
@@ -434,27 +447,20 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     })();
 
                     // augment player with originals (first call only)
-                    const cheat = player as Player & {
-                        godModeEnabled?: boolean;
-                        _origUpdateEnergy?: () => void;
-                        _origApplyDamage?: (damage: number, type: number) => void;
-                        _origInvDel?: Player['invDel'];
-                        _origInvDelSlot?: Player['invDelSlot'];
-                        _origInvTotal?: Player['invTotal'];
-                    };
+                    const gm = player as GodModeAugmentedPlayer;
 
-                    if (!cheat._origUpdateEnergy) {
-                        cheat._origUpdateEnergy = player.updateEnergy.bind(player);
-                        cheat._origApplyDamage = player.applyDamage.bind(player);
-                        cheat._origInvDel = player.invDel.bind(player);
-                        cheat._origInvDelSlot = player.invDelSlot.bind(player);
-                        cheat._origInvTotal = player.invTotal.bind(player);
+                    if (!gm._origUpdateEnergy) {
+                        gm._origUpdateEnergy = player.updateEnergy.bind(player);
+                        gm._origApplyDamage = player.applyDamage.bind(player);
+                        gm._origInvDel = player.invDel.bind(player);
+                        gm._origInvDelSlot = player.invDelSlot.bind(player);
+                        gm._origInvTotal = player.invTotal.bind(player);
                     }
 
                     // flip flag
-                    cheat.godModeEnabled = !cheat.godModeEnabled;
+                    gm.godModeEnabled = !gm.godModeEnabled;
 
-                    if (cheat.godModeEnabled) {
+                    if (gm.godModeEnabled) {
                         // enable
                         player.levels.forEach((_, i) => (player.levels[i] = player.baseLevels[i]));
                         player.levels[PlayerStat.HITPOINTS] = 999_999_999;
@@ -471,27 +477,27 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
 
                         // zero-rune spell casting + protect rune stacks
                         player.invTotal = (inv, obj) =>
-                            (inv === InvType.INV && RUNE_IDS.has(obj) ? 1_000_000 : cheat._origInvTotal!(inv, obj));
+                            (inv === InvType.INV && RUNE_IDS.has(obj) ? 1_000_000 : gm._origInvTotal!(inv, obj));
 
                         player.invDel = (inv, obj, count, beginSlot = -1) =>
-                            (inv === InvType.INV && RUNE_IDS.has(obj) ? count : cheat._origInvDel!(inv, obj, count, beginSlot));
+                            (inv === InvType.INV && RUNE_IDS.has(obj) ? count : gm._origInvDel!(inv, obj, count, beginSlot));
 
                         player.invDelSlot = (inv, slot) => {
                             if (inv === InvType.INV) {
                                 const itm = player.invGetSlot(inv, slot);
                                 if (itm && RUNE_IDS.has(itm.id)) return; // skip removal
                             }
-                            cheat._origInvDelSlot!(inv, slot);
+                            gm._origInvDelSlot!(inv, slot);
                         };
 
                         player.messageGame('All-in-1 mode activated.');
                     } else {
                         // disable
-                        player.updateEnergy = cheat._origUpdateEnergy!;
-                        player.applyDamage = cheat._origApplyDamage!;
-                        player.invDel = cheat._origInvDel!;
-                        player.invDelSlot = cheat._origInvDelSlot!;
-                        player.invTotal = cheat._origInvTotal!;
+                        player.updateEnergy = gm._origUpdateEnergy!;
+                        player.applyDamage = gm._origApplyDamage!;
+                        player.invDel = gm._origInvDel!;
+                        player.invDelSlot = gm._origInvDelSlot!;
+                        player.invTotal = gm._origInvTotal!;
                         player.messageGame('All-in-1 mode deactivated.');
                     }
                     return true;
@@ -594,7 +600,7 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
 
                     player.invAdd(InvType.INV, finalId, amount, false);
                     player.messageGame(`Gave ${ObjType.get(finalId)?.name ?? finalId} x${amount}${wantNoted ? ' (noted)' : ''}`);
-                    break;
+                    return true;
                 }
 
                 // id helper
@@ -609,29 +615,30 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
 
                     if (exactId !== -1) {
                         player.messageGame(`Item '${itemName}' id: ${exactId}`);
-                    } else {
-                        const hits: { id: number; name: string }[] = [];
-                        const term = itemName.toLowerCase();
-                        for (let i = 0; i < ObjType.count; i++) {
-                            const obj = ObjType.get(i);
-                            if (obj?.name?.toLowerCase().includes(term)) {
-                                hits.push({ id: i, name: obj.name });
-                            }
-                        }
+                        return true;
+                    }
 
-                        if (!hits.length) {
-                            player.messageGame(`No items containing '${itemName}'.`);
-                        } else if (hits.length === 1) {
-                            player.messageGame(`Item '${hits[0].name}' id: ${hits[0].id}`);
-                        } else {
-                            player.messageGame(`Multiple items${hits.length > 10 ? ' (showing first 10)' : ''}:`);
-                            hits.slice(0, 10).forEach(h => player.messageGame(`- ${h.name} (ID: ${h.id})`));
-                            if (hits.length > 10) {
-                                player.messageGame(`... and ${hits.length - 10} more.`);
-                            }
+                    const hits: { id: number; name: string }[] = [];
+                    const term = itemName.toLowerCase();
+                    for (let i = 0; i < ObjType.count; i++) {
+                        const obj = ObjType.get(i);
+                        if (obj?.name?.toLowerCase().includes(term)) {
+                            hits.push({ id: i, name: obj.name });
                         }
                     }
-                    break;
+
+                    if (!hits.length) {
+                        player.messageGame(`No items containing '${itemName}'.`);
+                    } else if (hits.length === 1) {
+                        player.messageGame(`Item '${hits[0].name}' id: ${hits[0].id}`);
+                    } else {
+                        player.messageGame(`Multiple items${hits.length > 10 ? ' (showing first 10)' : ''}:`);
+                        hits.slice(0, 10).forEach(h => player.messageGame(`- ${h.name} (ID: ${h.id})`));
+                        if (hits.length > 10) {
+                            player.messageGame(`... and ${hits.length - 10} more.`);
+                        }
+                    }
+                    return true;
                 }
 
                 // giveother
@@ -645,7 +652,7 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     const obj = ObjType.getId(args[1]);
                     if (obj === -1) return false;
                     other.invAdd(InvType.INV, obj, Math.max(1, tryParseInt(args[2], 1)), false);
-                    break;
+                    return true;
                 }
 
                 // givecrap / givemany
@@ -655,20 +662,22 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                         while (random === -1) {
                             random = Math.trunc(Math.random() * ObjType.count);
                             const obj = ObjType.get(random);
-                            if ((Environment.NODE_MEMBERS && obj.members) || obj.dummyitem) {
+                            // Skip members items if world is not members, and skip dummy items
+                            if ((!Environment.NODE_MEMBERS && obj?.members) || obj?.dummyitem) {
                                 random = -1;
                             }
                         }
                         player.invAdd(InvType.INV, random, 1, false);
                     }
-                    break;
+                    return true;
                 }
                 case 'givemany': {
-                    const obj = ObjType.getId(args[0]);
+                    const obj = ObjType.getId(args[0] ?? '');
                     if (obj !== -1) {
                         player.invAdd(InvType.INV, obj, 1000, false);
+                        return true;
                     }
-                    break;
+                    return false;
                 }
 
                 // interface id helper
@@ -884,26 +893,29 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                 case 'broadcast':
                     if (Environment.NODE_PRODUCTION) {
                         World.broadcastMes(cheat.slice(cmd.length + 1));
+                        return true;
                     }
-                    break;
+                    return false;
 
                 // Instant world reboot on production
                 case 'reboot':
                     if (Environment.NODE_PRODUCTION) {
                         World.rebootTimer(0);
+                        return true;
                     }
-                    break;
+                    return false;
 
                 // Dev-only reboot (works when NODE_PRODUCTION = false)
                 case 'dreboot':
                     if (!Environment.NODE_PRODUCTION) {
                         World.rebootTimer(0);
+                        return true;
                     }
-                    break;
+                    return false;
 
                 case 'serverdrop':
                     player.terminate();
-                    break;
+                    return true;
 
                 // toggle detailed action debugging - developers only
                 case 'actiondebug': {
@@ -919,7 +931,7 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     const stat = PlayerStatMap.get(args[0].toUpperCase());
                     if (stat === undefined) return false;
                     player.setLevel(stat, tryParseInt(args[1], 1));
-                    break;
+                    return true;
                 }
 
                 case 'advancestat': {
@@ -928,14 +940,14 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     if (stat === undefined) return false;
                     player.stats[stat] = player.baseLevels[stat] = player.levels[stat] = 1;
                     player.addXp(stat, getExpByLevel(tryParseInt(args[1], 1)), false);
-                    break;
+                    return true;
                 }
 
                 case 'minme':
                     for (let i = 0; i < PlayerStatEnabled.length; i++) {
                         player.setLevel(i, i === PlayerStat.HITPOINTS ? 10 : 1);
                     }
-                    break;
+                    return true;
 
                 // locadd / npcadd
                 case 'locadd': {
@@ -957,13 +969,30 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                         500
                     );
                     player.messageGame(`Loc Added: ${args[0]} (${lt.id})`);
-                    break;
+                    return true;
                 }
 
+                case 'npc':
                 case 'npcadd': {
-                    if (!args.length) return false;
-                    const nt = NpcType.getByName(args[0]);
-                    if (!nt) return false;
+                    if (!args.length) {
+                        player.messageGame('Usage: ::npc <id|name>');
+                        return false;
+                    }
+
+                    const query = args[0];
+                    let nt: NpcType | null = null;
+                    const numeric = Number(query);
+                    if (!Number.isNaN(numeric)) {
+                        nt = NpcType.get(numeric);
+                    }
+                    if (!nt) {
+                        nt = NpcType.getByName(query);
+                    }
+                    if (!nt) {
+                        player.messageGame(`Unknown NPC: ${query}`);
+                        return false;
+                    }
+
                     World.addNpc(
                         new Npc(
                             player.level,
@@ -979,7 +1008,8 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                         ),
                         500
                     );
-                    break;
+                    player.messageGame(`Spawned NPC ${nt.name ?? 'Unnamed'} (${nt.id})`);
+                    return true;
                 }
 
                 default:

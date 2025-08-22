@@ -1,7 +1,9 @@
 import { ScriptOpcode } from '#/engine/script/ScriptOpcode.js';
 import { CommandHandlers } from '#/engine/script/ScriptRunner.js';
 import { bitcount, clearBitRange, MASK, setBitRange } from '#/util/Numbers.js';
-import Trig from 'src/util/Trig.js';
+import Trig from '#/util/Trig.js';
+// Max-hit cheat: force RNG rolls where appropriate (restored after NPC_DAMAGE-only approach lost attacker context).
+// Max-hit cheat no longer hooks RNG here; handled at NPC_QUEUE (queueId 2) stage to avoid impacting accuracy rolls.
 
 const NumberOps: CommandHandlers = {
     [ScriptOpcode.ADD]: state => {
@@ -25,17 +27,19 @@ const NumberOps: CommandHandlers = {
     [ScriptOpcode.DIVIDE]: state => {
         const b = state.popInt();
         const a = state.popInt();
-        state.pushInt(a / b);
+        state.pushInt(b === 0 ? 0 : Math.trunc(a / b));
     },
 
     [ScriptOpcode.RANDOM]: state => {
-        const a = state.popInt();
-        state.pushInt(Math.random() * a);
+        const raw = state.popInt();
+        const max = raw <= 0 ? 0 : raw;
+        state.pushInt(max === 0 ? 0 : Math.floor(Math.random() * max));
     },
 
     [ScriptOpcode.RANDOMINC]: state => {
-        const a = state.popInt();
-        state.pushInt(Math.random() * (a + 1));
+        const raw = state.popInt();
+        const max = raw <= 0 ? 0 : raw;
+        state.pushInt(max === 0 ? 0 : Math.floor(Math.random() * (max + 1)));
     },
 
     [ScriptOpcode.INTERPOLATE]: state => {
@@ -67,7 +71,7 @@ const NumberOps: CommandHandlers = {
 
     [ScriptOpcode.MODULO]: state => {
         const [n1, n2] = state.popInts(2);
-        state.pushInt(n1 % n2);
+        state.pushInt(n2 === 0 ? 0 : n1 % n2);
     },
 
     [ScriptOpcode.POW]: state => {
@@ -122,7 +126,7 @@ const NumberOps: CommandHandlers = {
 
     [ScriptOpcode.SCALE]: state => {
         const [a, b, c] = state.popInts(3);
-        state.pushInt((a * c) / b);
+        state.pushInt(b === 0 ? 0 : Math.trunc((a * c) / b));
     },
 
     [ScriptOpcode.BITCOUNT]: state => {
