@@ -4,7 +4,7 @@ import FileStream from '#/io/FileStream.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
-import { printFatalError, printWarning } from '#/util/Logger.js';
+import { onFatalError, printFatalError, printWarning } from '#/util/Logger.js';
 import { PackFile } from '#/util/PackFileBase.js';
 import { listFilesExt } from '#/util/Parse.js';
 
@@ -831,11 +831,14 @@ class IfType {
 }
 
 const cache = new FileStream('data/unpack');
+onFatalError(() => {
+    cache.dat.close();
+    cache.idx.forEach(file => file.close());
+});
 const interfaceData = cache.read(0, 3);
 
 if (!interfaceData) {
     printFatalError('No interface data in cache');
-    process.exit(1);
 }
 
 IfType.unpack(new Jagfile(new Packet(interfaceData)));

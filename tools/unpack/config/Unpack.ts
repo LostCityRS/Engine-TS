@@ -3,7 +3,7 @@ import fs from 'fs';
 import FileStream from '#/io/FileStream.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
-import { printFatalError, printInfo } from '#/util/Logger.js';
+import { onFatalError, printFatalError, printInfo } from '#/util/Logger.js';
 import { LocPack, NpcPack, ObjPack, SeqPack } from '#/util/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
@@ -117,6 +117,10 @@ function unpackConfigs(revision: string) {
     }
 
     const cache = new FileStream('data/unpack');
+    onFatalError(() => {
+        cache.dat.close();
+        cache.idx.forEach(file => file.close());
+    });
     const temp = cache.read(0, 2);
     if (!temp) {
         return;
@@ -127,6 +131,10 @@ function unpackConfigs(revision: string) {
     let config2;
     if (fs.existsSync('data/pack/main_file_cache.dat')) {
         const cache2 = new FileStream('data/pack');
+        onFatalError(() => {
+            cache2.dat.close();
+            cache2.idx.forEach(file => file.close());
+        });
         const temp = cache2.read(0, 2);
         if (temp) {
             config2 = new Jagfile(new Packet(temp));
