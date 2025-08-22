@@ -13,7 +13,7 @@ export default class TcpServer {
 
     constructor() {
         this.tcp = net.createServer();
-        onFatalError(() => this.tcp.close());
+        onFatalError(() => { this.tcp.close(); });
     }
 
     start() {
