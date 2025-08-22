@@ -6,7 +6,7 @@ import { packClient, packServer } from '#/cache/PackAll.js';
 import World from '#/engine/World.js';
 import TcpServer from '#/server/tcp/TcpServer.js';
 import Environment from '#/util/Environment.js';
-import { printError, printInfo } from '#/util/Logger.js';
+import { onFatalError, printError, printInfo } from '#/util/Logger.js';
 import { updateCompiler } from '#/util/RuneScriptCompiler.js';
 import { createWorker } from '#/util/WorkerFactory.js';
 import { startManagementWeb, startWeb } from '#/web.js';
@@ -62,3 +62,4 @@ function safeExit() {
 
 process.on('SIGINT', safeExit);
 process.on('SIGTERM', safeExit);
+onFatalError(safeExit);

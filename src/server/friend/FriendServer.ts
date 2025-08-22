@@ -6,7 +6,7 @@ import InternalClient from '#/server/InternalClient.js';
 import { ChatModePrivate } from '#/util/ChatModes.js';
 import Environment from '#/util/Environment.js';
 import { fromBase37, toBase37 } from '#/util/JString.js';
-import { printInfo } from '#/util/Logger.js';
+import { onFatalError, printInfo } from '#/util/Logger.js';
 
 /**
  * client -> server opcodes for friends server
@@ -76,6 +76,7 @@ export class FriendServer {
         this.server = new WebSocketServer({ port: Environment.FRIEND_PORT, host: '0.0.0.0' }, () => {
             printInfo(`Friend server listening on port ${Environment.FRIEND_PORT}`);
         });
+        onFatalError(() => this.server.close());
 
         this.server.on('connection', (socket: WebSocket) => {
             /**

@@ -6,12 +6,14 @@ import NullClientSocket from '#/server/NullClientSocket.js';
 import TcpClientSocket from '#/server/tcp/TcpClientSocket.js';
 import Environment from '#/util/Environment.js';
 import OnDemand from '#/engine/OnDemand.js';
+import { onFatalError } from '#/util/Logger.js';
 
 export default class TcpServer {
     tcp: net.Server;
 
     constructor() {
         this.tcp = net.createServer();
+        onFatalError(() => this.tcp.close());
     }
 
     start() {

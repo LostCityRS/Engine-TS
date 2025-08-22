@@ -12,7 +12,7 @@ import { PlayerStatEnabled } from '#/engine/entity/PlayerStat.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { toSafeName } from '#/util/JString.js';
-import { printInfo } from '#/util/Logger.js';
+import { onFatalError, printInfo } from '#/util/Logger.js';
 import { getUnreadMessageCount } from '#/util/Messages.js';
 import { startManagementWeb } from '#/web.js';
 
@@ -142,6 +142,7 @@ export default class LoginServer {
         this.server = new WebSocketServer({ port: Environment.LOGIN_PORT, host: '0.0.0.0' }, () => {
             printInfo(`Login server listening on port ${Environment.LOGIN_PORT}`);
         });
+        onFatalError(() => this.server.close());
 
         this.server.on('connection', (s: WebSocket) => {
             s.on('message', async (data: Buffer) => {
