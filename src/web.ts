@@ -41,11 +41,15 @@ export type WebSocketRoutes = {
     '/': Response
 };
 
+export function getRequestUrl(req: Request): URL {
+    return new URL(req.url ?? `http://${req.headers.get('host')}`);
+}
+
 export async function startWeb() {
     Bun.serve<WebSocketData, WebSocketRoutes>({
         port: Environment.WEB_PORT,
         async fetch(req, server) {
-            const url = new URL(req.url ?? `', 'http://${req.headers.get('host')}`);
+            const url = getRequestUrl(req);
 
             if (url.pathname === '/') {
                 const upgraded = server.upgrade(req, {
