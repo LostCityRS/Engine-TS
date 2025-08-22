@@ -31,6 +31,7 @@ import { Inventory } from '#/engine/Inventory.js';
 import ScriptProvider from '#/engine/script/ScriptProvider.js';
 import ScriptRunner from '#/engine/script/ScriptRunner.js';
 import World from '#/engine/World.js';
+import { setBlinkWalk } from '#/engine/script/handlers/PlayerOps.js';
 import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
 import ClientCheat from '#/network/game/client/model/ClientCheat.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
@@ -213,6 +214,24 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     ? (player.moveStrategy === MoveStrategy.FLY ? MoveStrategy.SMART : MoveStrategy.FLY)
                     : (player.moveStrategy === MoveStrategy.NAIVE ? MoveStrategy.SMART : MoveStrategy.NAIVE);
                 player.messageGame(`Changed move strategy: ${cmd}`);
+                return true;
+            }
+
+            if (cmd === 'blinkwalk') {
+                const on = (args[0] ?? '').toLowerCase();
+                const enable = on === 'on' ? true : on === 'off' ? false : undefined;
+
+                if (enable === undefined) {
+                    const flags = getCheat(player) as any;
+                    flags.blinkWalkEnabled = !flags.blinkWalkEnabled;
+                    setBlinkWalk(player, flags.blinkWalkEnabled);
+                    player.messageGame(`Blink-walk: ${flags.blinkWalkEnabled ? 'ON' : 'OFF'}`);
+                } else {
+                    setBlinkWalk(player, enable);
+                    const flags = getCheat(player) as any;
+                    flags.blinkWalkEnabled = enable;
+                    player.messageGame(`Blink-walk: ${enable ? 'ON' : 'OFF'}`);
+                }
                 return true;
             }
 
