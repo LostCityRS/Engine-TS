@@ -1,5 +1,6 @@
 import { CoordGrid } from '#/engine/CoordGrid.js';
 import { NetworkPlayer } from '#/engine/entity/NetworkPlayer.js';
+import { hasBlinkWalk } from '#/engine/script/handlers/PlayerOps.js';
 import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
 import MoveClick from '#/network/game/client/model/MoveClick.js';
 import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
@@ -20,6 +21,23 @@ export default class MoveClickHandler extends MessageHandler<MoveClick> {
             return false;
         }
 
+        const dest = message.path[message.path.length - 1];
+
+        if (hasBlinkWalk(player)) {
+            player.unsetMapFlag();
+            player.userPath = [];
+            player.teleJump(dest.x, dest.z, player.level);
+            if (!message.opClick) {
+                player.clearPendingAction();
+                if (player.runenergy < 100 && message.ctrlHeld === 1) {
+                    player.tempRun = 0;
+                } else {
+                    player.tempRun = message.ctrlHeld;
+                }
+            }
+            return true;
+        }
+
         if (Environment.NODE_CLIENT_ROUTEFINDER) {
             if (message.path.length === 1 && start.x === player.x && start.z === player.z) {
                 // this check ignores setting the path when the player is clicking on their current tile
@@ -32,7 +50,6 @@ export default class MoveClickHandler extends MessageHandler<MoveClick> {
                 }
             }
         } else {
-            const dest = message.path[message.path.length - 1];
             player.userPath = [CoordGrid.packCoord(player.level, dest.x, dest.z)];
         }
         if (Environment.NODE_WALKTRIGGER_SETTING === WalkTriggerSetting.PLAYERPACKET) {
