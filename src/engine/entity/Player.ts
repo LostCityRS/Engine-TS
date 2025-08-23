@@ -716,6 +716,19 @@ export default class Player extends PathingEntity {
         }
     }
 
+    clearComListeners(root: number) {
+        if (root == -1) {
+            return;
+        }
+
+        for (let i = 0; i < this.invListeners.length; i++) {
+            const { com } = this.invListeners[i];
+            if (Component.get(com).rootLayer === root) {
+                this.invStopListenOnCom(com);
+            }
+        }
+    }
+
     closeModal() {
         this.weakQueue.clear();
 
@@ -741,6 +754,7 @@ export default class Player extends PathingEntity {
                 this.executeScript(ScriptRunner.init(closeTrigger, this), false);
             }
 
+            this.clearComListeners(this.modalMain);
             this.modalMain = -1;
         }
 
@@ -751,6 +765,7 @@ export default class Player extends PathingEntity {
                 this.executeScript(ScriptRunner.init(closeTrigger, this), false);
             }
 
+            this.clearComListeners(this.modalChat);
             this.modalChat = -1;
         }
 
@@ -761,6 +776,7 @@ export default class Player extends PathingEntity {
                 this.executeScript(ScriptRunner.init(closeTrigger, this), false);
             }
 
+            this.clearComListeners(this.modalSide);
             this.modalSide = -1;
         }
 
@@ -1951,6 +1967,11 @@ export default class Player extends PathingEntity {
         if (this.overlay === com) {
             return;
         }
+
+        if (com === -1) {
+            this.clearComListeners(this.overlay);
+        }
+
         this.overlay = com;
     }
 
