@@ -40,6 +40,7 @@ import IfSetAnim from '#/network/game/server/model/IfSetAnim.js';
 import IfSetColour from '#/network/game/server/model/IfSetColour.js';
 import IfSetHide from '#/network/game/server/model/IfSetHide.js';
 import IfSetModel from '#/network/game/server/model/IfSetModel.js';
+import IfSetAngle from '#/network/game/server/model/IfSetAngle.js';
 import IfSetNpcHead from '#/network/game/server/model/IfSetNpcHead.js';
 import IfSetObject from '#/network/game/server/model/IfSetObject.js';
 import IfSetPlayerHead from '#/network/game/server/model/IfSetPlayerHead.js';
@@ -629,6 +630,16 @@ const PlayerOps: CommandHandlers = {
         check(model, NumberNotNull);
 
         state.activePlayer.write(new IfSetModel(com, model));
+    }),
+
+    [ScriptOpcode.IF_SETANGLE]: checkedHandler(ActivePlayer, state => {
+        const [com, xAngleSpeed, yAngleSpeed] = state.popInts(3);
+
+        check(com, NumberNotNull);
+        check(xAngleSpeed, NumberNotNull);
+        check(yAngleSpeed, NumberNotNull);
+        
+        state.activePlayer.write(new IfSetAngle(xAngleSpeed, com, yAngleSpeed));
     }),
 
     [ScriptOpcode.IF_SETRECOL]: checkedHandler(ActivePlayer, () => {

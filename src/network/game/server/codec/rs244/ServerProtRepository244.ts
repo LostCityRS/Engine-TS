@@ -10,6 +10,7 @@ import IfOpenMainEncoder from '#/network/game/server/codec/rs244/IfOpenMainEncod
 import IfOpenMainSideEncoder from '#/network/game/server/codec/rs244/IfOpenMainSideEncoder.js';
 import IfOpenOverlayEncoder from '#/network/game/server/codec/rs244/IfOpenOverlayEncoder.js';
 import IfOpenSideEncoder from '#/network/game/server/codec/rs244/IfOpenSideEncoder.js';
+import IfSetAngleEncoder from '#/network/game/server/codec/rs244/IfSetAngleEncoder.js';
 import IfSetAnimEncoder from '#/network/game/server/codec/rs244/IfSetAnimEncoder.js';
 import IfSetColourEncoder from '#/network/game/server/codec/rs244/IfSetColourEncoder.js';
 import IfSetHideEncoder from '#/network/game/server/codec/rs244/IfSetHideEncoder.js';
@@ -77,6 +78,7 @@ import IfOpenMain from '#/network/game/server/model/IfOpenMain.js';
 import IfOpenMainSide from '#/network/game/server/model/IfOpenMainSide.js';
 import IfOpenOverlay from '#/network/game/server/model/IfOpenOverlay.js';
 import IfOpenSide from '#/network/game/server/model/IfOpenSide.js';
+import IfSetAngle from '#/network/game/server/model/IfSetAngle.js';
 import IfSetAnim from '#/network/game/server/model/IfSetAnim.js';
 import IfSetColour from '#/network/game/server/model/IfSetColour.js';
 import IfSetHide from '#/network/game/server/model/IfSetHide.js';
@@ -149,6 +151,7 @@ export default class ServerProtRepository244 extends ServerProtRepository {
         this.bind(IfOpenOverlay, new IfOpenOverlayEncoder());
         this.bind(IfOpenSide, new IfOpenSideEncoder());
         this.bind(IfSetTab, new IfSetTabEncoder());
+        this.bind(IfSetAngle, new IfSetAngleEncoder());
         this.bind(IfSetAnim, new IfSetAnimEncoder());
         this.bind(IfSetColour, new IfSetColourEncoder());
         this.bind(IfSetHide, new IfSetHideEncoder());
