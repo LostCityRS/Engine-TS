@@ -44,6 +44,7 @@ import IfSetNpcHead from '#/network/game/server/model/IfSetNpcHead.js';
 import IfSetObject from '#/network/game/server/model/IfSetObject.js';
 import IfSetPlayerHead from '#/network/game/server/model/IfSetPlayerHead.js';
 import IfSetPosition from '#/network/game/server/model/IfSetPosition.js';
+import IfSetScrollPos from '#/network/game/server/model/IfSetScrollPos.js';
 import IfSetTabActive from '#/network/game/server/model/IfSetTabActive.js';
 import IfSetText from '#/network/game/server/model/IfSetText.js';
 import MinimapToggle from '#/network/game/server/model/MinimapToggle.js';
@@ -1167,7 +1168,15 @@ const PlayerOps: CommandHandlers = {
 
     [ScriptOpcode.PLAYERMEMBER]: checkedHandler(ActivePlayer, state => {
         state.pushInt(state.activePlayer.members ? 1 : 0);
-    })
+    }),
+
+    [ScriptOpcode.IF_SETSCROLLPOS]: checkedHandler(ActivePlayer, state => {
+        const [com, y] = state.popInts(2);
+
+        check(com, NumberNotNull);
+
+        state.activePlayer.write(new IfSetScrollPos(com, y));
+    }),
 };
 
 /**
