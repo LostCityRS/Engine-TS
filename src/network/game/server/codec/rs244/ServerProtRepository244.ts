@@ -137,6 +137,8 @@ import UpdateZonePartialEnclosed from '#/network/game/server/model/UpdateZonePar
 import UpdateZonePartialFollows from '#/network/game/server/model/UpdateZonePartialFollows.js';
 import VarpLarge from '#/network/game/server/model/VarpLarge.js';
 import VarpSmall from '#/network/game/server/model/VarpSmall.js';
+import SetPlayerOp from '../../model/SetPlayerOp.js';
+import SetPlayerOpEncoder from './SetPlayerOpEncoder.js';
 
 export default class ServerProtRepository244 extends ServerProtRepository {
     constructor() {
@@ -192,6 +194,7 @@ export default class ServerProtRepository244 extends ServerProtRepository {
         this.bind(ResetAnims, new ResetAnimsEncoder());
         this.bind(ResetClientVarCache, new ResetClientVarCacheEncoder());
         this.bind(SetMultiway, new SetMultiwayEncoder());
+        this.bind(SetPlayerOp, new SetPlayerOpEncoder());
         this.bind(SynthSound, new SynthSoundEncoder());
         this.bind(TutFlash, new TutFlashEncoder());
         this.bind(TutOpen, new TutOpenEncoder());
