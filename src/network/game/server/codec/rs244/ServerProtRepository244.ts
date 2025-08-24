@@ -6,6 +6,7 @@ import ChatFilterSettingsEncoder from '#/network/game/server/codec/rs244/ChatFil
 import HintArrowEncoder from '#/network/game/server/codec/rs244/HintArrowEncoder.js';
 import IfCloseEncoder from '#/network/game/server/codec/rs244/IfCloseEncoder.js';
 import IfOpenChatEncoder from '#/network/game/server/codec/rs244/IfOpenChatEncoder.js';
+import IfOpenFullEncoder from '#/network/game/server/codec/rs244/IfOpenFullEncoder.js';
 import IfOpenMainEncoder from '#/network/game/server/codec/rs244/IfOpenMainEncoder.js';
 import IfOpenMainSideEncoder from '#/network/game/server/codec/rs244/IfOpenMainSideEncoder.js';
 import IfOpenOverlayEncoder from '#/network/game/server/codec/rs244/IfOpenOverlayEncoder.js';
@@ -75,6 +76,7 @@ import ChatFilterSettings from '#/network/game/server/model/ChatFilterSettings.j
 import HintArrow from '#/network/game/server/model/HintArrow.js';
 import IfClose from '#/network/game/server/model/IfClose.js';
 import IfOpenChat from '#/network/game/server/model/IfOpenChat.js';
+import IfOpenFull from '#/network/game/server/model/IfOpenFull.js';
 import IfOpenMain from '#/network/game/server/model/IfOpenMain.js';
 import IfOpenMainSide from '#/network/game/server/model/IfOpenMainSide.js';
 import IfOpenOverlay from '#/network/game/server/model/IfOpenOverlay.js';
@@ -148,6 +150,7 @@ export default class ServerProtRepository244 extends ServerProtRepository {
         this.bind(HintArrow, new HintArrowEncoder());
         this.bind(IfClose, new IfCloseEncoder());
         this.bind(IfOpenChat, new IfOpenChatEncoder());
+        this.bind(IfOpenFull, new IfOpenFullEncoder());
         this.bind(IfOpenMain, new IfOpenMainEncoder());
         this.bind(IfOpenMainSide, new IfOpenMainSideEncoder());
         this.bind(IfOpenOverlay, new IfOpenOverlayEncoder());

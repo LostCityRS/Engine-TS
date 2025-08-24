@@ -6,10 +6,12 @@ export default class LastLoginInfo extends OutgoingMessage {
 
     constructor(
         readonly lastLoginIp: number,
-        readonly daysSinceLogin: number,
+        readonly currentDay: number,
+        readonly previousLoginDay: number,
+        readonly daysSincePasswordChange: number,
         readonly daysSinceRecoveryChange: number,
         readonly unreadMessageCount: number,
-        readonly warnMembersInNonMembers: boolean
+        readonly membersCreditDays: number
     ) {
         super();
     }
