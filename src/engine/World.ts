@@ -246,11 +246,17 @@ class World {
 
         if (clearInvs) {
             this.invs.clear();
-            for (let i = 0; i < InvType.count; i++) {
-                const inv = InvType.get(i);
+            for (let id = 0; id < InvType.count; id++) {
+                const inv = InvType.get(id);
 
-                if (inv && inv.scope === InvType.SCOPE_SHARED) {
-                    this.invs.add(Inventory.fromType(i));
+                if (inv.scope === InvType.SCOPE_SHARED) {
+                    this.invs.add(Inventory.fromType(id));
+                } else if (inv.scope === InvType.SCOPE_TEMP) {
+                    for (const player of this.players) {
+                        if (player.invs.has(id)) {
+                            player.invs.delete(id);
+                        }
+                    }
                 }
             }
         }

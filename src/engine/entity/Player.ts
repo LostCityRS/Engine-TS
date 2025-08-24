@@ -1423,17 +1423,13 @@ export default class Player extends PathingEntity {
 
         if (invType.scope === InvType.SCOPE_SHARED) {
             container = World.getInventory(inv);
-        } else if (invType.scope === InvType.SCOPE_PERM) {
+        } else {
             container = this.invs.get(inv);
 
             if (!container) {
                 container = Inventory.fromType(inv);
                 this.invs.set(inv, container);
             }
-        } else {
-            // always construct a new inv in case it changes
-            container = Inventory.fromType(inv);
-            this.invs.set(inv, container);
         }
 
         return container;
