@@ -118,6 +118,7 @@ export const enum ScriptOpcode {
     IF_OPENOVERLAY,
     IF_OPENMAIN_SIDE,
     IF_OPENSIDE,
+    IF_SETANGLE,
     IF_SETANIM, // official
     IF_SETCOLOUR, // official
     IF_SETHIDE, // official
@@ -571,6 +572,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['IF_OPENMAIN_SIDE', ScriptOpcode.IF_OPENMAIN_SIDE],
     ['IF_OPENOVERLAY', ScriptOpcode.IF_OPENOVERLAY],
     ['IF_OPENSIDE', ScriptOpcode.IF_OPENSIDE],
+    ['IF_SETANGLE', ScriptOpcode.IF_SETANGLE],
     ['IF_SETANIM', ScriptOpcode.IF_SETANIM],
     ['IF_SETCOLOUR', ScriptOpcode.IF_SETCOLOUR],
     ['IF_SETHIDE', ScriptOpcode.IF_SETHIDE],

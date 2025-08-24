@@ -17,6 +17,7 @@ export default class ServerProt244 extends ServerProtBase {
     static readonly IF_SETHIDE = new ServerProt244(82, 3); // NXT naming
     static readonly IF_SETOBJECT = new ServerProt244(21, 6); // NXT naming
     static readonly IF_SETMODEL = new ServerProt244(216, 4); // NXT naming
+    static readonly IF_SETANGLE = new ServerProt244(18, 6);    
     static readonly IF_SETRECOL = new ServerProt244(103, 6); // NXT naming
     static readonly IF_SETANIM = new ServerProt244(2, 4); // NXT naming
     static readonly IF_SETPLAYERHEAD = new ServerProt244(255, 2); // NXT naming
