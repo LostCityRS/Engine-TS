@@ -54,6 +54,7 @@ import SynthSound from '#/network/game/server/model/SynthSound.js';
 import TutFlash from '#/network/game/server/model/TutFlash.js';
 import ColorConversion from '#/util/ColorConversion.js';
 import Environment from '#/util/Environment.js';
+import IfOpenFull from '#/network/game/server/model/IfOpenFull.js';
 
 const PlayerOps: CommandHandlers = {
     [ScriptOpcode.FINDUID]: state => {
@@ -691,6 +692,11 @@ const PlayerOps: CommandHandlers = {
 
     [ScriptOpcode.IF_SETPLAYERHEAD]: checkedHandler(ActivePlayer, state => {
         state.activePlayer.write(new IfSetPlayerHead(check(state.popInt(), NumberNotNull)));
+    }),
+
+    [ScriptOpcode.IF_OPENFULL]: checkedHandler(ActivePlayer, state => {
+        const [overlayCom, mainCom] = state.popInts(2);
+        state.activePlayer.write(new IfOpenFull(overlayCom, mainCom));
     }),
 
     [ScriptOpcode.IF_SETTEXT]: checkedHandler(ActivePlayer, state => {

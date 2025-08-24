@@ -113,6 +113,7 @@ export const enum ScriptOpcode {
     TUT_CLOSE,
     IF_MULTIZONE, // moved to engine, remove this
     IF_OPENCHAT,
+    IF_OPENFULL,
     TUT_OPEN,
     IF_OPENMAIN,
     IF_OPENOVERLAY,
@@ -567,6 +568,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['TUT_CLOSE', ScriptOpcode.TUT_CLOSE],
     ['IF_MULTIZONE', ScriptOpcode.IF_MULTIZONE],
     ['IF_OPENCHAT', ScriptOpcode.IF_OPENCHAT],
+    ['IF_OPENFULL', ScriptOpcode.IF_OPENFULL],
     ['TUT_OPEN', ScriptOpcode.TUT_OPEN],
     ['IF_OPENMAIN', ScriptOpcode.IF_OPENMAIN],
     ['IF_OPENMAIN_SIDE', ScriptOpcode.IF_OPENMAIN_SIDE],

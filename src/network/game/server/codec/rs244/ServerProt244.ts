@@ -10,7 +10,7 @@ export default class ServerProt244 extends ServerProtBase {
     static readonly IF_OPENMAIN = new ServerProt244(159, 2);
     static readonly IF_OPENSIDE = new ServerProt244(246, 2);
     static readonly IF_OPENOVERLAY = new ServerProt244(50, 2);
-    // todo: open fullscreen interface
+    static readonly IF_OPENFULL = new ServerProt244(253, 4);
 
     // updating interfaces
     static readonly IF_SETCOLOUR = new ServerProt244(218, 4); // NXT naming
@@ -61,7 +61,7 @@ export default class ServerProt244 extends ServerProtBase {
     static readonly UPDATE_RUNENERGY = new ServerProt244(125, 1); // NXT naming
     static readonly RESET_ANIMS = new ServerProt244(13, 0); // NXT naming
     static readonly UPDATE_PID = new ServerProt244(126, 3);
-    static readonly LAST_LOGIN_INFO = new ServerProt244(76, 10); // NXT naming
+    static readonly LAST_LOGIN_INFO = new ServerProt244(76, 23); // NXT naming
     static readonly LOGOUT = new ServerProt244(5, 0); // NXT naming
     static readonly P_COUNTDIALOG = new ServerProt244(58, 0); // named after runescript command + client resume_p_countdialog packet
     static readonly SET_MULTIWAY = new ServerProt244(233, 1);

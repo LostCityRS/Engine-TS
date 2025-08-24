@@ -2176,11 +2176,22 @@ export default class Player extends PathingEntity {
         const nextDate: bigint = BigInt(Date.now());
 
         const lastIp = 2130706433; // 127.0.0.1
-        const daysSinceLogin: number = (Number(nextDate - lastDate) / (1000 * 60 * 60 * 24)) | 0;
+        const daysSinceLogin: number = (Number(lastDate) / (1000 * 60 * 60 * 24)) | 0;
+        const daysSincePasswordChanged = 201; // hide :)
         const daysSinceRecoveriesChanged = 201; // hide :)
-        const warnMembersInNonMembers: boolean = !Environment.NODE_MEMBERS && this.members;
+        const currentDay = Math.floor(Number(nextDate) / (1000 * 60 * 60 * 24));
+        const unreadMessageCount = 0;
+        const membersCreditDays = 365;
 
-        this.write(new LastLoginInfo(lastIp, daysSinceLogin, daysSinceRecoveriesChanged, this.messageCount, warnMembersInNonMembers));
+        this.write(new LastLoginInfo(
+            lastIp,
+            currentDay,
+            daysSinceLogin,
+            daysSincePasswordChanged,
+            daysSinceRecoveriesChanged,
+            unreadMessageCount,
+            membersCreditDays
+        ));
         this.lastDate = nextDate;
     }
 

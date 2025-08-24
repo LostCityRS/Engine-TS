@@ -7,10 +7,16 @@ export default class LastLoginInfoEncoder extends MessageEncoder<LastLoginInfo> 
     prot = ServerProt244.LAST_LOGIN_INFO;
 
     encode(buf: Packet, message: LastLoginInfo): void {
-        buf.p4(message.lastLoginIp);
-        buf.p2(message.daysSinceLogin);
-        buf.p1(message.daysSinceRecoveryChange);
-        buf.p2(message.unreadMessageCount);
-        buf.pbool(message.warnMembersInNonMembers);
+        buf.p2_alt1(message.daysSincePasswordChange);
+        buf.p2_alt3(0); //unused
+        buf.p2(0); // unused
+        buf.p2(0); // unused
+        buf.p2_alt1(message.currentDay);
+        buf.p2_alt2(message.unreadMessageCount);
+        buf.p2_alt2(message.previousLoginDay);
+        buf.p2(message.membersCreditDays);
+        buf.p4_alt1(message.lastLoginIp);
+        buf.p2_alt3(message.daysSinceRecoveryChange);
+        buf.p1_alt1(0); //unused
     }
 }
