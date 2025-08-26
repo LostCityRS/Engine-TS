@@ -5,10 +5,9 @@ export default class IfSetAngle extends OutgoingMessage {
     priority = ServerProtPriority.BUFFERED;
 
     constructor(
-        readonly xan: number,
+        readonly xAngleSpeed: number,
         readonly component: number,
-        readonly zoom: number,
-        readonly yan: number
+        readonly yAngleSpeed: number
     ) {
         super();
     }
