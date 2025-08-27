@@ -13,11 +13,12 @@ export default class ServerProt244 extends ServerProtBase {
     static readonly IF_OPENFULL = new ServerProt244(253, 4);
 
     // updating interfaces
+    static readonly IF_SETANGLE = new ServerProt244(186, 8); // todo: Real name? 
     static readonly IF_SETCOLOUR = new ServerProt244(218, 4); // NXT naming
     static readonly IF_SETHIDE = new ServerProt244(82, 3); // NXT naming
     static readonly IF_SETOBJECT = new ServerProt244(21, 6); // NXT naming
     static readonly IF_SETMODEL = new ServerProt244(216, 4); // NXT naming
-    static readonly IF_SETANGLE = new ServerProt244(18, 6);    
+    static readonly IF_SETROTATION = new ServerProt244(18, 6); // todo: Real name?    
     static readonly IF_SETRECOL = new ServerProt244(103, 6); // NXT naming
     static readonly IF_SETANIM = new ServerProt244(2, 4); // NXT naming
     static readonly IF_SETPLAYERHEAD = new ServerProt244(255, 2); // NXT naming
@@ -46,6 +47,7 @@ export default class ServerProt244 extends ServerProtBase {
     static readonly PLAYER_INFO = new ServerProt244(90, -2); // NXT naming
 
     // social
+    static readonly FRIENDLIST_LOADED = new ServerProt244(251, 1); // NXT naming
     static readonly MESSAGE_GAME = new ServerProt244(63, -1); // NXT naming
     static readonly UPDATE_IGNORELIST = new ServerProt244(226, -2); // NXT naming
     static readonly CHAT_FILTER_SETTINGS = new ServerProt244(201, 3); // NXT naming
@@ -81,7 +83,7 @@ export default class ServerProt244 extends ServerProtBase {
     // audio
     static readonly SYNTH_SOUND = new ServerProt244(26, 5); // NXT naming
     static readonly MIDI_SONG = new ServerProt244(220, 2); // NXT naming
-    static readonly MIDI_JINGLE = new ServerProt244(249, 4); // NXT naming
+    static readonly MIDI_JINGLE = new ServerProt244(249, 5); // NXT naming
 
     // zones
     static readonly UPDATE_ZONE_PARTIAL_FOLLOWS = new ServerProt244(75, 2); // NXT naming

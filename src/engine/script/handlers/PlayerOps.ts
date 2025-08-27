@@ -47,6 +47,7 @@ import IfSetNpcHead from '#/network/game/server/model/IfSetNpcHead.js';
 import IfSetObject from '#/network/game/server/model/IfSetObject.js';
 import IfSetPlayerHead from '#/network/game/server/model/IfSetPlayerHead.js';
 import IfSetPosition from '#/network/game/server/model/IfSetPosition.js';
+import IfSetRotation from '#/network/game/server/model/IfSetRotation.js';
 import IfSetScrollPos from '#/network/game/server/model/IfSetScrollPos.js';
 import IfSetTabActive from '#/network/game/server/model/IfSetTabActive.js';
 import IfSetText from '#/network/game/server/model/IfSetText.js';
@@ -605,6 +606,17 @@ const PlayerOps: CommandHandlers = {
         state.activePlayer.openMainModalSide(main, side);
     }),
 
+    [ScriptOpcode.IF_SETANGLE]: checkedHandler(ActivePlayer, state => {
+        const [com, xan, yan, zoom] = state.popInts(4);
+
+        check(com, NumberNotNull);
+        check(xan, NumberNotNull);
+        check(yan, NumberNotNull);
+        check(zoom, NumberNotNull);
+        
+        state.activePlayer.write(new IfSetAngle(xan, com, zoom, yan));
+    }),
+
     [ScriptOpcode.IF_SETHIDE]: checkedHandler(ActivePlayer, state => {
         const [com, hide] = state.popInts(2);
 
@@ -637,14 +649,14 @@ const PlayerOps: CommandHandlers = {
         state.activePlayer.write(new IfSetModel(com, model));
     }),
 
-    [ScriptOpcode.IF_SETANGLE]: checkedHandler(ActivePlayer, state => {
+    [ScriptOpcode.IF_SETROTATION]: checkedHandler(ActivePlayer, state => {
         const [com, xAngleSpeed, yAngleSpeed] = state.popInts(3);
 
         check(com, NumberNotNull);
         check(xAngleSpeed, NumberNotNull);
         check(yAngleSpeed, NumberNotNull);
-        
-        state.activePlayer.write(new IfSetAngle(xAngleSpeed, com, yAngleSpeed));
+
+        state.activePlayer.write(new IfSetRotation(xAngleSpeed, com, yAngleSpeed));
     }),
 
     [ScriptOpcode.IF_SETRECOL]: checkedHandler(ActivePlayer, () => {

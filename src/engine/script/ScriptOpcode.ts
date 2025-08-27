@@ -98,6 +98,7 @@ export const enum ScriptOpcode {
     DAMAGE,
     DISPLAYNAME, // official, joke reply
     FACESQUARE, // official
+    FRIENDLIST_LOADED, //official
     FINDUID, // official
     GENDER,
     GETQUEUE, // official
@@ -130,6 +131,7 @@ export const enum ScriptOpcode {
     IF_SETPLAYERHEAD, // official
     IF_SETPOSITION, // official
     IF_SETRESUMEBUTTONS,
+    IF_SETROTATION,
     IF_SETTAB,
     IF_SETTABACTIVE,
     TUT_FLASH,
@@ -555,6 +557,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['DAMAGE', ScriptOpcode.DAMAGE],
     ['DISPLAYNAME', ScriptOpcode.DISPLAYNAME],
     ['FACESQUARE', ScriptOpcode.FACESQUARE],
+    ['FRIENDLIST_LOADED', ScriptOpcode.FRIENDLIST_LOADED],
     ['FINDUID', ScriptOpcode.FINDUID],
     ['GENDER', ScriptOpcode.GENDER],
     ['GETQUEUE', ScriptOpcode.GETQUEUE],
@@ -582,6 +585,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['IF_SETHIDE', ScriptOpcode.IF_SETHIDE],
     ['IF_SETMODEL', ScriptOpcode.IF_SETMODEL],
     ['IF_SETRECOL', ScriptOpcode.IF_SETRECOL],
+    ['IF_SETROTATION', ScriptOpcode.IF_SETROTATION],
     ['IF_SETNPCHEAD', ScriptOpcode.IF_SETNPCHEAD],
     ['IF_SETOBJECT', ScriptOpcode.IF_SETOBJECT],
     ['IF_SETPLAYERHEAD', ScriptOpcode.IF_SETPLAYERHEAD],

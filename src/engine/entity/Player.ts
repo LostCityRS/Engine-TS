@@ -2175,7 +2175,7 @@ export default class Player extends PathingEntity {
         const daysSinceLogin: number = (Number(lastDate) / (1000 * 60 * 60 * 24)) | 0;
         const daysSincePasswordChanged = 201; // hide :)
         const daysSinceRecoveriesChanged = 201; // hide :)
-        const currentDay = Math.floor(Number(nextDate) / (1000 * 60 * 60 * 24));
+        const currentDay: number = Number(nextDate) / (1000 * 60 * 60 * 24) | 0;
         const unreadMessageCount = 0;
         const membersCreditDays = 365;
 

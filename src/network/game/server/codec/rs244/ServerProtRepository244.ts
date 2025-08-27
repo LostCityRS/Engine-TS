@@ -4,6 +4,7 @@ import CamResetEncoder from '#/network/game/server/codec/rs244/CamResetEncoder.j
 import CamShakeEncoder from '#/network/game/server/codec/rs244/CamShakeEncoder.js';
 import ChatFilterSettingsEncoder from '#/network/game/server/codec/rs244/ChatFilterSettingsEncoder.js';
 import HintArrowEncoder from '#/network/game/server/codec/rs244/HintArrowEncoder.js';
+import FriendlistLoadedEncoder from '#/network/game/server/codec/rs244/FriendlistLoadedEncoder.js';
 import IfCloseEncoder from '#/network/game/server/codec/rs244/IfCloseEncoder.js';
 import IfOpenChatEncoder from '#/network/game/server/codec/rs244/IfOpenChatEncoder.js';
 import IfOpenFullEncoder from '#/network/game/server/codec/rs244/IfOpenFullEncoder.js';
@@ -21,6 +22,7 @@ import IfSetObjectEncoder from '#/network/game/server/codec/rs244/IfSetObjectEnc
 import IfSetPlayerHeadEncoder from '#/network/game/server/codec/rs244/IfSetPlayerHeadEncoder.js';
 import IfSetPositionEncoder from '#/network/game/server/codec/rs244/IfSetPositionEncoder.js';
 import IfSetScrollPosEncoder from '#/network/game/server/codec/rs244/IfSetScrollPosEncoder.js';
+import IfSetRotationEncoder from '#/network/game/server/codec/rs244/IfSetRotationEncoder.js';
 import IfSetTabActiveEncoder from '#/network/game/server/codec/rs244/IfSetTabActiveEncoder.js';
 import IfSetTabEncoder from '#/network/game/server/codec/rs244/IfSetTabEncoder.js';
 import IfSetTextEncoder from '#/network/game/server/codec/rs244/IfSetTextEncoder.js';
@@ -74,6 +76,7 @@ import CamReset from '#/network/game/server/model/CamReset.js';
 import CamShake from '#/network/game/server/model/CamShake.js';
 import ChatFilterSettings from '#/network/game/server/model/ChatFilterSettings.js';
 import HintArrow from '#/network/game/server/model/HintArrow.js';
+import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 import IfClose from '#/network/game/server/model/IfClose.js';
 import IfOpenChat from '#/network/game/server/model/IfOpenChat.js';
 import IfOpenFull from '#/network/game/server/model/IfOpenFull.js';
@@ -90,6 +93,7 @@ import IfSetNpcHead from '#/network/game/server/model/IfSetNpcHead.js';
 import IfSetObject from '#/network/game/server/model/IfSetObject.js';
 import IfSetPlayerHead from '#/network/game/server/model/IfSetPlayerHead.js';
 import IfSetPosition from '#/network/game/server/model/IfSetPosition.js';
+import IfSetRotation from '#/network/game/server/model/IfSetRotation.js';
 import IfSetScrollPos from '#/network/game/server/model/IfSetScrollPos.js';
 import IfSetTab from '#/network/game/server/model/IfSetTab.js';
 import IfSetTabActive from '#/network/game/server/model/IfSetTabActive.js';
@@ -150,6 +154,7 @@ export default class ServerProtRepository244 extends ServerProtRepository {
         this.bind(CamShake, new CamShakeEncoder());
         this.bind(ChatFilterSettings, new ChatFilterSettingsEncoder());
         this.bind(HintArrow, new HintArrowEncoder());
+        this.bind(FriendlistLoaded, new FriendlistLoadedEncoder());
         this.bind(IfClose, new IfCloseEncoder());
         this.bind(IfOpenChat, new IfOpenChatEncoder());
         this.bind(IfOpenFull, new IfOpenFullEncoder());
@@ -167,6 +172,7 @@ export default class ServerProtRepository244 extends ServerProtRepository {
         this.bind(IfSetObject, new IfSetObjectEncoder());
         this.bind(IfSetPlayerHead, new IfSetPlayerHeadEncoder());
         this.bind(IfSetPosition, new IfSetPositionEncoder());
+        this.bind(IfSetRotation, new IfSetRotationEncoder());
         this.bind(IfSetScrollPos, new IfSetScrollPosEncoder());
         this.bind(IfSetText, new IfSetTextEncoder());
         this.bind(IfSetTabActive, new IfSetTabActiveEncoder());

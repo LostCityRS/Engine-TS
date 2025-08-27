@@ -7,8 +7,9 @@ export default class IfSetAngleEncoder extends MessageEncoder<IfSetAngle> {
     prot = ServerProt244.IF_SETANGLE;
 
     encode(buf: Packet, message: IfSetAngle): void {
-        buf.p2(message.xAngleSpeed);
-        buf.p2_alt2(message.component);
-        buf.p2_alt1(message.yAngleSpeed);
+        buf.p2_alt2(message.xan);
+        buf.p2_alt3(message.component);
+        buf.p2_alt2(message.zoom);
+        buf.p2_alt1(message.yan);
     }
 }
