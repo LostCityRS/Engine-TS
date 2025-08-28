@@ -360,7 +360,7 @@ export function generateServerSymbols() {
 
             if (types.length > 1) {
                 for (let tuple = 0; tuple < types.length; tuple++) {
-                    const tupleIndex = ((table.id & 0xffff) << 12) | ((column & 0x7f) << 4) | (tuple & 0xf);
+                    const tupleIndex = ((table.id & 0xffff) << 12) | ((column & 0x7f) << 4) | ((tuple + 1) & 0xf);
                     dbColumnSymbols += `${tupleIndex}\t${table.debugname}:${table.columnNames[column]}:${tuple}\t${types[tuple]}\n`;
                 }
             }

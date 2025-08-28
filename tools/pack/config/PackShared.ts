@@ -352,7 +352,7 @@ export async function packConfigs(modelFlags: number[]) {
     // shouldBuild('tools/pack/config', '.ts', 'data/pack/client/config');
 
     // not a config but we want the server to know all the possible categories
-    if (shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/category.pack`, 'data/pack/server/category.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/category.dat')) {
+    if (shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/category.pack`, 'data/pack/server/category.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/category.dat')) {
         const dat = Packet.alloc(1);
         dat.p2(CategoryPack.size);
         for (let i = 0; i < CategoryPack.size; i++) {
@@ -370,9 +370,9 @@ export async function packConfigs(modelFlags: number[]) {
     // todo: rebuild when any referenceable type changes
     if (
         shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.dbrow', 'data/pack/server/dbrow.dat') ||
-        shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/dbrow.dat') ||
+        shouldBuild('tools/pack/config', '.ts', 'data/pack/server/dbrow.dat') ||
         shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.dbtable', 'data/pack/server/dbtable.dat') ||
-        shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/dbtable.dat')
+        shouldBuild('tools/pack/config', '.ts', 'data/pack/server/dbtable.dat')
     ) {
         await readConfigs(dirTree, '.dbtable', [], modelFlags, parseDbTableConfig, packDbTableConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/dbtable.dat');
@@ -391,7 +391,7 @@ export async function packConfigs(modelFlags: number[]) {
         });
     }
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.enum', 'data/pack/server/enum.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/enum.dat')) {
+    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.enum', 'data/pack/server/enum.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/enum.dat')) {
         await readConfigs(dirTree, '.enum', [], modelFlags, parseEnumConfig, packEnumConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/enum.dat');
             idx.save('data/pack/server/enum.idx');
@@ -400,7 +400,7 @@ export async function packConfigs(modelFlags: number[]) {
         });
     }
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.inv', 'data/pack/server/inv.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/inv.dat')) {
+    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.inv', 'data/pack/server/inv.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/inv.dat')) {
         await readConfigs(dirTree, '.inv', [], modelFlags, parseInvConfig, packInvConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/inv.dat');
             idx.save('data/pack/server/inv.idx');
@@ -409,7 +409,7 @@ export async function packConfigs(modelFlags: number[]) {
         });
     }
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.mesanim', 'data/pack/server/mesanim.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/mesanim.dat')) {
+    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.mesanim', 'data/pack/server/mesanim.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/mesanim.dat')) {
         await readConfigs(dirTree, '.mesanim', [], modelFlags, parseMesAnimConfig, packMesAnimConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/mesanim.dat');
             idx.save('data/pack/server/mesanim.idx');
@@ -418,7 +418,7 @@ export async function packConfigs(modelFlags: number[]) {
         });
     }
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.struct', 'data/pack/server/struct.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/struct.dat')) {
+    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.struct', 'data/pack/server/struct.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/struct.dat')) {
         await readConfigs(dirTree, '.struct', [], modelFlags, parseStructConfig, packStructConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/struct.dat');
             idx.save('data/pack/server/struct.idx');
@@ -429,7 +429,7 @@ export async function packConfigs(modelFlags: number[]) {
 
     // ----
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.seq', 'data/pack/server/seq.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/seq.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.seq', 'data/pack/server/seq.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/seq.dat')) {
         await readConfigs(
             dirTree,
             '.seq',
@@ -453,7 +453,7 @@ export async function packConfigs(modelFlags: number[]) {
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.loc', 'data/pack/server/loc.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/loc.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.loc', 'data/pack/server/loc.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/loc.dat')) {
         await readConfigs(
             dirTree,
             '.loc',
@@ -477,7 +477,7 @@ export async function packConfigs(modelFlags: number[]) {
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.flo', 'data/pack/server/flo.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/flo.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.flo', 'data/pack/server/flo.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/flo.dat')) {
         await readConfigs(
             dirTree,
             '.flo',
@@ -501,7 +501,7 @@ export async function packConfigs(modelFlags: number[]) {
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.spotanim', 'data/pack/server/spotanim.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/spotanim.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.spotanim', 'data/pack/server/spotanim.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/spotanim.dat')) {
         await readConfigs(
             dirTree,
             '.spotanim',
@@ -525,7 +525,7 @@ export async function packConfigs(modelFlags: number[]) {
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.npc', 'data/pack/server/npc.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/npc.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.npc', 'data/pack/server/npc.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/npc.dat')) {
         await readConfigs(
             dirTree,
             '.npc',
@@ -549,7 +549,7 @@ export async function packConfigs(modelFlags: number[]) {
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.obj', 'data/pack/server/obj.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/obj.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.obj', 'data/pack/server/obj.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/obj.dat')) {
         await readConfigs(
             dirTree,
             '.obj',
@@ -573,7 +573,7 @@ export async function packConfigs(modelFlags: number[]) {
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.idk', 'data/pack/server/idk.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/idk.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.idk', 'data/pack/server/idk.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/idk.dat')) {
         await readConfigs(
             dirTree,
             '.idk',
@@ -597,7 +597,7 @@ export async function packConfigs(modelFlags: number[]) {
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varp', 'data/pack/server/varp.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/varp.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varp', 'data/pack/server/varp.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/varp.dat')) {
         await readConfigs(
             dirTree,
             '.varp',
@@ -621,7 +621,7 @@ export async function packConfigs(modelFlags: number[]) {
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varbit', 'data/pack/server/varbit.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/varbit.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varbit', 'data/pack/server/varbit.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/varbit.dat')) {
         await readConfigs(
             dirTree,
             '.varbit',
@@ -645,7 +645,7 @@ export async function packConfigs(modelFlags: number[]) {
         );
     }
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.hunt', 'data/pack/server/hunt.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/hunt.dat')) {
+    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.hunt', 'data/pack/server/hunt.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/hunt.dat')) {
         await readConfigs(dirTree, '.hunt', [], modelFlags, parseHuntConfig, packHuntConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/hunt.dat');
             idx.save('data/pack/server/hunt.idx');
@@ -654,7 +654,7 @@ export async function packConfigs(modelFlags: number[]) {
         });
     }
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varn', 'data/pack/server/varn.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/varn.dat')) {
+    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varn', 'data/pack/server/varn.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/varn.dat')) {
         await readConfigs(dirTree, '.varn', [], modelFlags, parseVarnConfig, packVarnConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/varn.dat');
             idx.save('data/pack/server/varn.idx');
@@ -663,7 +663,7 @@ export async function packConfigs(modelFlags: number[]) {
         });
     }
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.vars', 'data/pack/server/vars.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/vars.dat')) {
+    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.vars', 'data/pack/server/vars.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/vars.dat')) {
         await readConfigs(dirTree, '.vars', [], modelFlags, parseVarsConfig, packVarsConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/vars.dat');
             idx.save('data/pack/server/vars.idx');
