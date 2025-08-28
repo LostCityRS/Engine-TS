@@ -98,7 +98,7 @@ export default class DbRowType extends ConfigType {
         } else if (code === 250) {
             this.debugname = dat.gjstr();
         } else {
-            throw new Error(`Unrecognized dbtable config code: ${code}`);
+            throw new Error(`Unrecognized dbrow config code: ${code}`);
         }
     }
 
