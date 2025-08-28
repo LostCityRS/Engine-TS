@@ -425,12 +425,4 @@ export function generateServerSymbols() {
         .sort((a, b) => a[1] - b[1])
         .map(([name, opcode]) => `${opcode}\t${name.toLowerCase()}`);
     fs.writeFileSync('data/symbols/npc_mode.sym', npcmodes.join('\n') + '\n');
-
-    // ----
-
-    if (fs.existsSync('data/pack/server/scripts')) {
-        fs.readdirSync('data/pack/server/scripts').forEach(file => {
-            fs.unlinkSync(`data/pack/server/scripts/${file}`);
-        });
-    }
 }

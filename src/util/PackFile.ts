@@ -393,17 +393,18 @@ export function shouldBuildFileAny(path: string, dest: string) {
         return true;
     }
 
-    const names = fs.readdirSync(path);
-    for (let i = 0; i < names.length; i++) {
-        const stat = fs.statSync(`${path}/${names[i]}`);
+    const entries = fs.readdirSync(path, { withFileTypes: true });
 
-        if (stat.isDirectory()) {
-            const subdir = shouldBuildFileAny(`${path}/${names[i]}`, dest);
+    for (const entry of entries) {
+        const target = `${entry.parentPath}/${entry.name}`;
+
+        if (entry.isDirectory()) {
+            const subdir = shouldBuildFileAny(target, dest);
             if (subdir) {
                 return true;
             }
         } else {
-            if (shouldBuildFile(`${path}/${names[i]}`, dest)) {
+            if (shouldBuildFile(target, dest)) {
                 return true;
             }
         }

@@ -12,24 +12,21 @@ export function listDir(path: string): string[] {
         path = path.substring(0, path.length - 1);
     }
 
-    let files: string[] | undefined = undefined;
+    let files: string[] | undefined = dirCache.get(path);
 
-    if (dirCache.has(path)) {
-        files = dirCache.get(path);
-    }
-
-    if (!files) {
+    if (typeof files === 'undefined') {
         if (!fs.existsSync(path)) {
             return [];
         }
 
-        files = fs.readdirSync(path);
+        const entries = fs.readdirSync(path, { withFileTypes: true });
 
-        for (let i = 0; i < files.length; i++) {
-            const stat = fs.statSync(`${path}/${files[i]}`);
-
-            if (stat.isDirectory()) {
-                files[i] = files[i] + '/';
+        files = [];
+        for (const entry of entries) {
+            if (entry.isDirectory()) {
+                files.push(`${entry.name}/`);
+            } else {
+                files.push(entry.name);
             }
         }
 

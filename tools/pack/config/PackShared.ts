@@ -86,13 +86,15 @@ export class PackedData {
 export const CONSTANTS = new Map<string, string>();
 
 export function readDirTree(dirTree: Set<string>, path: string) {
-    const files = fs.readdirSync(path);
+    const entries = fs.readdirSync(path, { withFileTypes: true });
 
-    for (const file of files) {
-        if (fs.statSync(path + '/' + file).isDirectory()) {
-            readDirTree(dirTree, path + '/' + file);
+    for (const entry of entries) {
+        const target = `${entry.parentPath}/${entry.name}`;
+
+        if (entry.isDirectory()) {
+            readDirTree(dirTree, target);
         } else {
-            dirTree.add(path + '/' + file);
+            dirTree.add(target);
         }
     }
 }
