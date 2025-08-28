@@ -372,24 +372,22 @@ export async function packConfigs(modelFlags: number[]) {
 
     // ----
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.dbtable', 'data/pack/server/dbtable.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/dbtable.dat')) {
-        await readConfigs(dirTree, '.dbtable', [], modelFlags, parseDbTableConfig, packDbTableConfigs, noOp, (dat: Packet, idx: Packet) => {
-            dat.save('data/pack/server/dbtable.dat');
-            idx.save('data/pack/server/dbtable.idx');
-            dat.release();
-            idx.release();
-        });
-    }
-
-    DbTableType.load('data/pack'); // dbrow needs to access it
-
-    // todo: rebuild when any data type changes
+    // todo: rebuild when any referenceable type changes
     if (
         shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.dbrow', 'data/pack/server/dbrow.dat') ||
         shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/dbrow.dat') ||
         shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.dbtable', 'data/pack/server/dbtable.dat') ||
         shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/dbtable.dat')
     ) {
+        await readConfigs(dirTree, '.dbtable', [], modelFlags, parseDbTableConfig, packDbTableConfigs, noOp, (dat: Packet, idx: Packet) => {
+            dat.save('data/pack/server/dbtable.dat');
+            idx.save('data/pack/server/dbtable.idx');
+            dat.release();
+            idx.release();
+        });
+
+        DbTableType.load('data/pack'); // dbrow needs to access it
+
         await readConfigs(dirTree, '.dbrow', [], modelFlags, parseDbRowConfig, packDbRowConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/dbrow.dat');
             idx.save('data/pack/server/dbrow.idx');

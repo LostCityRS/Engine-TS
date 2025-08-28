@@ -1,4 +1,5 @@
 import DbRowType from '#/cache/config/DbRowType.js';
+import DbTableIndex from '#/cache/config/DbTableIndex.js';
 import DbTableType from '#/cache/config/DbTableType.js';
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import { ScriptOpcode } from '#/engine/script/ScriptOpcode.js';
@@ -30,7 +31,6 @@ const DebugOps: CommandHandlers = {
 
         const table = (tableColumnPacked >> 12) & 0xffff;
         const column = (tableColumnPacked >> 4) & 0x7f;
-        const _tuple = tableColumnPacked & 0x3f;
 
         const rowType: DbRowType = check(row, DbRowTypeValid);
         const tableType: DbTableType = check(table, DbTableTypeValid);
@@ -57,7 +57,6 @@ const DebugOps: CommandHandlers = {
 
         const table = (tableColumnPacked >> 12) & 0xffff;
         const column = (tableColumnPacked >> 4) & 0x7f;
-        const _tuple = tableColumnPacked & 0x3f;
 
         const rowType: DbRowType = check(row, DbRowTypeValid);
         const tableType: DbTableType = check(table, DbTableTypeValid);
@@ -68,20 +67,6 @@ const DebugOps: CommandHandlers = {
         }
 
         state.pushInt(rowType.columnValues[column].length / tableType.types[column].length);
-    },
-
-    [ScriptOpcode.DB_LISTALL_WITH_COUNT]: state => {
-        const table = state.popInt();
-        state.dbTable = check(table, DbTableTypeValid);
-        state.dbRow = -1;
-        state.dbRowQuery = [];
-
-        const rows = DbRowType.getInTable(table);
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            state.dbRowQuery.push(row.id);
-        }
-        state.pushInt(state.dbRowQuery.length);
     },
 
     [ScriptOpcode.DB_GETROWTABLE]: state => {
@@ -101,23 +86,9 @@ const DebugOps: CommandHandlers = {
         const query = isString ? state.popString() : state.popInt();
         const tableColumnPacked = state.popInt();
 
-        const table = (tableColumnPacked >> 12) & 0xffff;
-        const column = (tableColumnPacked >> 4) & 0x7f;
-        const _tuple = tableColumnPacked & 0x3f;
-
-        state.dbTable = check(table, DbTableTypeValid);
+        state.dbTable = check((tableColumnPacked >> 12) & 0xffff, DbTableTypeValid);
         state.dbRow = -1;
-        state.dbRowQuery = [];
-
-        // search for rows that match the query (table + column + query)
-        const rows = DbRowType.getInTable(table);
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-
-            if (row.columnValues[column].includes(query)) {
-                state.dbRowQuery.push(row.id);
-            }
-        }
+        state.dbRowQuery = DbTableIndex.find(query, tableColumnPacked);
 
         state.pushInt(state.dbRowQuery.length);
     },
@@ -127,26 +98,13 @@ const DebugOps: CommandHandlers = {
         const query = isString ? state.popString() : state.popInt();
         const tableColumnPacked = state.popInt();
 
-        const table = (tableColumnPacked >> 12) & 0xffff;
-        const column = (tableColumnPacked >> 4) & 0x7f;
-        const _tuple = tableColumnPacked & 0x3f;
-
-        // ----
-
-        const found = [];
-        const rows = DbRowType.getInTable(table);
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-
-            if (row.columnValues[column].includes(query)) {
-                found.push(row.id);
-            }
-        }
+        const found = DbTableIndex.find(query, tableColumnPacked);
 
         // merge with previous query
         const prevQuery = state.dbRowQuery;
         state.dbRow = -1;
         state.dbRowQuery = [];
+
         for (let i = 0; i < prevQuery.length; i++) {
             if (found.includes(prevQuery[i])) {
                 state.dbRowQuery.push(prevQuery[i]);
@@ -158,16 +116,31 @@ const DebugOps: CommandHandlers = {
 
     [ScriptOpcode.DB_LISTALL]: state => {
         const table = state.popInt();
+
         state.dbTable = check(table, DbTableTypeValid);
         state.dbRow = -1;
         state.dbRowQuery = [];
 
         const rows = DbRowType.getInTable(table);
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
+        for (const row of rows) {
             state.dbRowQuery.push(row.id);
         }
-    }
+    },
+
+    [ScriptOpcode.DB_LISTALL_WITH_COUNT]: state => {
+        const table = state.popInt();
+
+        state.dbTable = check(table, DbTableTypeValid);
+        state.dbRow = -1;
+        state.dbRowQuery = [];
+
+        const rows = DbRowType.getInTable(table);
+        for (const row of rows) {
+            state.dbRowQuery.push(row.id);
+        }
+
+        state.pushInt(state.dbRowQuery.length);
+    },
 };
 
 export default DebugOps;

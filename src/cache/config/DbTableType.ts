@@ -9,21 +9,17 @@ export default class DbTableType extends ConfigType {
     private static configNames = new Map<string, number>();
     private static configs: DbTableType[] = [];
 
+    static INDEXED = 0x1;
+    static REQUIRED = 0x2;
+    static LIST = 0x3;
+    static CLIENTSIDE = 0x4;
+
     static load(dir: string) {
         if (!fs.existsSync(`${dir}/server/dbtable.dat`)) {
             return;
         }
+
         const dat = Packet.load(`${dir}/server/dbtable.dat`);
-        this.parse(dat);
-    }
-
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/dbtable.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const dat = new Packet(new Uint8Array(await file.arrayBuffer()));
         this.parse(dat);
     }
 
@@ -71,6 +67,7 @@ export default class DbTableType extends ConfigType {
     types: number[][] = [];
     defaultValues: (string | number)[][] = [];
     columnNames: string[] = [];
+    props: number[] = [];
 
     decode(code: number, dat: Packet) {
         if (code === 1) {
@@ -101,6 +98,12 @@ export default class DbTableType extends ConfigType {
 
             for (let i = 0; i < this.columnNames.length; i++) {
                 this.columnNames[i] = dat.gjstr();
+            }
+        } else if (code === 252) {
+            this.props = new Array(dat.g1());
+
+            for (let i = 0; i < this.props.length; i++) {
+                this.props[i] = dat.g1();
             }
         } else {
             throw new Error(`Unrecognized dbtable config code: ${code}`);
