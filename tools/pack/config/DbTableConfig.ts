@@ -92,8 +92,8 @@ export function packDbTableConfigs(configs: Map<string, ConfigLine[]>) {
             if (key === 'column') {
                 // columns have a few rules:
                 // 1) the format is column=name,type,PROPERTIES
-                // 2) a column can have multiple types, comma separated
-                // 3) if a column has multiple types it must have LIST as one of its properties
+                // 2) a column can have multiple comma-separated types, it becomes known as a tuple
+                // 3) if a row has multiple data values the column must have the LIST property
                 // 4) default values cannot be assigned to REQUIRED columns
                 // 5) if a column is INDEXED, it must be REQUIRED too
                 // (later versions have CLIENTSIDE properties which control cache transmission)
@@ -112,13 +112,8 @@ export function packDbTableConfigs(configs: Map<string, ConfigLine[]>) {
                     }
                 }
 
-                if (types.length > 1 && !properties.find(p => p === 'LIST')) {
-                    // todo: utilize LIST when packing, we make it work without it but shouldn't
-                    throw packStepError(debugname, 'multiple types in a column must have the LIST property');
-                }
-
                 if (properties.find(p => p === 'INDEXED') && !properties.find(p => p === 'REQUIRED')) {
-                    throw packStepError(debugname, 'INDEXED columns must have the REQUIRED property as well');
+                    throw packStepError(debugname, 'INDEXED columns must be marked REQUIRED as well');
                 }
 
                 columns.push({ name, types, properties });
@@ -138,7 +133,7 @@ export function packDbTableConfigs(configs: Map<string, ConfigLine[]>) {
                 }
 
                 if (columns[columnIndex].properties.find(p => p === 'REQUIRED')) {
-                    throw packStepError(debugname, 'a REQUIRED column cannot have a default value');
+                    throw packStepError(debugname, `${column} cannot have a default value because it is marked REQUIRED`);
                 }
 
                 defaults[columnIndex] = values;
@@ -179,7 +174,7 @@ export function packDbTableConfigs(configs: Map<string, ConfigLine[]>) {
                 }
             }
 
-            server.p1(255); // end of column list
+            server.p1(255); // end of column tuple
         }
 
         server.p1(250);

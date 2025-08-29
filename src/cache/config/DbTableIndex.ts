@@ -49,12 +49,12 @@ export default class DbTableIndex {
     }
 
     static find(query: string | number, tableColumnPacked: number): number[] {
-        const rows = this.rows.get(tableColumnPacked);
+        const tuple = tableColumnPacked & 0xf;
+        const rows = tuple === 0 ? this.rows.get(tableColumnPacked) : this.rows.get(tableColumnPacked - 1);
 
         if (typeof rows === 'undefined') {
             const tableId = (tableColumnPacked >> 12) & 0xffff;
             const column = (tableColumnPacked >> 4) & 0x7f;
-            // const tuple = tableColumnPacked & 0xf;
 
             const table = DbTableType.get(tableId);
             printWarning(`dbtable ${table.debugname}:${table.columnNames[column]} is not INDEXED, finding will fail`);

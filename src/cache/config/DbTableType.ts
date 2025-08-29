@@ -11,8 +11,8 @@ export default class DbTableType extends ConfigType {
 
     static INDEXED = 0x1;
     static REQUIRED = 0x2;
-    static LIST = 0x3;
-    static CLIENTSIDE = 0x4;
+    static LIST = 0x4;
+    static CLIENTSIDE = 0x8;
 
     static load(dir: string) {
         if (!fs.existsSync(`${dir}/server/dbtable.dat`)) {

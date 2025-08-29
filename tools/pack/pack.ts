@@ -8,11 +8,13 @@ if (Environment.BUILD_STARTUP_UPDATE) {
 
 try {
     const modelFlags: number[] = [];
+    console.time('pack');
     await packServer(modelFlags);
     await packClient(modelFlags);
+    console.timeEnd('pack');
 } catch (err) {
     if (err instanceof Error) {
-        console.log(err);
+        console.log(err.message);
     }
 
     process.exit(1);

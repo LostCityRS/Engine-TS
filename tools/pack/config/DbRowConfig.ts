@@ -138,7 +138,11 @@ export function packDbRowConfigs(configs: Map<string, ConfigLine[]>): { client: 
                 const props = table.props[i];
 
                 if ((props & DbTableType.REQUIRED) !== 0 && !fields.length) {
-                    throw packStepError(debugname, `column ${columnName} is marked REQUIRED, please add data for it`);
+                    throw packStepError(debugname, `${columnName} column is marked REQUIRED, please add data for it`);
+                }
+
+                if ((props & DbTableType.LIST) === 0 && fields.length > 1) {
+                    throw packStepError(debugname, `${columnName} column has multiple data values but is not marked as LIST`);
                 }
 
                 server.p1(fields.length);

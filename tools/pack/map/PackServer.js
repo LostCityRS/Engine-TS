@@ -110,7 +110,7 @@ export function packServerMap() {
                 !shouldBuildFile(`${Environment.BUILD_SRC_DIR}/maps/${file}`, `data/pack/server/maps/n${x}_${z}`) &&
                 !shouldBuildFile(`${Environment.BUILD_SRC_DIR}/maps/${file}`, `data/pack/server/maps/o${x}_${z}`) &&
                 !shouldBuild(`${Environment.BUILD_SRC_DIR}/maps`, '.csv', `data/pack/server/maps/m${x}_${z}`) &&
-                !shouldBuild('src/cache/packmap', '.js', `data/pack/server/maps/m${x}_${z}`)
+                !shouldBuild('tools/pack/map', '.js', `data/pack/server/maps/m${x}_${z}`)
             ) {
                 return;
             }
