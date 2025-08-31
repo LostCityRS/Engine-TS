@@ -1,6 +1,6 @@
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import { DbTablePack } from '#/util/PackFile.js';
-import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
+import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean, packStepError } from '#tools/pack/config/PackShared.js';
 import { lookupParamValue } from '#tools/pack/config/ParamConfig.js';
 
 function parseCsv(str: string): string[] {
@@ -92,10 +92,11 @@ export function packDbTableConfigs(configs: Map<string, ConfigLine[]>) {
             if (key === 'column') {
                 // columns have a few rules:
                 // 1) the format is column=name,type,PROPERTIES
-                // 2) a column can have multiple types, comma separated
-                // 3) if a column has multiple types it must have LIST as one of its properties
+                // 2) a column can have multiple comma-separated types, it becomes known as a tuple
+                // 3) if a row has multiple data values the column must have the LIST property
                 // 4) default values cannot be assigned to REQUIRED columns
                 // 5) if a column is INDEXED, it must be REQUIRED too
+                // (later versions have CLIENTSIDE properties which control cache transmission)
                 const column = parseCsv(value as string);
                 const name = column.shift();
                 const types = [];
@@ -111,6 +112,10 @@ export function packDbTableConfigs(configs: Map<string, ConfigLine[]>) {
                     }
                 }
 
+                if (properties.find(p => p === 'INDEXED') && !properties.find(p => p === 'REQUIRED')) {
+                    throw packStepError(debugname, 'INDEXED columns must be marked REQUIRED as well');
+                }
+
                 columns.push({ name, types, properties });
             } else if (key === 'default') {
                 // default values have a few rules:
@@ -123,6 +128,14 @@ export function packDbTableConfigs(configs: Map<string, ConfigLine[]>) {
                 const columnIndex = columns.findIndex(col => col.name === column);
                 const values = parts;
 
+                if (columnIndex === -1) {
+                    throw packStepError(debugname, 'unknown default column');
+                }
+
+                if (columns[columnIndex].properties.find(p => p === 'REQUIRED')) {
+                    throw packStepError(debugname, `${column} cannot have a default value because it is marked REQUIRED`);
+                }
+
                 defaults[columnIndex] = values;
             }
         }
@@ -130,7 +143,7 @@ export function packDbTableConfigs(configs: Map<string, ConfigLine[]>) {
         if (columns.length) {
             server.p1(1);
 
-            server.p1(columns.length); // total columns (not every one has to be encoded)
+            server.p1(columns.length); // total columns (each one gets encoded based on if they're transmitted)
             for (let i = 0; i < columns.length; i++) {
                 const column = columns[i];
 
@@ -161,7 +174,7 @@ export function packDbTableConfigs(configs: Map<string, ConfigLine[]>) {
                 }
             }
 
-            server.p1(255); // end of column list
+            server.p1(255); // end of column tuple
         }
 
         server.p1(250);
@@ -173,6 +186,29 @@ export function packDbTableConfigs(configs: Map<string, ConfigLine[]>) {
             server.p1(columns.length);
             for (let i = 0; i < columns.length; i++) {
                 server.pjstr(columns[i].name as string);
+            }
+        }
+
+        if (columns.length) {
+            server.p1(252);
+
+            server.p1(columns.length);
+            for (let i = 0; i < columns.length; i++) {
+                const column = columns[i];
+
+                let props = 0;
+                for (const prop of column.properties) {
+                    if (prop === 'INDEXED') {
+                        props |= 0x1;
+                    } else if (prop === 'REQUIRED') {
+                        props |= 0x2;
+                    } else if (prop === 'LIST') {
+                        props |= 0x4;
+                    } else if (prop === 'CLIENTSIDE') {
+                        props |= 0x8;
+                    }
+                }
+                server.p1(props);
             }
         }
 

@@ -45,7 +45,8 @@ async function updateHiscores(account: { id: number, staffmodlevel: number } | u
             .set({
                 type: 0,
                 level: totalLevel,
-                value: totalXp
+                value: totalXp,
+                date: toDbDate(new Date())
             })
             .where('account_id', '=', account.id)
             .where('type', '=', 0)
@@ -78,7 +79,8 @@ async function updateHiscores(account: { id: number, staffmodlevel: number } | u
                 update.push({
                     type: hiscoreType,
                     level: player.baseLevels[stat],
-                    value: player.stats[stat]
+                    value: player.stats[stat],
+                    date: toDbDate(new Date())
                 });
             } else if (!existing) {
                 insert.push({

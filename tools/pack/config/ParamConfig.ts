@@ -1,5 +1,5 @@
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
-import { CategoryPack, EnumPack, InterfacePack, InvPack, LocPack, NpcPack, ObjPack, ParamPack, SeqPack, SynthPack, SpotAnimPack, StructPack, VarpPack } from '#/util/PackFile.js';
+import { CategoryPack, EnumPack, InterfacePack, InvPack, LocPack, NpcPack, ObjPack, ParamPack, SeqPack, SynthPack, SpotAnimPack, StructPack, VarpPack, DbRowPack } from '#/util/PackFile.js';
 import { ConfigValue, ConfigLine, packStepError, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 
 const stats: (string | null)[] = [
@@ -151,6 +151,9 @@ export function lookupParamValue(type: number, value: string): string | number |
             } else {
                 index = InterfacePack.getByName(value);
             }
+            break;
+        case ScriptVarType.DBROW:
+            index = DbRowPack.getByName(value);
             break;
     }
 
