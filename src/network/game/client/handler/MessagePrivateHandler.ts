@@ -15,26 +15,22 @@ export default class MessagePrivateHandler extends MessageHandler<MessagePrivate
             return false;
         }
 
-        const buf: Packet = Packet.alloc(0);
-        buf.pdata(input, 0, input.length);
-        buf.pos = 0;
-
-        const unpacked: string = WordPack.unpack(buf, input.length);
-        buf.release();
-
-        if (player.muted_until !== null && player.muted_until > new Date()) {
-            World.sendPrivateMessage(player, username, unpacked);
-            return false;
-        }
-
         if (fromBase37(username) === 'invalid_name') {
             World.notifyPlayerBan('automated', player.username, Date.now() + 172800000);
             return false;
         }
-        
-        World.sendPrivateMessage(player, username, unpacked);
+
+        const buf: Packet = Packet.alloc(0);
+        buf.pdata(input, 0, input.length);
+        buf.pos = 0;
+        World.attemptPrivateMessage(player, username, WordPack.unpack(buf, input.length));
+        buf.release();
 
         player.socialProtect = true;
+
+        if (player.muted_until !== null && player.muted_until > new Date()) {
+            return false;
+        }
         return true;
     }
 }
