@@ -15,8 +15,15 @@ export default class MessagePrivateHandler extends MessageHandler<MessagePrivate
             return false;
         }
 
+        const buf: Packet = Packet.alloc(0);
+        buf.pdata(input, 0, input.length);
+        buf.pos = 0;
+
+        const unpacked: string = WordPack.unpack(buf, input.length);
+        buf.release();
+
         if (player.muted_until !== null && player.muted_until > new Date()) {
-            // todo: do we still log their attempt to chat?
+            World.sendPrivateMessage(player, username, unpacked);
             return false;
         }
 
@@ -24,12 +31,8 @@ export default class MessagePrivateHandler extends MessageHandler<MessagePrivate
             World.notifyPlayerBan('automated', player.username, Date.now() + 172800000);
             return false;
         }
-
-        const buf: Packet = Packet.alloc(0);
-        buf.pdata(input, 0, input.length);
-        buf.pos = 0;
-        World.sendPrivateMessage(player, username, WordPack.unpack(buf, input.length));
-        buf.release();
+        
+        World.sendPrivateMessage(player, username, unpacked);
 
         player.socialProtect = true;
         return true;

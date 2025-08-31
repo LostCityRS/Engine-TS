@@ -274,6 +274,7 @@ export class FriendServer {
 
                         const from = await db.selectFrom('account').selectAll().where('username', '=', fromBase37(username37)).executeTakeFirstOrThrow();
                         const to = await db.selectFrom('account').selectAll().where('username', '=', fromBase37(targetUsername37)).executeTakeFirstOrThrow();
+                        const muted = from.muted_until !== null && new Date(from.muted_until) > new Date() ? 1 : 0;
 
                         await db
                             .insertInto('private_chat')
@@ -283,15 +284,19 @@ export class FriendServer {
                                 to_account_id: to.id,
                                 timestamp: toDbDate(Date.now()),
                                 coord: message.coord,
-                                message: chat
+                                message: chat,
+                                muted
                             })
                             .execute();
 
-                        await this.sendPrivateMessage(profile, username37, staffLvl, pmId, targetUsername37, chat);
+                        if (!muted) {
+                            await this.sendPrivateMessage(profile, username37, staffLvl, pmId, targetUsername37, chat);
+                        }
                     } else if (type === FriendsClientOpcodes.PUBLIC_CHAT_LOG) {
                         const { nodeId, nodeTime, profile, username, coord, chat } = message;
 
                         const from = await db.selectFrom('account').selectAll().where('username', '=', username).executeTakeFirstOrThrow();
+                        const muted = from.muted_until !== null && new Date(from.muted_until) > new Date() ? 1 : 0;
 
                         await db
                             .insertInto('public_chat')
@@ -302,7 +307,8 @@ export class FriendServer {
 
                                 timestamp: toDbDate(nodeTime),
                                 coord,
-                                message: chat
+                                message: chat,
+                                muted
                             })
                             .execute();
                     } else if (type === FriendsClientOpcodes.RELAY_MUTE) {

@@ -208,6 +208,7 @@ model public_chat {
     timestamp DateTime
     coord     Int
     message   String
+    muted     Boolean
 }
 
 model private_chat {
@@ -220,6 +221,7 @@ model private_chat {
     coord         Int
     to_account_id Int
     message       String
+    muted         Boolean
 }
 
 model report {
