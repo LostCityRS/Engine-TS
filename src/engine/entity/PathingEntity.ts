@@ -488,22 +488,6 @@ export default abstract class PathingEntity extends Entity {
                 return;
             }
             if (this.target instanceof PathingEntity) {
-                if (this.width > 1 && !CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)) {
-                    // west/east
-                    let dir = CoordGrid.face(this.x, 0, this.target.x, 0);
-                    const distanceToTarget = CoordGrid.distanceTo({ x: this.x, z: this.z, width: this.width, length: this.length }, { x: this.target.x, z: this.target.z, width: this.target.width, length: this.target.length });
-                    if (canTravel(this.level, this.x, this.z, CoordGrid.deltaX(dir), 0, this.width, extraFlag, collisionStrategy) || distanceToTarget <= 1) {
-                        this.queueWaypoint(CoordGrid.moveX(this.x, dir), this.z);
-                        return;
-                    }
-                    // north/south
-                    dir = CoordGrid.face(0, this.z, 0, this.target.z);
-                    if (canTravel(this.level, this.x, this.z, 0, CoordGrid.deltaZ(dir), this.width, extraFlag, collisionStrategy)) {
-                        this.queueWaypoint(this.x, CoordGrid.moveZ(this.z, dir));
-                        return;
-                    }
-                    return;
-                }
                 this.queueWaypoints(findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, extraFlag, collisionStrategy));
             } else {
                 this.queueWaypoint(this.target.x, this.target.z);
@@ -642,19 +626,6 @@ export default abstract class PathingEntity extends Entity {
             return null;
         }
 
-        const srcX: number = this.x;
-        const srcZ: number = this.z;
-
-        const { x, z } = CoordGrid.unpackCoord(this.waypoints[this.waypointIndex]);
-        const dir: number = CoordGrid.face(srcX, srcZ, x, z);
-        const dx: number = CoordGrid.deltaX(dir);
-        const dz: number = CoordGrid.deltaZ(dir);
-
-        // check if moved off current pos.
-        if (dx == 0 && dz == 0) {
-            return -1;
-        }
-
         const collisionStrategy: CollisionType | null = this.getCollisionStrategy();
         if (collisionStrategy === null) {
             // nomove moverestrict returns as null = no walking allowed.
@@ -667,12 +638,34 @@ export default abstract class PathingEntity extends Entity {
             return -1;
         }
 
-        if (this.moveStrategy === MoveStrategy.FLY) {
-            return dir;
+        const srcX: number = this.x;
+        const srcZ: number = this.z;
+
+        const { x, z } = CoordGrid.unpackCoord(this.waypoints[this.waypointIndex]);
+
+        if (this.width > 1) {
+            const tryDirX = CoordGrid.face(srcX, 0, x, 0);
+            if (canTravel(this.level, srcX, srcZ, CoordGrid.deltaX(tryDirX), 0, this.width, extraFlag, collisionStrategy)) {
+                return tryDirX;
+            }
+            const tryDirZ = CoordGrid.face(0, srcZ, 0, z);
+            if (canTravel(this.level, srcX, srcZ, 0, CoordGrid.deltaZ(tryDirZ), this.width, extraFlag, collisionStrategy)) {
+                return tryDirZ;
+            }
+            return -1;
         }
 
-        if (!Environment.NODE_MEMBERS && !World.gameMap.isFreeToPlay(this.x + dx, this.z + dz)) {
+        const dir: number = CoordGrid.face(srcX, srcZ, x, z);
+        const dx: number = CoordGrid.deltaX(dir);
+        const dz: number = CoordGrid.deltaZ(dir);
+
+        // check if moved off current pos.
+        if (dx == 0 && dz == 0) {
             return -1;
+        }
+
+        if (this.moveStrategy === MoveStrategy.FLY) {
+            return dir;
         }
 
         // check current direction if can travel to chosen dest.

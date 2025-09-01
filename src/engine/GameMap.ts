@@ -391,6 +391,9 @@ export function reachedObj(level: number, srcX: number, srcZ: number, destX: num
 }
 
 export function canTravel(level: number, x: number, z: number, offsetX: number, offsetZ: number, size: number, extraFlag: number, collision: CollisionType): boolean {
+    if (!Environment.NODE_MEMBERS && !World.gameMap.isFreeToPlay(x + offsetX, z + offsetZ)) {
+        return false;
+    }
     return rsmod.canTravel(level, x, z, offsetX, offsetZ, size, extraFlag, collision);
 }
 

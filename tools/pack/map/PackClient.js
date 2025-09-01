@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { compressGz } from '#/io/GZip.js';
-import Packet2 from '#/io/Packet.js';
+import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { MapPack } from '#/util/PackFile.js';
 import { listFilesExt } from '#/util/Parse.js';
@@ -61,19 +61,29 @@ function readMap(map) {
 export function packClientMap(cache) {
     const maps = listFilesExt(`${Environment.BUILD_SRC_DIR}/maps`, '.jm2');
 
+    if (!fs.existsSync('data/pack/client/maps')) {
+        fs.mkdirSync('data/pack/client/maps', { recursive: true });
+    }
+
     for (const file of maps) {
         const basename = path.basename(file, path.extname(file));
         const [mapX, mapZ] = basename.slice(1).split('_');
+        const mapFile = `data/pack/client/maps/m${mapX}_${mapZ}`;
+        const locFile = `data/pack/client/maps/l${mapX}_${mapZ}`;
 
-        const data = fs
-            .readFileSync(file, 'utf8')
-            .replace(/\r/g, '')
-            .split('\n')
-            .filter(x => x.length);
-        const map = readMap(data);
+        let data = null;
+        let map = null;
+        if (!fs.existsSync(mapFile) || !fs.existsSync(locFile)) {
+            data = fs
+                .readFileSync(file, 'utf8')
+                .replace(/\r/g, '')
+                .split('\n')
+                .filter(x => x.length);
+            map = readMap(data);
+        }
 
         // encode land data
-        {
+        if (!fs.existsSync(mapFile)) {
             let levelHeightmap = [];
             let levelTileOverlayIds = [];
             let levelTileOverlayShape = [];
@@ -177,7 +187,7 @@ export function packClientMap(cache) {
             // }
 
             // encode into client format
-            let out = Packet2.alloc(3);
+            let out = Packet.alloc(3);
             for (let level = 0; level < 4; level++) {
                 for (let x = 0; x < 64; x++) {
                     for (let z = 0; z < 64; z++) {
@@ -226,12 +236,12 @@ export function packClientMap(cache) {
                 }
             }
 
-            cache.write(4, MapPack.getByName(`m${mapX}_${mapZ}`), compressGz(out.data.subarray(0, out.pos)), 1);
+            fs.writeFileSync(mapFile, compressGz(out.data.subarray(0, out.pos)));
             out.release();
         }
 
         // encode loc data
-        {
+        if (!fs.existsSync(locFile)) {
             let locs = {};
 
             for (let level = 0; level < 4; level++) {
@@ -280,7 +290,7 @@ export function packClientMap(cache) {
             let locIds = Object.keys(locs)
                 .map(id => parseInt(id))
                 .sort((a, b) => a - b);
-            let out = Packet2.alloc(2);
+            let out = Packet.alloc(3);
             let lastLocId = -1;
             for (let i = 0; i < locIds.length; i++) {
                 let locId = locIds[i];
@@ -305,8 +315,11 @@ export function packClientMap(cache) {
             }
 
             out.psmart(0); // end of map
-            cache.write(4, MapPack.getByName(`l${mapX}_${mapZ}`), compressGz(out.data.subarray(0, out.pos)), 1);
+            fs.writeFileSync(locFile, compressGz(out.data.subarray(0, out.pos)));
             out.release();
         }
+
+        cache.write(4, MapPack.getByName(`m${mapX}_${mapZ}`), fs.readFileSync(mapFile), 1);
+        cache.write(4, MapPack.getByName(`l${mapX}_${mapZ}`), fs.readFileSync(locFile), 1);
     }
 }

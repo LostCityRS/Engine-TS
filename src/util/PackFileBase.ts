@@ -12,6 +12,7 @@ export class PackFile {
     validatorArgs: any[] = [];
     pack: Map<number, string> = new Map();
     names: Set<string> = new Set();
+    nameToId: Map<string, number> = new Map();
     max: number = 0;
 
     get size() {
@@ -60,11 +61,14 @@ export class PackFile {
 
     register(id: number, name: string) {
         this.pack.set(id, name);
+        this.nameToId.set(name, id);
     }
 
     refreshNames() {
         this.names = new Set(this.pack.values());
-        this.max = Math.max(...Array.from(this.pack.keys())) + 1;
+        if (this.names.size) {
+            this.max = Math.max(...Array.from(this.pack.keys())) + 1;
+        }
     }
 
     save() {
@@ -82,16 +86,11 @@ export class PackFile {
     }
 
     getByName(name: string): number {
-        if (!this.names.has(name)) {
+        const index = this.nameToId.get(name);
+        if (typeof index === 'undefined') {
             return -1;
         }
 
-        for (const [id, packName] of this.pack) {
-            if (packName === name) {
-                return id;
-            }
-        }
-
-        return -1;
+        return index;
     }
 }
