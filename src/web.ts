@@ -51,6 +51,10 @@ export async function startWeb() {
         async fetch(req, server) {
             const url = getRequestUrl(req);
 
+            // Helper: normalize Uint8Array | null into a Response body
+            const asBody = (bytes: Uint8Array | null): Blob | null =>
+                bytes ? new Blob([bytes]) : null;
+
             if (url.pathname === '/') {
                 const upgraded = server.upgrade(req, {
                     data: {
@@ -65,25 +69,25 @@ export async function startWeb() {
 
                 return new Response(null, { status: 404 });
             } else if (url.pathname.startsWith('/crc')) {
-                return new Response(CrcBuffer.data);
+                return new Response(new Blob([CrcBuffer.data]));
             } else if (url.pathname.startsWith('/title')) {
-                return new Response(OnDemand.cache.read(0, 1));
+                return new Response(asBody(OnDemand.cache.read(0, 1)));
             } else if (url.pathname.startsWith('/config')) {
-                return new Response(OnDemand.cache.read(0, 2));
+                return new Response(asBody(OnDemand.cache.read(0, 2)));
             } else if (url.pathname.startsWith('/interface')) {
-                return new Response(OnDemand.cache.read(0, 3));
+                return new Response(asBody(OnDemand.cache.read(0, 3)));
             } else if (url.pathname.startsWith('/media')) {
-                return new Response(OnDemand.cache.read(0, 4));
+                return new Response(asBody(OnDemand.cache.read(0, 4)));
             } else if (url.pathname.startsWith('/versionlist')) {
-                return new Response(OnDemand.cache.read(0, 5));
+                return new Response(asBody(OnDemand.cache.read(0, 5)));
             } else if (url.pathname.startsWith('/textures')) {
-                return new Response(OnDemand.cache.read(0, 6));
+                return new Response(asBody(OnDemand.cache.read(0, 6)));
             } else if (url.pathname.startsWith('/wordenc')) {
-                return new Response(OnDemand.cache.read(0, 7));
+                return new Response(asBody(OnDemand.cache.read(0, 7)));
             } else if (url.pathname.startsWith('/sounds')) {
-                return new Response(OnDemand.cache.read(0, 8));
+                return new Response(asBody(OnDemand.cache.read(0, 8)));
             } else if (url.pathname.startsWith('/ondemand.zip')) {
-                return new Response(await Bun.file('data/pack/ondemand.zip').bytes());
+                return new Response(new Blob([await Bun.file('data/pack/ondemand.zip').bytes()]));
             } else if (url.pathname === '/rs2.cgi') {
                 const plugin = tryParseInt(url.searchParams.get('plugin'), 0);
                 const lowmem = tryParseInt(url.searchParams.get('lowmem'), 0);
@@ -112,7 +116,7 @@ export async function startWeb() {
                     });
                 }
             } else if (fs.existsSync(`public${url.pathname}`)) {
-                return new Response(await Bun.file(`public${url.pathname}`).bytes(), {
+                return new Response(new Blob([await Bun.file(`public${url.pathname}`).bytes()]), {
                     headers: {
                         'Content-Type': MIME_TYPES.get(path.extname(url.pathname ?? '')) ?? 'text/plain'
                     }
