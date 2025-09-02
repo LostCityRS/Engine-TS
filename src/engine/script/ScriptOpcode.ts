@@ -255,6 +255,7 @@ export const enum ScriptOpcode {
     NPC_STATHEAL, // official
     NPC_STATSUB,
     NPC_TELE,
+    NPC_TELEJUMP,
     NPC_TYPE, // official
     NPC_UID,
     SPOTANIM_NPC,
@@ -712,6 +713,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['NPC_STATHEAL', ScriptOpcode.NPC_STATHEAL],
     ['NPC_STATSUB', ScriptOpcode.NPC_STATSUB],
     ['NPC_TELE', ScriptOpcode.NPC_TELE],
+    ['NPC_TELEJUMP', ScriptOpcode.NPC_TELEJUMP],
     ['NPC_TYPE', ScriptOpcode.NPC_TYPE],
     ['NPC_UID', ScriptOpcode.NPC_UID],
     ['SPOTANIM_NPC', ScriptOpcode.SPOTANIM_NPC],
