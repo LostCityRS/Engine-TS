@@ -33,15 +33,39 @@ export default class DbTableIndex {
                         continue;
                     }
 
-                    for (let tuple = 0; tuple < row.columnValues[column].length; tuple++) {
-                        const tupleIndex = ((table.id & 0xffff) << 12) | ((column & 0x7f) << 4) | (tuple & 0xf);
-                        const value = row.columnValues[column][tuple];
+                    // multiple types in a column are known as a tuple
+                    const types = row.types[column];
 
-                        const lookup: Map<string | number, number[]> = this.rows.get(tupleIndex) ?? new Map();
-                        const rowIds = lookup.get(value) ?? [];
-                        rowIds.push(row.id);
-                        lookup.set(value, rowIds);
-                        this.rows.set(tupleIndex, lookup);
+                    if (types.length > 1) {
+                        // indexed tuple
+                        for (let fieldId = 0; fieldId < row.columnValues[column].length / types.length; fieldId++) {
+                            for (let typeId = 0; typeId < types.length; typeId++) {
+                                const tableColumnPacked = ((table.id & 0xffff) << 12) | ((column & 0x7f) << 4) | (typeId & 0xf);
+                                const index = typeId + fieldId * types.length;
+                                const value = row.columnValues[column][index];
+
+                                const lookup: Map<string | number, number[]> = this.rows.get(tableColumnPacked) ?? new Map();
+
+                                const rowIds = lookup.get(value) ?? [];
+                                rowIds.push(row.id);
+
+                                lookup.set(value, rowIds);
+                                this.rows.set(tableColumnPacked, lookup);
+                            }
+                        }
+                    } else {
+                        // indexed list, or normal
+                        const tableColumnPacked = ((table.id & 0xffff) << 12) | ((column & 0x7f) << 4);
+
+                        for (const value of row.columnValues[column]) {
+                            const lookup: Map<string | number, number[]> = this.rows.get(tableColumnPacked) ?? new Map();
+
+                            const rowIds = lookup.get(value) ?? [];
+                            rowIds.push(row.id);
+
+                            lookup.set(value, rowIds);
+                            this.rows.set(tableColumnPacked, lookup);
+                        }
                     }
                 }
             }
