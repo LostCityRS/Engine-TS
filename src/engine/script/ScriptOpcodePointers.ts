@@ -694,6 +694,10 @@ const ScriptOpcodePointers: {
         require: ['active_npc'],
         require2: ['active_npc2']
     },
+    [ScriptOpcode.NPC_TELEJUMP]: {
+        require: ['active_npc'],
+        require2: ['active_npc2']
+    },
     [ScriptOpcode.NPC_TYPE]: {
         require: ['active_npc'],
         require2: ['active_npc2']

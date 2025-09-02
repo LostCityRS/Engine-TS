@@ -14,7 +14,7 @@ import { NpcMode } from '#/engine/entity/NpcMode.js';
 import Obj from '#/engine/entity/Obj.js';
 import { NpcIterator } from '#/engine/script/ScriptIterators.js';
 import { ScriptOpcode } from '#/engine/script/ScriptOpcode.js';
-import ScriptPointer, { ActiveNpc, checkedHandler } from '#/engine/script/ScriptPointer.js';
+import ScriptPointer, { ActiveNpc, ActivePlayer, checkedHandler } from '#/engine/script/ScriptPointer.js';
 import { CommandHandlers } from '#/engine/script/ScriptRunner.js';
 import ScriptState from '#/engine/script/ScriptState.js';
 import { CategoryTypeValid, check, CoordValid, DurationValid, HitTypeValid, HuntTypeValid, HuntVisValid, NpcModeValid, NpcStatValid, NpcTypeValid, NumberNotNull, ParamTypeValid, QueueValid, SpotAnimTypeValid } from '#/engine/script/ScriptValidators.js';
@@ -124,7 +124,7 @@ const NpcOps: CommandHandlers = {
         }
 
         state.activePlayer = player;
-        state.pointerAdd(ScriptPointer.ActivePlayer);
+        state.pointerAdd(ActivePlayer[state.intOperand]);
         state.pushInt(1);
     }),
 
@@ -391,8 +391,12 @@ const NpcOps: CommandHandlers = {
 
     [ScriptOpcode.NPC_TELE]: checkedHandler(ActiveNpc, state => {
         const coord: CoordGrid = check(state.popInt(), CoordValid);
-
         state.activeNpc.teleport(coord.x, coord.z, coord.level);
+    }),
+
+    [ScriptOpcode.NPC_TELEJUMP]: checkedHandler(ActiveNpc, state => {
+        const coord: CoordGrid = check(state.popInt(), CoordValid);
+        state.activeNpc.teleJump(coord.x, coord.z, coord.level);
     }),
 
     // https://x.com/JagexAsh/status/1821835323808026853

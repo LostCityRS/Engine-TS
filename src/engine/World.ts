@@ -1063,6 +1063,7 @@ class World {
                 npc.nid,
                 npc.type,
                 npc.tele,
+                npc.jump,
                 npc.runDir,
                 npc.walkDir,
                 npc.isActive,
