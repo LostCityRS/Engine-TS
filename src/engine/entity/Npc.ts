@@ -978,8 +978,9 @@ export default class Npc extends PathingEntity {
 
     private getTrigger(): ScriptFile | null {
         const trigger: ServerTriggerType | null = this.getTriggerForMode(this.targetOp);
+        const type = NpcType.get(this.type);
         if (trigger) {
-            return ScriptProvider.getByTrigger(trigger, this.type, -1) ?? null;
+            return ScriptProvider.getByTrigger(trigger, this.type, type.category) ?? null;
         }
         return null;
     }
