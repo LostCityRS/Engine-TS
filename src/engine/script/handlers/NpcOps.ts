@@ -399,7 +399,6 @@ const NpcOps: CommandHandlers = {
         state.activeNpc.teleJump(coord.x, coord.z, coord.level);
     }),
 
-
     // https://x.com/JagexAsh/status/1821835323808026853
     // https://x.com/JagexAsh/status/1780932943038345562
     [ScriptOpcode.NPC_WALK]: checkedHandler(ActiveNpc, state => {
