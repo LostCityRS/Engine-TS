@@ -18,7 +18,7 @@ Once your setup process has completed, wait for it to tell you the world has sta
 
 ## Dependencies
 
-- [NodeJS 22](https://nodejs.org/)
+- [Bun 1.2](https://bun.sh)
 - [Java 17](https://adoptium.net/) - later LTS versions are also fine.
 
 > [!TIP]
@@ -31,10 +31,6 @@ Content developers should run `npm start`. The server will watch for changes to 
 Engine developers should run `npm run dev`. This does what `npm start` does above, but also completely restarts the server when engine code has changed.
 
 ## Common Issues
-
-* `bad option: --import`  
-
-You are using an older version of Node. Reinstall and re-run.
 
 * `'"java"' is not recognized as an internal or external command`  
 
