@@ -65,11 +65,16 @@
         </div>
     </center>
 
+    <script type="application/json" id="client-config">
+        <%- JSON.stringify({ nodeid, lowmem, members }) %>
+    </script>
     <script type="module">
         import { Client } from './client/dev.js';
 
+        const cfgEl = document.getElementById('client-config');
+        const cfg = cfgEl ? JSON.parse(cfgEl.textContent) : { nodeid: 0, lowmem: 0, members: 0 };
         (() => {
-            new Client(<%= nodeid %>, <%= lowmem %>, <%= members %>);
+            new Client(cfg.nodeid, cfg.lowmem, cfg.members);
         })();
     </script>
 </body>
