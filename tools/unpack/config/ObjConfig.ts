@@ -4,7 +4,7 @@ import { modelsHaveTexture } from '#/cache/graphics/Model.js';
 import ColorConversion from '#/util/ColorConversion.js';
 import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
-import { ModelPack, ObjPack, SeqPack, TexturePack } from '#/util/PackFile.js';
+import { ModelPack, ObjPack, SeqPack, TexturePack } from '#tools/pack/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 

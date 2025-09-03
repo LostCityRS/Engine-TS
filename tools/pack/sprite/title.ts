@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 import FileStream from '#/io/FileStream.js';
-import { convertImage } from '#/util/PixPack.js';
+import { convertImage } from '#tools/pack/PixPack.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import Jagfile from '#/io/Jagfile.js';

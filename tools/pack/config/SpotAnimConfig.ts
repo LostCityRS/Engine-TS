@@ -1,5 +1,5 @@
 import ColorConversion from '#/util/ColorConversion.js';
-import { ModelPack, SeqPack, SpotAnimPack } from '#/util/PackFile.js';
+import { ModelPack, SeqPack, SpotAnimPack } from '#tools/pack/PackFile.js';
 import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 
 export function parseSpotAnimConfig(key: string, value: string): ConfigValue | null | undefined {

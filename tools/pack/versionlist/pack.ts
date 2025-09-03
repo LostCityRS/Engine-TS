@@ -3,9 +3,9 @@ import fs from 'fs';
 import FileStream from '#/io/FileStream.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
-import { AnimPack, AnimSetPack, MapPack, MidiPack, ModelPack } from '#/util/PackFile.js';
+import { AnimPack, AnimSetPack, MapPack, MidiPack, ModelPack } from '#tools/pack/PackFile.js';
 import Environment from '#/util/Environment.js';
-import { fileExists } from '#/util/FsCache.js';
+import { fileExists } from '#tools/pack/FsCache.js';
 
 export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
     const versionlist = new Jagfile();

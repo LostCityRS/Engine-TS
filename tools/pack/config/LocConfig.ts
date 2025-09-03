@@ -1,7 +1,7 @@
 import ParamType from '#/cache/config/ParamType.js';
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import ColorConversion from '#/util/ColorConversion.js';
-import { CategoryPack, LocPack, ModelPack, SeqPack, TexturePack, VarbitPack, VarpPack } from '#/util/PackFile.js';
+import { CategoryPack, LocPack, ModelPack, SeqPack, TexturePack, VarbitPack, VarpPack } from '#tools/pack/PackFile.js';
 import { LocModelShape, ConfigValue, ConfigLine, ParamValue, PackedData, isConfigBoolean, getConfigBoolean, packStepError } from '#tools/pack/config/PackShared.js';
 import { lookupParamValue } from '#tools/pack/config/ParamConfig.js';
 

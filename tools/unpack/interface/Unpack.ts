@@ -5,8 +5,8 @@ import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printFatalError, printWarning } from '#/util/Logger.js';
-import { listFilesExt } from '#/util/Parse.js';
-import { InterfacePack, ModelPack, ObjPack, SeqPack, VarbitPack, VarpPack } from '#/util/PackFile.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
+import { InterfacePack, ModelPack, ObjPack, SeqPack, VarbitPack, VarpPack } from '#tools/pack/PackFile.js';
 
 function renameModel(id: number) {
     let model = ModelPack.getById(id);

@@ -3,7 +3,7 @@ import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import Pix from '#/cache/graphics/Pix.js';
-import { TexturePack } from '#/util/PackFile.js';
+import { TexturePack } from '#tools/pack/PackFile.js';
 
 const cache = new FileStream('data/unpack');
 const textures = new Jagfile(new Packet(cache.read(0, 6)!));

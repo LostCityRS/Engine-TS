@@ -4,8 +4,8 @@ import zlib from 'zlib';
 import FileStream from '#/io/FileStream.js';
 import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
-import { PackFile } from '#/util/PackFileBase.js';
-import { listFilesExt } from '#/util/Parse.js';
+import { PackFile } from '#tools/pack/PackFileBase.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
 
 export const ModelPack = new PackFile('model');
 

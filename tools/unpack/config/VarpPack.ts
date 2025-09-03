@@ -1,5 +1,5 @@
 import { printWarning } from '#/util/Logger.js';
-import { VarpPack } from '#/util/PackFile.js';
+import { VarpPack } from '#tools/pack/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 

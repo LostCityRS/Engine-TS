@@ -4,7 +4,7 @@ import { BlockWalk } from '#/engine/entity/BlockWalk.js';
 import { MoveRestrict } from '#/engine/entity/MoveRestrict.js';
 import { NpcMode } from '#/engine/entity/NpcMode.js';
 import ColorConversion from '#/util/ColorConversion.js';
-import { CategoryPack, HuntPack, ModelPack, NpcPack, SeqPack, VarbitPack, VarpPack } from '#/util/PackFile.js';
+import { CategoryPack, HuntPack, ModelPack, NpcPack, SeqPack, VarbitPack, VarpPack } from '#tools/pack/PackFile.js';
 import { ParamValue, ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 import { lookupParamValue } from '#tools/pack/config/ParamConfig.js';
 

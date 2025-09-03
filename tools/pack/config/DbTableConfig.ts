@@ -1,5 +1,5 @@
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
-import { DbTablePack } from '#/util/PackFile.js';
+import { DbTablePack } from '#tools/pack/PackFile.js';
 import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean, packStepError } from '#tools/pack/config/PackShared.js';
 import { lookupParamValue } from '#tools/pack/config/ParamConfig.js';
 

@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { listDir } from '#/util/FsCache.js';
+import { listDir } from '#tools/pack/FsCache.js';
 
 export function loadOrder(path: string) {
     if (!fs.existsSync(path)) {

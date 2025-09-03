@@ -1,5 +1,5 @@
 import InvType from '#/cache/config/InvType.js';
-import { InvPack, ObjPack } from '#/util/PackFile.js';
+import { InvPack, ObjPack } from '#tools/pack/PackFile.js';
 import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 
 export function parseInvConfig(key: string, value: string): ConfigValue | null | undefined {

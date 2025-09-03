@@ -3,7 +3,7 @@ import { WebSocket, WebSocketServer } from 'ws';
 import { db, toDbDate } from '#/db/query.js';
 import { FriendServerRepository } from '#/server/friend/FriendServerRepository.js';
 import InternalClient from '#/server/InternalClient.js';
-import { ChatModePrivate } from '#/util/ChatModes.js';
+import { ChatModePrivate } from '#/engine/entity/ChatModes.js';
 import Environment from '#/util/Environment.js';
 import { fromBase37, toBase37 } from '#/util/JString.js';
 import { printInfo } from '#/util/Logger.js';

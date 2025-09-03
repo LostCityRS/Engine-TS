@@ -1,4 +1,4 @@
-import { packClient, packServer } from '#/cache/PackAll.js';
+import { packClient, packServer } from '#tools/pack/PackAll.js';
 import Environment from '#/util/Environment.js';
 import { updateCompiler } from '#/util/RuneScriptCompiler.js';
 

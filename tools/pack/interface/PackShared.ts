@@ -1,8 +1,8 @@
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printError } from '#/util/Logger.js';
-import { loadDir, loadOrder } from '#/util/NameMap.js';
-import { InterfacePack, ModelPack, ObjPack, SeqPack, VarbitPack, VarpPack } from '#/util/PackFile.js';
+import { loadDir, loadOrder } from '#tools/pack/NameMap.js';
+import { InterfacePack, ModelPack, ObjPack, SeqPack, VarbitPack, VarpPack } from '#tools/pack/PackFile.js';
 
 function nameToType(name: string) {
     switch (name) {

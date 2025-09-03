@@ -5,7 +5,7 @@ import { parentPort } from 'worker_threads';
 // import * as fflate from 'fflate';
 
 import Environment from '#/util/Environment.js';
-import { ModelPack, revalidatePack } from '#/util/PackFile.js';
+import { ModelPack, revalidatePack } from '#tools/pack/PackFile.js';
 import { packClientWordenc } from '#tools/pack/chat/pack.js';
 import { packConfigs } from '#tools/pack/config/PackShared.js';
 import { packClientModel } from '#tools/pack/graphics/pack.js';
@@ -16,10 +16,10 @@ import { packClientSound } from '#tools/pack/sound/pack.js';
 import { packClientMedia } from '#tools/pack/sprite/media.js';
 import { packClientTexture } from '#tools/pack/sprite/textures.js';
 import { packClientTitle } from '#tools/pack/sprite/title.js';
-import { generateServerSymbols } from '#tools/pack/symbols.js';
+import { generateServerSymbols } from '#tools/pack/CompilerSymbols.js';
 import FileStream from '#/io/FileStream.js';
 import { packClientVersionList } from '#tools/pack/versionlist/pack.js';
-import { clearFsCache } from '#/util/FsCache.js';
+import { clearFsCache } from '#tools/pack/FsCache.js';
 
 export async function packClient(modelFlags: number[]) {
     if (parentPort) {

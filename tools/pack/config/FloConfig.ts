@@ -1,4 +1,4 @@
-import { FloPack, TexturePack } from '#/util/PackFile.js';
+import { FloPack, TexturePack } from '#tools/pack/PackFile.js';
 import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 
 export function parseFloConfig(key: string, value: string): ConfigValue | null | undefined {

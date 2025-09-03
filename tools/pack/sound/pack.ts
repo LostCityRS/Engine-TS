@@ -4,10 +4,10 @@ import path from 'path';
 import FileStream from '#/io/FileStream.js';
 import Packet from '#/io/Packet.js';
 import Jagfile from '#/io/Jagfile.js';
-import { listFilesExt } from '#/util/Parse.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
 import Environment from '#/util/Environment.js';
-import { loadOrder } from '#/util/NameMap.js';
-import { SynthPack } from '#/util/PackFile.js';
+import { loadOrder } from '#tools/pack/NameMap.js';
+import { SynthPack } from '#tools/pack/PackFile.js';
 
 export function packClientSound(cache: FileStream) {
     const order = loadOrder(`${Environment.BUILD_SRC_DIR}/pack/synth.order`);

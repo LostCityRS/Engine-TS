@@ -5,8 +5,8 @@ import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import FileStream from '#/io/FileStream.js';
-import { SynthPack } from '#/util/PackFile.js';
-import { listFilesExt } from '#/util/Parse.js';
+import { SynthPack } from '#tools/pack/PackFile.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
 import { printWarning } from '#/util/Logger.js';
 
 // let pack = '';

@@ -8,8 +8,7 @@ function rmIfExists(path: string) {
     }
 }
 
-// clean up server cache in case statSync.mtimeMs is not letting it update
-rmIfExists('data/pack/server/');
+rmIfExists('data/pack/');
 
 // clean up server packfiles, we can regen these safely, sometimes it can have old data inside
 rmIfExists(`${Environment.BUILD_SRC_DIR}/pack/category.pack`);

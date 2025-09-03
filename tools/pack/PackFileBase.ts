@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 import Environment from '#/util/Environment.js';
-import { loadFile } from '#/util/Parse.js';
+import { loadFile } from '#tools/pack/Parse.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PackFileValidator = (packfile: PackFile, ...args: any[]) => void;

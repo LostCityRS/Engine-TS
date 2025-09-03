@@ -2,7 +2,7 @@ import fs from 'fs';
 
 import { collectDefaultMetrics, register } from 'prom-client';
 
-import { packClient, packServer } from '#/cache/PackAll.js';
+import { packClient, packServer } from '#tools/pack/PackAll.js';
 import World from '#/engine/World.js';
 import TcpServer from '#/server/tcp/TcpServer.js';
 import Environment from '#/util/Environment.js';

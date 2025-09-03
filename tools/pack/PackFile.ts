@@ -2,9 +2,9 @@ import fs from 'fs';
 import { basename, dirname } from 'path';
 
 import Environment from '#/util/Environment.js';
-import { PackFile } from '#/util/PackFileBase.js';
-import { listFilesExt, loadDirExtFull } from '#/util/Parse.js';
-import { fileExists, fileStats } from '#/util/FsCache.js';
+import { PackFile } from '#tools/pack/PackFileBase.js';
+import { listFilesExt, loadDirExtFull } from '#tools/pack/Parse.js';
+import { fileExists, fileStats } from '#tools/pack/FsCache.js';
 // import { printWarning } from '#/util/Logger.js';
 
 function validateFilesPack(pack: PackFile, paths: string[], ext: string, verify: boolean = true): void {

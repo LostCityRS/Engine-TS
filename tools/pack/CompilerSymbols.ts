@@ -14,7 +14,7 @@ import { PlayerStatMap } from '#/engine/entity/PlayerStat.js';
 import { ScriptOpcodeMap } from '#/engine/script/ScriptOpcode.js';
 import ScriptOpcodePointers from '#/engine/script/ScriptOpcodePointers.js';
 import Environment from '#/util/Environment.js';
-import { loadDir, loadPack } from '#/util/NameMap.js';
+import { loadDir, loadPack } from '#tools/pack/NameMap.js';
 import VarBitType from '#/cache/config/VarBitType.js';
 
 export function generateServerSymbols() {

@@ -1,4 +1,4 @@
-import { VarbitPack, VarpPack } from '#/util/PackFile.js';
+import { VarbitPack, VarpPack } from '#tools/pack/PackFile.js';
 import { PackedData, ConfigValue, ConfigLine } from '#tools/pack/config/PackShared.js';
 
 export function parseVarbitConfig(key: string, value: string): ConfigValue | null | undefined {

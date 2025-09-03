@@ -5,7 +5,7 @@ import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { packInterface } from '#tools/pack/interface/PackShared.js';
-import { shouldBuild } from '#/util/PackFile.js';
+import { shouldBuild } from '#tools/pack/PackFile.js';
 
 export function packClientInterface(cache: FileStream, modelFlags: number[]) {
     const jag = new Jagfile();

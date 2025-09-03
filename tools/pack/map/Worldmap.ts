@@ -10,8 +10,8 @@ import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
-import { shouldBuildFile, shouldBuildFileAny } from '#/util/PackFile.js';
-import { convertImage } from '#/util/PixPack.js';
+import { shouldBuildFile, shouldBuildFileAny } from '#tools/pack/PackFile.js';
+import { convertImage } from '#tools/pack/PixPack.js';
 
 function packWater(underlay: Packet, overlay: Packet, mx: number, mz: number) {
     underlay.p1(mx);

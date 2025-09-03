@@ -4,9 +4,9 @@ import FileStream from '#/io/FileStream.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
-import { PackFile } from '#/util/PackFileBase.js';
-import { AnimSetPack } from '#/util/PackFile.js';
-import { listFilesExt } from '#/util/Parse.js';
+import { PackFile } from '#tools/pack/PackFileBase.js';
+import { AnimSetPack } from '#tools/pack/PackFile.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
 
 export const BasePack = new PackFile('base');
 export const FramePack = new PackFile('anim');

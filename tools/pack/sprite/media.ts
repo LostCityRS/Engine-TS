@@ -2,12 +2,12 @@ import fs from 'fs';
 import path from 'path';
 
 import FileStream from '#/io/FileStream.js';
-import { listFilesExt } from '#/util/Parse.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
 import Environment from '#/util/Environment.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
-import { convertImage } from '#/util/PixPack.js';
-import { fileExists } from '#/util/FsCache.js';
+import { convertImage } from '#tools/pack/PixPack.js';
+import { fileExists } from '#tools/pack/FsCache.js';
 
 export async function packClientMedia(cache: FileStream) {
     const index = Packet.alloc(3);

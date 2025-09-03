@@ -67,11 +67,11 @@ import VarpLarge from '#/network/game/server/model/VarpLarge.js';
 import VarpSmall from '#/network/game/server/model/VarpSmall.js';
 import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
-import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/util/ChatModes.js';
+import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/engine/entity/ChatModes.js';
 import Environment from '#/util/Environment.js';
 import { toDisplayName } from '#/util/JString.js';
 import LinkList from '#/util/LinkList.js';
-import { MidiPack } from '#/util/PackFile.js';
+import { MidiPack } from '#tools/pack/PackFile.js';
 import VarBitType from '#/cache/config/VarBitType.js';
 
 const levelExperience = new Int32Array(99);
@@ -1926,6 +1926,7 @@ export default class Player extends PathingEntity {
 
     // todo: make compiler do this at pack time
     playSong(name: string) {
+        // todo: don't rely on MidiPack (server should be runnable using only packed content)
         const id = MidiPack.getByName(name.toLowerCase().replaceAll(' ', '_'));
         if (id !== -1) {
             this.write(new MidiSong(id));
