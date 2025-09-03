@@ -97,6 +97,18 @@ export default class Jagfile {
         }
     }
 
+    has(name: string): boolean {
+        const hash: number = genHash(name);
+
+        for (let i: number = 0; i < this.fileCount; i++) {
+            if (this.fileHash[i] === hash) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     read(name: string): Packet | null {
         const hash: number = genHash(name);
 

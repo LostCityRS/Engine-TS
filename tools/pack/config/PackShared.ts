@@ -27,6 +27,7 @@ import { packVarnConfigs, parseVarnConfig } from '#tools/pack/config/VarnConfig.
 import { packVarpConfigs, parseVarpConfig } from '#tools/pack/config/VarpConfig.js';
 import { packVarsConfigs, parseVarsConfig } from '#tools/pack/config/VarsConfig.js';
 import { packVarbitConfigs, parseVarbitConfig } from './VarbitConfig.js';
+import FileStream from '#/io/FileStream.js';
 
 export function isConfigBoolean(input: string): boolean {
     return input === 'yes' || input === 'no' || input === 'true' || input === 'false' || input === '1' || input === '0';
@@ -258,7 +259,7 @@ export async function readConfigs(dirTree: Set<string>, extension: string, requi
 
 function noOp() {}
 
-export async function packConfigs(modelFlags: number[]) {
+export async function packConfigs(cache: FileStream, modelFlags: number[]) {
     CONSTANTS.clear();
 
     loadDir(`${Environment.BUILD_SRC_DIR}/scripts`, '.constant', src => {
@@ -678,4 +679,6 @@ export async function packConfigs(modelFlags: number[]) {
         // todo: check the CRC of config.jag as well? (as long as bz2 is identical)
         jag.save('data/pack/client/config');
     }
+
+    cache.write(0, 2, fs.readFileSync('data/pack/client/config'));
 }

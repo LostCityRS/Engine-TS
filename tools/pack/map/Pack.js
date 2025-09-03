@@ -108,6 +108,10 @@ export function packMaps(cache) {
         fs.mkdirSync('data/pack/client/maps', { recursive: true });
     }
 
+    if (!fs.existsSync('data/pack/server/maps')) {
+        fs.mkdirSync('data/pack/server/maps', { recursive: true });
+    }
+
     for (const file of maps) {
         const basename = path.basename(file, path.extname(file));
         const [mapX, mapZ] = basename.slice(1).split('_');

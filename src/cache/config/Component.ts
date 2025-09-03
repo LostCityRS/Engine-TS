@@ -1,6 +1,7 @@
 import fs from 'fs';
 
 import Packet from '#/io/Packet.js';
+import Jagfile from '#/io/Jagfile.js';
 
 export default class Component {
     static TYPE_LAYER: number = 0;
@@ -24,25 +25,22 @@ export default class Component {
     private static components: Component[] = [];
 
     static load(dir: string): void {
-        if (!fs.existsSync(`${dir}/server/interface.dat`)) {
+        if (!fs.existsSync(`${dir}/client/interface`)) {
             return;
         }
 
-        const dat = Packet.load(`${dir}/server/interface.dat`);
-        this.parse(dat);
-    }
-
-    static async loadAsync(dir: string): Promise<void> {
-        const file = await fetch(`${dir}/server/interface.dat`);
-        if (!file.ok) {
+        const client = new Jagfile(Packet.load(`${dir}/client/interface`));
+        if (!client.has('data')) {
             return;
         }
 
-        const dat = new Packet(new Uint8Array(await file.arrayBuffer()));
-        this.parse(dat);
+        this.decode(client.read('data')!);
+
+        const server = Packet.load(`${dir}/server/interface.dat`);
+        this.decodeExtra(server);
     }
 
-    static parse(dat: Packet) {
+    static decode(dat: Packet) {
         this.componentNames = new Map();
         this.components = [];
 
@@ -59,9 +57,6 @@ export default class Component {
             const com = new Component();
             com.id = id;
             com.rootLayer = rootLayer;
-
-            com.comName = dat.gjstr();
-            com.overlay = dat.gbool();
 
             com.comType = dat.g1();
             com.buttonType = dat.g1();
@@ -243,10 +238,22 @@ export default class Component {
             }
 
             Component.components[id] = com;
+        }
+    }
 
-            if (com.comName) {
-                Component.componentNames.set(com.comName, id);
-            }
+    // custom
+    static decodeExtra(dat: Packet) {
+        dat.g2(); // count
+
+        while (dat.available > 0) {
+            const id = dat.g2();
+            const debugname = dat.gjstr();
+            const overlay = dat.gbool();
+
+            Component.components[id].comName = debugname;
+            Component.components[id].overlay = overlay;
+
+            Component.componentNames.set(debugname, id);
         }
     }
 

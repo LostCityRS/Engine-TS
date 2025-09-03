@@ -22,8 +22,8 @@ async function processChangedFiles() {
 
     try {
         const modelFlags: number[] = [];
-        await packServer(modelFlags);
         await packClient(modelFlags);
+        await packServer();
 
         if (parentPort) {
             parentPort.postMessage({
