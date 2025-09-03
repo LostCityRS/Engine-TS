@@ -4,9 +4,8 @@ import path from 'path';
 import { compressGz } from '#/io/GZip.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
-import { MapPack } from '#/util/PackFile.js';
+import { MapPack, shouldBuildFile } from '#/util/PackFile.js';
 import { listFilesExt } from '#/util/Parse.js';
-import { fileExists } from '#/util/FsCache.js';
 
 function readMap(map) {
     let land = [];
@@ -123,9 +122,15 @@ export function packMaps(cache) {
         const serverNpcFile = `data/pack/server/maps/n${mapX}_${mapZ}`;
         const serverObjFile = `data/pack/server/maps/o${mapX}_${mapZ}`;
 
+        const packerUpdated = shouldBuildFile(__filename, mapFile);
+
         let data = null;
         let map = null;
-        if (!fileExists(mapFile) || !fileExists(locFile)) {
+        if (
+            packerUpdated ||
+            shouldBuildFile(file, mapFile) || shouldBuildFile(file, locFile) ||
+            shouldBuildFile(file, serverNpcFile) || shouldBuildFile(file, serverLocFile)
+        ) {
             data = fs
                 .readFileSync(file, 'utf8')
                 .replace(/\r/g, '')
@@ -135,7 +140,7 @@ export function packMaps(cache) {
         }
 
         // encode land data
-        if (!fileExists(mapFile) || !fileExists(serverMapFile)) {
+        if (packerUpdated || shouldBuildFile(file, mapFile) || shouldBuildFile(file, serverMapFile)) {
             let levelHeightmap = [];
             let levelTileOverlayIds = [];
             let levelTileOverlayShape = [];
@@ -276,7 +281,7 @@ export function packMaps(cache) {
         }
 
         // encode loc data
-        if (!fileExists(locFile) || !fileExists(serverLocFile)) {
+        if (packerUpdated || shouldBuildFile(file, locFile) || shouldBuildFile(file, serverLocFile)) {
             let locs = {};
 
             for (let level = 0; level < 4; level++) {
@@ -296,26 +301,26 @@ export function packMaps(cache) {
 
                         let tile = map.loc[level][x][z];
                         for (let i = 0; i < tile.length; i++) {
-                            let [id, type, rotation] = tile[i];
+                            let [id, shape, angle] = tile[i];
 
                             if (!locs[id]) {
                                 locs[id] = [];
                             }
 
-                            if (typeof type === 'undefined') {
-                                type = 10;
+                            if (typeof shape === 'undefined') {
+                                shape = 10;
                             }
 
-                            if (typeof rotation === 'undefined') {
-                                rotation = 0;
+                            if (typeof angle === 'undefined') {
+                                angle = 0;
                             }
 
                             locs[id].push({
                                 level,
                                 x,
                                 z,
-                                type: Number(type),
-                                rotation: Number(rotation)
+                                shape: Number(shape),
+                                angle: Number(angle)
                             });
                         }
                     }
@@ -342,7 +347,7 @@ export function packMaps(cache) {
                     out.psmart(currentLocData - lastLocData + 1);
                     lastLocData = currentLocData;
 
-                    let locInfo = (loc.type << 2) | loc.rotation;
+                    let locInfo = (loc.shape << 2) | loc.angle;
                     out.p1(locInfo);
                 }
 
@@ -356,7 +361,7 @@ export function packMaps(cache) {
             out.release();
         }
 
-        if (!fileExists(serverNpcFile)) {
+        if (packerUpdated || shouldBuildFile(file, serverNpcFile)) {
             let out = Packet.alloc(1);
 
             for (let level = 0; level < 4; level++) {
@@ -391,7 +396,7 @@ export function packMaps(cache) {
             out.release();
         }
 
-        if (!fileExists(serverObjFile)) {
+        if (packerUpdated || shouldBuildFile(file, serverObjFile)) {
             let out = Packet.alloc(1);
 
             for (let level = 0; level < 4; level++) {
