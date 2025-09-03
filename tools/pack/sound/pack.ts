@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 
 import FileStream from '#/io/FileStream.js';
-import { printError } from '#/util/Logger.js';
 import Packet from '#/io/Packet.js';
 import Jagfile from '#/io/Jagfile.js';
 import { listFilesExt } from '#/util/Parse.js';
@@ -14,16 +13,28 @@ export function packClientSound(cache: FileStream) {
     const order = loadOrder(`${Environment.BUILD_SRC_DIR}/pack/synth.order`);
     const files = listFilesExt(`${Environment.BUILD_SRC_DIR}/synth`, '.synth');
 
+    const nameToFile = new Map();
+    for (const file of files) {
+        const name = path.basename(file, path.extname(file));
+        const id = SynthPack.getByName(name);
+        if (id === -1) {
+            continue;
+        }
+
+        nameToFile.set(name, file);
+    }
+
     const jag = new Jagfile();
 
     const out = Packet.alloc(5);
-    for (let i = 0; i < order.length; i++) {
-        const id = Number(order[i]);
+    for (const id of order) {
         const name = SynthPack.getById(id);
+        if (!name) {
+            continue;
+        }
 
-        const file = files.find(file => path.basename(file, path.extname(file)) === name);
+        const file = nameToFile.get(name);
         if (!file) {
-            printError('missing synth file ' + id + ' ' + name);
             continue;
         }
 
