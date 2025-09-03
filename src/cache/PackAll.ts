@@ -11,8 +11,7 @@ import { packConfigs } from '#tools/pack/config/PackShared.js';
 import { packClientModel } from '#tools/pack/graphics/pack.js';
 import { packClientInterface } from '#tools/pack/interface/PackClient.js';
 import { packServerInterface } from '#tools/pack/interface/PackServer.js';
-import { packClientMap } from '#tools/pack/map/PackClient.js';
-import { packServerMap } from '#tools/pack/map/PackServer.js';
+import { packMaps } from '#tools/pack/map/Pack.js';
 import { packClientMusic } from '#tools/pack/midi/pack.js';
 import { packClientSound } from '#tools/pack/sound/pack.js';
 import { packClientMedia } from '#tools/pack/sprite/media.js';
@@ -21,7 +20,7 @@ import { packClientTitle } from '#tools/pack/sprite/title.js';
 import { generateServerSymbols } from '#tools/pack/symbols.js';
 import FileStream from '#/io/FileStream.js';
 import { packClientVersionList } from '#tools/pack/versionlist/pack.js';
-import { clearDirCache } from '#/util/NameMap.js';
+import { clearFsCache } from '#/util/FsCache.js';
 
 export async function packServer(modelFlags: number[]) {
     if (!fs.existsSync('RuneScriptCompiler.jar')) {
@@ -35,7 +34,7 @@ export async function packServer(modelFlags: number[]) {
         });
     }
 
-    clearDirCache();
+    clearFsCache();
     revalidatePack();
 
     for (let i = 0; i < ModelPack.max; i++) {
@@ -44,7 +43,6 @@ export async function packServer(modelFlags: number[]) {
 
     await packConfigs(modelFlags);
     packServerInterface(modelFlags);
-    packServerMap();
 
     generateServerSymbols();
 
@@ -91,7 +89,7 @@ export async function packClient(modelFlags: number[]) {
     packClientWordenc(cache);
     packClientSound(cache);
     packClientModel(cache);
-    packClientMap(cache);
+    packMaps(cache);
     packClientMusic(cache);
     packClientVersionList(cache, modelFlags);
 

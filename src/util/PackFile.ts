@@ -4,6 +4,7 @@ import { basename, dirname } from 'path';
 import Environment from '#/util/Environment.js';
 import { PackFile } from '#/util/PackFileBase.js';
 import { listFilesExt, loadDirExtFull } from '#/util/Parse.js';
+import { fileExists, fileStats } from '#/util/FsCache.js';
 // import { printWarning } from '#/util/Logger.js';
 
 function validateFilesPack(pack: PackFile, paths: string[], ext: string, verify: boolean = true): void {
@@ -342,11 +343,11 @@ function crawlConfigCategories() {
 }
 
 export function getModified(path: string) {
-    if (!fs.existsSync(path)) {
+    if (!fileExists(path)) {
         return 0;
     }
 
-    const stats = fs.statSync(path);
+    const stats = fileStats(path);
     return stats.mtimeMs;
 }
 
@@ -356,7 +357,7 @@ export function getLatestModified(path: string, ext: string) {
     let latest = 0;
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const stats = fs.statSync(file);
+        const stats = fileStats(file);
 
         if (stats.mtimeMs > latest) {
             latest = stats.mtimeMs;
@@ -367,29 +368,29 @@ export function getLatestModified(path: string, ext: string) {
 }
 
 export function shouldBuild(path: string, ext: string, out: string) {
-    if (!fs.existsSync(out)) {
+    if (!fileExists(out)) {
         return true;
     }
 
-    const stats = fs.statSync(out);
+    const stats = fileStats(out);
     const latest = getLatestModified(path, ext);
 
     return stats.mtimeMs < latest;
 }
 
 export function shouldBuildFile(src: string, dest: string) {
-    if (!fs.existsSync(dest)) {
+    if (!fileExists(dest)) {
         return true;
     }
 
-    const stats = fs.statSync(dest);
-    const srcStats = fs.statSync(src);
+    const stats = fileStats(dest);
+    const srcStats = fileStats(src);
 
     return stats.mtimeMs < srcStats.mtimeMs;
 }
 
 export function shouldBuildFileAny(path: string, dest: string) {
-    if (!fs.existsSync(dest)) {
+    if (!fileExists(dest)) {
         return true;
     }
 
