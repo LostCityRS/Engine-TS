@@ -6,6 +6,7 @@ import forge from 'node-forge';
 
 import DoublyLinkable from '#/util/DoublyLinkable.js';
 import Environment from '#/util/Environment.js';
+import { toBlobPart } from '#/util/blob.js';
 import LinkList from '#/util/LinkList.js';
 
 import PrivateKey = forge.pki.rsa.PrivateKey;
@@ -182,7 +183,7 @@ export default class Packet extends DoublyLinkable {
 
     save(filePath: string, length: number = this.pos, start: number = 0): void {
         if (Environment.STANDALONE_BUNDLE) {
-            const blob = new Blob([this.data.subarray(start, start + length)], { type: 'application/octet-stream' });
+            const blob = new Blob([toBlobPart(this.data.subarray(start, start + length))], { type: 'application/octet-stream' });
             const url = URL.createObjectURL(blob);
             self.postMessage({ type: 'save', value: url, path: filePath });
         } else {

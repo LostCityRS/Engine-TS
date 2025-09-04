@@ -12,6 +12,7 @@ import WSClientSocket from '#/server/ws/WSClientSocket.js';
 import Environment from '#/util/Environment.js';
 import OnDemand from '#/engine/OnDemand.js';
 import { tryParseInt } from '#/util/TryParse.js';
+import { toBlobPart } from '#/util/blob.js';
 import { getPublicPerDeploymentToken } from '#/io/PemUtil.js';
 
 function getIp(req: Request) {
@@ -53,7 +54,7 @@ export async function startWeb() {
 
             // Helper: normalize Uint8Array | null into a Response body
             const asBody = (bytes: Uint8Array | null): Blob | null =>
-                bytes ? new Blob([bytes]) : null;
+                bytes ? new Blob([toBlobPart(bytes)]) : null;
 
             if (url.pathname === '/') {
                 const upgraded = server.upgrade(req, {
@@ -69,7 +70,7 @@ export async function startWeb() {
 
                 return new Response(null, { status: 404 });
             } else if (url.pathname.startsWith('/crc')) {
-                return new Response(new Blob([CrcBuffer.data]));
+                return new Response(new Blob([toBlobPart(CrcBuffer.data)]));
             } else if (url.pathname.startsWith('/title')) {
                 return new Response(asBody(OnDemand.cache.read(0, 1)));
             } else if (url.pathname.startsWith('/config')) {
@@ -87,7 +88,7 @@ export async function startWeb() {
             } else if (url.pathname.startsWith('/sounds')) {
                 return new Response(asBody(OnDemand.cache.read(0, 8)));
             } else if (url.pathname.startsWith('/ondemand.zip')) {
-                return new Response(new Blob([await Bun.file('data/pack/ondemand.zip').bytes()]));
+                return new Response(new Blob([toBlobPart(await Bun.file('data/pack/ondemand.zip').bytes())]));
             } else if (url.pathname === '/rs2.cgi') {
                 const plugin = tryParseInt(url.searchParams.get('plugin'), 0);
                 const lowmem = tryParseInt(url.searchParams.get('lowmem'), 0);
@@ -116,7 +117,7 @@ export async function startWeb() {
                     });
                 }
             } else if (fs.existsSync(`public${url.pathname}`)) {
-                return new Response(new Blob([await Bun.file(`public${url.pathname}`).bytes()]), {
+                return new Response(new Blob([toBlobPart(await Bun.file(`public${url.pathname}`).bytes())]), {
                     headers: {
                         'Content-Type': MIME_TYPES.get(path.extname(url.pathname ?? '')) ?? 'text/plain'
                     }
