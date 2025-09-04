@@ -50,13 +50,10 @@ export async function startWeb() {
         port: Environment.WEB_PORT,
         async fetch(req, server) {
             const url = getRequestUrl(req);
-<<<<<<< HEAD
-=======
 
             // Helper: normalize Uint8Array | null into a Response body
             const asBody = (bytes: Uint8Array | null): Blob | null =>
                 bytes ? new Blob([bytes]) : null;
->>>>>>> 46b35e768fc60895945faea5464fb995dd796401
 
             if (url.pathname === '/') {
                 const upgraded = server.upgrade(req, {

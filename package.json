@@ -23,7 +23,7 @@
     "logger": "bun run src/logger.ts",
     "login": "bun run src/login.ts",
     "precommit": "prettier . --write && eslint src --fix",
-    "prepare": "husky",
+    "prepare": "bun run tools/husky/prepare.ts",
     "quickstart": "bun run src/app.ts",
     "setup": "bun run tools/server/setup.ts",
     "sqlite:migrate": "prisma migrate deploy --schema prisma/singleworld/schema.prisma",
