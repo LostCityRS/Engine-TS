@@ -45,8 +45,7 @@ export function packClientSound(cache: FileStream) {
     out.p2(-1);
 
     if (Environment.BUILD_VERIFY && !Packet.checkcrc(out.data, 0, out.pos, -1571022674)) {
-        console.error('.synth checksum mismatch!\nYou can disable this safety check by setting BUILD_VERIFY=false');
-        process.exit(1);
+        throw new Error('.synth checksum mismatch!\nYou can disable this safety check by setting BUILD_VERIFY=false');
     }
 
     jag.write('sounds.dat', out);

@@ -17,8 +17,7 @@ export function packClientInterface(cache: FileStream, modelFlags: number[]) {
         const { client, server } = packInterface(modelFlags);
 
         if (Environment.BUILD_VERIFY && !Packet.checkcrc(client.data, 0, client.pos, 1151502861)) {
-            console.error('.if checksum mismatch!\nYou can disable this safety check by setting BUILD_VERIFY=false');
-            process.exit(1);
+            throw new Error('.if checksum mismatch!\nYou can disable this safety check by setting BUILD_VERIFY=false');
         }
 
         jag.write('data', client);

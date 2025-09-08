@@ -14,9 +14,9 @@ import { LocModels, LocShapeSuffix, unpackLocConfig, unpackLocModels } from './L
 import { unpackObjConfig } from './ObjConfig.js';
 import { unpackIdkConfig } from './IdkConfig.js';
 import { unpackFloConfig } from './FloConfig.js';
-import { unpackVarpConfig } from './VarpPack.js';
-import { unpackVarbitConfig } from './VarbitPack.js';
-import { unpackSpotAnimType } from './SpotAnimType.js';
+import { unpackVarpConfig } from './VarpConfig.js';
+import { unpackVarbitConfig } from './VarbitConfig.js';
+import { unknownSpotAnimConfig } from './SpotAnimConfig.js';
 import Model from '#/cache/graphics/Model.js';
 
 function readConfigIdx(idx: Packet | null, dat: Packet | null): ConfigIdx {
@@ -343,7 +343,7 @@ function unpackConfigs(revision: string) {
 
     unpackConfig(revision, 'loc', unpackLocConfig, config, config2);
     unpackConfig(revision, 'obj', unpackObjConfig, config, config2);
-    unpackConfig(revision, 'spotanim', unpackSpotAnimType, config, config2);
+    unpackConfig(revision, 'spotanim', unknownSpotAnimConfig, config, config2);
     unpackConfig(revision, 'idk', unpackIdkConfig, config, config2);
     unpackConfig(revision, 'npc', unpackNpcConfig, config, config2);
     unpackConfig(revision, 'seq', unpackSeqConfig, config, config2);

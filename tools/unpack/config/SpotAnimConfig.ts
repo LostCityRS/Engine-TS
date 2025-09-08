@@ -34,7 +34,7 @@ function renameModel(id: number, name: string) {
     return model;
 }
 
-export function unpackSpotAnimType(config: ConfigIdx, id: number): string[] {
+export function unknownSpotAnimConfig(config: ConfigIdx, id: number): string[] {
     const { dat, pos, len } = config;
 
     const debugname = SpotAnimPack.getById(id);
@@ -95,7 +95,7 @@ export function unpackSpotAnimType(config: ConfigIdx, id: number): string[] {
 
             recolDst[index] = recol;
         } else {
-            printWarning(`unknown varbit code ${code}`);
+            printWarning(`unknown spotanim code ${code}`);
         }
     }
 

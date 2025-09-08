@@ -14,7 +14,7 @@ try {
     console.timeEnd('pack');
 } catch (err) {
     if (err instanceof Error) {
-        console.log(err);
+        console.log(err.message);
     }
 
     process.exit(1);
