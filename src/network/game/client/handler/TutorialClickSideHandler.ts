@@ -2,10 +2,10 @@ import Player from '#/engine/entity/Player.js';
 import ScriptProvider from '#/engine/script/ScriptProvider.js';
 import ScriptRunner from '#/engine/script/ScriptRunner.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import TutorialClickSide from '#/network/game/client/model/TutorialClickSide.js';
 
-export default class TutorialClickSideHandler extends MessageHandler<TutorialClickSide> {
+export default class TutorialClickSideHandler extends ClientGameMessageHandler<TutorialClickSide> {
     handle(message: TutorialClickSide, player: Player): boolean {
         const { tab } = message;
 

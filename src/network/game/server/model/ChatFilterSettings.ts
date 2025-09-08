@@ -1,9 +1,9 @@
-import { ServerProtPriority } from '#/network/game/server/codec/ServerProtPriority.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import { ServerGameProtPriority } from '#/network/game/server/ServerGameProtPriority.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/engine/entity/ChatModes.js';
 
-export default class ChatFilterSettings extends OutgoingMessage {
-    priority = ServerProtPriority.IMMEDIATE;
+export default class ChatFilterSettings extends ServerGameMessage {
+    priority = ServerGameProtPriority.IMMEDIATE;
 
     constructor(
         readonly publicChat: ChatModePublic,

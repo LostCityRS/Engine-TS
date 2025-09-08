@@ -1,8 +1,8 @@
-import { ServerProtPriority } from '#/network/game/server/codec/ServerProtPriority.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import { ServerGameProtPriority } from '#/network/game/server/ServerGameProtPriority.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 
-export default class IfSetPlayerHead extends OutgoingMessage {
-    priority = ServerProtPriority.BUFFERED;
+export default class IfSetPlayerHead extends ServerGameMessage {
+    priority = ServerGameProtPriority.BUFFERED;
 
     constructor(readonly component: number) {
         super();

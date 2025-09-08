@@ -1,8 +1,8 @@
-import { ServerProtPriority } from '../codec/ServerProtPriority.js';
-import OutgoingMessage from '../OutgoingMessage.js';
+import { ServerGameProtPriority } from '../ServerGameProtPriority.js';
+import ServerGameMessage from '../ServerGameMessage.js';
 
-export default class SetPlayerOp extends OutgoingMessage {
-    priority = ServerProtPriority.IMMEDIATE;
+export default class SetPlayerOp extends ServerGameMessage {
+    priority = ServerGameProtPriority.IMMEDIATE;
 
     constructor(
         readonly op: number,

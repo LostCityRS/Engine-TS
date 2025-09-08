@@ -45,7 +45,7 @@ import ScriptState from '#/engine/script/ScriptState.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
 import Packet from '#/io/Packet.js';
-import { ServerProtPriority } from '#/network/game/server/codec/ServerProtPriority.js';
+import { ServerGameProtPriority } from '#/network/game/server/ServerGameProtPriority.js';
 import ChatFilterSettings from '#/network/game/server/model/ChatFilterSettings.js';
 import HintArrow from '#/network/game/server/model/HintArrow.js';
 import IfClose from '#/network/game/server/model/IfClose.js';
@@ -65,7 +65,7 @@ import UpdateRunEnergy from '#/network/game/server/model/UpdateRunEnergy.js';
 import UpdateStat from '#/network/game/server/model/UpdateStat.js';
 import VarpLarge from '#/network/game/server/model/VarpLarge.js';
 import VarpSmall from '#/network/game/server/model/VarpSmall.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/engine/entity/ChatModes.js';
 import Environment from '#/util/Environment.js';
@@ -343,7 +343,7 @@ export default class Player extends PathingEntity {
     preventLogoutUntil: number = -1;
 
     // not stored as a byte buffer so we can write and encrypt opcodes later
-    buffer: OutgoingMessage[] = [];
+    buffer: ServerGameMessage[] = [];
     lastResponse: number = -1;
     lastConnected: number = -1;
 
@@ -2135,12 +2135,12 @@ export default class Player extends PathingEntity {
         }
     }
 
-    write(message: OutgoingMessage) {
+    write(message: ServerGameMessage) {
         if (!isClientConnected(this)) {
             return;
         }
 
-        if (message.priority === ServerProtPriority.IMMEDIATE) {
+        if (message.priority === ServerGameProtPriority.IMMEDIATE) {
             this.writeInner(message);
         } else {
             this.buffer.push(message);
