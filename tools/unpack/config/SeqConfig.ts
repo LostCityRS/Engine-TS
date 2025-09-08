@@ -123,7 +123,7 @@ export function unpackSeqConfig(config: ConfigIdx, id: number): string[] {
             }
             def.push(`duplicatebehavior=${op}`);
         } else if (code === 12) {
-            const code12 = dat.g4();
+            const code12 = dat.g4s();
             def.push(`code12=${code12}`);
         } else {
             printWarning(`unknown seq code ${code}`);
