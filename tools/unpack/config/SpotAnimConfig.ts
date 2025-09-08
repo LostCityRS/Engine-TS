@@ -34,7 +34,7 @@ function renameModel(id: number, name: string) {
     return model;
 }
 
-export function unknownSpotAnimConfig(config: ConfigIdx, id: number): string[] {
+export function unpackSpotAnimConfig(config: ConfigIdx, id: number): string[] {
     const { dat, pos, len } = config;
 
     const debugname = SpotAnimPack.getById(id);

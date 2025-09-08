@@ -1,10 +1,10 @@
 import Packet from '#/io/Packet.js';
-import ZoneProt from '#/network/game/server/codec/ZoneProt.js';
+import ServerGameZoneProt from '#/network/game/server/ServerGameZoneProt.js';
 import ServerGameZoneMessageEncoder from '#/network/game/server/ServerGameZoneMessageEncoder.js';
 import LocAnim from '#/network/game/server/model/LocAnim.js';
 
 export default class LocAnimEncoder extends ServerGameZoneMessageEncoder<LocAnim> {
-    prot = ZoneProt.LOC_ANIM;
+    prot = ServerGameZoneProt.LOC_ANIM;
 
     encode(buf: Packet, message: LocAnim): void {
         buf.p2(message.seq);

@@ -1,10 +1,10 @@
 import Packet from '#/io/Packet.js';
-import ZoneProt from '#/network/game/server/codec/ZoneProt.js';
+import ServerGameZoneProt from '#/network/game/server/ServerGameZoneProt.js';
 import ServerGameZoneMessageEncoder from '#/network/game/server/ServerGameZoneMessageEncoder.js';
 import LocMerge from '#/network/game/server/model/LocMerge.js';
 
 export default class LocMergeEncoder extends ServerGameZoneMessageEncoder<LocMerge> {
-    prot = ZoneProt.LOC_MERGE;
+    prot = ServerGameZoneProt.LOC_MERGE;
 
     encode(buf: Packet, message: LocMerge): void {
         buf.p2(message.locId);

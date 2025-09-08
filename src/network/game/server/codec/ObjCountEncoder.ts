@@ -1,10 +1,10 @@
 import Packet from '#/io/Packet.js';
-import ZoneProt from '#/network/game/server/codec/ZoneProt.js';
+import ServerGameZoneProt from '#/network/game/server/ServerGameZoneProt.js';
 import ServerGameZoneMessageEncoder from '#/network/game/server/ServerGameZoneMessageEncoder.js';
 import ObjCount from '#/network/game/server/model/ObjCount.js';
 
 export default class ObjCountEncoder extends ServerGameZoneMessageEncoder<ObjCount> {
-    prot = ZoneProt.OBJ_COUNT;
+    prot = ServerGameZoneProt.OBJ_COUNT;
 
     encode(buf: Packet, message: ObjCount): void {
         buf.p1(message.coord);

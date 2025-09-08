@@ -1,10 +1,10 @@
 import Packet from '#/io/Packet.js';
-import ZoneProt from '#/network/game/server/codec/ZoneProt.js';
+import ServerGameZoneProt from '#/network/game/server/ServerGameZoneProt.js';
 import ServerGameZoneMessageEncoder from '#/network/game/server/ServerGameZoneMessageEncoder.js';
 import ObjAdd from '#/network/game/server/model/ObjAdd.js';
 
 export default class ObjAddEncoder extends ServerGameZoneMessageEncoder<ObjAdd> {
-    prot = ZoneProt.OBJ_ADD;
+    prot = ServerGameZoneProt.OBJ_ADD;
 
     encode(buf: Packet, message: ObjAdd): void {
         buf.p2(message.obj);

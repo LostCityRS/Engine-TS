@@ -1,10 +1,10 @@
 import Packet from '#/io/Packet.js';
-import ZoneProt from '#/network/game/server/codec/ZoneProt.js';
+import ServerGameZoneProt from '#/network/game/server/ServerGameZoneProt.js';
 import ServerGameZoneMessageEncoder from '#/network/game/server/ServerGameZoneMessageEncoder.js';
 import MapProjAnim from '#/network/game/server/model/MapProjAnim.js';
 
 export default class MapProjAnimEncoder extends ServerGameZoneMessageEncoder<MapProjAnim> {
-    prot = ZoneProt.MAP_PROJANIM;
+    prot = ServerGameZoneProt.MAP_PROJANIM;
 
     // variables fully broken out for now
     //coord $from, coord $to, spotanim $spotanim, int $fromHeight, int $toHeight, int $startDelay, int $endDelay, int $peak, int $arc
