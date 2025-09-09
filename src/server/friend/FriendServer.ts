@@ -461,15 +461,13 @@ export class FriendServer {
     private async sendIgnoreListToPlayer(profile: string, username37: bigint, socket: WebSocket) {
         const playerIgnores = await this.repositories[profile].getIgnores(username37);
 
-        if (playerIgnores.length > 0) {
-            socket.send(
-                JSON.stringify({
-                    type: FriendsServerOpcodes.UPDATE_IGNORELIST,
-                    username37: username37.toString(),
-                    ignored: playerIgnores.map(i => i.toString())
-                })
-            );
-        }
+        socket.send(
+            JSON.stringify({
+                type: FriendsServerOpcodes.UPDATE_IGNORELIST,
+                username37: username37.toString(),
+                ignored: playerIgnores.map(i => i.toString())
+            })
+        );
     }
 
     private async broadcastWorldToFollowers(profile: string, username37: bigint) {
