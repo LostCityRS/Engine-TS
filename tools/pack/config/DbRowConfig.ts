@@ -82,96 +82,100 @@ export function parseDbRowConfig(key: string, value: string): ConfigValue | null
 }
 
 export function packDbRowConfigs(configs: Map<string, ConfigLine[]>): { client: PackedData; server: PackedData } {
-    const client: PackedData = new PackedData(DbRowPack.size);
-    const server: PackedData = new PackedData(DbRowPack.size);
+    const client: PackedData = new PackedData(DbRowPack.max);
+    const server: PackedData = new PackedData(DbRowPack.max);
 
-    for (let id = 0; id < DbRowPack.size; id++) {
+    for (let id = 0; id < DbRowPack.max; id++) {
         const debugname = DbRowPack.getById(id);
-        const config = configs.get(debugname)!;
+        const config = configs.get(debugname);
 
-        let table = null;
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
+        if (config) {
+            let table = null;
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
 
-            if (key === 'table') {
-                table = DbTableType.get(value as number);
+                if (key === 'table') {
+                    table = DbTableType.get(value as number);
+                }
             }
-        }
 
-        if (!table) {
-            throw packStepError(debugname, 'No table defined for dbrow');
-        }
-
-        const data = [];
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
-
-            if (key === 'data') {
-                // values have a few rules:
-                // 1) the format is data=column,value,value,value,value,value
-                // 2) the first value is the column name
-                // 3) the rest of the values are the values for that column, in order
-                // 4) if a string has a comma in it, it must be quoted
-                const parts = parseCsv(value as string);
-                const column = parts.shift();
-                const values = parts;
-
-                data.push({ column, values });
+            if (!table) {
+                throw packStepError(debugname, 'No table defined for dbrow');
             }
-        }
 
-        if (data.length) {
-            server.p1(3);
+            const data = [];
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
 
-            server.p1(table.types.length);
-            for (let i = 0; i < table.types.length; i++) {
-                server.p1(i);
+                if (key === 'data') {
+                    // values have a few rules:
+                    // 1) the format is data=column,value,value,value,value,value
+                    // 2) the first value is the column name
+                    // 3) the rest of the values are the values for that column, in order
+                    // 4) if a string has a comma in it, it must be quoted
+                    const parts = parseCsv(value as string);
+                    const column = parts.shift();
+                    const values = parts;
 
-                const types = table.types[i];
-                server.p1(types.length);
-                for (let j = 0; j < types.length; j++) {
-                    server.p1(types[j]);
+                    data.push({ column, values });
                 }
+            }
 
-                const columnName = table.columnNames[i];
-                const fields = data.filter(d => d.column === columnName);
-                const props = table.props[i];
+            if (data.length) {
+                server.p1(3);
 
-                if ((props & DbTableType.REQUIRED) !== 0 && !fields.length) {
-                    throw packStepError(debugname, `${columnName} column is marked REQUIRED, please add data for it`);
-                }
+                server.p1(table.types.length);
+                for (let i = 0; i < table.types.length; i++) {
+                    server.p1(i);
 
-                if ((props & DbTableType.LIST) === 0 && fields.length > 1) {
-                    throw packStepError(debugname, `${columnName} column has multiple data values but is not marked as LIST`);
-                }
+                    const types = table.types[i];
+                    server.p1(types.length);
+                    for (let j = 0; j < types.length; j++) {
+                        server.p1(types[j]);
+                    }
 
-                server.p1(fields.length);
-                for (let j = 0; j < fields.length; j++) {
-                    const values = fields[j].values;
+                    const columnName = table.columnNames[i];
+                    const fields = data.filter(d => d.column === columnName);
+                    const props = table.props[i];
 
-                    for (let k = 0; k < values.length; k++) {
-                        const type = types[k];
-                        const value = lookupParamValue(type, values[k]);
-                        if (value === null) {
-                            throw packStepError(debugname, `Data invalid in row, double-check the reference exists: data=${fields[j].column},${values.join(',')}`);
-                        }
+                    if ((props & DbTableType.REQUIRED) !== 0 && !fields.length) {
+                        throw packStepError(debugname, `${columnName} column is marked REQUIRED, please add data for it`);
+                    }
 
-                        if (type === ScriptVarType.STRING) {
-                            server.pjstr(value as string);
-                        } else {
-                            server.p4(value as number);
+                    if ((props & DbTableType.LIST) === 0 && fields.length > 1) {
+                        throw packStepError(debugname, `${columnName} column has multiple data values but is not marked as LIST`);
+                    }
+
+                    server.p1(fields.length);
+                    for (let j = 0; j < fields.length; j++) {
+                        const values = fields[j].values;
+
+                        for (let k = 0; k < values.length; k++) {
+                            const type = types[k];
+                            const value = lookupParamValue(type, values[k]);
+                            if (value === null) {
+                                throw packStepError(debugname, `Data invalid in row, double-check the reference exists: data=${fields[j].column},${values.join(',')}`);
+                            }
+
+                            if (type === ScriptVarType.STRING) {
+                                server.pjstr(value as string);
+                            } else {
+                                server.p4(value as number);
+                            }
                         }
                     }
                 }
+                server.p1(255);
             }
-            server.p1(255);
+
+            server.p1(4);
+            server.p2(table.id);
         }
 
-        server.p1(4);
-        server.p2(table.id);
-
-        server.p1(250);
-        server.pjstr(debugname);
+        if (debugname.length) {
+            server.p1(250);
+            server.pjstr(debugname);
+        }
 
         client.next();
         server.next();

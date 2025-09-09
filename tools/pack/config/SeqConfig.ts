@@ -149,91 +149,95 @@ export function parseSeqConfig(key: string, value: string): ConfigValue | null |
 }
 
 export function packSeqConfigs(configs: Map<string, ConfigLine[]>): { client: PackedData; server: PackedData } {
-    const client: PackedData = new PackedData(SeqPack.size);
-    const server: PackedData = new PackedData(SeqPack.size);
+    const client: PackedData = new PackedData(SeqPack.max);
+    const server: PackedData = new PackedData(SeqPack.max);
 
-    for (let i = 0; i < SeqPack.size; i++) {
-        const debugname = SeqPack.getById(i);
-        const config = configs.get(debugname)!;
+    for (let id = 0; id < SeqPack.max; id++) {
+        const debugname = SeqPack.getById(id);
+        const config = configs.get(debugname);
 
-        // collect these to write at the end
-        const frames: number[] = [];
-        const iframes: number[] = [];
-        const delays: number[] = [];
+        if (config) {
+            // collect these to write at the end
+            const frames: number[] = [];
+            const iframes: number[] = [];
+            const delays: number[] = [];
 
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
-            if (key.startsWith('frame')) {
-                const index = parseInt(key.substring('frame'.length)) - 1;
-                frames[index] = value as number;
-            } else if (key.startsWith('iframe')) {
-                const index = parseInt(key.substring('iframe'.length)) - 1;
-                iframes[index] = value as number;
-            } else if (key.startsWith('delay')) {
-                const index = parseInt(key.substring('delay'.length)) - 1;
-                delays[index] = value as number;
-            } else if (key === 'loops') {
-                client.p1(2);
-                client.p2(value as number);
-            } else if (key === 'walkmerge') {
-                client.p1(3);
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
+                if (key.startsWith('frame')) {
+                    const index = parseInt(key.substring('frame'.length)) - 1;
+                    frames[index] = value as number;
+                } else if (key.startsWith('iframe')) {
+                    const index = parseInt(key.substring('iframe'.length)) - 1;
+                    iframes[index] = value as number;
+                } else if (key.startsWith('delay')) {
+                    const index = parseInt(key.substring('delay'.length)) - 1;
+                    delays[index] = value as number;
+                } else if (key === 'loops') {
+                    client.p1(2);
+                    client.p2(value as number);
+                } else if (key === 'walkmerge') {
+                    client.p1(3);
 
-                const labels = value as number[];
-                client.p1(labels.length);
-                for (let i = 0; i < labels.length; i++) {
-                    client.p1(labels[i]);
+                    const labels = value as number[];
+                    client.p1(labels.length);
+                    for (let i = 0; i < labels.length; i++) {
+                        client.p1(labels[i]);
+                    }
+                } else if (key === 'stretches') {
+                    if (value === true) {
+                        client.p1(4);
+                    }
+                } else if (key === 'priority') {
+                    client.p1(5);
+                    client.p1(value as number);
+                } else if (key === 'replaceheldleft') {
+                    client.p1(6);
+                    client.p2(value as number);
+                } else if (key === 'replaceheldright') {
+                    client.p1(7);
+                    client.p2(value as number);
+                } else if (key === 'maxloops') {
+                    client.p1(8);
+                    client.p1(value as number);
+                } else if (key === 'preanim_move') {
+                    client.p1(9);
+                    client.p1(value as number);
+                } else if (key === 'postanim_move') {
+                    client.p1(10);
+                    client.p1(value as number);
+                } else if (key === 'duplicatebehavior') {
+                    client.p1(11);
+                    client.p1(value as number);
                 }
-            } else if (key === 'stretches') {
-                if (value === true) {
-                    client.p1(4);
+            }
+
+            if (frames.length > 0) {
+                client.p1(1);
+
+                client.p1(frames.length);
+                for (let j = 0; j < frames.length; j++) {
+                    client.p2(frames[j]);
+
+                    if (typeof iframes[j] !== 'undefined') {
+                        client.p2(iframes[j]);
+                    } else {
+                        client.p2(-1);
+                    }
+
+                    if (typeof delays[j] !== 'undefined') {
+                        client.p2(delays[j]);
+                    } else {
+                        client.p2(0);
+                    }
                 }
-            } else if (key === 'priority') {
-                client.p1(5);
-                client.p1(value as number);
-            } else if (key === 'replaceheldleft') {
-                client.p1(6);
-                client.p2(value as number);
-            } else if (key === 'replaceheldright') {
-                client.p1(7);
-                client.p2(value as number);
-            } else if (key === 'maxloops') {
-                client.p1(8);
-                client.p1(value as number);
-            } else if (key === 'preanim_move') {
-                client.p1(9);
-                client.p1(value as number);
-            } else if (key === 'postanim_move') {
-                client.p1(10);
-                client.p1(value as number);
-            } else if (key === 'duplicatebehavior') {
-                client.p1(11);
-                client.p1(value as number);
             }
         }
 
-        if (frames.length > 0) {
-            client.p1(1);
-
-            client.p1(frames.length);
-            for (let j = 0; j < frames.length; j++) {
-                client.p2(frames[j]);
-
-                if (typeof iframes[j] !== 'undefined') {
-                    client.p2(iframes[j]);
-                } else {
-                    client.p2(-1);
-                }
-
-                if (typeof delays[j] !== 'undefined') {
-                    client.p2(delays[j]);
-                } else {
-                    client.p2(0);
-                }
-            }
+        if (debugname.length) {
+            server.p1(250);
+            server.pjstr(debugname);
         }
-
-        server.p1(250);
-        server.pjstr(debugname);
 
         client.next();
         server.next();

@@ -51,24 +51,28 @@ export function parseVarsConfig(key: string, value: string): ConfigValue | null 
 }
 
 export function packVarsConfigs(configs: Map<string, ConfigLine[]>): { client: PackedData; server: PackedData } {
-    const client: PackedData = new PackedData(VarsPack.size);
-    const server: PackedData = new PackedData(VarsPack.size);
+    const client: PackedData = new PackedData(VarsPack.max);
+    const server: PackedData = new PackedData(VarsPack.max);
 
-    for (let i = 0; i < VarsPack.size; i++) {
-        const debugname = VarsPack.getById(i);
-        const config = configs.get(debugname)!;
+    for (let id = 0; id < VarsPack.max; id++) {
+        const debugname = VarsPack.getById(id);
+        const config = configs.get(debugname);
 
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
+        if (config) {
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
 
-            if (key === 'type') {
-                server.p1(1);
-                server.p1(value as number);
+                if (key === 'type') {
+                    server.p1(1);
+                    server.p1(value as number);
+                }
             }
         }
 
-        server.p1(250);
-        server.pjstr(debugname);
+        if (debugname.length) {
+            server.p1(250);
+            server.pjstr(debugname);
+        }
 
         client.next();
         server.next();

@@ -1,7 +1,9 @@
 import fs from 'fs';
+import { parentPort } from 'worker_threads';
 
 import Environment from '#/util/Environment.js';
 import { loadFile } from '#tools/pack/Parse.js';
+import { printError, printFatalError } from '#/util/Logger.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PackFileValidator = (packfile: PackFile, ...args: any[]) => void;
@@ -28,10 +30,20 @@ export class PackFile {
     }
 
     reload() {
-        if (this.validator !== null) {
-            this.validator(this, ...this.validatorArgs);
-        } else {
-            this.load(`${Environment.BUILD_SRC_DIR}/pack/${this.type}.pack`);
+        try {
+            if (this.validator !== null) {
+                this.validator(this, ...this.validatorArgs);
+            } else {
+                this.load(`${Environment.BUILD_SRC_DIR}/pack/${this.type}.pack`);
+            }
+        } catch (err) {
+            if (err instanceof Error) {
+                if (parentPort) {
+                    printError(err.message);
+                } else {
+                    printFatalError(err.message);
+                }
+            }
         }
     }
 

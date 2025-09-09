@@ -214,44 +214,48 @@ export function parseParamConfig(key: string, value: string): ConfigValue | null
 }
 
 export function packParamConfigs(configs: Map<string, ConfigLine[]>): { client: PackedData; server: PackedData } {
-    const client: PackedData = new PackedData(ParamPack.size);
-    const server: PackedData = new PackedData(ParamPack.size);
+    const client: PackedData = new PackedData(ParamPack.max);
+    const server: PackedData = new PackedData(ParamPack.max);
 
-    for (let i = 0; i < ParamPack.size; i++) {
-        const debugname = ParamPack.getById(i);
-        const config = configs.get(debugname)!;
+    for (let id = 0; id < ParamPack.max; id++) {
+        const debugname = ParamPack.getById(id);
+        const config = configs.get(debugname);
 
-        // need to read ahead for type info to do default lookup
-        const type = config.find(({ key }) => key === 'type')!.value as number;
+        if (config) {
+            // need to read ahead for type info to do default lookup
+            const type = config.find(({ key }) => key === 'type')!.value as number;
 
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
 
-            if (key === 'type') {
-                server.p1(1);
-                server.p1(value as number);
-            } else if (key === 'default') {
-                const paramValue = lookupParamValue(type, value as string);
-                if (paramValue === null) {
-                    throw packStepError(debugname, `Invalid default value: ${value}`);
-                }
+                if (key === 'type') {
+                    server.p1(1);
+                    server.p1(value as number);
+                } else if (key === 'default') {
+                    const paramValue = lookupParamValue(type, value as string);
+                    if (paramValue === null) {
+                        throw packStepError(debugname, `Invalid default value: ${value}`);
+                    }
 
-                if (type === ScriptVarType.STRING) {
-                    server.p1(5);
-                    server.pjstr(paramValue as string);
-                } else {
-                    server.p1(2);
-                    server.p4(paramValue as number);
-                }
-            } else if (key === 'autodisable') {
-                if (value === false) {
-                    server.p1(4);
+                    if (type === ScriptVarType.STRING) {
+                        server.p1(5);
+                        server.pjstr(paramValue as string);
+                    } else {
+                        server.p1(2);
+                        server.p4(paramValue as number);
+                    }
+                } else if (key === 'autodisable') {
+                    if (value === false) {
+                        server.p1(4);
+                    }
                 }
             }
         }
 
-        server.p1(250);
-        server.pjstr(debugname);
+        if (debugname.length) {
+            server.p1(250);
+            server.pjstr(debugname);
+        }
 
         client.next();
         server.next();
