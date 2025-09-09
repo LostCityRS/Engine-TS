@@ -15,6 +15,7 @@ import { toSafeName } from '#/util/JString.js';
 import { printInfo } from '#/util/Logger.js';
 import { getUnreadMessageCount } from '#/server/login/Messages.js';
 import { startManagementWeb } from '#/web.js';
+import InvType from '#/cache/config/InvType.js';
 
 async function updateHiscores(account: { id: number, staffmodlevel: number } | undefined, player: Player, profile: string) {
     if (!account)
@@ -140,6 +141,8 @@ export default class LoginServer {
         if (Environment.LOGIN_SERVER && !Environment.EASY_STARTUP) {
             startManagementWeb();
         }
+
+        InvType.load('data/pack');
 
         this.server = new WebSocketServer({ port: Environment.LOGIN_PORT, host: '0.0.0.0' }, () => {
             printInfo(`Login server listening on port ${Environment.LOGIN_PORT}`);
