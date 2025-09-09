@@ -100,6 +100,7 @@ import OnDemand from './OnDemand.js';
 import { ObjDelayedRequest } from './entity/ObjDelayedRequest.js';
 import VarBitType from '#/cache/config/VarBitType.js';
 import DbTableIndex from '#/cache/config/DbTableIndex.js';
+import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 
 const priv = forge.pki.privateKeyFromPem(Environment.STANDALONE_BUNDLE ? await (await fetch('data/config/private.pem')).text() : fs.readFileSync('data/config/private.pem', 'ascii'));
 
@@ -1996,6 +1997,8 @@ class World {
                     const [world, friendUsername37] = data.friends[i];
                     player.write(new UpdateFriendList(BigInt(friendUsername37), world));
                 }
+
+                player.write(new FriendlistLoaded(2));
             } else if (opcode === FriendsServerOpcodes.UPDATE_IGNORELIST) {
                 const username37 = BigInt(data.username37);
 

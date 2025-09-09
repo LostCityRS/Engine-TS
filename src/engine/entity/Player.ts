@@ -73,6 +73,7 @@ import { toDisplayName } from '#/util/JString.js';
 import LinkList from '#/util/LinkList.js';
 import { MidiPack } from '#tools/pack/PackFile.js';
 import VarBitType from '#/cache/config/VarBitType.js';
+import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 
 const levelExperience = new Int32Array(99);
 
@@ -483,6 +484,11 @@ export default class Player extends PathingEntity {
         // - social
         this.buildArea.rebuildNormal();
         this.write(new ChatFilterSettings(this.publicChat, this.privateChat, this.tradeDuel));
+        if (Environment.FRIEND_SERVER) {
+            this.write(new FriendlistLoaded(1));
+        } else {
+            this.write(new FriendlistLoaded(2));
+        }
         this.write(new IfClose());
         this.write(new UpdateUid192(this.pid, this.members));
         this.write(new ResetClientVarCache());

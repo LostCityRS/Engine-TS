@@ -449,15 +449,13 @@ export class FriendServer {
     private async sendFriendsListToPlayer(profile: string, username37: bigint, socket: WebSocket) {
         const playerFriends = await this.repositories[profile].getFriends(username37);
 
-        if (playerFriends.length > 0) {
-            socket.send(
-                JSON.stringify({
-                    type: FriendsServerOpcodes.UPDATE_FRIENDLIST,
-                    username37: username37.toString(),
-                    friends: playerFriends.map(f => [f[0], f[1].toString()])
-                })
-            );
-        }
+        socket.send(
+            JSON.stringify({
+                type: FriendsServerOpcodes.UPDATE_FRIENDLIST,
+                username37: username37.toString(),
+                friends: playerFriends.map(f => [f[0], f[1].toString()])
+            })
+        );
     }
 
     private async sendIgnoreListToPlayer(profile: string, username37: bigint, socket: WebSocket) {
