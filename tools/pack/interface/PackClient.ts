@@ -8,7 +8,7 @@ import { packInterface } from '#tools/pack/interface/PackShared.js';
 import { shouldBuild } from '#tools/pack/PackFile.js';
 
 export function packClientInterface(cache: FileStream, modelFlags: number[]) {
-    const jag = new Jagfile();
+    const jag = Jagfile.new(true);
 
     if (
         shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.if', 'data/pack/client/interface') ||
@@ -21,7 +21,7 @@ export function packClientInterface(cache: FileStream, modelFlags: number[]) {
         }
 
         jag.write('data', client);
-        jag.save('data/pack/client/interface');
+        jag.save('data/pack/client/interface', true);
         client.release();
 
         server.save('data/pack/server/interface.dat');

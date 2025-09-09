@@ -24,7 +24,7 @@ export function packClientSound(cache: FileStream) {
         nameToFile.set(name, file);
     }
 
-    const jag = new Jagfile();
+    const jag = Jagfile.new();
 
     const out = Packet.alloc(5);
     for (const id of order) {
