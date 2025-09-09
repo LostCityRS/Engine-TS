@@ -16,8 +16,8 @@ class Wave {
     static order: number[] = [];
 
     static unpack(buf: Packet, keepNames: boolean = true) {
-        if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/scripts/synth`)) {
-            fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/scripts/synth`);
+        if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/synth`)) {
+            fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/synth`);
         }
 
         // can't trust synth IDs to remain stable
