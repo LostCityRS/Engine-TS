@@ -938,7 +938,11 @@ class World {
                 }
 
                 player.client.state = 1;
-                player.client.send(Uint8Array.from([2, 0, 0]));
+                player.client.send(Uint8Array.from([
+                    2,
+                    Math.min(player.staffModLevel, 2),
+                    0 // tracking status
+                ]));
             }
 
             // insert player into first available slot
