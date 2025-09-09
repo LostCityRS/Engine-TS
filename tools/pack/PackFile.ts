@@ -120,7 +120,9 @@ function validateConfigPack(pack: PackFile, ext: string, transmitted: boolean = 
         }
     }
 
-    pack.save();
+    if (!transmitted || (!Environment.BUILD_VERIFY && transmitted)) {
+        pack.save();
+    }
 }
 
 function validateCategoryPack(pack: PackFile) {
