@@ -21,7 +21,7 @@ export function packClientInterface(cache: FileStream, modelFlags: number[]) {
         }
 
         jag.write('data', client);
-        jag.save('data/pack/client/interface', true);
+        jag.save('data/pack/client/interface');
         client.release();
 
         server.save('data/pack/server/interface.dat');
