@@ -49,7 +49,7 @@ export function packClientSound(cache: FileStream) {
     }
 
     jag.write('sounds.dat', out);
-    jag.save('data/pack/client/sounds', true);
+    jag.save('data/pack/client/sounds');
     out.release();
 
     cache.write(0, 8, fs.readFileSync('data/pack/client/sounds'));
