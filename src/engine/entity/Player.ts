@@ -46,7 +46,7 @@ import ScriptState from '#/engine/script/ScriptState.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
 import Packet from '#/io/Packet.js';
-import { ServerProtPriority } from '#/network/game/server/codec/ServerProtPriority.js';
+import { ServerGameProtPriority } from '#/network/game/server/ServerGameProtPriority.js';
 import ChatFilterSettings from '#/network/game/server/model/ChatFilterSettings.js';
 import HintArrow from '#/network/game/server/model/HintArrow.js';
 import IfClose from '#/network/game/server/model/IfClose.js';
@@ -66,13 +66,13 @@ import UpdateRunEnergy from '#/network/game/server/model/UpdateRunEnergy.js';
 import UpdateStat from '#/network/game/server/model/UpdateStat.js';
 import VarpLarge from '#/network/game/server/model/VarpLarge.js';
 import VarpSmall from '#/network/game/server/model/VarpSmall.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
-import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/util/ChatModes.js';
+import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/engine/entity/ChatModes.js';
 import Environment from '#/util/Environment.js';
 import { toDisplayName } from '#/util/JString.js';
 import LinkList from '#/util/LinkList.js';
-import { MidiPack } from '#/util/PackFile.js';
+import { MidiPack } from '#tools/pack/PackFile.js';
 
 const levelExperience = new Int32Array(99);
 
@@ -344,7 +344,7 @@ export default class Player extends PathingEntity {
     preventLogoutUntil: number = -1;
 
     // not stored as a byte buffer so we can write and encrypt opcodes later
-    buffer: OutgoingMessage[] = [];
+    buffer: ServerGameMessage[] = [];
     lastResponse: number = -1;
     lastConnected: number = -1;
 
@@ -716,6 +716,19 @@ export default class Player extends PathingEntity {
         }
     }
 
+    clearComListeners(root: number) {
+        if (root == -1) {
+            return;
+        }
+
+        for (let i = 0; i < this.invListeners.length; i++) {
+            const { com } = this.invListeners[i];
+            if (Component.get(com).rootLayer === root) {
+                this.invStopListenOnCom(com);
+            }
+        }
+    }
+
     closeModal() {
         this.weakQueue.clear();
 
@@ -741,6 +754,7 @@ export default class Player extends PathingEntity {
                 this.executeScript(ScriptRunner.init(closeTrigger, this), false);
             }
 
+            this.clearComListeners(this.modalMain);
             this.modalMain = -1;
         }
 
@@ -751,6 +765,7 @@ export default class Player extends PathingEntity {
                 this.executeScript(ScriptRunner.init(closeTrigger, this), false);
             }
 
+            this.clearComListeners(this.modalChat);
             this.modalChat = -1;
         }
 
@@ -761,6 +776,7 @@ export default class Player extends PathingEntity {
                 this.executeScript(ScriptRunner.init(closeTrigger, this), false);
             }
 
+            this.clearComListeners(this.modalSide);
             this.modalSide = -1;
         }
 
@@ -955,7 +971,20 @@ export default class Player extends PathingEntity {
 
         // prio trigger details by target<type<com
         if (this.target instanceof Npc || this.target instanceof Loc || this.target instanceof Obj) {
-            const type = this.target instanceof Npc ? NpcType.get(this.target.type) : this.target instanceof Loc ? LocType.get(this.target.type) : ObjType.get(this.target.type);
+            let type: NpcType | LocType | ObjType | null = null;
+
+            if (this.target instanceof Npc) {
+                type = NpcType.get(this.target.type);
+            } else if (this.target instanceof Loc) {
+                type = LocType.get(this.target.type);
+            } else if (this.target instanceof Obj) {
+                type = ObjType.get(this.target.type);
+            }
+
+            if (!type) {
+                return null;
+            }
+
             typeId = type.id;
             categoryId = type.category;
         }
@@ -976,7 +1005,20 @@ export default class Player extends PathingEntity {
 
         // prio trigger details by target<type<com
         if (this.target instanceof Npc || this.target instanceof Loc || this.target instanceof Obj) {
-            const type = this.target instanceof Npc ? NpcType.get(this.target.type) : this.target instanceof Loc ? LocType.get(this.target.type) : ObjType.get(this.target.type);
+            let type: NpcType | LocType | ObjType | null = null;
+
+            if (this.target instanceof Npc) {
+                type = NpcType.get(this.target.type);
+            } else if (this.target instanceof Loc) {
+                type = LocType.get(this.target.type);
+            } else if (this.target instanceof Obj) {
+                type = ObjType.get(this.target.type);
+            }
+
+            if (!type) {
+                return null;
+            }
+
             typeId = type.id;
             categoryId = type.category;
         }
@@ -1395,10 +1437,14 @@ export default class Player extends PathingEntity {
             return;
         }
 
-        const index = this.invListeners.findIndex(l => l.type === inv && l.com === com);
-        if (index !== -1) {
-            // already listening
+        const sameTypeCom = this.invListeners.findIndex(l => l.type === inv && l.com === com);
+        if (sameTypeCom !== -1) {
             return;
+        }
+
+        const sameCom = this.invListeners.findIndex(l => l.com === com);
+        if (sameCom !== -1) {
+            this.invListeners.splice(sameCom, 1);
         }
 
         const invType = InvType.get(inv);
@@ -1848,6 +1894,7 @@ export default class Player extends PathingEntity {
 
     // todo: make compiler do this at pack time
     playSong(name: string) {
+        // todo: don't rely on MidiPack (server should be runnable using only packed content)
         const id = MidiPack.getByName(name.toLowerCase().replaceAll(' ', '_'));
         if (id !== -1) {
             this.write(new MidiSong(id));
@@ -2044,12 +2091,12 @@ export default class Player extends PathingEntity {
         }
     }
 
-    write(message: OutgoingMessage) {
+    write(message: ServerGameMessage) {
         if (!isClientConnected(this)) {
             return;
         }
 
-        if (message.priority === ServerProtPriority.IMMEDIATE) {
+        if (message.priority === ServerGameProtPriority.IMMEDIATE) {
             this.writeInner(message);
         } else {
             this.buffer.push(message);

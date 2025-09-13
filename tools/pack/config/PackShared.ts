@@ -6,8 +6,8 @@ import ParamType from '#/cache/config/ParamType.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
-import { loadDir } from '#/util/NameMap.js';
-import { VarnPack, VarpPack, VarsPack, shouldBuild, CategoryPack, shouldBuildFile } from '#/util/PackFile.js';
+import { loadDir } from '#tools/pack/NameMap.js';
+import { VarnPack, VarpPack, VarsPack, shouldBuild, CategoryPack, shouldBuildFile } from '#tools/pack/PackFile.js';
 import { packDbRowConfigs, parseDbRowConfig } from '#tools/pack/config/DbRowConfig.js';
 import { packDbTableConfigs, parseDbTableConfig } from '#tools/pack/config/DbTableConfig.js';
 import { packEnumConfigs, parseEnumConfig } from '#tools/pack/config/EnumConfig.js';
@@ -26,6 +26,7 @@ import { packStructConfigs, parseStructConfig } from '#tools/pack/config/StructC
 import { packVarnConfigs, parseVarnConfig } from '#tools/pack/config/VarnConfig.js';
 import { packVarpConfigs, parseVarpConfig } from '#tools/pack/config/VarpConfig.js';
 import { packVarsConfigs, parseVarsConfig } from '#tools/pack/config/VarsConfig.js';
+import FileStream from '#/io/FileStream.js';
 
 export function isConfigBoolean(input: string): boolean {
     return input === 'yes' || input === 'no' || input === 'true' || input === 'false' || input === '1' || input === '0';
@@ -85,13 +86,15 @@ export class PackedData {
 export const CONSTANTS = new Map<string, string>();
 
 export function readDirTree(dirTree: Set<string>, path: string) {
-    const files = fs.readdirSync(path);
+    const entries = fs.readdirSync(path, { withFileTypes: true });
 
-    for (const file of files) {
-        if (fs.statSync(path + '/' + file).isDirectory()) {
-            readDirTree(dirTree, path + '/' + file);
+    for (const entry of entries) {
+        const target = `${entry.parentPath}/${entry.name}`;
+
+        if (entry.isDirectory()) {
+            readDirTree(dirTree, target);
         } else {
-            dirTree.add(path + '/' + file);
+            dirTree.add(target);
         }
     }
 }
@@ -246,7 +249,7 @@ export async function readConfigs(dirTree: Set<string>, extension: string, requi
     const { client, server } = pack(configs, modelFlags);
 
     if (Environment.BUILD_VERIFY && validate && !validate(client.dat, server.dat)) {
-        throw new Error(`${extension} verification failed! Custom data detected.\nSet BUILD_VERIFY=false in your .env file if this is intended.`);
+        throw new Error(`${extension} checksum mismatch!\nYou can disable this safety check by setting BUILD_VERIFY=false`);
     }
 
     saveClient(client.dat, client.idx);
@@ -255,7 +258,7 @@ export async function readConfigs(dirTree: Set<string>, extension: string, requi
 
 function noOp() {}
 
-export async function packConfigs(modelFlags: number[]) {
+export async function packConfigs(cache: FileStream, modelFlags: number[]) {
     CONSTANTS.clear();
 
     loadDir(`${Environment.BUILD_SRC_DIR}/scripts`, '.constant', src => {
@@ -286,25 +289,24 @@ export async function packConfigs(modelFlags: number[]) {
     });
 
     // var domains are global, so we need to check for conflicts
-
-    for (let id = 0; id < VarpPack.size; id++) {
-        const name = VarpPack.getById(id);
-
-        if (VarnPack.getByName(name) !== -1) {
-            throw new Error(`Varp and varn name conflict: ${name}\nPick a different name for one of them!`);
+    const names = new Set<string>();
+    for (const [name, _id] of VarpPack.names.entries()) {
+        if (names.has(name)) {
+            throw new Error(`Non-unique var name found: ${name}`);
         }
-
-        if (VarsPack.getByName(name) !== -1) {
-            throw new Error(`Varp and vars name conflict: ${name}\nPick a different name for one of them!`);
-        }
+        names.add(name);
     }
-
-    for (let id = 0; id < VarnPack.size; id++) {
-        const name = VarnPack.getById(id);
-
-        if (VarsPack.getByName(name) !== -1) {
-            throw new Error(`Varn and vars name conflict: ${name}\nPick a different name for one of them!`);
+    for (const [name, _id] of VarnPack.names.entries()) {
+        if (names.has(name)) {
+            throw new Error(`Non-unique var name found: ${name}`);
         }
+        names.add(name);
+    }
+    for (const [name, _id] of VarsPack.names.entries()) {
+        if (names.has(name)) {
+            throw new Error(`Non-unique var name found: ${name}`);
+        }
+        names.add(name);
     }
 
     const dirTree = new Set<string>();
@@ -334,17 +336,6 @@ export async function packConfigs(modelFlags: number[]) {
 
     const jag = new Jagfile();
 
-    /* client order:
-    'seq.dat',      'seq.idx',
-    'loc.dat',      'loc.idx',
-    'flo.dat',      'flo.idx',
-    'spotanim.dat', 'spotanim.idx',
-    'obj.dat',      'obj.idx',
-    'npc.dat',      'npc.idx',
-    'idk.dat',      'idk.idx',
-    'varp.dat',     'varp.idx'
-    */
-
     const rebuildClient = true;
     // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.seq', 'data/pack/client/config') ||
     // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.loc', 'data/pack/client/config') ||
@@ -357,7 +348,7 @@ export async function packConfigs(modelFlags: number[]) {
     // shouldBuild('tools/pack/config', '.ts', 'data/pack/client/config');
 
     // not a config but we want the server to know all the possible categories
-    if (shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/category.pack`, 'data/pack/server/category.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/category.dat')) {
+    if (shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/category.pack`, 'data/pack/server/category.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/category.dat')) {
         const dat = Packet.alloc(1);
         dat.p2(CategoryPack.size);
         for (let i = 0; i < CategoryPack.size; i++) {
@@ -372,24 +363,22 @@ export async function packConfigs(modelFlags: number[]) {
 
     // ----
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.dbtable', 'data/pack/server/dbtable.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/dbtable.dat')) {
+    // todo: rebuild when any referenceable type changes
+    if (
+        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.dbrow', 'data/pack/server/dbrow.dat') ||
+        shouldBuild('tools/pack/config', '.ts', 'data/pack/server/dbrow.dat') ||
+        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.dbtable', 'data/pack/server/dbtable.dat') ||
+        shouldBuild('tools/pack/config', '.ts', 'data/pack/server/dbtable.dat')
+    ) {
         await readConfigs(dirTree, '.dbtable', [], modelFlags, parseDbTableConfig, packDbTableConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/dbtable.dat');
             idx.save('data/pack/server/dbtable.idx');
             dat.release();
             idx.release();
         });
-    }
 
-    DbTableType.load('data/pack'); // dbrow needs to access it
+        DbTableType.load('data/pack'); // dbrow needs to access it
 
-    // todo: rebuild when any data type changes
-    if (
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.dbrow', 'data/pack/server/dbrow.dat') ||
-        shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/dbrow.dat') ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.dbtable', 'data/pack/server/dbtable.dat') ||
-        shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/dbtable.dat')
-    ) {
         await readConfigs(dirTree, '.dbrow', [], modelFlags, parseDbRowConfig, packDbRowConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/dbrow.dat');
             idx.save('data/pack/server/dbrow.idx');
@@ -398,7 +387,7 @@ export async function packConfigs(modelFlags: number[]) {
         });
     }
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.enum', 'data/pack/server/enum.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/enum.dat')) {
+    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.enum', 'data/pack/server/enum.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/enum.dat')) {
         await readConfigs(dirTree, '.enum', [], modelFlags, parseEnumConfig, packEnumConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/enum.dat');
             idx.save('data/pack/server/enum.idx');
@@ -407,7 +396,7 @@ export async function packConfigs(modelFlags: number[]) {
         });
     }
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.inv', 'data/pack/server/inv.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/inv.dat')) {
+    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.inv', 'data/pack/server/inv.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/inv.dat')) {
         await readConfigs(dirTree, '.inv', [], modelFlags, parseInvConfig, packInvConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/inv.dat');
             idx.save('data/pack/server/inv.idx');
@@ -416,7 +405,7 @@ export async function packConfigs(modelFlags: number[]) {
         });
     }
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.mesanim', 'data/pack/server/mesanim.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/mesanim.dat')) {
+    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.mesanim', 'data/pack/server/mesanim.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/mesanim.dat')) {
         await readConfigs(dirTree, '.mesanim', [], modelFlags, parseMesAnimConfig, packMesAnimConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/mesanim.dat');
             idx.save('data/pack/server/mesanim.idx');
@@ -425,7 +414,7 @@ export async function packConfigs(modelFlags: number[]) {
         });
     }
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.struct', 'data/pack/server/struct.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/struct.dat')) {
+    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.struct', 'data/pack/server/struct.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/struct.dat')) {
         await readConfigs(dirTree, '.struct', [], modelFlags, parseStructConfig, packStructConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/struct.dat');
             idx.save('data/pack/server/struct.idx');
@@ -436,7 +425,7 @@ export async function packConfigs(modelFlags: number[]) {
 
     // ----
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.seq', 'data/pack/server/seq.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/seq.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.seq', 'data/pack/server/seq.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/seq.dat')) {
         await readConfigs(
             dirTree,
             '.seq',
@@ -455,12 +444,12 @@ export async function packConfigs(modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, 1638136604);
+                return Packet.checkcrc(client.data, 0, client.pos, 1405403166);
             }
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.loc', 'data/pack/server/loc.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/loc.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.loc', 'data/pack/server/loc.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/loc.dat')) {
         await readConfigs(
             dirTree,
             '.loc',
@@ -479,12 +468,12 @@ export async function packConfigs(modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, 891497087);
+                return Packet.checkcrc(client.data, 0, client.pos, 1195428820);
             }
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.flo', 'data/pack/server/flo.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/flo.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.flo', 'data/pack/server/flo.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/flo.dat')) {
         await readConfigs(
             dirTree,
             '.flo',
@@ -508,7 +497,7 @@ export async function packConfigs(modelFlags: number[]) {
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.spotanim', 'data/pack/server/spotanim.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/spotanim.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.spotanim', 'data/pack/server/spotanim.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/spotanim.dat')) {
         await readConfigs(
             dirTree,
             '.spotanim',
@@ -527,12 +516,12 @@ export async function packConfigs(modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, -1279835623);
+                return Packet.checkcrc(client.data, 0, client.pos, 117013845);
             }
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.npc', 'data/pack/server/npc.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/npc.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.npc', 'data/pack/server/npc.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/npc.dat')) {
         await readConfigs(
             dirTree,
             '.npc',
@@ -551,12 +540,12 @@ export async function packConfigs(modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, -2140681882);
+                return Packet.checkcrc(client.data, 0, client.pos, -997428438);
             }
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.obj', 'data/pack/server/obj.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/obj.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.obj', 'data/pack/server/obj.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/obj.dat')) {
         await readConfigs(
             dirTree,
             '.obj',
@@ -575,32 +564,12 @@ export async function packConfigs(modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, -840233510);
-
-                // ObjType.load('data/ref');
-                // const current = ObjType.configs;
-
-                // ObjType.parse(null, client);
-                // const proposed = ObjType.configs;
-
-                // for (const obj of current) {
-                //     obj.debugname = '';
-                // }
-
-                // for (const obj of proposed) {
-                //     obj.debugname = '';
-                // }
-
-                // const diff = _.differenceWith(current, proposed, _.isEqual);
-                // console.log(current[diff[0].id]);
-                // console.log(proposed[diff[0].id]);
-
-                // return false;
+                return Packet.checkcrc(client.data, 0, client.pos, 1589810970);
             }
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.idk', 'data/pack/server/idk.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/idk.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.idk', 'data/pack/server/idk.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/idk.dat')) {
         await readConfigs(
             dirTree,
             '.idk',
@@ -624,7 +593,7 @@ export async function packConfigs(modelFlags: number[]) {
         );
     }
 
-    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varp', 'data/pack/server/varp.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/varp.dat')) {
+    if (rebuildClient || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varp', 'data/pack/server/varp.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/varp.dat')) {
         await readConfigs(
             dirTree,
             '.varp',
@@ -643,12 +612,12 @@ export async function packConfigs(modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, 705633567);
+                return Packet.checkcrc(client.data, 0, client.pos, -1961744050);
             }
         );
     }
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.hunt', 'data/pack/server/hunt.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/hunt.dat')) {
+    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.hunt', 'data/pack/server/hunt.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/hunt.dat')) {
         await readConfigs(dirTree, '.hunt', [], modelFlags, parseHuntConfig, packHuntConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/hunt.dat');
             idx.save('data/pack/server/hunt.idx');
@@ -657,7 +626,7 @@ export async function packConfigs(modelFlags: number[]) {
         });
     }
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varn', 'data/pack/server/varn.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/varn.dat')) {
+    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varn', 'data/pack/server/varn.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/varn.dat')) {
         await readConfigs(dirTree, '.varn', [], modelFlags, parseVarnConfig, packVarnConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/varn.dat');
             idx.save('data/pack/server/varn.idx');
@@ -666,7 +635,7 @@ export async function packConfigs(modelFlags: number[]) {
         });
     }
 
-    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.vars', 'data/pack/server/vars.dat') || shouldBuild('src/cache/packconfig', '.ts', 'data/pack/server/vars.dat')) {
+    if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.vars', 'data/pack/server/vars.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/vars.dat')) {
         await readConfigs(dirTree, '.vars', [], modelFlags, parseVarsConfig, packVarsConfigs, noOp, (dat: Packet, idx: Packet) => {
             dat.save('data/pack/server/vars.dat');
             idx.save('data/pack/server/vars.idx');
@@ -679,4 +648,6 @@ export async function packConfigs(modelFlags: number[]) {
         // todo: check the CRC of config.jag as well? (as long as bz2 is identical)
         jag.save('data/pack/client/config');
     }
+
+    cache.write(0, 2, fs.readFileSync('data/pack/client/config'));
 }

@@ -1,14 +1,12 @@
 import { CoordGrid } from '#/engine/CoordGrid.js';
 import { NetworkPlayer } from '#/engine/entity/NetworkPlayer.js';
-import { hasBlinkWalk } from '#/engine/script/handlers/PlayerOps.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import MoveClick from '#/network/game/client/model/MoveClick.js';
 import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 import Environment from '#/util/Environment.js';
-import { WalkTriggerSetting } from '#/util/WalkTriggerSetting.js';
+import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 
-
-export default class MoveClickHandler extends MessageHandler<MoveClick> {
+export default class MoveClickHandler extends ClientGameMessageHandler<MoveClick> {
     handle(message: MoveClick, player: NetworkPlayer): boolean {
         if (player.delayed) {
             player.write(new UnsetMapFlag());
@@ -19,23 +17,6 @@ export default class MoveClickHandler extends MessageHandler<MoveClick> {
             player.unsetMapFlag();
             player.userPath = [];
             return false;
-        }
-
-        const dest = message.path[message.path.length - 1];
-
-        if (hasBlinkWalk(player)) {
-            player.unsetMapFlag();
-            player.userPath = [];
-            player.teleJump(dest.x, dest.z, player.level);
-            if (!message.opClick) {
-                player.clearPendingAction();
-                if (player.runenergy < 100 && message.ctrlHeld === 1) {
-                    player.tempRun = 0;
-                } else {
-                    player.tempRun = message.ctrlHeld;
-                }
-            }
-            return true;
         }
 
         if (Environment.NODE_CLIENT_ROUTEFINDER) {
@@ -50,6 +31,7 @@ export default class MoveClickHandler extends MessageHandler<MoveClick> {
                 }
             }
         } else {
+            const dest = message.path[message.path.length - 1];
             player.userPath = [CoordGrid.packCoord(player.level, dest.x, dest.z)];
         }
         if (Environment.NODE_WALKTRIGGER_SETTING === WalkTriggerSetting.PLAYERPACKET) {

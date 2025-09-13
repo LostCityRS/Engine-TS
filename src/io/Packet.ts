@@ -186,14 +186,14 @@ export default class Packet extends DoublyLinkable {
             const blob = new Blob([toBlobPart(this.data.subarray(start, start + length))], { type: 'application/octet-stream' });
             const url = URL.createObjectURL(blob);
             self.postMessage({ type: 'save', value: url, path: filePath });
-        } else {
-            const dir: string = path.dirname(filePath);
-            if (!fs.existsSync(dir)) {
-                fs.mkdirSync(dir, { recursive: true });
-            }
-
-            fs.writeFileSync(filePath, this.data.subarray(start, start + length));
+            return;
         }
+
+        const dir: string = path.dirname(filePath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        fs.writeFileSync(filePath, this.data.subarray(start, start + length));
     }
 
     saveGz(filePath: string, length: number = this.pos, start: number = 0): void {
@@ -236,12 +236,27 @@ export default class Packet extends DoublyLinkable {
     }
 
     g3(): number {
-        const result: number = (this.view.getUint8(this.pos++) << 16) | this.view.getUint16(this.pos);
-        this.pos += 2;
-        return result;
+        this.pos += 3;
+        return (this.data[this.pos - 3] << 16) +
+            (this.data[this.pos - 2] << 8) +
+            this.data[this.pos - 1];
+    }
+
+    g3s() {
+        this.pos += 3;
+        const v = (this.data[this.pos - 3] << 16) +
+            (this.data[this.pos - 2] << 8) +
+            this.data[this.pos - 1];
+        return v > 0xFFFFFF ? v - 0x1000000 : v;
     }
 
     g4(): number {
+        const result: number = this.view.getUint32(this.pos);
+        this.pos += 4;
+        return result;
+    }
+
+    g4s(): number {
         const result: number = this.view.getInt32(this.pos);
         this.pos += 4;
         return result;

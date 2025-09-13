@@ -12,8 +12,7 @@ import ZoneEvent from '#/engine/zone/ZoneEvent.js';
 import { ZoneEventType } from '#/engine/zone/ZoneEventType.js';
 import ZoneMap from '#/engine/zone/ZoneMap.js';
 import Packet from '#/io/Packet.js';
-import ServerProtProvider from '#/network/game/server/codec/ServerProtProvider.js';
-import ZoneMessageEncoder from '#/network/game/server/codec/ZoneMessageEncoder.js';
+import ServerGameZoneMessageEncoder from '#/network/game/server/ServerGameZoneMessageEncoder.js';
 import LocAddChange from '#/network/game/server/model/LocAddChange.js';
 import LocAnim from '#/network/game/server/model/LocAnim.js';
 import LocDel from '#/network/game/server/model/LocDel.js';
@@ -27,9 +26,10 @@ import ObjReveal from '#/network/game/server/model/ObjReveal.js';
 import UpdateZoneFullFollows from '#/network/game/server/model/UpdateZoneFullFollows.js';
 import UpdateZonePartialEnclosed from '#/network/game/server/model/UpdateZonePartialEnclosed.js';
 import UpdateZonePartialFollows from '#/network/game/server/model/UpdateZonePartialFollows.js';
-import ZoneMessage from '#/network/game/server/ZoneMessage.js';
+import ServerGameZoneMessage from '#/network/game/server/ServerGameZoneMessage.js';
 import Environment from '#/util/Environment.js';
 import LinkList from '#/util/LinkList.js';
+import ServerGameProtRepository from '#/network/game/server/ServerGameProtRepository.js';
 
 
 export default class Zone {
@@ -102,7 +102,7 @@ export default class Zone {
         const buf: Packet = Packet.alloc(1);
         for (const event of this.enclosed()) {
             // console.log(event.message);
-            const encoder: ZoneMessageEncoder<ZoneMessage> | undefined = ServerProtProvider.ServerProtRepository.getZoneEncoder(event.message);
+            const encoder: ServerGameZoneMessageEncoder<ServerGameZoneMessage> | undefined = ServerGameProtRepository.getZoneEncoder(event.message);
             if (typeof encoder === 'undefined') {
                 continue;
             }

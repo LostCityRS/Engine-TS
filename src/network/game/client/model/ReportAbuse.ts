@@ -1,5 +1,5 @@
-import ClientProtCategory from '#/network/game/client/codec/ClientProtCategory.js';
-import IncomingMessage from '#/network/game/client/IncomingMessage.js';
+import ClientGameProtCategory from '#/network/game/client/ClientGameProtCategory.js';
+import ClientGameMessage from '#/network/game/client/ClientGameMessage.js';
 
 export const enum ReportAbuseReason {
     OFFENSIVE_LANGUAGE,  // 0
@@ -16,8 +16,8 @@ export const enum ReportAbuseReason {
     REAL_WORLD_TRADING  // 11
 }
 
-export default class ReportAbuse extends IncomingMessage {
-    category = ClientProtCategory.USER_EVENT;
+export default class ReportAbuse extends ClientGameMessage {
+    category = ClientGameProtCategory.USER_EVENT;
 
     constructor(
         readonly offender: bigint,

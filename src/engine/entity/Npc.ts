@@ -853,7 +853,7 @@ export default class Npc extends PathingEntity {
             return false;
         }
         const type: NpcType = NpcType.get(this.type);
-        const script: ScriptFile | null = this.getTrigger();
+        const script: ScriptFile | null = this.getTrigger(type);
 
         // Run opTrigger
         if (this.checkOpTrigger() && this.inOperableDistance(this.target) && (this.target instanceof PathingEntity || allowOpScenery)) {
@@ -976,10 +976,10 @@ export default class Npc extends PathingEntity {
 
     // --- Other
 
-    private getTrigger(): ScriptFile | null {
+    private getTrigger(type : NpcType): ScriptFile | null {
         const trigger: ServerTriggerType | null = this.getTriggerForMode(this.targetOp);
         if (trigger) {
-            return ScriptProvider.getByTrigger(trigger, this.type, -1) ?? null;
+            return ScriptProvider.getByTrigger(trigger, this.type, type.category) ?? null;
         }
         return null;
     }

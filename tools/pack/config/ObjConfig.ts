@@ -3,8 +3,8 @@ import ParamType from '#/cache/config/ParamType.js';
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import ColorConversion from '#/util/ColorConversion.js';
 import { printWarning } from '#/util/Logger.js';
-import { CategoryPack, ModelPack, ObjPack, SeqPack } from '#/util/PackFile.js';
-import { ParamValue, ConfigValue, ConfigLine, packStepError, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
+import { CategoryPack, ModelPack, ObjPack, SeqPack } from '#tools/pack/PackFile.js';
+import { ParamValue, ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean, packStepError } from '#tools/pack/config/PackShared.js';
 import { lookupParamValue } from '#tools/pack/config/ParamConfig.js';
 
 export function parseObjConfig(key: string, value: string): ConfigValue | null | undefined {
@@ -73,7 +73,7 @@ export function parseObjConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
 
-        return ColorConversion.rgb15toHsl16(parseInt(value));
+        return parseInt(value);
     } else if (key === 'code10') {
         const index = SeqPack.getByName(value);
         if (index === -1) {
@@ -205,6 +205,7 @@ export function packObjConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
         const debugname = ObjPack.getById(i);
         let config;
 
+        // todo: cert_ config names get used... what to do now...
         if (debugname.startsWith('cert_')) {
             const uncert = ObjPack.getByName(debugname.substring('cert_'.length));
             if (uncert === -1) {
@@ -429,8 +430,13 @@ export function packObjConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
             client.p1(recol_s.length);
 
             for (let k = 0; k < recol_s.length; k++) {
-                client.p2(recol_s[k]);
-                client.p2(recol_d[k]);
+                if (recol_s[k] >= 100 || recol_d[k] >= 100) {
+                    client.p2(ColorConversion.rgb15toHsl16(recol_s[k]));
+                    client.p2(ColorConversion.rgb15toHsl16(recol_d[k]));
+                } else {
+                    client.p2(recol_s[k]);
+                    client.p2(recol_d[k]);
+                }
             }
         }
 

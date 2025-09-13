@@ -5,7 +5,7 @@ import InputTrackingBlob from '#/engine/entity/tracking/InputEvent.js';
 import { SessionLog } from '#/engine/entity/tracking/SessionLog.js';
 import { WealthTransactionEvent } from '#/engine/entity/tracking/WealthEvent.js';
 import Environment from '#/util/Environment.js';
-import { onFatalError, printInfo } from '#/util/Logger.js';
+import { printInfo } from '#/util/Logger.js';
 
 export default class LoggerServer {
     private server: WebSocketServer;
@@ -14,7 +14,6 @@ export default class LoggerServer {
         this.server = new WebSocketServer({ port: Environment.LOGGER_PORT, host: '0.0.0.0' }, () => {
             printInfo(`Logger server listening on port ${Environment.LOGGER_PORT}`);
         });
-        onFatalError(() => this.server.close());
 
         this.server.on('connection', (socket: WebSocket) => {
             socket.on('message', async (data: Buffer) => {

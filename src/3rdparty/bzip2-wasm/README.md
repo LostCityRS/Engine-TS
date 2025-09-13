@@ -5,10 +5,9 @@
 
 ## install
 
-    npm install bzip2-wasm
+    $ npm install bzip2-wasm
 
 ## example
-
 ```javascript
 import BZip2 from "wasm-bzip2";
 import fs from 'fs';
@@ -32,11 +31,9 @@ console.log('decompressed length:', decompressed.length);
 ### bzip2 = new BZip2()
 
 ### async bzip2.init()
-
 fetch and load the wasm. required for following methods.
 
 ### bzip2.compress(decompressed, blockSize = 5, compressedSize = decompressed.length)
-
 compress an array of bytes.
 
 `decompressed` should be array-like
@@ -54,7 +51,6 @@ returns a
 of compressed data.
 
 ### bzip2.decompress(compressed = [], decompressedLength = 0)
-
 decompress a compressed array of bytes.
 
 `compressed` should be array-like
@@ -69,7 +65,6 @@ returns a
 of decompressed data.
 
 ## license
-
 This program, "bzip2", the associated library "libbzip2", and all
 documentation, are copyright (C) 1996-2019 Julian R Seward.  All
 rights reserved.
@@ -105,5 +100,5 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Julian Seward, <jseward@acm.org>
+Julian Seward, jseward@acm.org
 bzip2/libbzip2 version 1.0.8 of 13 July 2019

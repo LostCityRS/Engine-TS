@@ -3,12 +3,11 @@ import { PlayerInfoProt } from '@2004scape/rsbuf';
 import WordEnc from '#/cache/wordenc/WordEnc.js';
 import Player from '#/engine/entity/Player.js';
 import Packet from '#/io/Packet.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import MessagePublic from '#/network/game/client/model/MessagePublic.js';
 import WordPack from '#/wordenc/WordPack.js';
 
-
-export default class MessagePublicHandler extends MessageHandler<MessagePublic> {
+export default class MessagePublicHandler extends ClientGameMessageHandler<MessagePublic> {
     handle(message: MessagePublic, player: Player): boolean {
         const { color, effect, input } = message;
 

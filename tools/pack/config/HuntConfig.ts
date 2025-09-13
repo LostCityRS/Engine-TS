@@ -3,7 +3,7 @@ import { HuntModeType } from '#/engine/entity/hunt/HuntModeType.js';
 import { HuntNobodyNear } from '#/engine/entity/hunt/HuntNobodyNear.js';
 import { HuntVis } from '#/engine/entity/hunt/HuntVis.js';
 import { NpcMode } from '#/engine/entity/NpcMode.js';
-import { CategoryPack, HuntPack, InvPack, LocPack, NpcPack, ObjPack, ParamPack, VarnPack, VarpPack } from '#/util/PackFile.js';
+import { CategoryPack, HuntPack, InvPack, LocPack, NpcPack, ObjPack, ParamPack, VarnPack, VarpPack } from '#tools/pack/PackFile.js';
 import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean, HuntCheckInv, HuntCheckInvParam, HuntCheckVar } from '#tools/pack/config/PackShared.js';
 
 export function parseHuntConfig(key: string, value: string): ConfigValue | null | undefined {

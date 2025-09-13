@@ -1,5 +1,5 @@
 import ColorConversion from '#/util/ColorConversion.js';
-import { ModelPack, SeqPack, SpotAnimPack } from '#/util/PackFile.js';
+import { ModelPack, SeqPack, SpotAnimPack } from '#tools/pack/PackFile.js';
 import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 
 export function parseSpotAnimConfig(key: string, value: string): ConfigValue | null | undefined {
@@ -7,7 +7,7 @@ export function parseSpotAnimConfig(key: string, value: string): ConfigValue | n
     // prettier-ignore
     const numberKeys = [
         'resizeh', 'resizev',
-        'orientation',
+        'angle',
         'ambient', 'contrast',
     ];
     // prettier-ignore
@@ -48,7 +48,7 @@ export function parseSpotAnimConfig(key: string, value: string): ConfigValue | n
             return null;
         }
 
-        if (key === 'orientation' && (number < 0 || number > 360)) {
+        if (key === 'angle' && (number < 0 || number > 360)) {
             return null;
         }
 
@@ -95,7 +95,10 @@ export function packSpotAnimConfigs(configs: Map<string, ConfigLine[]>, modelFla
 
     for (let i = 0; i < SpotAnimPack.size; i++) {
         const debugname = SpotAnimPack.getById(i);
-        const config = configs.get(debugname)!;
+        const config = configs.get(debugname);
+        if (!config) {
+            throw new Error(`Missing config for spotanim ${debugname}`);
+        }
 
         for (let j = 0; j < config.length; j++) {
             const { key, value } = config[j];
@@ -117,7 +120,7 @@ export function packSpotAnimConfigs(configs: Map<string, ConfigLine[]>, modelFla
             } else if (key === 'resizev') {
                 client.p1(5);
                 client.p2(value as number);
-            } else if (key === 'orientation') {
+            } else if (key === 'angle') {
                 client.p1(6);
                 client.p2(value as number);
             } else if (key === 'ambient') {

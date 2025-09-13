@@ -1,11 +1,11 @@
-import { FloPack, TexturePack } from '#/util/PackFile.js';
+import { FloPack, TexturePack } from '#tools/pack/PackFile.js';
 import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 
 export function parseFloConfig(key: string, value: string): ConfigValue | null | undefined {
     const stringKeys: string[] = [];
     // prettier-ignore
     const numberKeys = [
-        'rgb'
+        'colour',
     ];
     // prettier-ignore
     const booleanKeys = [
@@ -71,7 +71,7 @@ export function packFloConfigs(configs: Map<string, ConfigLine[]>): { client: Pa
         for (let j = 0; j < config.length; j++) {
             const { key, value } = config[j];
 
-            if (key === 'rgb') {
+            if (key === 'colour') {
                 client.p1(1);
                 client.p3(value as number);
             } else if (key === 'texture') {
@@ -88,9 +88,11 @@ export function packFloConfigs(configs: Map<string, ConfigLine[]>): { client: Pa
             }
         }
 
-        // yes, this was originally transmitted!
-        client.p1(6);
-        client.pjstr(debugname);
+        if (!debugname.startsWith('flo_')) {
+            // yes, this was originally transmitted!
+            client.p1(6);
+            client.pjstr(debugname);
+        }
 
         client.next();
         server.next();

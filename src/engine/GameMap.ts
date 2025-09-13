@@ -245,9 +245,7 @@ export default class GameMap {
                     changeLocCollision(shape, angle, type.blockrange, length, width, type.active, absoluteX, absoluteZ, actualLevel, true);
                 }
 
-                if (type.active === 1) {
-                    this.getZone(absoluteX, absoluteZ, actualLevel).addStaticLoc(new Loc(actualLevel, absoluteX, absoluteZ, width, length, EntityLifeCycle.RESPAWN, locId, shape, angle));
-                }
+                this.getZone(absoluteX, absoluteZ, actualLevel).addStaticLoc(new Loc(actualLevel, absoluteX, absoluteZ, width, length, EntityLifeCycle.RESPAWN, locId, shape, angle));
             }
             locIdOffset = packet.gsmarts();
         }
@@ -391,6 +389,9 @@ export function reachedObj(level: number, srcX: number, srcZ: number, destX: num
 }
 
 export function canTravel(level: number, x: number, z: number, offsetX: number, offsetZ: number, size: number, extraFlag: number, collision: CollisionType): boolean {
+    if (!Environment.NODE_MEMBERS && !World.gameMap.isFreeToPlay(x + offsetX, z + offsetZ)) {
+        return false;
+    }
     return rsmod.canTravel(level, x, z, offsetX, offsetZ, size, extraFlag, collision);
 }
 

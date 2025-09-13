@@ -1,11 +1,4 @@
-import { EventEmitter } from 'events';
 import kleur from 'kleur';
-
-const loggerEmitter = new EventEmitter();
-
-export function onFatalError(listener: (message: string) => void | Promise<void>) {
-    loggerEmitter.on('fatal', listener);
-}
 
 export function printDebug(message: string) {
     const now = new Date();
@@ -30,9 +23,7 @@ export function printFatalError(message: string) {
     const now = new Date();
 
     console.error(kleur.magenta(`${now.toLocaleDateString()} ${now.toLocaleTimeString()}\t`), kleur.red('ERROR\t'), message);
-
-    const listeners = loggerEmitter.listeners('fatal') as Array<(m: string) => void | Promise<void>>;
-    Promise.all(listeners.map(l => l(message))).finally(() => process.exit(1));
+    process.exit(1);
 }
 
 export function printWarning(message: string) {

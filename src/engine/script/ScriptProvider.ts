@@ -48,10 +48,10 @@ export default class ScriptProvider {
             printFatalError('No server cache found. Please build the cache first.');
         }
 
-        const entries = dat.g4();
+        const entries = dat.g4s();
         idx.pos += 4;
 
-        const version = dat.g4();
+        const version = dat.g4s();
         if (version !== ScriptProvider.COMPILER_VERSION) {
             printFatalError('\nFatal: Scripts were compiled with an incompatible RuneScript compiler. Please update it, try `npm run build` and then restart the server.');
         }
@@ -62,7 +62,7 @@ export default class ScriptProvider {
 
         let loaded = 0;
         for (let id = 0; id < entries; id++) {
-            const size = idx.g4();
+            const size = idx.g4s();
             if (size === 0) {
                 continue;
             }

@@ -3,8 +3,9 @@ import fs from 'fs';
 import FileStream from '#/io/FileStream.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
-import { AnimPack, AnimSetPack, MapPack, MidiPack, ModelPack } from '#/util/PackFile.js';
+import { AnimPack, AnimSetPack, MapPack, MidiPack, ModelPack } from '#tools/pack/PackFile.js';
 import Environment from '#/util/Environment.js';
+import { fileExists } from '#tools/pack/FsCache.js';
 
 export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
     const versionlist = new Jagfile();
@@ -69,7 +70,7 @@ export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
             midiVersion.p2(1);
             midiCrc.p4(Packet.getcrc(data, 0, data.length - 2));
             // used for prefetching jingles
-            midiIndex.pbool(fs.existsSync(`${Environment.BUILD_SRC_DIR}/jingles/${MidiPack.getById(id)}.mid`));
+            midiIndex.pbool(fileExists(`${Environment.BUILD_SRC_DIR}/jingles/${MidiPack.getById(id)}.mid`));
         } else {
             midiVersion.p2(0);
             midiCrc.p4(0);

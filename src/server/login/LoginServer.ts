@@ -12,9 +12,10 @@ import { PlayerStatEnabled } from '#/engine/entity/PlayerStat.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { toSafeName } from '#/util/JString.js';
-import { onFatalError, printInfo } from '#/util/Logger.js';
-import { getUnreadMessageCount } from '#/util/Messages.js';
+import { printInfo } from '#/util/Logger.js';
+import { getUnreadMessageCount } from '#/server/login/Messages.js';
 import { startManagementWeb } from '#/web.js';
+import InvType from '#/cache/config/InvType.js';
 
 async function updateHiscores(account: { id: number, staffmodlevel: number } | undefined, player: Player, profile: string) {
     if (!account)
@@ -45,7 +46,8 @@ async function updateHiscores(account: { id: number, staffmodlevel: number } | u
             .set({
                 type: 0,
                 level: totalLevel,
-                value: totalXp
+                value: totalXp,
+                date: toDbDate(new Date())
             })
             .where('account_id', '=', account.id)
             .where('type', '=', 0)
@@ -78,7 +80,8 @@ async function updateHiscores(account: { id: number, staffmodlevel: number } | u
                 update.push({
                     type: hiscoreType,
                     level: player.baseLevels[stat],
-                    value: player.stats[stat]
+                    value: player.stats[stat],
+                    date: toDbDate(new Date())
                 });
             } else if (!existing) {
                 insert.push({
@@ -139,10 +142,11 @@ export default class LoginServer {
             startManagementWeb();
         }
 
+        InvType.load('data/pack');
+
         this.server = new WebSocketServer({ port: Environment.LOGIN_PORT, host: '0.0.0.0' }, () => {
             printInfo(`Login server listening on port ${Environment.LOGIN_PORT}`);
         });
-        onFatalError(() => this.server.close());
 
         this.server.on('connection', (s: WebSocket) => {
             s.on('message', async (data: Buffer) => {

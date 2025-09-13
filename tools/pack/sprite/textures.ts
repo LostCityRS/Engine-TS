@@ -2,10 +2,10 @@ import fs from 'fs';
 
 import FileStream from '#/io/FileStream.js';
 import Packet from '#/io/Packet.js';
-import { convertImage } from '#/util/PixPack.js';
+import { convertImage } from '#tools/pack/PixPack.js';
 import Environment from '#/util/Environment.js';
 import Jagfile from '#/io/Jagfile.js';
-import { TexturePack } from '#/util/PackFile.js';
+import { TexturePack } from '#tools/pack/PackFile.js';
 
 export async function packClientTexture(cache: FileStream) {
     const index = Packet.alloc(3);

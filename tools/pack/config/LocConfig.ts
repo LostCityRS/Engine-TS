@@ -1,8 +1,8 @@
 import ParamType from '#/cache/config/ParamType.js';
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import ColorConversion from '#/util/ColorConversion.js';
-import { CategoryPack, LocPack, ModelPack, SeqPack, TexturePack } from '#/util/PackFile.js';
-import { LocModelShape, ConfigValue, ConfigLine, ParamValue, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
+import { CategoryPack, LocPack, ModelPack, SeqPack, TexturePack } from '#tools/pack/PackFile.js';
+import { LocModelShape, ConfigValue, ConfigLine, ParamValue, PackedData, isConfigBoolean, getConfigBoolean, packStepError } from '#tools/pack/config/PackShared.js';
 import { lookupParamValue } from '#tools/pack/config/ParamConfig.js';
 
 // these suffixes are simply the map editor keybinds
@@ -36,7 +36,9 @@ export function parseLocConfig(key: string, value: string): ConfigValue | null |
     // prettier-ignore
     const stringKeys = [
         'name', 'desc',
-        'op1', 'op2', 'op3', 'op4', 'op5'
+        'op1', 'op2', 'op3', 'op4', 'op5',
+        // defer parsing to packing stage:
+        'model'
     ];
     // prettier-ignore
     const numberKeys = [
@@ -93,56 +95,6 @@ export function parseLocConfig(key: string, value: string): ConfigValue | null |
         }
 
         return getConfigBoolean(value);
-    } else if (key === 'model') {
-        // models are unique in locs, they may specify a model key to match against for a supported shapes
-        const models: LocModelShape[] = [];
-
-        // if a model matches directly, we know that they want to make another suffix act like _8
-        let model = ModelPack.getByName(value);
-        if (model !== -1) {
-            models.push({ model, shape: LocShapeSuffix._8 });
-            return models;
-        }
-
-        // if it doesn't match, we'll have to lookup all model suffixes to see what's supported
-        // this shape (centrepiece_default) comes first in their check, so we do it separately
-        model = ModelPack.getByName(value + '_8');
-        if (model !== -1) {
-            models.push({ model, shape: LocShapeSuffix._8 });
-        }
-        for (let i = 0; i <= 22; i++) {
-            if (i === 10) {
-                continue;
-            }
-
-            model = ModelPack.getByName(value + LocShapeSuffix[i]);
-            if (model !== -1) {
-                models.push({ model, shape: i });
-            }
-        }
-
-        if (models.length > 0) {
-            return models;
-        }
-
-        return null;
-    } else if (key.startsWith('model')) {
-        // don't use this long term in your data :)
-        // freshly unpacked! format is model<index>=<modelname>,<shape suffix>
-
-        const [modelName, shapeSuffix] = value.split(',');
-
-        const model = ModelPack.getByName(modelName);
-        if (model === -1) {
-            return null;
-        }
-
-        const shape = LocShapeSuffix[shapeSuffix as keyof typeof LocShapeSuffix];
-        if (typeof shape === 'undefined') {
-            return null;
-        }
-
-        return [{ model, shape }];
     } else if (key.startsWith('recol')) {
         const index = parseInt(key[5]);
         if (index > 9) {
@@ -226,7 +178,7 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
         // collect these to write at the end
         const recol_s: number[] = [];
         const recol_d: number[] = [];
-        let models: LocModelShape[] = [];
+        const srcModels: string[] = [];
         let name: string | null = null;
         let active: number = -1; // not written last, but affects name output
         let desc: string | null = null;
@@ -239,12 +191,8 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 name = value as string;
             } else if (key === 'desc') {
                 desc = value as string;
-            } else if (key === 'model') {
-                models = value as LocModelShape[];
             } else if (key.startsWith('model')) {
-                // refreshly unpacked!
-                const index = parseInt(key[5]) - 1;
-                models[index] = (value as LocModelShape[])[0];
+                srcModels.push(value as string);
             } else if (key.startsWith('recol')) {
                 const index = parseInt(key[5]) - 1;
                 if (key.endsWith('s')) {
@@ -367,14 +315,61 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
             }
         }
 
+        const models: LocModelShape[] = [];
+        for (let i = 0; i < srcModels.length; i++) {
+            let directReference = ModelPack.getByName(srcModels[i]) !== -1;
+            for (let shape = 0; shape <= 22; shape++) {
+                if (shape === 10) {
+                    continue;
+                }
+
+                if (ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}`) !== -1) {
+                    directReference = false;
+                    break;
+                }
+            }
+
+            if (directReference) {
+                // if a model directly points to a shape, we are forcing that shape to appear as centrepiece_straight
+                const forceModelId = ModelPack.getByName(srcModels[i]);
+                if (forceModelId !== -1) {
+                    models.push({ model: forceModelId, shape: LocShapeSuffix._8 });
+                    continue;
+                }
+            }
+
+            // centrepiece_straight comes first in their data, so we check it first
+            const modelId = ModelPack.getByName(`${srcModels[i]}_8`);
+
+            if (modelId !== -1) {
+                models.push({ model: modelId, shape: LocShapeSuffix._8 });
+            }
+
+            // now we can check the rest of the shapes
+            for (let shape = 0; shape <= 22; shape++) {
+                if (shape === LocShapeSuffix._8) {
+                    continue;
+                }
+
+                const modelId = ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}`);
+                if (modelId !== -1) {
+                    models.push({ model: modelId, shape });
+                }
+            }
+        }
+
+        if (srcModels.length > 0 && models.length === 0) {
+            throw packStepError(debugname, 'Failed to find suitable loc models');
+        }
+
         if (models.length > 0) {
             client.p1(1);
 
             client.p1(models.length);
-            for (let k = 0; k < models.length; k++) {
-                modelFlags[models[k].model] |= 0x4;
-                client.p2(models[k].model);
-                client.p1(models[k].shape);
+            for (let i = 0; i < models.length; i++) {
+                modelFlags[models[i].model] |= 0x4;
+                client.p2(models[i].model);
+                client.p1(models[i].shape);
             }
         }
 
@@ -384,8 +379,8 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
             let shouldTransmit: boolean = active === 1;
 
             if (active === -1) {
-                for (let k = 0; k < models.length; k++) {
-                    if (models[k].shape === LocShapeSuffix._8) {
+                for (let i = 0; i < models.length; i++) {
+                    if (models[i].shape === LocShapeSuffix._8) {
                         // the presence of any _8 shape means we have to transmit a name
                         shouldTransmit = true;
                         break;

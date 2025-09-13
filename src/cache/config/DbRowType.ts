@@ -98,7 +98,7 @@ export default class DbRowType extends ConfigType {
         } else if (code === 250) {
             this.debugname = dat.gjstr();
         } else {
-            throw new Error(`Unrecognized dbtable config code: ${code}`);
+            throw new Error(`Unrecognized dbrow config code: ${code}`);
         }
     }
 
@@ -124,7 +124,7 @@ export default class DbRowType extends ConfigType {
                 if (type === ScriptVarType.STRING) {
                     values[index] = dat.gjstr();
                 } else {
-                    values[index] = dat.g4();
+                    values[index] = dat.g4s();
                 }
             }
         }

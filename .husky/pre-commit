@@ -1,4 +1,3 @@
-#!/usr/bin/env sh
 # Handle Github Desktop bug on Windows
 # https://github.com/typicode/husky/issues/1072
 if [ "$OS" = "Windows_NT" ]; then

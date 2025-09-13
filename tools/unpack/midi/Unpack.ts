@@ -4,8 +4,8 @@ import path from 'path';
 import FileStream from '#/io/FileStream.js';
 import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
-import { MidiPack } from '#/util/PackFile.js';
-import { listFilesExt } from '#/util/Parse.js';
+import { MidiPack } from '#tools/pack/PackFile.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
 import Packet from '#/io/Packet.js';
 
 if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/songs`)) {
@@ -13,6 +13,9 @@ if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/songs`)) {
 }
 
 const cache = new FileStream('data/unpack', false, true);
+
+fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/jingles`, { recursive: true });
+fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/songs`, { recursive: true });
 
 const existing = [...listFilesExt(`${Environment.BUILD_SRC_DIR}/songs`, '.mid'), ...listFilesExt(`${Environment.BUILD_SRC_DIR}/jingles`, '.mid')];
 const crcs: Map<number, string> = new Map();

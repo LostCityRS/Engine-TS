@@ -2,16 +2,12 @@ import fs from 'fs';
 
 import FileStream from '#/io/FileStream.js';
 import Environment from '#/util/Environment.js';
-import { onFatalError, printFatalError, printInfo, printWarning } from '#/util/Logger.js';
+import { printFatalError, printInfo, printWarning } from '#/util/Logger.js';
 import Packet from '#/io/Packet.js';
 import Jagfile from '#/io/Jagfile.js';
-import { MapPack } from '#/util/PackFile.js';
+import { MapPack } from '#tools/pack/PackFile.js';
 
 const cache = new FileStream('data/unpack', false, true);
-onFatalError(() => {
-    cache.dat.close();
-    cache.idx.forEach(file => file.close());
-});
 
 const data = cache.read(0, 5);
 if (!data) {

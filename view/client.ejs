@@ -344,26 +344,15 @@
         }
     </script>
 
-    <script type="application/json" id="client-config">
-        <%- JSON.stringify({
-            nodeid,
-            lowmem,
-            members,
-            per_deployment_token: (typeof per_deployment_token !== 'undefined' ? per_deployment_token : null)
-        }) %>
-    </script>
     <script type="module">
         import { Client } from './client/client.js';
 
-        const cfgEl = document.getElementById('client-config');
-        const cfg = cfgEl ? JSON.parse(cfgEl.textContent) : { nodeid: 0, lowmem: 0, members: 0 };
-
-        if (cfg.per_deployment_token) {
-            document.cookie = 'per_deployment_token="' + cfg.per_deployment_token + '"; Domain=' + window.location.hostname;
-        }
+        <% if (per_deployment_token) { %>
+            document.cookie = 'per_deployment_token="<%= per_deployment_token %>"; Domain=' + window.location.hostname;
+        <% } %>
 
         (() => {
-            new Client(cfg.nodeid, cfg.lowmem, cfg.members);
+            new Client(<%= nodeid %>, <%= lowmem %>, <%= members %>);
         })();
 
         loadSettings();

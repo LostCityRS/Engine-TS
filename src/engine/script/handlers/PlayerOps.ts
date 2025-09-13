@@ -52,12 +52,6 @@ import TutFlash from '#/network/game/server/model/TutFlash.js';
 import ColorConversion from '#/util/ColorConversion.js';
 import Environment from '#/util/Environment.js';
 
-const BLINK_WALK = new WeakSet<Player>();
-export function setBlinkWalk(p: Player, on: boolean) {
-    if (on) BLINK_WALK.add(p); else BLINK_WALK.delete(p);
-}
-export function hasBlinkWalk(p: Player) { return BLINK_WALK.has(p); }
-
 const PlayerOps: CommandHandlers = {
     [ScriptOpcode.FINDUID]: state => {
         const uid = state.popInt();
@@ -418,13 +412,7 @@ const PlayerOps: CommandHandlers = {
         const coord: CoordGrid = check(state.popInt(), CoordValid);
 
         const player = state.activePlayer;
-
-        if (hasBlinkWalk(player)) {
-            player.unsetMapFlag();
-            player.teleJump(coord.x, coord.z, player.level);
-        } else {
-            player.queueWaypoints(findPath(player.level, player.x, player.z, coord.x, coord.z));
-        }
+        player.queueWaypoints(findPath(player.level, player.x, player.z, coord.x, coord.z));
     }),
 
     [ScriptOpcode.SAY]: checkedHandler(ActivePlayer, state => {

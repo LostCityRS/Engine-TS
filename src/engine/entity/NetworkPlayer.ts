@@ -11,10 +11,7 @@ import World from '#/engine/World.js';
 import { WorldStat } from '#/engine/WorldStat.js';
 import Zone from '#/engine/zone/Zone.js';
 import Packet from '#/io/Packet.js';
-import ClientProtCategory from '#/network/game/client/codec/ClientProtCategory.js';
-import ClientProtProvider from '#/network/game/client/codec/ClientProtProvider.js';
-import MessageEncoder from '#/network/game/server/codec/MessageEncoder.js';
-import ServerProtProvider from '#/network/game/server/codec/ServerProtProvider.js';
+import ServerGameMessageEncoder from '#/network/game/server/ServerGameMessageEncoder.js';
 import CamLookAt from '#/network/game/server/model/CamLookAt.js';
 import CamMoveTo from '#/network/game/server/model/CamMoveTo.js';
 import IfClose from '#/network/game/server/model/IfClose.js';
@@ -30,11 +27,15 @@ import UpdateInvFull from '#/network/game/server/model/UpdateInvFull.js';
 import UpdateRunEnergy from '#/network/game/server/model/UpdateRunEnergy.js';
 import UpdateRunWeight from '#/network/game/server/model/UpdateRunWeight.js';
 import UpdateStat from '#/network/game/server/model/UpdateStat.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 import ClientSocket from '#/server/ClientSocket.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import NullClientSocket from '#/server/NullClientSocket.js';
 import { printError } from '#/util/Logger.js';
+import ServerGameProtRepository from '#/network/game/server/ServerGameProtRepository.js';
+import ClientGameProtCategory from '#/network/game/client/ClientGameProtCategory.js';
+import ClientGameProt from '#/network/game/client/ClientGameProt.js';
+import ClientGameProtRepository from '#/network/game/client/ClientGameProtRepository.js';
 
 export class NetworkPlayer extends Player {
     client: ClientSocket;
@@ -66,7 +67,7 @@ export class NetworkPlayer extends Player {
         this.restrictedLimit = 0;
 
         const bytesStart = this.client.in.pos;
-        while (this.userLimit < ClientProtCategory.USER_EVENT.limit && this.clientLimit < ClientProtCategory.CLIENT_EVENT.limit && this.restrictedLimit < ClientProtCategory.RESTRICTED_EVENT.limit && this.read()) {
+        while (this.userLimit < ClientGameProtCategory.USER_EVENT.limit && this.clientLimit < ClientGameProtCategory.CLIENT_EVENT.limit && this.restrictedLimit < ClientGameProtCategory.RESTRICTED_EVENT.limit && this.read()) {
             // empty
         }
         const bytesRead = bytesStart - this.client.in.pos;
@@ -96,7 +97,7 @@ export class NetworkPlayer extends Player {
                 this.client.opcode = NetworkPlayer.inBuf.g1();
             }
 
-            const packetType = ClientProtProvider.ClientProt.byId[this.client.opcode];
+            const packetType = ClientGameProt.byId[this.client.opcode];
             if (!packetType) {
                 this.client.opcode = -1;
                 this.client.close();
@@ -129,16 +130,16 @@ export class NetworkPlayer extends Player {
         NetworkPlayer.inBuf.pos = 0;
         this.client.read(NetworkPlayer.inBuf.data, 0, this.client.waiting);
 
-        const packetType = ClientProtProvider.ClientProt.byId[this.client.opcode];
-        const decoder = ClientProtProvider.ClientProtRepository.getDecoder(packetType);
+        const packetType = ClientGameProt.byId[this.client.opcode];
+        const decoder = ClientGameProtRepository.getDecoder(packetType);
 
         if (decoder) {
             const message = decoder.decode(NetworkPlayer.inBuf, this.client.waiting);
-            const success: boolean = ClientProtProvider.ClientProtRepository.getHandler(packetType)?.handle(message, this) ?? false;
+            const success: boolean = ClientGameProtRepository.getHandler(packetType)?.handle(message, this) ?? false;
             // todo: move out of model
-            if (success && message.category === ClientProtCategory.USER_EVENT) {
+            if (success && message.category === ClientGameProtCategory.USER_EVENT) {
                 this.userLimit++;
-            } else if (message.category === ClientProtCategory.RESTRICTED_EVENT) {
+            } else if (message.category === ClientGameProtCategory.RESTRICTED_EVENT) {
                 this.restrictedLimit++;
             } else {
                 this.clientLimit++;
@@ -186,13 +187,13 @@ export class NetworkPlayer extends Player {
         this.buffer = [];
     }
 
-    writeInner(message: OutgoingMessage): void {
+    writeInner(message: ServerGameMessage): void {
         const client = this.client;
         if (!client) {
             return;
         }
 
-        const encoder: MessageEncoder<OutgoingMessage> | undefined = ServerProtProvider.ServerProtRepository.getEncoder(message);
+        const encoder: ServerGameMessageEncoder<ServerGameMessage> | undefined = ServerGameProtRepository.getEncoder(message);
         if (!encoder) {
             printError(`No encoder for message ${message.constructor.name}`);
             return;
@@ -420,7 +421,7 @@ export function isBufferFull(player: Player): boolean {
     let total = 0;
 
     for (const message of player.buffer) {
-        const encoder: MessageEncoder<OutgoingMessage> | undefined = ServerProtProvider.ServerProtRepository.getEncoder(message);
+        const encoder: ServerGameMessageEncoder<ServerGameMessage> | undefined = ServerGameProtRepository.getEncoder(message);
         if (!encoder) {
             return true;
         }

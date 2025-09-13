@@ -77,7 +77,7 @@ export default class ParamType extends ConfigType {
         if (code === 1) {
             this.type = dat.g1();
         } else if (code === 2) {
-            this.defaultInt = dat.g4();
+            this.defaultInt = dat.g4s();
         } else if (code === 4) {
             this.autodisable = false;
         } else if (code === 5) {
