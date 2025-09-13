@@ -185,6 +185,34 @@
             }
         });
 
+        // Disable middle-mouse (wheel) click globally to avoid autoscroll/new tabs
+        // and prevent the game from treating it like left click in any screen.
+        // Capture phase + stopPropagation ensures handlers on canvas never see it.
+        const blockIfMiddle = (e) => {
+            const isMiddle = (e && (e.button === 1 || (e.which && e.which === 2)));
+            if (isMiddle) {
+                if (typeof e.preventDefault === 'function') e.preventDefault();
+                if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+                if (typeof e.stopPropagation === 'function') e.stopPropagation();
+                return false;
+            }
+        };
+        window.addEventListener('mousedown', blockIfMiddle, true);
+        window.addEventListener('mouseup', blockIfMiddle, true);
+        window.addEventListener('click', blockIfMiddle, true);
+        window.addEventListener('auxclick', blockIfMiddle, true);
+        window.addEventListener('pointerdown', blockIfMiddle, true);
+        window.addEventListener('pointerup', blockIfMiddle, true);
+
+        window.addEventListener('load', function () {
+            const canvasEl = document.getElementById('canvas');
+            if (canvasEl) {
+                ['mousedown','mouseup','click','auxclick','pointerdown','pointerup'].forEach((ev) => {
+                    canvasEl.addEventListener(ev, blockIfMiddle, true);
+                });
+            }
+        });
+
         function loadSettings() {
             setFilter((localStorage.getItem('filtering') == 'true') ? 'pixelated' : 'auto');
             if (isMobile()) {
