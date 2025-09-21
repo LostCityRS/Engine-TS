@@ -425,10 +425,10 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 }
             } else if (key === 'wanderrange') {
                 server.p1(200);
-                server.p1(value as number);
+                server.p2(value as number);
             } else if (key === 'maxrange') {
                 server.p1(201);
-                server.p1(value as number);
+                server.p2(value as number);
             } else if (key === 'huntrange') {
                 server.p1(202);
                 server.p1(value as number);
@@ -443,7 +443,7 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 server.p1(value as number);
             } else if (key === 'attackrange') {
                 server.p1(207);
-                server.p1(value as number);
+                server.p2(value as number);
             } else if (key === 'blockwalk') {
                 server.p1(208);
                 server.p1(value as number);
