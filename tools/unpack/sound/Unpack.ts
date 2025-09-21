@@ -5,8 +5,8 @@ import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import FileStream from '#/io/FileStream.js';
-import { SynthPack } from '#/util/PackFile.js';
-import { listFilesExt } from '#/util/Parse.js';
+import { SynthPack } from '#tools/pack/PackFile.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
 import { printWarning } from '#/util/Logger.js';
 
 // let pack = '';
@@ -16,8 +16,8 @@ class Wave {
     static order: number[] = [];
 
     static unpack(buf: Packet, keepNames: boolean = true) {
-        if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/scripts/synth`)) {
-            fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/scripts/synth`);
+        if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/synth`)) {
+            fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/synth`);
         }
 
         // can't trust synth IDs to remain stable

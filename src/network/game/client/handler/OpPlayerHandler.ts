@@ -4,12 +4,11 @@ import { Interaction } from '#/engine/entity/Interaction.js';
 import { NetworkPlayer } from '#/engine/entity/NetworkPlayer.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import OpPlayer from '#/network/game/client/model/OpPlayer.js';
 import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 
-
-export default class OpPlayerHandler extends MessageHandler<OpPlayer> {
+export default class OpPlayerHandler extends ClientGameMessageHandler<OpPlayer> {
     handle(message: OpPlayer, player: NetworkPlayer): boolean {
         const { pid } = message;
 

@@ -4,13 +4,12 @@ import { Interaction } from '#/engine/entity/Interaction.js';
 import { NetworkPlayer } from '#/engine/entity/NetworkPlayer.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import OpObjU from '#/network/game/client/model/OpObjU.js';
 import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 import Environment from '#/util/Environment.js';
 
-
-export default class OpObjUHandler extends MessageHandler<OpObjU> {
+export default class OpObjUHandler extends ClientGameMessageHandler<OpObjU> {
     handle(message: OpObjU, player: NetworkPlayer): boolean {
         const { x, z, obj: objId, useObj: item, useSlot: slot, useComponent: comId } = message;
 

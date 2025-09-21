@@ -1,5 +1,5 @@
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
-import { VarnPack } from '#/util/PackFile.js';
+import { VarnPack } from '#tools/pack/PackFile.js';
 import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 
 export function parseVarnConfig(key: string, value: string): ConfigValue | null | undefined {
@@ -51,24 +51,28 @@ export function parseVarnConfig(key: string, value: string): ConfigValue | null 
 }
 
 export function packVarnConfigs(configs: Map<string, ConfigLine[]>): { client: PackedData; server: PackedData } {
-    const client: PackedData = new PackedData(VarnPack.size);
-    const server: PackedData = new PackedData(VarnPack.size);
+    const client: PackedData = new PackedData(VarnPack.max);
+    const server: PackedData = new PackedData(VarnPack.max);
 
-    for (let i = 0; i < VarnPack.size; i++) {
-        const debugname = VarnPack.getById(i);
-        const config = configs.get(debugname)!;
+    for (let id = 0; id < VarnPack.max; id++) {
+        const debugname = VarnPack.getById(id);
+        const config = configs.get(debugname);
 
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
+        if (config) {
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
 
-            if (key === 'type') {
-                server.p1(1);
-                server.p1(value as number);
+                if (key === 'type') {
+                    server.p1(1);
+                    server.p1(value as number);
+                }
             }
         }
 
-        server.p1(250);
-        server.pjstr(debugname);
+        if (debugname.length) {
+            server.p1(250);
+            server.pjstr(debugname);
+        }
 
         client.next();
         server.next();

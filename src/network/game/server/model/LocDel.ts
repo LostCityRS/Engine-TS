@@ -1,6 +1,6 @@
-import ZoneMessage from '#/network/game/server/ZoneMessage.js';
+import ServerGameZoneMessage from '#/network/game/server/ServerGameZoneMessage.js';
 
-export default class LocDel extends ZoneMessage {
+export default class LocDel extends ServerGameZoneMessage {
     constructor(
         readonly coord: number,
         readonly shape: number,

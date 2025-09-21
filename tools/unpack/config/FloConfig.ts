@@ -1,5 +1,5 @@
 import { printWarning } from '#/util/Logger.js';
-import { FloPack, TexturePack } from '#/util/PackFile.js';
+import { FloPack, TexturePack } from '#tools/pack/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 

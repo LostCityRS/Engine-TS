@@ -1,7 +1,7 @@
 import FileStream from '#/io/FileStream.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
-import { MidiPack } from '#/util/PackFile.js';
+import { MidiPack } from '#tools/pack/PackFile.js';
 
 const cache = new FileStream('data/unpack');
 const versionlist = new Jagfile(new Packet(cache.read(0, 5)!));

@@ -1,6 +1,6 @@
 
 import { db } from '#/db/query.js';
-import { ChatModePrivate } from '#/util/ChatModes.js';
+import { ChatModePrivate } from '#/engine/entity/ChatModes.js';
 import Environment from '#/util/Environment.js';
 import { fromBase37, toBase37 } from '#/util/JString.js';
 

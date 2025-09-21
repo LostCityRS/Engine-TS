@@ -5,27 +5,30 @@ import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printFatalError, printWarning } from '#/util/Logger.js';
-import { listFilesExt } from '#/util/Parse.js';
-import { InterfacePack, ModelPack, ObjPack, SeqPack, VarbitPack, VarpPack } from '#/util/PackFile.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
+import { InterfacePack, ModelPack, ObjPack, SeqPack, VarbitPack, VarpPack } from '#tools/pack/PackFile.js';
 
 function renameModel(id: number) {
+    const existingFiles = listFilesExt(`${Environment.BUILD_SRC_DIR}/models`, '.ob2');
+
     let model = ModelPack.getById(id);
     if (model.startsWith('model_')) {
-        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`)) {
-            let name = 'com_i1';
-            let i = 2;
-            while (ModelPack.getByName(name) !== -1) {
-                name = `com_i${i}`;
-                i++;
-            }
-
-            fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`, `${Environment.BUILD_SRC_DIR}/models/com/${name}.ob2`);
-
-            model = name;
-            ModelPack.register(id, model);
-        } else {
-            console.error('Model does not exist');
+        let name = 'com_i1';
+        let i = 2;
+        while (ModelPack.getByName(name) !== -1) {
+            name = `com_i${i}`;
+            i++;
         }
+
+        const filePath = existingFiles.find(x => x.endsWith(`/${model}.ob2`));
+        if (filePath) {
+            fs.renameSync(filePath, `${Environment.BUILD_SRC_DIR}/models/com/${name}.ob2`);
+        } else {
+            console.error('Model not found on filesystem', 'com', model);
+        }
+
+        model = name;
+        ModelPack.register(id, model);
     }
 
     return model;

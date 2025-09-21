@@ -21,4 +21,7 @@ export abstract class ConfigType {
             this.decode(code, dat);
         }
     }
+
+    postDecode() {
+    }
 }

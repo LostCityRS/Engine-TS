@@ -5,7 +5,7 @@ import Environment from '#/util/Environment.js';
 import { printFatalError, printInfo, printWarning } from '#/util/Logger.js';
 import Packet from '#/io/Packet.js';
 import Jagfile from '#/io/Jagfile.js';
-import { MapPack } from '#/util/PackFile.js';
+import { MapPack } from '#tools/pack/PackFile.js';
 
 const cache = new FileStream('data/unpack', false, true);
 

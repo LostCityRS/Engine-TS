@@ -3,12 +3,11 @@ import Player from '#/engine/entity/Player.js';
 import ScriptProvider from '#/engine/script/ScriptProvider.js';
 import ScriptRunner from '#/engine/script/ScriptRunner.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import InvButton from '#/network/game/client/model/InvButton.js';
 import Environment from '#/util/Environment.js';
 
-
-export default class InvButtonHandler extends MessageHandler<InvButton> {
+export default class InvButtonHandler extends ClientGameMessageHandler<InvButton> {
     handle(message: InvButton, player: Player): boolean {
         // jagex has if_button1-5
         const { op, obj: item, slot, component: comId } = message;
