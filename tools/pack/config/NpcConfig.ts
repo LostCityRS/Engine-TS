@@ -74,7 +74,7 @@ export function parseNpcConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
 
-        if ((key === 'wanderrange' || key === 'maxrange' || key === 'huntrange' || key === 'attackrange') && (number < 0 || number > 200)) {
+        if ((key === 'wanderrange' || key === 'maxrange' || key === 'huntrange' || key === 'attackrange') && (number < 0 || number > 32767)) {
             return null;
         }
 
