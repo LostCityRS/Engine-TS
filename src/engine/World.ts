@@ -92,7 +92,7 @@ import Environment from '#/util/Environment.js';
 import { fromBase37, toBase37, toSafeName } from '#/util/JString.js';
 import LinkList from '#/util/LinkList.js';
 import { printDebug, printError, printInfo } from '#/util/Logger.js';
-import { WalkTriggerSetting } from '#/util/WalkTriggerSetting.js';
+import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 import { createWorker } from '#/util/WorkerFactory.js';
 
 import InputTrackingBlob from './entity/tracking/InputEvent.js';
@@ -100,6 +100,7 @@ import OnDemand from './OnDemand.js';
 import { ObjDelayedRequest } from './entity/ObjDelayedRequest.js';
 import VarBitType from '#/cache/config/VarBitType.js';
 import DbTableIndex from '#/cache/config/DbTableIndex.js';
+import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 
 const priv = forge.pki.privateKeyFromPem(Environment.STANDALONE_BUNDLE ? await (await fetch('data/config/private.pem')).text() : fs.readFileSync('data/config/private.pem', 'ascii'));
 
@@ -937,7 +938,11 @@ class World {
                 }
 
                 player.client.state = 1;
-                player.client.send(Uint8Array.from([2, 0, 0]));
+                player.client.send(Uint8Array.from([
+                    2,
+                    Math.min(player.staffModLevel, 2),
+                    0 // tracking status
+                ]));
             }
 
             // insert player into first available slot
@@ -1996,6 +2001,8 @@ class World {
                     const [world, friendUsername37] = data.friends[i];
                     player.write(new UpdateFriendList(BigInt(friendUsername37), world));
                 }
+
+                player.write(new FriendlistLoaded(2));
             } else if (opcode === FriendsServerOpcodes.UPDATE_IGNORELIST) {
                 const username37 = BigInt(data.username37);
 
@@ -2007,10 +2014,7 @@ class World {
                 }
 
                 const ignored: bigint[] = data.ignored.map((i: string) => BigInt(i));
-
-                if (ignored.length > 0) {
-                    player.write(new UpdateIgnoreList(ignored));
-                }
+                player.write(new UpdateIgnoreList(ignored));
             } else if (opcode == FriendsServerOpcodes.PRIVATE_MESSAGE) {
                 // username37: username.toString(),
                 // targetUsername37: target.toString(),

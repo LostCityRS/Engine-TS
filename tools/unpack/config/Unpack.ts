@@ -4,7 +4,7 @@ import FileStream from '#/io/FileStream.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import { printFatalError, printInfo } from '#/util/Logger.js';
-import { FloPack, IdkPack, LocPack, ModelPack, NpcPack, ObjPack, SeqPack, SpotAnimPack, VarbitPack, VarpPack } from '#/util/PackFile.js';
+import { FloPack, IdkPack, LocPack, ModelPack, NpcPack, ObjPack, SeqPack, SpotAnimPack, VarbitPack, VarpPack } from '#tools/pack/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 import { unpackSeqConfig } from './SeqConfig.js';
@@ -14,10 +14,11 @@ import { LocModels, LocShapeSuffix, unpackLocConfig, unpackLocModels } from './L
 import { unpackObjConfig } from './ObjConfig.js';
 import { unpackIdkConfig } from './IdkConfig.js';
 import { unpackFloConfig } from './FloConfig.js';
-import { unpackVarpConfig } from './VarpPack.js';
-import { unpackVarbitConfig } from './VarbitPack.js';
-import { unpackSpotAnimType } from './SpotAnimType.js';
+import { unpackVarpConfig } from './VarpConfig.js';
+import { unpackVarbitConfig } from './VarbitConfig.js';
+import { unpackSpotAnimConfig } from './SpotAnimConfig.js';
 import Model from '#/cache/graphics/Model.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
 
 function readConfigIdx(idx: Packet | null, dat: Packet | null): ConfigIdx {
     if (!idx || !dat) {
@@ -221,6 +222,8 @@ function unpackModelNames(type: string, unpack: UnpackModelImpl, config: Jagfile
         }
     }
 
+    const existingFiles = listFilesExt(`${Environment.BUILD_SRC_DIR}/models`, '.ob2');
+
     for (let id = 0; id < locs.length; id++) {
         const config = locs[id];
         let debugname = LocPack.getById(id);
@@ -250,7 +253,11 @@ function unpackModelNames(type: string, unpack: UnpackModelImpl, config: Jagfile
                 i++;
             }
 
-            fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${modelName}.ob2`, `${Environment.BUILD_SRC_DIR}/models/loc/${name}.ob2`);
+            const filePath = existingFiles.find(x => x.endsWith(`/${modelName}.ob2`));
+            if (filePath) {
+                fs.renameSync(filePath, `${Environment.BUILD_SRC_DIR}/models/loc/${name}.ob2`);
+            }
+
             ModelPack.register(model, name);
         }
 
@@ -272,7 +279,11 @@ function unpackModelNames(type: string, unpack: UnpackModelImpl, config: Jagfile
                 i++;
             }
 
-            fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${modelName}.ob2`, `${Environment.BUILD_SRC_DIR}/models/loc/${name}.ob2`);
+            const filePath = existingFiles.find(x => x.endsWith(`/${modelName}.ob2`));
+            if (filePath) {
+                fs.renameSync(filePath, `${Environment.BUILD_SRC_DIR}/models/loc/${name}.ob2`);
+            }
+
             ModelPack.register(model, name);
         }
     }
@@ -294,13 +305,13 @@ function unpackConfigs(revision: string) {
     const config = new Jagfile(new Packet(temp));
 
     let config2;
-    // if (fs.existsSync('data/pack/main_file_cache.dat')) {
-    //     const cache2 = new FileStream('data/pack');
-    //     const temp = cache2.read(0, 2);
-    //     if (temp) {
-    //         config2 = new Jagfile(new Packet(temp));
-    //     }
-    // }
+    if (fs.existsSync('data/pack/main_file_cache.dat')) {
+        const cache2 = new FileStream('data/pack');
+        const temp = cache2.read(0, 2);
+        if (temp) {
+            config2 = new Jagfile(new Packet(temp));
+        }
+    }
 
     printInfo(`Unpacking rev ${revision} into ${Environment.BUILD_SRC_DIR}/scripts`);
 
@@ -343,7 +354,7 @@ function unpackConfigs(revision: string) {
 
     unpackConfig(revision, 'loc', unpackLocConfig, config, config2);
     unpackConfig(revision, 'obj', unpackObjConfig, config, config2);
-    unpackConfig(revision, 'spotanim', unpackSpotAnimType, config, config2);
+    unpackConfig(revision, 'spotanim', unpackSpotAnimConfig, config, config2);
     unpackConfig(revision, 'idk', unpackIdkConfig, config, config2);
     unpackConfig(revision, 'npc', unpackNpcConfig, config, config2);
     unpackConfig(revision, 'seq', unpackSeqConfig, config, config2);

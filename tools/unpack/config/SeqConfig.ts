@@ -1,5 +1,5 @@
 import { printWarning } from '#/util/Logger.js';
-import { AnimPack, ObjPack, SeqPack } from '#/util/PackFile.js';
+import { AnimPack, ObjPack, SeqPack } from '#tools/pack/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 
@@ -123,7 +123,7 @@ export function unpackSeqConfig(config: ConfigIdx, id: number): string[] {
             }
             def.push(`duplicatebehavior=${op}`);
         } else if (code === 12) {
-            const code12 = dat.g4();
+            const code12 = dat.g4s();
             def.push(`code12=${code12}`);
         } else {
             printWarning(`unknown seq code ${code}`);

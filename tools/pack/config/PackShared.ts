@@ -6,8 +6,8 @@ import ParamType from '#/cache/config/ParamType.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
-import { loadDir } from '#/util/NameMap.js';
-import { VarnPack, VarpPack, VarsPack, shouldBuild, CategoryPack, shouldBuildFile, VarbitPack } from '#/util/PackFile.js';
+import { loadDir } from '#tools/pack/NameMap.js';
+import { VarnPack, VarpPack, VarsPack, shouldBuild, CategoryPack, shouldBuildFile, VarbitPack } from '#tools/pack/PackFile.js';
 import { packDbRowConfigs, parseDbRowConfig } from '#tools/pack/config/DbRowConfig.js';
 import { packDbTableConfigs, parseDbTableConfig } from '#tools/pack/config/DbTableConfig.js';
 import { packEnumConfigs, parseEnumConfig } from '#tools/pack/config/EnumConfig.js';
@@ -27,6 +27,7 @@ import { packVarnConfigs, parseVarnConfig } from '#tools/pack/config/VarnConfig.
 import { packVarpConfigs, parseVarpConfig } from '#tools/pack/config/VarpConfig.js';
 import { packVarsConfigs, parseVarsConfig } from '#tools/pack/config/VarsConfig.js';
 import { packVarbitConfigs, parseVarbitConfig } from './VarbitConfig.js';
+import FileStream from '#/io/FileStream.js';
 
 export function isConfigBoolean(input: string): boolean {
     return input === 'yes' || input === 'no' || input === 'true' || input === 'false' || input === '1' || input === '0';
@@ -258,7 +259,7 @@ export async function readConfigs(dirTree: Set<string>, extension: string, requi
 
 function noOp() {}
 
-export async function packConfigs(modelFlags: number[]) {
+export async function packConfigs(cache: FileStream, modelFlags: number[]) {
     CONSTANTS.clear();
 
     loadDir(`${Environment.BUILD_SRC_DIR}/scripts`, '.constant', src => {
@@ -340,18 +341,9 @@ export async function packConfigs(modelFlags: number[]) {
     // Now that they're up to date, load them for us to use elsewhere during this process
     ParamType.load('data/pack');
 
-    const jag = new Jagfile();
+    const jag = Jagfile.new();
 
     const rebuildClient = true;
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.seq', 'data/pack/client/config') ||
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.loc', 'data/pack/client/config') ||
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.flo', 'data/pack/client/config') ||
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.spotanim', 'data/pack/client/config') ||
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.npc', 'data/pack/client/config') ||
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.obj', 'data/pack/client/config') ||
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.idk', 'data/pack/client/config') ||
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varp', 'data/pack/client/config') ||
-    // shouldBuild('tools/pack/config', '.ts', 'data/pack/client/config');
 
     // not a config but we want the server to know all the possible categories
     if (shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/category.pack`, 'data/pack/server/category.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/category.dat')) {
@@ -678,4 +670,6 @@ export async function packConfigs(modelFlags: number[]) {
         // todo: check the CRC of config.jag as well? (as long as bz2 is identical)
         jag.save('data/pack/client/config');
     }
+
+    cache.write(0, 2, fs.readFileSync('data/pack/client/config'));
 }

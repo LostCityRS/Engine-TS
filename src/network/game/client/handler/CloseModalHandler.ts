@@ -1,8 +1,8 @@
 import Player from '#/engine/entity/Player.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import CloseModal from '#/network/game/client/model/CloseModal.js';
 
-export default class CloseModalHandler extends MessageHandler<CloseModal> {
+export default class CloseModalHandler extends ClientGameMessageHandler<CloseModal> {
     handle(_message: CloseModal, player: Player): boolean {
         // For whatever reason the modal is not closed directly here.
         // This was tested in osrs by sending close modal and being traded

@@ -46,8 +46,10 @@ export default class FontType {
         for (let c = 0; c < 256; c++) {
             this.charOffsetX[c] = index.g1();
             this.charOffsetY[c] = index.g1();
+
             const wi = (this.charMaskWidth[c] = index.g2());
             const hi = (this.charMaskHeight[c] = index.g2());
+
             const pixelOrder = index.g1();
 
             const len = wi * hi;

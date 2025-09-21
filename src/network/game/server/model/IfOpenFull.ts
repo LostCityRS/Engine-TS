@@ -1,9 +1,9 @@
-import { ServerProtPriority } from '#/network/game/server/codec/ServerProtPriority.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import { ServerGameProtPriority } from '#/network/game/server/ServerGameProtPriority.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 
-export default class IfOpenFull extends OutgoingMessage {
+export default class IfOpenFull extends ServerGameMessage {
     // todo: Send as immediate?
-    priority = ServerProtPriority.BUFFERED;
+    priority = ServerGameProtPriority.BUFFERED;
 
     constructor(
         readonly overlayComponent: number,

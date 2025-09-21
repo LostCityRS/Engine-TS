@@ -4,8 +4,8 @@ import path from 'path';
 import { compressGz } from '#/io/GZip.js';
 import Environment from '#/util/Environment.js';
 import FileStream from '#/io/FileStream.js';
-import { listFilesExt } from '#/util/Parse.js';
-import { AnimSetPack, ModelPack } from '#/util/PackFile.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
+import { AnimSetPack, ModelPack } from '#tools/pack/PackFile.js';
 
 export function packClientModel(cache: FileStream) {
     const models = listFilesExt(`${Environment.BUILD_SRC_DIR}/models`, '.ob2');

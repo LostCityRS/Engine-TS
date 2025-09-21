@@ -1,10 +1,10 @@
 import IdkType from '#/cache/config/IdkType.js';
 import InvType from '#/cache/config/InvType.js';
 import Player from '#/engine/entity/Player.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import IfPlayerDesign from '#/network/game/client/model/IfPlayerDesign.js';
 
-export default class IfPlayerDesignHandler extends MessageHandler<IfPlayerDesign> {
+export default class IfPlayerDesignHandler extends ClientGameMessageHandler<IfPlayerDesign> {
     handle(message: IfPlayerDesign, player: Player): boolean {
         const { gender, idkit, color } = message;
 

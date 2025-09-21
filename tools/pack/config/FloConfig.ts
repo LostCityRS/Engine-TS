@@ -1,4 +1,4 @@
-import { FloPack, TexturePack } from '#/util/PackFile.js';
+import { FloPack, TexturePack } from '#tools/pack/PackFile.js';
 import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 
 export function parseFloConfig(key: string, value: string): ConfigValue | null | undefined {
@@ -61,37 +61,39 @@ export function parseFloConfig(key: string, value: string): ConfigValue | null |
 }
 
 export function packFloConfigs(configs: Map<string, ConfigLine[]>): { client: PackedData; server: PackedData } {
-    const client: PackedData = new PackedData(FloPack.size);
-    const server: PackedData = new PackedData(FloPack.size);
+    const client: PackedData = new PackedData(FloPack.max);
+    const server: PackedData = new PackedData(FloPack.max);
 
-    for (let i = 0; i < FloPack.size; i++) {
-        const debugname = FloPack.getById(i);
-        const config = configs.get(debugname)!;
+    for (let id = 0; id < FloPack.max; id++) {
+        const debugname = FloPack.getById(id);
+        const config = configs.get(debugname);
 
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
+        if (config) {
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
 
-            if (key === 'colour') {
-                client.p1(1);
-                client.p3(value as number);
-            } else if (key === 'texture') {
-                client.p1(2);
-                client.p1(value as number);
-            } else if (key === 'overlay') {
-                if (value === true) {
-                    client.p1(3);
+                if (key === 'colour') {
+                    client.p1(1);
+                    client.p3(value as number);
+                } else if (key === 'texture') {
+                    client.p1(2);
+                    client.p1(value as number);
+                } else if (key === 'overlay') {
+                    if (value === true) {
+                        client.p1(3);
+                    }
+                } else if (key === 'occlude') {
+                    if (value === false) {
+                        client.p1(5);
+                    }
+                } else if (key === 'mapcolour') {
+                    client.p1(7);
+                    client.p3(value as number);
                 }
-            } else if (key === 'occlude') {
-                if (value === false) {
-                    client.p1(5);
-                }
-            } else if (key === 'mapcolour') {
-                client.p1(7);
-                client.p3(value as number);
             }
         }
 
-        if (!debugname.startsWith('flo_')) {
+        if (debugname.length && !debugname.startsWith('flo_')) {
             // yes, this was originally transmitted!
             client.p1(6);
             client.pjstr(debugname);

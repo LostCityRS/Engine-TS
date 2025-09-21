@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 import FileStream from '#/io/FileStream.js';
-import { convertImage } from '#/util/PixPack.js';
+import { convertImage } from '#tools/pack/PixPack.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import Jagfile from '#/io/Jagfile.js';
@@ -18,7 +18,7 @@ export async function packClientTitle(cache: FileStream) {
     const p12 = await convertImage(index, `${Environment.BUILD_SRC_DIR}/fonts`, 'p12_full');
     const q8 = await convertImage(index, `${Environment.BUILD_SRC_DIR}/fonts`, 'q8_full');
 
-    const title = new Jagfile();
+    const title = Jagfile.new();
     title.write('title.dat', Packet.load(`${Environment.BUILD_SRC_DIR}/binary/title.jpg`, true));
     title.write('index.dat', index);
     title.write('logo.dat', logo);

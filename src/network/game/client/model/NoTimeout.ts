@@ -1,6 +1,6 @@
-import ClientProtCategory from '#/network/game/client/codec/ClientProtCategory.js';
-import IncomingMessage from '#/network/game/client/IncomingMessage.js';
+import ClientGameProtCategory from '#/network/game/client/ClientGameProtCategory.js';
+import ClientGameMessage from '#/network/game/client/ClientGameMessage.js';
 
-export default class NoTimeout extends IncomingMessage {
-    category = ClientProtCategory.CLIENT_EVENT;
+export default class NoTimeout extends ClientGameMessage {
+    category = ClientGameProtCategory.CLIENT_EVENT;
 }

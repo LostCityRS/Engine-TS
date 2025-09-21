@@ -4,8 +4,8 @@ import path from 'path';
 import { compressGz } from '#/io/GZip.js';
 import Environment from '#/util/Environment.js';
 import FileStream from '#/io/FileStream.js';
-import { MidiPack } from '#/util/PackFile.js';
-import { listFilesExt } from '#/util/Parse.js';
+import { MidiPack } from '#tools/pack/PackFile.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
 
 export function packClientMusic(cache: FileStream) {
     const midis = [...listFilesExt(`${Environment.BUILD_SRC_DIR}/jingles`, '.mid'), ...listFilesExt(`${Environment.BUILD_SRC_DIR}/songs`, '.mid')];

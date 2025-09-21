@@ -3,7 +3,7 @@ import { WebSocket, WebSocketServer } from 'ws';
 import { db, toDbDate } from '#/db/query.js';
 import { FriendServerRepository } from '#/server/friend/FriendServerRepository.js';
 import InternalClient from '#/server/InternalClient.js';
-import { ChatModePrivate } from '#/util/ChatModes.js';
+import { ChatModePrivate } from '#/engine/entity/ChatModes.js';
 import Environment from '#/util/Environment.js';
 import { fromBase37, toBase37 } from '#/util/JString.js';
 import { printInfo } from '#/util/Logger.js';
@@ -449,29 +449,25 @@ export class FriendServer {
     private async sendFriendsListToPlayer(profile: string, username37: bigint, socket: WebSocket) {
         const playerFriends = await this.repositories[profile].getFriends(username37);
 
-        if (playerFriends.length > 0) {
-            socket.send(
-                JSON.stringify({
-                    type: FriendsServerOpcodes.UPDATE_FRIENDLIST,
-                    username37: username37.toString(),
-                    friends: playerFriends.map(f => [f[0], f[1].toString()])
-                })
-            );
-        }
+        socket.send(
+            JSON.stringify({
+                type: FriendsServerOpcodes.UPDATE_FRIENDLIST,
+                username37: username37.toString(),
+                friends: playerFriends.map(f => [f[0], f[1].toString()])
+            })
+        );
     }
 
     private async sendIgnoreListToPlayer(profile: string, username37: bigint, socket: WebSocket) {
         const playerIgnores = await this.repositories[profile].getIgnores(username37);
 
-        if (playerIgnores.length > 0) {
-            socket.send(
-                JSON.stringify({
-                    type: FriendsServerOpcodes.UPDATE_IGNORELIST,
-                    username37: username37.toString(),
-                    ignored: playerIgnores.map(i => i.toString())
-                })
-            );
-        }
+        socket.send(
+            JSON.stringify({
+                type: FriendsServerOpcodes.UPDATE_IGNORELIST,
+                username37: username37.toString(),
+                ignored: playerIgnores.map(i => i.toString())
+            })
+        );
     }
 
     private async broadcastWorldToFollowers(profile: string, username37: bigint) {
