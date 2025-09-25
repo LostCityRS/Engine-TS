@@ -74,7 +74,7 @@ export function parseNpcConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
 
-        if ((key === 'wanderrange' || key === 'maxrange' || key === 'huntrange' || key === 'attackrange') && (number < 0 || number > 200)) {
+        if ((key === 'wanderrange' || key === 'maxrange' || key === 'huntrange' || key === 'attackrange') && (number < 0 || number > 32767)) {
             return null;
         }
 
@@ -417,7 +417,6 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                     if (npcId === -1) {
                         throw new Error(`Unknown multinpc: ${npc}`);
                     }
-
                     multinpc[parseInt(index)] = npcId;
                 } else if (key === 'active') {
                     if (value === false) {
@@ -426,10 +425,10 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                     }
                 } else if (key === 'wanderrange') {
                     server.p1(200);
-                    server.p1(value as number);
+                    server.p2(value as number);
                 } else if (key === 'maxrange') {
                     server.p1(201);
-                    server.p1(value as number);
+                    server.p2(value as number);
                 } else if (key === 'huntrange') {
                     server.p1(202);
                     server.p1(value as number);
@@ -444,7 +443,7 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                     server.p1(value as number);
                 } else if (key === 'attackrange') {
                     server.p1(207);
-                    server.p1(value as number);
+                    server.p2(value as number);
                 } else if (key === 'blockwalk') {
                     server.p1(208);
                     server.p1(value as number);
