@@ -431,6 +431,14 @@ export default class Npc extends PathingEntity {
         this.uid = (type << 16) | this.nid;
         this.resetOnRevert = reset;
 
+        if(reset) {
+            const npcType = NpcType.get(type);
+            for (let index = 0; index < npcType.stats.length; index++) {
+                const level = npcType.stats[index];
+                this.levels[index] = Math.max(level - (this.baseLevels[index] - this.levels[index]), 0);
+                this.baseLevels[index] = level;
+            }
+        }
         if (type === this.baseType && this.lifecycle === EntityLifeCycle.RESPAWN) {
             this.setLifeCycle(-1);
         } else {
