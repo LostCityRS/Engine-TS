@@ -1,9 +1,9 @@
 import Player from '#/engine/entity/Player.js';
 import ScriptState from '#/engine/script/ScriptState.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import ResumePCountDialog from '#/network/game/client/model/ResumePCountDialog.js';
 
-export default class ResumePCountDialogHandler extends MessageHandler<ResumePCountDialog> {
+export default class ResumePCountDialogHandler extends ClientGameMessageHandler<ResumePCountDialog> {
     handle(message: ResumePCountDialog, player: Player): boolean {
         const { input } = message;
 

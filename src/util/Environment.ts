@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { tryParseBoolean, tryParseInt, tryParseString } from '#/util/TryParse.js';
-import { WalkTriggerSetting } from '#/util/WalkTriggerSetting.js';
+import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 
 export default {
     EASY_STARTUP: tryParseBoolean(process.env.EASY_STARTUP, false),
@@ -100,9 +100,9 @@ export default {
     // auto-update compiler on startup
     BUILD_STARTUP_UPDATE: tryParseBoolean(process.env.BUILD_STARTUP_UPDATE, true),
     // used to check if we're producing the original cache without edits
-    BUILD_VERIFY: tryParseBoolean(process.env.BUILD_VERIFY, false),
+    BUILD_VERIFY: tryParseBoolean(process.env.BUILD_VERIFY, true),
     // used to keep some semblance of sanity in our folder structure
-    BUILD_VERIFY_FOLDER: tryParseBoolean(process.env.BUILD_VERIFY_FOLDER, false),
+    BUILD_VERIFY_FOLDER: tryParseBoolean(process.env.BUILD_VERIFY_FOLDER, true),
     // used for unpacking/custom development
     BUILD_VERIFY_PACK: tryParseBoolean(process.env.BUILD_VERIFY_PACK, false),
     // used for unpacking/custom development

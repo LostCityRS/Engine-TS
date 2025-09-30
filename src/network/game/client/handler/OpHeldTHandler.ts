@@ -4,13 +4,12 @@ import Player from '#/engine/entity/Player.js';
 import ScriptProvider from '#/engine/script/ScriptProvider.js';
 import ScriptRunner from '#/engine/script/ScriptRunner.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import OpHeldT from '#/network/game/client/model/OpHeldT.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import Environment from '#/util/Environment.js';
 
-
-export default class OpHeldTHandler extends MessageHandler<OpHeldT> {
+export default class OpHeldTHandler extends ClientGameMessageHandler<OpHeldT> {
     handle(message: OpHeldT, player: Player): boolean {
         const { obj: item, slot, component: comId, spellComponent: spellComId } = message;
 

@@ -135,7 +135,7 @@ export default class DbTableType extends ConfigType {
                 if (type === ScriptVarType.STRING) {
                     values[index] = dat.gjstr();
                 } else {
-                    values[index] = dat.g4();
+                    values[index] = dat.g4s();
                 }
             }
         }

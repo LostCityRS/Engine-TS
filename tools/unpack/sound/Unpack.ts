@@ -5,13 +5,9 @@ import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import FileStream from '#/io/FileStream.js';
-import { SynthPack } from '#/util/PackFile.js';
-import { listFilesExt } from '#/util/Parse.js';
+import { SynthPack } from '#tools/pack/PackFile.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
 import { printWarning } from '#/util/Logger.js';
-
-if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/sounds`)) {
-    fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/sounds`, { recursive: true });
-}
 
 // let pack = '';
 
@@ -103,12 +99,12 @@ class Wave {
     loopEnd = 0;
 
     unpack(buf: Packet) {
-        for (let i = 0; i < 10; i++) {
+        for (let tone = 0; tone < 10; tone++) {
             if (buf.g1() != 0) {
                 buf.pos--;
 
-                this.tones[i] = new Tone();
-                this.tones[i].unpack(buf);
+                this.tones[tone] = new Tone();
+                this.tones[tone].unpack(buf);
             }
         }
 
@@ -133,6 +129,8 @@ class Tone {
     reverbVolume = 0;
     length = 0;
     start = 0;
+    filter: Filter | null = null;
+    filterRange: Envelope | null = null;
 
     unpack(buf: Packet) {
         this.frequencyBase = new Envelope();
@@ -186,6 +184,10 @@ class Tone {
         this.reverbVolume = buf.gsmarts();
         this.length = buf.g2();
         this.start = buf.g2();
+
+        this.filter = new Filter();
+        this.filterRange = new Envelope();
+        this.filter.unpack(buf, this.filterRange);
     }
 }
 
@@ -199,13 +201,78 @@ class Envelope {
 
     unpack(buf: Packet) {
         this.form = buf.g1();
-        this.start = buf.g4();
-        this.end = buf.g4();
+        this.start = buf.g4s();
+        this.end = buf.g4s();
 
+        this.unpackShape(buf);
+    }
+
+    unpackShape(buf: Packet) {
         this.length = buf.g1();
+        this.shapeDelta = new Array(this.length);
+        this.shapePeak = new Array(this.length);
         for (let i = 0; i < this.length; i++) {
             this.shapeDelta[i] = buf.g2();
             this.shapePeak[i] = buf.g2();
+        }
+    }
+}
+
+class Filter {
+    unity: number = 0.0;
+    unity16: number = 0;
+    pairs: Int32Array = new Int32Array(2);
+    frequencies: Int32Array[][] = new Array(2);
+    ranges: Int32Array[][] = new Array(2);
+    unities: Int32Array = new Int32Array(2);
+
+    unpack(buf: Packet, envelope: Envelope) {
+        const count = buf.g1();
+        this.pairs[0] = count >> 4;
+        this.pairs[1] = count & 0xF;
+
+        if (count !== 0) {
+            this.unities[0] = buf.g2();
+            this.unities[1] = buf.g2();
+
+            const migration = buf.g1();
+
+            for (let direction = 0; direction < 2; direction++) {
+                if (!this.frequencies[direction]) {
+                    this.frequencies[direction] = new Array(2);
+                    this.frequencies[direction][0] = new Int32Array(4);
+                    this.frequencies[direction][1] = new Int32Array(4);
+                }
+
+                if (!this.ranges[direction]) {
+                    this.ranges[direction] = new Array(2);
+                    this.ranges[direction][0] = new Int32Array(4);
+                    this.ranges[direction][1] = new Int32Array(4);
+                }
+
+                for (let pair = 0; pair < this.pairs[direction]; pair++) {
+                    this.frequencies[direction][0][pair] = buf.g2();
+                    this.ranges[direction][0][pair] = buf.g2();
+                }
+            }
+
+            for (let direction = 0; direction < 2; direction++) {
+                for (let pair = 0; pair < this.pairs[direction]; pair++) {
+                    if ((migration & (1 << (direction * 4) << pair)) !== 0) {
+                        this.frequencies[direction][1][pair] = buf.g2();
+                        this.ranges[direction][1][pair] = buf.g2();
+                    } else {
+                        this.frequencies[direction][1][pair] = this.frequencies[direction][0][pair];
+                        this.ranges[direction][1][pair] = this.ranges[direction][0][pair];
+                    }
+                }
+            }
+
+            if (migration !== 0 || this.unities[1] !== this.unities[0]) {
+                envelope.unpackShape(buf);
+            }
+        } else {
+            this.unities[0] = this.unities[1] = 0;
         }
     }
 }
@@ -216,6 +283,10 @@ const soundsData = sounds.read('sounds.dat');
 
 if (!soundsData) {
     throw new Error('missing sounds.dat');
+}
+
+if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/synth`)) {
+    fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/synth`);
 }
 
 Wave.unpack(soundsData);

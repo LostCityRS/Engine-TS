@@ -1,5 +1,5 @@
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
-import { VarnPack } from '#/util/PackFile.js';
+import { VarnPack } from '#tools/pack/PackFile.js';
 import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 
 export function parseVarnConfig(key: string, value: string): ConfigValue | null | undefined {

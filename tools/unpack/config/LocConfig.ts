@@ -1,10 +1,134 @@
+import { modelsHaveTexture } from '#/cache/graphics/Model.js';
 import ColorConversion from '#/util/ColorConversion.js';
-import { printWarning } from '#/util/Logger.js';
-import { LocPack, ModelPack, SeqPack } from '#/util/PackFile.js';
+import { printFatalError, printWarning } from '#/util/Logger.js';
+import { LocPack, ModelPack, SeqPack, TexturePack } from '#tools/pack/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 
-enum LocShapeSuffix {
+function renameModel(id: number, shape: number) {
+    let model = ModelPack.getById(id);
+
+    if (model.endsWith('_ld')) {
+        model = model.substring(0, model.length - 3);
+    }
+
+    if (model.endsWith(LocShapeSuffix[shape])) {
+        model = model.substring(0, model.length - 2);
+    }
+
+    return model;
+}
+
+type LocModelShape = { model: number, shape: number };
+export type LocModels = { models: LocModelShape[], ldModels: LocModelShape[] };
+
+export function unpackLocModels(config: ConfigIdx, id: number): LocModels {
+    const { dat, pos } = config;
+    dat.pos = pos[id];
+
+    const models: LocModelShape[] = [];
+    const ldModels: LocModelShape[] = [];
+
+    while (true) {
+        const code = dat.g1();
+        if (code === 0) {
+            break;
+        }
+
+        if (code === 1) {
+            const count = dat.g1();
+
+            for (let i = 0; i < count; i++) {
+                const model = dat.g2();
+                const shape = dat.g1();
+
+                models.push({
+                    model,
+                    shape
+                });
+            }
+        } else if (code === 2) {
+            dat.gjstr();
+        } else if (code === 3) {
+            dat.gjstr();
+        } else if (code === 14) {
+            dat.g1();
+        } else if (code === 15) {
+            dat.g1();
+        } else if (code === 17) {
+            // no-op
+        } else if (code === 18) {
+            // no-op
+        } else if (code === 19) {
+            dat.gbool();
+        } else if (code === 21) {
+            // no-op
+        } else if (code === 22) {
+            // no-op
+        } else if (code === 23) {
+            // no-op
+        } else if (code === 24) {
+            dat.g2();
+        } else if (code === 25) {
+            // no-op
+        } else if (code === 28) {
+            dat.g1();
+        } else if (code === 29) {
+            dat.g1b();
+        } else if (code === 39) {
+            dat.g1b();
+        } else if (code >= 30 && code < 35) {
+            dat.gjstr();
+        } else if (code === 40) {
+            const count = dat.g1();
+
+            for (let i = 0; i < count; i++) {
+                dat.g2();
+                dat.g2();
+            }
+        } else if (code === 60) {
+            dat.g2();
+        } else if (code === 62) {
+            // no-op
+        } else if (code === 64) {
+            // no-op
+        } else if (code === 65) {
+            dat.g2();
+        } else if (code === 66) {
+            dat.g2();
+        } else if (code === 67) {
+            dat.g2();
+        } else if (code === 68) {
+            dat.g2();
+        } else if (code === 69) {
+            dat.g1();
+        } else if (code === 70) {
+            dat.g2s();
+        } else if (code === 71) {
+            dat.g2s();
+        } else if (code === 72) {
+            dat.g2s();
+        } else if (code === 73) {
+            // no-op
+        } else if (code === 74) {
+            // no-op
+        } else if (code === 75) {
+            dat.gbool();
+        } else if (code === 77) {
+            dat.g2();
+            dat.g2();
+
+            const states = dat.g1();
+            for (let i = 0; i <= states; i++) {
+                dat.g2();
+            }
+        }
+    }
+
+    return { models, ldModels };
+}
+
+export enum LocShapeSuffix {
     _1 = 0, // wall_straight
     _2 = 1, // wall_diagonalcorner
     _3 = 2, // wall_l
@@ -34,8 +158,15 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
     const { dat, pos, len } = config;
     dat.pos = pos[id];
 
+    const debugname = LocPack.getById(id);
     const def: string[] = [];
-    def.push(`[${LocPack.getById(id)}]`);
+    def.push(`[${debugname}]`);
+
+    let lastCode = 0;
+
+    const modelIds: number[] = [];
+    const recolSrc: number[] = [];
+    const recolDst: number[] = [];
 
     while (true) {
         const code = dat.g1();
@@ -46,14 +177,21 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
         if (code === 1) {
             const count = dat.g1();
 
+            let written = 1;
+            let lastName;
             for (let i = 0; i < count; i++) {
-                const index = i + 1;
                 const modelId = dat.g2();
                 const shape = dat.g1();
 
-                const model = ModelPack.getById(modelId) || 'model_' + modelId;
-                def.push(`model${index}=${model},${LocShapeSuffix[shape]}`);
-                // the comma is intentional as this needs to be post-processed to become a single model line!
+                modelIds.push(modelId);
+
+                const name = renameModel(modelId, shape);
+                if (lastName !== name) {
+                    def.push(`model${written > 1 ? written : ''}=${name}`);
+
+                    written++;
+                    lastName = name;
+                }
             }
         } else if (code === 2) {
             const name = dat.gjstr();
@@ -104,16 +242,8 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
             const count = dat.g1();
 
             for (let i = 0; i < count; i++) {
-                const index = i + 1;
-                const src = dat.g2();
-                const dst = dat.g2();
-
-                // todo: retex detection (no rgb value || model flags)
-                const srcRgb = ColorConversion.reverseHsl(src)[0];
-                const dstRgb = ColorConversion.reverseHsl(dst)[0];
-
-                def.push(`recol${index}s=${srcRgb || src}`);
-                def.push(`recol${index}d=${dstRgb || dst}`);
+                recolSrc[i] = dat.g2();
+                recolDst[i] = dat.g2();
             }
         } else if (code === 60) {
             const mapfunction = dat.g2();
@@ -150,23 +280,50 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
 
             def.push(`forceapproach=${forceapproach}`);
         } else if (code === 70) {
-            const xoff = dat.g2s();
-            def.push(`xoff=${xoff}`);
+            const offsetx = dat.g2s();
+            def.push(`offsetx=${offsetx}`);
         } else if (code === 71) {
-            const yoff = dat.g2s();
-            def.push(`yoff=${yoff}`);
+            const offsety = dat.g2s();
+            def.push(`offsety=${offsety}`);
         } else if (code === 72) {
-            const zoff = dat.g2s();
-            def.push(`zoff=${zoff}`);
+            const offsetz = dat.g2s();
+            def.push(`offsetz=${offsetz}`);
         } else if (code === 73) {
             def.push('forcedecor=yes');
         } else {
-            printWarning(`unknown loc code ${code}`);
+            printFatalError(`unknown loc code ${code}, last code ${lastCode}`);
         }
+
+        lastCode = code;
     }
 
     if (dat.pos !== pos[id] + len[id]) {
         printWarning(`incomplete read: ${dat.pos} != ${pos[id] + len[id]}`);
+    }
+
+    const recolCount = recolSrc.length;
+    for (let i = 0; i < recolCount; i++) {
+        const index = i + 1;
+
+        const srcRaw = recolSrc[i];
+        const dstRaw = recolDst[i];
+
+        const srcRgb = ColorConversion.reverseHsl(srcRaw)[0];
+        const dstRgb = ColorConversion.reverseHsl(dstRaw)[0];
+
+        if (srcRaw >= 100 || dstRaw >= 100) {
+            // output as rgb
+            def.push(`recol${index}s=${srcRgb ?? srcRaw}`);
+            def.push(`recol${index}d=${dstRgb ?? dstRaw}`);
+        } else if (typeof srcRgb === 'undefined' || typeof dstRgb === 'undefined' || modelsHaveTexture(modelIds, srcRaw)) {
+            // model has the source as a texture - output as texture
+            def.push(`retex${index}s=${TexturePack.getById(srcRaw)}`);
+            def.push(`retex${index}d=${TexturePack.getById(dstRaw)}`);
+        } else {
+            // output as rgb
+            def.push(`recol${index}s=${srcRgb ?? srcRaw}`);
+            def.push(`recol${index}d=${dstRgb ?? dstRaw}`);
+        }
     }
 
     return def;

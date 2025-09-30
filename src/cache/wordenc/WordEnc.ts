@@ -182,7 +182,7 @@ export default class WordEnc {
     }
 
     private static decodeTldList(packet: Packet): void {
-        const count = packet.g4();
+        const count = packet.g4s();
         for (let index = 0; index < count; index++) {
             this.wordEncTlds.tldTypes[index] = packet.g1();
             this.wordEncTlds.tlds[index] = new Uint16Array(packet.g1()).map(() => packet.g1());
@@ -190,7 +190,7 @@ export default class WordEnc {
     }
 
     private static decodeBadEnc(packet: Packet): void {
-        const count = packet.g4();
+        const count = packet.g4s();
         for (let index = 0; index < count; index++) {
             this.wordEncBadWords.bads[index] = new Uint16Array(packet.g1()).map(() => packet.g1());
             const combos: number[][] = new Array(packet.g1()).fill([]).map(() => [packet.g1b(), packet.g1b()]);
@@ -201,14 +201,14 @@ export default class WordEnc {
     }
 
     private static decodeDomainEnc(packet: Packet): void {
-        const count = packet.g4();
+        const count = packet.g4s();
         for (let index = 0; index < count; index++) {
             this.wordEncDomains.domains[index] = new Uint16Array(packet.g1()).map(() => packet.g1());
         }
     }
 
     private static decodeFragmentsEnc(packet: Packet): void {
-        const count = packet.g4();
+        const count = packet.g4s();
         for (let index = 0; index < count; index++) {
             this.wordEncFragments.fragments[index] = packet.g2();
         }

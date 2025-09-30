@@ -1,13 +1,12 @@
 import { CoordGrid } from '#/engine/CoordGrid.js';
 import { NetworkPlayer } from '#/engine/entity/NetworkPlayer.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import MoveClick from '#/network/game/client/model/MoveClick.js';
 import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 import Environment from '#/util/Environment.js';
-import { WalkTriggerSetting } from '#/util/WalkTriggerSetting.js';
+import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 
-
-export default class MoveClickHandler extends MessageHandler<MoveClick> {
+export default class MoveClickHandler extends ClientGameMessageHandler<MoveClick> {
     handle(message: MoveClick, player: NetworkPlayer): boolean {
         if (player.delayed) {
             player.write(new UnsetMapFlag());

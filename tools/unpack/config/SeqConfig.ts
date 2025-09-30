@@ -1,5 +1,5 @@
 import { printWarning } from '#/util/Logger.js';
-import { AnimPack, ObjPack, SeqPack } from '#/util/PackFile.js';
+import { AnimPack, ObjPack, SeqPack } from '#tools/pack/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
 
@@ -57,11 +57,13 @@ export function unpackSeqConfig(config: ConfigIdx, id: number): string[] {
         } else if (code === 3) {
             const count = dat.g1();
 
+            const labels: string[] = [];
             for (let i = 0; i < count; i++) {
-                const index = i + 1;
                 const walkmerge = dat.g1();
-                def.push(`walkmerge${index}=label_${walkmerge}`);
+                labels.push(`label_${walkmerge}`);
             }
+
+            def.push(`walkmerge=${labels.join(',')}`);
         } else if (code === 4) {
             def.push('stretches=yes');
         } else if (code === 5) {
@@ -112,12 +114,17 @@ export function unpackSeqConfig(config: ConfigIdx, id: number): string[] {
             const duplicatebehavior = dat.g1();
 
             let op = duplicatebehavior.toString();
-            if (duplicatebehavior === 1) {
+            if (duplicatebehavior === 0) {
+                op = '0';
+            } else if (duplicatebehavior === 1) {
                 op = 'reset';
             } else if (duplicatebehavior === 2) {
                 op = 'reset_loop';
             }
             def.push(`duplicatebehavior=${op}`);
+        } else if (code === 12) {
+            const code12 = dat.g4s();
+            def.push(`code12=${code12}`);
         } else {
             printWarning(`unknown seq code ${code}`);
         }

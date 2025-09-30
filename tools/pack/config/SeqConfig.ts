@@ -1,4 +1,4 @@
-import { AnimPack, ObjPack, SeqPack } from '#/util/PackFile.js';
+import { AnimPack, ObjPack, SeqPack } from '#tools/pack/PackFile.js';
 import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 
 export function parseSeqConfig(key: string, value: string): ConfigValue | null | undefined {
@@ -134,7 +134,9 @@ export function parseSeqConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
     } else if (key === 'duplicatebehavior') {
-        if (value === 'reset') {
+        if (value === '0') {
+            return 0;
+        } else if (value === 'reset') {
             return 1;
         } else if (value === 'reset_loop') {
             return 2;

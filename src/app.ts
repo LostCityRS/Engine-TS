@@ -2,7 +2,7 @@ import fs from 'fs';
 
 import { collectDefaultMetrics, register } from 'prom-client';
 
-import { packClient, packServer } from '#/cache/PackAll.js';
+import { packClient, packServer } from '#tools/pack/PackAll.js';
 import World from '#/engine/World.js';
 import TcpServer from '#/server/tcp/TcpServer.js';
 import Environment from '#/util/Environment.js';
@@ -16,12 +16,12 @@ if (Environment.BUILD_STARTUP_UPDATE) {
 }
 
 if (!fs.existsSync('data/pack/client/config') || !fs.existsSync('data/pack/server/script.dat')) {
-    printInfo('Packing cache, please wait until you see the world is ready.');
+    printInfo('Packing cache for the first time, please wait until you see the world is ready.');
 
     try {
         const modelFlags: number[] = [];
-        await packServer(modelFlags);
         await packClient(modelFlags);
+        await packServer();
     } catch (err) {
         if (err instanceof Error) {
             printError(err.message);

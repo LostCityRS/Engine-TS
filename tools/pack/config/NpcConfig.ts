@@ -4,7 +4,7 @@ import { BlockWalk } from '#/engine/entity/BlockWalk.js';
 import { MoveRestrict } from '#/engine/entity/MoveRestrict.js';
 import { NpcMode } from '#/engine/entity/NpcMode.js';
 import ColorConversion from '#/util/ColorConversion.js';
-import { CategoryPack, HuntPack, ModelPack, NpcPack, SeqPack } from '#/util/PackFile.js';
+import { CategoryPack, HuntPack, ModelPack, NpcPack, SeqPack } from '#tools/pack/PackFile.js';
 import { ParamValue, ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 import { lookupParamValue } from '#tools/pack/config/ParamConfig.js';
 
@@ -114,7 +114,7 @@ export function parseNpcConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
 
-        return ColorConversion.rgb15toHsl16(parseInt(value));
+        return parseInt(value);
     } else if (key === 'readyanim') {
         const index = SeqPack.getByName(value);
         if (index === -1) {
@@ -292,7 +292,7 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 const index = parseInt(key.substring('model'.length)) - 1;
                 models[index] = value as number;
                 modelFlags[value as number] |= 0x4;
-            } else if (key.startsWith('head')) {
+            } else if (key.match(/head\d+/)) {
                 const index = parseInt(key.substring('head'.length)) - 1;
                 heads[index] = value as number;
                 modelFlags[value as number] |= 0x4;
@@ -436,8 +436,13 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
             client.p1(recol_s.length);
 
             for (let k = 0; k < recol_s.length; k++) {
-                client.p2(recol_s[k]);
-                client.p2(recol_d[k]);
+                if (recol_s[k] >= 100 || recol_d[k] >= 100) {
+                    client.p2(ColorConversion.rgb15toHsl16(recol_s[k]));
+                    client.p2(ColorConversion.rgb15toHsl16(recol_d[k]));
+                } else {
+                    client.p2(recol_s[k]);
+                    client.p2(recol_d[k]);
+                }
             }
         }
 

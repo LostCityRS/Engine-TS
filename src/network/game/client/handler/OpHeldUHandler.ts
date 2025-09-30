@@ -5,12 +5,11 @@ import Player from '#/engine/entity/Player.js';
 import ScriptProvider from '#/engine/script/ScriptProvider.js';
 import ScriptRunner from '#/engine/script/ScriptRunner.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import OpHeldU from '#/network/game/client/model/OpHeldU.js';
 import Environment from '#/util/Environment.js';
 
-
-export default class OpHeldUHandler extends MessageHandler<OpHeldU> {
+export default class OpHeldUHandler extends ClientGameMessageHandler<OpHeldU> {
     handle(message: OpHeldU, player: Player): boolean {
         const { obj: item, slot, component: comId, useObj: useItem, useSlot, useComponent: useComId } = message;
         if (player.delayed) {

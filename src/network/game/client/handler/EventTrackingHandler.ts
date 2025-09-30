@@ -1,10 +1,9 @@
 import Player from '#/engine/entity/Player.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import EventTracking from '#/network/game/client/model/EventTracking.js';
 import Environment from '#/util/Environment.js';
 
-
-export default class EventTrackingHandler extends MessageHandler<EventTracking> {
+export default class EventTrackingHandler extends ClientGameMessageHandler<EventTracking> {
     handle(message: EventTracking, player: Player): boolean {
         const bytes: Uint8Array = message.bytes;
         if (bytes.length === 0 || bytes.length > 500) {

@@ -63,7 +63,7 @@ export default class Jagfile {
 
         let pos: number = src.pos + this.fileCount * 10;
         for (let i: number = 0; i < this.fileCount; i++) {
-            this.fileHash[i] = src.g4();
+            this.fileHash[i] = src.g4s();
             const hashMatch: number = KNOWN_HASHES.findIndex((x: number): boolean => x === this.fileHash[i]);
             if (hashMatch !== -1) {
                 this.fileName[i] = KNOWN_NAMES[hashMatch];
@@ -95,6 +95,18 @@ export default class Jagfile {
         } else {
             return new Packet(BZip2.decompress(src, this.fileUnpackedSize[index], true));
         }
+    }
+
+    has(name: string): boolean {
+        const hash: number = genHash(name);
+
+        for (let i: number = 0; i < this.fileCount; i++) {
+            if (this.fileHash[i] === hash) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     read(name: string): Packet | null {

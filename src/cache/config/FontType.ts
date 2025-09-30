@@ -26,15 +26,6 @@ export default class FontType {
         FontType.instances[3] = new FontType(title, 'q8');
     }
 
-    static async loadAsync(dir: string) {
-        const title = await Jagfile.loadAsync(`${dir}/client/title`);
-
-        FontType.instances[0] = new FontType(title, 'p11');
-        FontType.instances[1] = new FontType(title, 'p12');
-        FontType.instances[2] = new FontType(title, 'b12');
-        FontType.instances[3] = new FontType(title, 'q8');
-    }
-
     static get(id: number) {
         return FontType.instances[id];
     }
@@ -55,74 +46,75 @@ export default class FontType {
     height: number = 0;
 
     constructor(title: Jagfile, font: string) {
-        const dat = title.read(`${font}.dat`);
-        const idx = title.read('index.dat');
-        if (!dat || !idx) {
+        const data = title.read(`${font}.dat`);
+        const index = title.read('index.dat');
+        if (!data || !index) {
             return;
         }
 
-        idx.pos = dat.g2() + 4;
-        const off = idx.g1();
-        if (off > 0) {
-            idx.pos += (off - 1) * 3;
+        index.pos = data.g2() + 4;
+        const palCount = index.g1();
+        if (palCount > 0) {
+            index.pos += (palCount - 1) * 3;
         }
 
-        for (let i = 0; i < 94; i++) {
-            this.charOffsetX[i] = idx.g1();
-            this.charOffsetY[i] = idx.g1();
+        for (let c = 0; c < 94; c++) {
+            this.charOffsetX[c] = index.g1();
+            this.charOffsetY[c] = index.g1();
 
-            const w = (this.charMaskWidth[i] = idx.g2());
-            const h = (this.charMaskHeight[i] = idx.g2());
+            const wi = (this.charMaskWidth[c] = index.g2());
+            const hi = (this.charMaskHeight[c] = index.g2());
 
-            const type = idx.g1();
-            const len = w * h;
+            const pixelOrder = index.g1();
 
-            this.charMask[i] = new Uint8Array(len);
+            const len = wi * hi;
+            this.charMask[c] = new Uint8Array(len);
 
-            if (type == 0) {
+            if (pixelOrder == 0) {
                 for (let j = 0; j < len; j++) {
-                    this.charMask[i][j] = dat.g1();
+                    this.charMask[c][j] = data.g1();
                 }
-            } else if (type == 1) {
-                for (let x = 0; x < w; x++) {
-                    for (let y = 0; y < h; y++) {
-                        this.charMask[i][x + y * w] = dat.g1();
+            } else if (pixelOrder == 1) {
+                for (let x = 0; x < wi; x++) {
+                    for (let y = 0; y < hi; y++) {
+                        this.charMask[c][x + y * wi] = data.g1();
                     }
                 }
             }
 
-            if (h > this.height) {
-                this.height = h;
+            if (hi > this.height) {
+                this.height = hi;
             }
 
-            this.charOffsetX[i] = 1;
-            this.charAdvance[i] = w + 2;
+            this.charOffsetX[c] = 1;
+            this.charAdvance[c] = wi + 2;
 
             // ----
 
             let space = 0;
-            for (let y = Math.floor(h / 7); y < h; y++) {
-                space += this.charMask[i][y * w];
+            for (let y = Math.floor(hi / 7); y < hi; y++) {
+                space += this.charMask[c][y * wi];
             }
 
-            if (space <= Math.floor(h / 7)) {
-                this.charAdvance[i]--;
-                this.charOffsetX[i] = 0;
+            if (space <= Math.floor(hi / 7)) {
+                this.charAdvance[c]--;
+                this.charOffsetX[c] = 0;
             }
 
             // ----
 
             space = 0;
-            for (let y = Math.floor(h / 7); y < h; y++) {
-                space += this.charMask[i][w + y * w - 1];
+            for (let y = Math.floor(hi / 7); y < hi; y++) {
+                space += this.charMask[c][wi + y * wi - 1];
             }
 
-            if (space <= Math.floor(h / 7)) {
-                this.charAdvance[i]--;
+            if (space <= Math.floor(hi / 7)) {
+                this.charAdvance[c]--;
             }
         }
 
         this.charAdvance[94] = this.charAdvance[8];
+
         for (let c = 0; c < 256; c++) {
             this.drawWidth[c] = this.charAdvance[FontType.CHAR_LOOKUP[c]];
         }

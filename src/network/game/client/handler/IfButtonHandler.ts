@@ -4,12 +4,11 @@ import ScriptProvider from '#/engine/script/ScriptProvider.js';
 import ScriptRunner from '#/engine/script/ScriptRunner.js';
 import ScriptState from '#/engine/script/ScriptState.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import IfButton from '#/network/game/client/model/IfButton.js';
 import Environment from '#/util/Environment.js';
 
-
-export default class IfButtonHandler extends MessageHandler<IfButton> {
+export default class IfButtonHandler extends ClientGameMessageHandler<IfButton> {
     handle(message: IfButton, player: Player): boolean {
         const { component: comId } = message;
 

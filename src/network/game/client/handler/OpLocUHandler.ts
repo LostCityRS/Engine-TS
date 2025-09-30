@@ -4,13 +4,12 @@ import { Interaction } from '#/engine/entity/Interaction.js';
 import { NetworkPlayer } from '#/engine/entity/NetworkPlayer.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import OpLocU from '#/network/game/client/model/OpLocU.js';
 import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 import Environment from '#/util/Environment.js';
 
-
-export default class OpLocUHandler extends MessageHandler<OpLocU> {
+export default class OpLocUHandler extends ClientGameMessageHandler<OpLocU> {
     handle(message: OpLocU, player: NetworkPlayer): boolean {
         const { x, z, loc: locId, useObj: item, useSlot: slot, useComponent: comId } = message;
 

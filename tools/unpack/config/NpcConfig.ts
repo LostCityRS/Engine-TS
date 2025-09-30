@@ -1,15 +1,50 @@
+import fs from 'fs';
+
+import { modelsHaveTexture } from '#/cache/graphics/Model.js';
 import ColorConversion from '#/util/ColorConversion.js';
+import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
-import { ModelPack, NpcPack, SeqPack } from '#/util/PackFile.js';
+import { ModelPack, NpcPack, SeqPack, TexturePack } from '#tools/pack/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
+
+function renameModel(id: number, name: string) {
+    let model = ModelPack.getById(id);
+    if (model.startsWith('model_')) {
+        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`)) {
+            let attempt = `${!name.startsWith('npc_') ? 'npc_' : ''}${name}`;
+            let i = 2;
+            while (ModelPack.getByName(attempt) !== -1) {
+                attempt = `${!name.startsWith('npc_') ? 'npc_' : ''}${name}i${i}`;
+                i++;
+            }
+            if (attempt !== name) {
+                name = attempt;
+            }
+
+            fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`, `${Environment.BUILD_SRC_DIR}/models/npc/${name}.ob2`);
+        } else {
+            console.error('Model does not exist');
+        }
+
+        model = name;
+        ModelPack.register(id, model);
+    }
+
+    return model;
+}
 
 export function unpackNpcConfig(config: ConfigIdx, id: number): string[] {
     const { dat, pos, len } = config;
     dat.pos = pos[id];
 
+    const debugname = NpcPack.getById(id);
     const def: string[] = [];
-    def.push(`[${NpcPack.getById(id)}]`);
+    def.push(`[${debugname}]`);
+
+    const modelIds: number[] = [];
+    const recolSrc: number[] = [];
+    const recolDst: number[] = [];
 
     while (true) {
         const code = dat.g1();
@@ -24,7 +59,9 @@ export function unpackNpcConfig(config: ConfigIdx, id: number): string[] {
                 const index = i + 1;
                 const modelId = dat.g2();
 
-                const model = ModelPack.getById(modelId) || 'model_' + modelId;
+                modelIds.push(modelId);
+
+                const model = renameModel(modelId, debugname);
                 def.push(`model${index}=${model}`);
             }
         } else if (code === 2) {
@@ -68,16 +105,8 @@ export function unpackNpcConfig(config: ConfigIdx, id: number): string[] {
             const count = dat.g1();
 
             for (let i = 0; i < count; i++) {
-                const index = i + 1;
-                const src = dat.g2();
-                const dst = dat.g2();
-
-                // todo: retex detection (no rgb value || model flags)
-                const srcRgb = ColorConversion.reverseHsl(src)[0];
-                const dstRgb = ColorConversion.reverseHsl(dst)[0];
-
-                def.push(`recol${index}s=${srcRgb || src}`);
-                def.push(`recol${index}d=${dstRgb || dst}`);
+                recolSrc[i] = dat.g2();
+                recolDst[i] = dat.g2();
             }
         } else if (code === 60) {
             const count = dat.g1();
@@ -86,7 +115,9 @@ export function unpackNpcConfig(config: ConfigIdx, id: number): string[] {
                 const index = i + 1;
                 const modelId = dat.g2();
 
-                const model = ModelPack.getById(modelId) || 'model_' + modelId;
+                modelIds.push(modelId);
+
+                const model = renameModel(modelId, `${debugname}_head`);
                 def.push(`head${index}=${model}`);
             }
         } else if (code === 93) {
@@ -122,6 +153,31 @@ export function unpackNpcConfig(config: ConfigIdx, id: number): string[] {
 
     if (dat.pos !== pos[id] + len[id]) {
         printWarning(`incomplete read: ${dat.pos} != ${pos[id] + len[id]}`);
+    }
+
+    const recolCount = recolSrc.length;
+    for (let i = 0; i < recolCount; i++) {
+        const index = i + 1;
+
+        const srcRaw = recolSrc[i];
+        const dstRaw = recolDst[i];
+
+        const srcRgb = ColorConversion.reverseHsl(srcRaw)[0];
+        const dstRgb = ColorConversion.reverseHsl(dstRaw)[0];
+
+        if (srcRaw >= 100 || dstRaw >= 100) {
+            // output as rgb
+            def.push(`recol${index}s=${srcRgb ?? srcRaw}`);
+            def.push(`recol${index}d=${dstRgb ?? dstRaw}`);
+        } else if (modelsHaveTexture(modelIds, srcRaw)) {
+            // model has the source as a texture - output as texture
+            def.push(`retex${index}s=${TexturePack.getById(srcRaw)}`);
+            def.push(`retex${index}d=${TexturePack.getById(dstRaw)}`);
+        } else {
+            // output as rgb
+            def.push(`recol${index}s=${srcRgb ?? srcRaw}`);
+            def.push(`recol${index}d=${dstRgb ?? dstRaw}`);
+        }
     }
 
     return def;

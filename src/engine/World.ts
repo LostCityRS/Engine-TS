@@ -92,7 +92,7 @@ import Environment from '#/util/Environment.js';
 import { fromBase37, toBase37, toSafeName } from '#/util/JString.js';
 import LinkList from '#/util/LinkList.js';
 import { printDebug, printError, printInfo } from '#/util/Logger.js';
-import { WalkTriggerSetting } from '#/util/WalkTriggerSetting.js';
+import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 import { createWorker } from '#/util/WorkerFactory.js';
 
 import InputTrackingBlob from './entity/tracking/InputEvent.js';
@@ -245,11 +245,17 @@ class World {
 
         if (clearInvs) {
             this.invs.clear();
-            for (let i = 0; i < InvType.count; i++) {
-                const inv = InvType.get(i);
+            for (let id = 0; id < InvType.count; id++) {
+                const inv = InvType.get(id);
 
-                if (inv && inv.scope === InvType.SCOPE_SHARED) {
-                    this.invs.add(Inventory.fromType(i));
+                if (inv.scope === InvType.SCOPE_SHARED) {
+                    this.invs.add(Inventory.fromType(id));
+                } else if (inv.scope === InvType.SCOPE_TEMP) {
+                    for (const player of this.players) {
+                        if (player.invs.has(id)) {
+                            player.invs.delete(id);
+                        }
+                    }
                 }
             }
         }
@@ -2182,7 +2188,7 @@ class World {
 
             const seed = [];
             for (let i = 0; i < 4; i++) {
-                seed[i] = World.loginBuf.g4();
+                seed[i] = World.loginBuf.g4s();
             }
             client.decryptor = new Isaac(seed);
 
@@ -2191,7 +2197,7 @@ class World {
             }
             client.encryptor = new Isaac(seed);
 
-            const uid = World.loginBuf.g4();
+            const uid = World.loginBuf.g4s();
             const username = World.loginBuf.gjstr();
             const password = World.loginBuf.gjstr();
 

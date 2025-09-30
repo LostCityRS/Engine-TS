@@ -24,7 +24,7 @@ export class PlayerLoading {
         }
 
         sav.pos = sav.data.length - 4;
-        const crc = sav.g4();
+        const crc = sav.g4s();
         return crc === Packet.getcrc(sav.data, 0, sav.data.length - 4);
     }
 
@@ -62,7 +62,7 @@ export class PlayerLoading {
         }
 
         sav.pos = sav.data.length - 4;
-        const crc = sav.g4();
+        const crc = sav.g4s();
         if (crc != Packet.getcrc(sav.data, 0, sav.data.length - 4)) {
             throw new Error('Incorrect save checksum');
         }
@@ -84,26 +84,27 @@ export class PlayerLoading {
         player.runenergy = sav.g2();
         if (version >= 2) {
             // oops playtime overflow
-            player.playtime = sav.g4();
+            player.playtime = sav.g4s();
         } else {
             player.playtime = sav.g2();
         }
 
         for (let i = 0; i < 21; i++) {
-            player.stats[i] = sav.g4();
+            player.stats[i] = sav.g4s();
             player.baseLevels[i] = getLevelByExp(player.stats[i]);
             player.levels[i] = sav.g1();
         }
 
         const varpCount = sav.g2();
         for (let i = 0; i < varpCount; i++) {
-            player.vars[i] = sav.g4();
+            player.vars[i] = sav.g4s();
         }
 
         const invCount = sav.g1();
         for (let i = 0; i < invCount; i++) {
             const type = sav.g2();
-            const size = version >= 5 ? sav.g2() : InvType.get(type).size;
+            const invType = InvType.get(type);
+            const size = version >= 5 ? sav.g2() : invType.size;
 
             const objs = [];
             for (let slot = 0; slot < size; slot++) {
@@ -114,16 +115,18 @@ export class PlayerLoading {
 
                 let count = sav.g1();
                 if (count === 255) {
-                    count = sav.g4();
+                    count = sav.g4s();
                 }
 
                 objs.push({ slot, id, count });
             }
 
-            const inv = player.getInventory(type);
-            if (inv) {
-                for (const obj of objs) {
-                    inv.set(obj.slot, { id: obj.id, count: obj.count });
+            if (invType.scope === InvType.SCOPE_PERM) {
+                const inv = player.getInventory(type);
+                if (inv) {
+                    for (const obj of objs) {
+                        inv.set(obj.slot, { id: obj.id, count: obj.count });
+                    }
                 }
             }
         }
@@ -132,7 +135,7 @@ export class PlayerLoading {
         if (version >= 3) {
             const afkZones: number = sav.g1();
             for (let index: number = 0; index < afkZones; index++) {
-                player.afkZones[index] = sav.g4();
+                player.afkZones[index] = sav.g4s();
             }
             player.lastAfkZone = sav.g2();
         }

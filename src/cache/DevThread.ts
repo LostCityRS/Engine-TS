@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { parentPort } from 'worker_threads';
 
-import { packClient, packServer } from '#/cache/PackAll.js';
+import { packClient, packServer } from '#tools/pack/PackAll.js';
 import Environment from '#/util/Environment.js';
 
 // todo: this file queue is so the rebuild/reload process can utilize the additional context
@@ -22,8 +22,8 @@ async function processChangedFiles() {
 
     try {
         const modelFlags: number[] = [];
-        await packServer(modelFlags);
         await packClient(modelFlags);
+        await packServer();
 
         if (parentPort) {
             parentPort.postMessage({
@@ -67,6 +67,10 @@ function trackFileChange(filename: string) {
 }
 
 function trackDir(dir: string) {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+
     const files = fs.readdirSync(dir);
 
     for (const file of files) {
