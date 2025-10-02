@@ -42,7 +42,7 @@ Be aware it may have compatibility issues (that are addressed in the Client-Java
 
 ## Dependencies
 
-- [Bun 1.2](https://bun.sh)
+- [NodeJS 22](https://nodejs.org) - YMMV using other LTS versions.
 - [Java 17](https://adoptium.net) - later LTS versions are also fine.
 
 > [!TIP]
@@ -50,9 +50,9 @@ Be aware it may have compatibility issues (that are addressed in the Client-Java
 
 ## Workflow
 
-Content developers should run `bun start`. The server will watch for changes to scripts and configs, then automatically repack everything.
+Content developers should run `npm start`. The server will watch for changes to scripts and configs, then automatically repack everything.
 
-Engine developers should run `bun dev`. This does what `bun start` does above, but also completely restarts the server when engine code has changed.
+Engine developers should run `npm run dev`. This does what `npm start` does above, but also completely restarts the server when engine code has changed.
 
 ## Common Issues
 

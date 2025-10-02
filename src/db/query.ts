@@ -1,16 +1,15 @@
-import { Database } from 'bun:sqlite';
-import { Kysely, MysqlDialect } from 'kysely';
+import Database from 'better-sqlite3';
+import { Kysely, MysqlDialect, SqliteDialect } from 'kysely';
 import type { Dialect, LogEvent } from 'kysely';
 import { createPool } from 'mysql2';
 
 import { DB } from '#/db/types.js';
-import { BunSqliteDialect } from './dialect/BunSqliteDialect.js';
 import Environment from '#/util/Environment.js';
 
 let dialect: Dialect;
 
 if (Environment.DB_BACKEND === 'sqlite') {
-    dialect = new BunSqliteDialect({
+    dialect = new SqliteDialect({
         database: new Database('db.sqlite')
     });
 } else {

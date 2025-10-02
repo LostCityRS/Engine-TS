@@ -1,134 +1,84 @@
+import http from 'http';
+
 import { register } from 'prom-client';
 
 import { CrcBuffer } from '#/cache/CrcTable.js';
-import World from '#/engine/World.js';
-import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
-import NullClientSocket from '#/server/NullClientSocket.js';
-import WSClientSocket from '#/server/ws/WSClientSocket.js';
 import Environment from '#/util/Environment.js';
 import OnDemand from '#/engine/OnDemand.js';
 
-function getIp(req: Request) {
-    // todo: environment flag to respect cf-connecting-ip (NOT safe if origin is exposed publicly by IP + proxied)
-    const forwardedFor = req.headers.get('cf-connecting-ip') || req.headers.get('x-forwarded-for');
-    if (!forwardedFor) {
-        return null;
-    }
-
-    return forwardedFor.split(',')[0].trim();
-}
-
-const MIME_TYPES = new Map<string, string>();
-MIME_TYPES.set('.js', 'application/javascript');
-MIME_TYPES.set('.mjs', 'application/javascript');
-MIME_TYPES.set('.css', 'text/css');
-MIME_TYPES.set('.html', 'text/html');
-MIME_TYPES.set('.wasm', 'application/wasm');
-MIME_TYPES.set('.sf2', 'application/octet-stream');
-
-export type WebSocketData = {
-    client: WSClientSocket,
-    remoteAddress: string
-};
-
-export type WebSocketRoutes = {
-    '/': Response
-};
-
-export async function startWeb() {
-    Bun.serve<WebSocketData, WebSocketRoutes>({
-        port: Environment.WEB_PORT,
-        async fetch(req, server) {
-            const url = new URL(req.url ?? `', 'http://${req.headers.get('host')}`);
-
-            if (url.pathname === '/') {
-                const upgraded = server.upgrade(req, {
-                    data: {
-                        client: new WSClientSocket(),
-                        remoteAddress: getIp(req)
-                    }
-                });
-
-                if (upgraded) {
-                    return undefined;
-                }
-
-                return new Response(null, { status: 404 });
-            } else if (url.pathname.startsWith('/crc')) {
-                return new Response(Buffer.from(CrcBuffer.data));
-            } else if (url.pathname.startsWith('/title')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 1)!));
-            } else if (url.pathname.startsWith('/config')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 2)!));
-            } else if (url.pathname.startsWith('/interface')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 3)!));
-            } else if (url.pathname.startsWith('/media')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 4)!));
-            } else if (url.pathname.startsWith('/versionlist')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 5)!));
-            } else if (url.pathname.startsWith('/textures')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 6)!));
-            } else if (url.pathname.startsWith('/wordenc')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 7)!));
-            } else if (url.pathname.startsWith('/sounds')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 8)!));
-            } else {
-                return new Response(null, { status: 404 });
-            }
-        },
-        websocket: {
-            maxPayloadLength: 2000,
-            open(ws) {
-                ws.data.client.init(ws, ws.data.remoteAddress ?? ws.remoteAddress);
-            },
-            message(ws, message: Buffer) {
-                try {
-                    const { client } = ws.data;
-                    if (client.state === -1 || client.remaining <= 0) {
-                        client.terminate();
-                        return;
-                    }
-
-                    client.buffer(message);
-
-                    if (client.state === 0) {
-                        World.onClientData(client);
-                    } else if (client.state === 2) {
-                        if (Environment.NODE_WS_ONDEMAND) {
-                            OnDemand.onClientData(client);
-                        } else {
-                            client.terminate();
-                        }
-                    }
-                } catch (_) {
-                    ws.terminate();
-                }
-            },
-            close(ws) {
-                const { client } = ws.data;
-                client.state = -1;
-
-                if (client.player) {
-                    client.player.addSessionLog(LoggerEventType.ENGINE, 'WS socket closed');
-                    client.player.client = new NullClientSocket();
-                }
-            }
+// we don't need/want a full blown website or API on the game server
+export const web = http.createServer(async (req, res) => {
+    try {
+        if (req.method !== 'GET') {
+            res.writeHead(405);
+            res.end();
+            return;
         }
-    });
+
+        const url = new URL(req.url ?? '', `http://${req.headers.host}`);
+
+        if (url.pathname.startsWith('/crc')) {
+            res.setHeader('Content-Type', 'application/octet-stream');
+            res.writeHead(200);
+            res.end(CrcBuffer.data);
+        } else if (url.pathname.startsWith('/title')) {
+            res.setHeader('Content-Type', 'application/octet-stream');
+            res.writeHead(200);
+            res.end(OnDemand.cache.read(0, 1));
+        } else if (url.pathname.startsWith('/config')) {
+            res.setHeader('Content-Type', 'application/octet-stream');
+            res.writeHead(200);
+            res.end(OnDemand.cache.read(0, 2));
+        } else if (url.pathname.startsWith('/interface')) {
+            res.setHeader('Content-Type', 'application/octet-stream');
+            res.writeHead(200);
+            res.end(OnDemand.cache.read(0, 3));
+        } else if (url.pathname.startsWith('/media')) {
+            res.setHeader('Content-Type', 'application/octet-stream');
+            res.writeHead(200);
+            res.end(OnDemand.cache.read(0, 4));
+        } else if (url.pathname.startsWith('/versionlist')) {
+            res.setHeader('Content-Type', 'application/octet-stream');
+            res.writeHead(200);
+            res.end(OnDemand.cache.read(0, 5));
+        } else if (url.pathname.startsWith('/textures')) {
+            res.setHeader('Content-Type', 'application/octet-stream');
+            res.writeHead(200);
+            res.end(OnDemand.cache.read(0, 6));
+        } else if (url.pathname.startsWith('/wordenc')) {
+            res.setHeader('Content-Type', 'application/octet-stream');
+            res.writeHead(200);
+            res.end(OnDemand.cache.read(0, 7));
+        } else if (url.pathname.startsWith('/sounds')) {
+            res.setHeader('Content-Type', 'application/octet-stream');
+            res.writeHead(200);
+            res.end(OnDemand.cache.read(0, 8));
+        } else {
+            res.writeHead(404);
+            res.end();
+        }
+    } catch (_) {
+        res.end();
+    }
+});
+
+const managementWeb = http.createServer(async (req, res) => {
+    const url = new URL(req.url ?? '', `http://${req.headers.host}`);
+
+    if (url.pathname === '/prometheus') {
+        res.setHeader('Content-Type', register.contentType);
+        res.writeHead(200);
+        res.end(await register.metrics());
+    } else {
+        res.writeHead(404);
+        res.end();
+    }
+});
+
+export function startWeb() {
+    web.listen(Environment.WEB_PORT, '0.0.0.0');
 }
 
-export async function startManagementWeb() {
-    Bun.serve({
-        port: Environment.WEB_MANAGEMENT_PORT,
-        routes: {
-            '/prometheus': new Response(await register.metrics(), {
-                headers: {
-                    'Content-Type': register.contentType
-                }
-            })
-        },
-        fetch() {
-            return new Response(null, { status: 404 });
-        },
-    });
+export function startManagementWeb() {
+    managementWeb.listen(Environment.WEB_MANAGEMENT_PORT, '0.0.0.0');
 }

@@ -122,7 +122,7 @@ export function packMaps(cache) {
         const serverNpcFile = `data/pack/server/maps/n${mapX}_${mapZ}`;
         const serverObjFile = `data/pack/server/maps/o${mapX}_${mapZ}`;
 
-        const packerUpdated = shouldBuildFile(__filename, mapFile);
+        const packerUpdated = shouldBuildFile(import.meta.filename, mapFile);
 
         let data = null;
         let map = null;

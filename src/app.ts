@@ -33,9 +33,9 @@ if (!fs.existsSync('data/pack/client/config') || !fs.existsSync('data/pack/serve
 }
 
 if (Environment.EASY_STARTUP) {
-    createWorker('./src/login.ts');
-    createWorker('./src/friend.ts');
-    createWorker('./src/logger.ts');
+    createWorker('./login.ts');
+    createWorker('./friend.ts');
+    createWorker('./logger.ts');
 }
 
 await World.start();
