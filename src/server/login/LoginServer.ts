@@ -13,7 +13,7 @@ import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { toSafeName } from '#/util/JString.js';
 import { printInfo } from '#/util/Logger.js';
-import { getUnreadMessageCount } from '#/util/Messages.js';
+import { getUnreadMessageCount } from '#/server/login/Messages.js';
 import { startManagementWeb } from '#/web.js';
 
 async function updateHiscores(account: { id: number, staffmodlevel: number } | undefined, player: Player, profile: string) {
