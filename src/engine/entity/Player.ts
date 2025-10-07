@@ -69,7 +69,7 @@ import VarpLarge from '#/network/game/server/model/VarpLarge.js';
 import VarpSmall from '#/network/game/server/model/VarpSmall.js';
 import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
-import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/util/ChatModes.js';
+import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/engine/entity/ChatModes.js';
 import Environment from '#/util/Environment.js';
 import { toDisplayName } from '#/util/JString.js';
 import LinkList from '#/util/LinkList.js';

@@ -1,109 +1,21 @@
-import fs from 'fs';
-
-import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
+import { convertImage } from '#tools/pack/PixPack.js';
 import Environment from '#/util/Environment.js';
-import { shouldBuildFile, shouldBuildFileAny } from '#/util/PackFile.js';
-import { convertImage } from '#/util/PixPack.js';
+import Jagfile from '#/io/Jagfile.js';
+import { TexturePack } from '#tools/pack/PackFile.js';
 
 export async function packClientTexture() {
-    if (!shouldBuildFileAny(`${Environment.BUILD_SRC_DIR}/textures`, 'data/pack/client/textures') && !shouldBuildFile('tools/pack/sprite/textures.ts', 'data/pack/client/textures')) {
-        return;
+    const index = Packet.alloc(3);
+
+    const all = [];
+    for (let id = 0; id < 50; id++) {
+        all.push(await convertImage(index, `${Environment.BUILD_SRC_DIR}/textures`, TexturePack.getById(id)));
     }
 
-    const order = [
-        '0.dat',
-        '1.dat',
-        '2.dat',
-        '3.dat',
-        '4.dat',
-        '5.dat',
-        '6.dat',
-        '7.dat',
-        '8.dat',
-        '9.dat',
-        'index.dat',
-        '10.dat',
-        '11.dat',
-        '12.dat',
-        '13.dat',
-        '14.dat',
-        '15.dat',
-        '16.dat',
-        '17.dat',
-        '18.dat',
-        '19.dat',
-        '20.dat',
-        '21.dat',
-        '22.dat',
-        '23.dat',
-        '24.dat',
-        '25.dat',
-        '26.dat',
-        '27.dat',
-        '28.dat',
-        '29.dat',
-        '30.dat',
-        '31.dat',
-        '32.dat',
-        '33.dat',
-        '34.dat',
-        '35.dat',
-        '36.dat',
-        '37.dat',
-        '38.dat',
-        '39.dat',
-        '40.dat',
-        '41.dat',
-        '42.dat',
-        '43.dat',
-        '44.dat',
-        '45.dat',
-        '46.dat',
-        '47.dat',
-        '48.dat',
-        '49.dat'
-    ];
-
-    const files: Record<string, Packet> = {};
-
-    // ----
-
-    const pack = fs
-        .readFileSync(`${Environment.BUILD_SRC_DIR}/pack/texture.pack`, 'ascii')
-        .replace(/\r/g, '')
-        .split('\n')
-        .filter(x => x.length)
-        .map(x => {
-            const parts = x.split('=');
-            return { id: parseInt(parts[0]), name: parts[1] };
-        });
-
-    const index = Packet.alloc(1);
-
-    for (let i = 0; i < pack.length; i++) {
-        const data = await convertImage(index, `${Environment.BUILD_SRC_DIR}/textures`, pack[i].name);
-
-        // TODO (jkm) check for presence , rather than using `!`
-        files[`${pack[i].id}.dat`] = data!;
+    const textures = new Jagfile();
+    textures.write('index.dat', index);
+    for (let id = 0; id < all.length; id++) {
+        textures.write(`${id}.dat`, all[id]);
     }
-
-    files['index.dat'] = index;
-
-    // ----
-
-    const jag = new Jagfile();
-
-    for (let i = 0; i < order.length; i++) {
-        const name = order[i];
-        const data = files[name];
-        // data.save(`dump/textures/${name}`, data.length);
-        jag.write(name, data);
-    }
-
-    jag.save('data/pack/client/textures');
-
-    for (const packet of Object.values(files)) {
-        packet.release();
-    }
+    textures.save('data/pack/client/textures');
 }

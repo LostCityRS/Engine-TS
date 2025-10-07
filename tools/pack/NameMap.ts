@@ -1,48 +1,5 @@
 import fs from 'fs';
-
-// cached directory listings
-export const dirCache: Map<string, string[]> = new Map();
-
-export function listDir(path: string): string[] {
-    if (path.endsWith('/')) {
-        path = path.substring(0, path.length - 1);
-    }
-
-    let files: string[] | undefined = undefined;
-
-    if (dirCache.has(path)) {
-        files = dirCache.get(path);
-    }
-
-    if (!files) {
-        if (!fs.existsSync(path)) {
-            return [];
-        }
-
-        files = fs.readdirSync(path);
-
-        for (let i = 0; i < files.length; i++) {
-            const stat = fs.statSync(`${path}/${files[i]}`);
-
-            if (stat.isDirectory()) {
-                files[i] = files[i] + '/';
-            }
-        }
-
-        dirCache.set(path, files);
-    }
-
-    const all: string[] = [];
-    for (let i = 0; i < files.length; i++) {
-        all.push(`${path}/${files[i]}`);
-
-        if (files[i].endsWith('/')) {
-            all.push(...listDir(`${path}/${files[i]}`));
-        }
-    }
-
-    return all;
-}
+import { listDir } from '#tools/pack/FsCache.js';
 
 export function loadOrder(path: string) {
     if (!fs.existsSync(path)) {
@@ -102,14 +59,4 @@ export function loadDirExact(path: string, extension: string, callback: (src: st
             callback(fs.readFileSync(file, 'ascii').replace(/\r/g, '').split('\n'), file.substring(file.lastIndexOf('/') + 1), file.substring(0, file.lastIndexOf('/')));
         }
     }
-}
-
-export function listFiles(path: string, out: string[] = []) {
-    const files = listDir(path);
-
-    for (const file of files) {
-        out.push(file);
-    }
-
-    return out;
 }

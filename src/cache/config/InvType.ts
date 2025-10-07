@@ -108,7 +108,7 @@ export default class InvType extends ConfigType {
             for (let j = 0; j < count; j++) {
                 this.stockobj[j] = dat.g2();
                 this.stockcount[j] = dat.g2();
-                this.stockrate[j] = dat.g4();
+                this.stockrate[j] = dat.g4s();
             }
         } else if (code === 5) {
             this.restock = true;

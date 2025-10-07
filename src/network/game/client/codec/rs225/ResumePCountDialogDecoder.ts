@@ -7,7 +7,7 @@ export default class ResumePCountDialogDecoder extends MessageDecoder<ResumePCou
     prot = ClientProt225.RESUME_P_COUNTDIALOG;
 
     decode(buf: Packet) {
-        const input = buf.g4();
+        const input = buf.g4s();
         return new ResumePCountDialog(input);
     }
 }

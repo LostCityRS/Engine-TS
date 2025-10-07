@@ -4,8 +4,9 @@ import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printError } from '#/util/Logger.js';
-import { loadOrder, listFiles } from '#/util/NameMap.js';
-import { AnimPack, BasePack, ModelPack, shouldBuildFile, shouldBuildFileAny } from '#/util/PackFile.js';
+import { loadOrder } from '#tools/pack/NameMap.js';
+import { AnimPack, BasePack, ModelPack, shouldBuildFile, shouldBuildFileAny } from '#tools/pack/PackFile.js';
+import { listFiles } from '#tools/pack/FsCache.js';
 
 export function packClientModel() {
     if (!shouldBuildFile('tools/pack/graphics/pack.ts', 'data/pack/client/models') && !shouldBuildFileAny(`${Environment.BUILD_SRC_DIR}/models`, 'data/pack/client/models')) {

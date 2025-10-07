@@ -94,10 +94,11 @@ import Environment from '#/util/Environment.js';
 import { fromBase37, toBase37, toSafeName } from '#/util/JString.js';
 import LinkList from '#/util/LinkList.js';
 import { printDebug, printError, printInfo } from '#/util/Logger.js';
-import { WalkTriggerSetting } from '#/util/WalkTriggerSetting.js';
+import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 import { createWorker } from '#/util/WorkerFactory.js';
 
 import InputTrackingBlob from './entity/tracking/InputEvent.js';
+import DbTableIndex from '#/cache/config/DbTableIndex.js';
 
 const priv = forge.pki.privateKeyFromPem(Environment.STANDALONE_BUNDLE ? await (await fetch('data/config/private.pem')).text() : fs.readFileSync('data/config/private.pem', 'ascii'));
 
@@ -255,6 +256,7 @@ class World {
         MesanimType.load('data/pack');
         DbTableType.load('data/pack');
         DbRowType.load('data/pack');
+        DbTableIndex.init();
         HuntType.load('data/pack');
         VarNpcType.load('data/pack');
         VarSharedType.load('data/pack');
@@ -2163,7 +2165,7 @@ class World {
 
             const seed = [];
             for (let i = 0; i < 4; i++) {
-                seed[i] = World.loginBuf.g4();
+                seed[i] = World.loginBuf.g4s();
             }
             client.decryptor = new Isaac(seed);
 
@@ -2172,7 +2174,7 @@ class World {
             }
             client.encryptor = new Isaac(seed);
 
-            const uid = World.loginBuf.g4();
+            const uid = World.loginBuf.g4s();
             const username = World.loginBuf.gjstr();
             const password = World.loginBuf.gjstr();
 

@@ -3,7 +3,7 @@ import fs from 'fs';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
-import { shouldBuildFileAny } from '#/util/PackFile.js';
+import { shouldBuildFileAny } from '#tools/pack/PackFile.js';
 
 export function packClientWordenc() {
     if (!shouldBuildFileAny(`${Environment.BUILD_SRC_DIR}/wordenc`, 'data/pack/client/wordenc')) {

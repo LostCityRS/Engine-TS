@@ -2,7 +2,7 @@ import fs from 'fs';
 
 import BZip2 from '#/io/BZip2.js';
 import Environment from '#/util/Environment.js';
-import { shouldBuild } from '#/util/PackFile.js';
+import { shouldBuild } from '#tools/pack/PackFile.js';
 
 export function packClientMusic() {
     if (!shouldBuild(`${Environment.BUILD_SRC_DIR}/jingles`, '', 'data/pack/client/jingles')) {

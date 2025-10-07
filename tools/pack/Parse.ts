@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 import Environment from '#/util/Environment.js';
-import { listDir, listFiles } from '#/util/NameMap.js';
+import { listDir, listFiles } from '#tools/pack/FsCache.js';
 
 export function readTextNormalize(path: string): string {
     if (!fs.existsSync(path)) {

@@ -114,9 +114,9 @@ export default class LocType extends ConfigType {
     resizey = 128;
     resizez = 128;
     forceapproach = 0;
-    xoff = 0;
-    yoff = 0;
-    zoff = 0;
+    offsetx = 0;
+    offsety = 0;
+    offsetz = 0;
     forcedecor = false;
 
     // server-side
@@ -201,11 +201,11 @@ export default class LocType extends ConfigType {
         } else if (code === 69) {
             this.forceapproach = dat.g1();
         } else if (code === 70) {
-            this.xoff = dat.g2s();
+            this.offsetx = dat.g2s();
         } else if (code === 71) {
-            this.yoff = dat.g2s();
+            this.offsety = dat.g2s();
         } else if (code === 72) {
-            this.zoff = dat.g2s();
+            this.offsetz = dat.g2s();
         } else if (code === 73) {
             this.forcedecor = true;
         } else if (code === 249) {

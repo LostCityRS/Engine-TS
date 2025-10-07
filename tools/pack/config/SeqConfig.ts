@@ -1,11 +1,11 @@
-import { AnimPack, ObjPack, SeqPack } from '#/util/PackFile.js';
+import { AnimPack, ObjPack, SeqPack } from '#tools/pack/PackFile.js';
 import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 
 export function parseSeqConfig(key: string, value: string): ConfigValue | null | undefined {
     const stringKeys: string[] = [];
     // prettier-ignore
     const numberKeys = [
-        'replayoff', 'priority', 'replaycount'
+        'loops', 'priority', 'maxloops'
     ];
     // prettier-ignore
     const booleanKeys = [
@@ -41,7 +41,7 @@ export function parseSeqConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
 
-        if (key === 'replayoff' && (number < 0 || number > 1000)) {
+        if (key === 'loops' && (number < 0 || number > 1000)) {
             return null;
         }
 
@@ -49,7 +49,7 @@ export function parseSeqConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
 
-        if (key === 'replaycount' && (number < 0 || number > 1000)) {
+        if (key === 'maxloops' && (number < 0 || number > 1000)) {
             return null;
         }
 
@@ -91,7 +91,7 @@ export function parseSeqConfig(key: string, value: string): ConfigValue | null |
         }
 
         return labels;
-    } else if (key === 'righthand') {
+    } else if (key === 'replaceheldleft') {
         if (value === 'hide') {
             return 0;
         }
@@ -102,7 +102,7 @@ export function parseSeqConfig(key: string, value: string): ConfigValue | null |
         }
 
         return index + 512;
-    } else if (key === 'lefthand') {
+    } else if (key === 'replaceheldright') {
         if (value === 'hide') {
             return 0;
         }
@@ -142,7 +142,7 @@ export function packSeqConfigs(configs: Map<string, ConfigLine[]>): { client: Pa
             } else if (key.startsWith('delay')) {
                 const index = parseInt(key.substring('delay'.length)) - 1;
                 delays[index] = value as number;
-            } else if (key === 'replayoff') {
+            } else if (key === 'loops') {
                 client.p1(2);
                 client.p2(value as number);
             } else if (key === 'walkmerge') {
@@ -160,13 +160,13 @@ export function packSeqConfigs(configs: Map<string, ConfigLine[]>): { client: Pa
             } else if (key === 'priority') {
                 client.p1(5);
                 client.p1(value as number);
-            } else if (key === 'righthand') {
+            } else if (key === 'replaceheldleft') {
                 client.p1(6);
                 client.p2(value as number);
-            } else if (key === 'lefthand') {
+            } else if (key === 'replaceheldright') {
                 client.p1(7);
                 client.p2(value as number);
-            } else if (key === 'replaycount') {
+            } else if (key === 'maxloops') {
                 client.p1(8);
                 client.p1(value as number);
             }

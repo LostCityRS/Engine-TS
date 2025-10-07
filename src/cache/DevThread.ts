@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { parentPort } from 'worker_threads';
 
-import { packClient, packServer } from '#/cache/PackAll.js';
+import { packClient, packServer } from '#tools/pack/PackAll.js';
 import Environment from '#/util/Environment.js';
 
 // todo: this file queue is so the rebuild/reload process can utilize the additional context
@@ -21,8 +21,8 @@ async function processChangedFiles() {
     processNextQueue = new Set();
 
     try {
-        await packServer();
         await packClient();
+        await packServer();
 
         if (parentPort) {
             parentPort.postMessage({
@@ -37,6 +37,8 @@ async function processChangedFiles() {
                 error: err instanceof Error ? err.message : undefined
             });
         }
+
+        // console.log(err);
     }
 
     processNextTimeout = null;
@@ -64,6 +66,10 @@ function trackFileChange(filename: string) {
 }
 
 function trackDir(dir: string) {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+
     const files = fs.readdirSync(dir);
 
     for (const file of files) {
@@ -94,26 +100,13 @@ if (parentPort) {
 
 trackDir(`${Environment.BUILD_SRC_DIR}/maps`);
 trackDir(`${Environment.BUILD_SRC_DIR}/songs`);
-
-// title.jag
+trackDir(`${Environment.BUILD_SRC_DIR}/jingles`);
 trackDir(`${Environment.BUILD_SRC_DIR}/binary`);
 trackDir(`${Environment.BUILD_SRC_DIR}/fonts`);
 trackDir(`${Environment.BUILD_SRC_DIR}/title`);
-
-// config.jag, interface.jag
 trackDir(`${Environment.BUILD_SRC_DIR}/scripts`);
-
-// media.jag
 trackDir(`${Environment.BUILD_SRC_DIR}/sprites`);
-
-// models.jag
 trackDir(`${Environment.BUILD_SRC_DIR}/models`);
-
-// textures.jag
 trackDir(`${Environment.BUILD_SRC_DIR}/textures`);
-
-// sounds.jag
 trackDir(`${Environment.BUILD_SRC_DIR}/synth`);
-
-// wordenc.jag
 trackDir(`${Environment.BUILD_SRC_DIR}/wordenc`);

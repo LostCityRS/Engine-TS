@@ -1,6 +1,7 @@
 import fs from 'fs';
 
 import Packet from '#/io/Packet.js';
+import Jagfile from '#/io/Jagfile.js';
 
 export default class Component {
     static TYPE_LAYER: number = 0;
@@ -24,25 +25,22 @@ export default class Component {
     private static components: Component[] = [];
 
     static load(dir: string): void {
-        if (!fs.existsSync(`${dir}/server/interface.dat`)) {
+        if (!fs.existsSync(`${dir}/client/interface`)) {
             return;
         }
 
-        const dat = Packet.load(`${dir}/server/interface.dat`);
-        this.parse(dat);
-    }
-
-    static async loadAsync(dir: string): Promise<void> {
-        const file = await fetch(`${dir}/server/interface.dat`);
-        if (!file.ok) {
+        const client = new Jagfile(Packet.load(`${dir}/client/interface`));
+        if (!client.has('data')) {
             return;
         }
 
-        const dat = new Packet(new Uint8Array(await file.arrayBuffer()));
-        this.parse(dat);
+        this.decode(client.read('data')!);
+
+        const server = Packet.load(`${dir}/server/interface.dat`);
+        this.decodeExtra(server);
     }
 
-    static parse(dat: Packet) {
+    static decode(dat: Packet) {
         this.componentNames = new Map();
         this.components = [];
 
@@ -60,10 +58,7 @@ export default class Component {
             com.id = id;
             com.rootLayer = rootLayer;
 
-            com.comName = dat.gjstr();
-            com.overlay = dat.gbool();
-
-            com.type = dat.g1();
+            com.comType = dat.g1();
             com.buttonType = dat.g1();
             com.clientCode = dat.g2();
             com.width = dat.g2();
@@ -101,7 +96,7 @@ export default class Component {
                 }
             }
 
-            switch (com.type) {
+            switch (com.comType) {
                 case Component.TYPE_LAYER: {
                     com.scroll = dat.g2();
                     com.hide = dat.gbool();
@@ -154,9 +149,9 @@ export default class Component {
                 }
                 case Component.TYPE_RECT:
                     com.fill = dat.gbool();
-                    com.colour = dat.g4();
-                    com.activeColour = dat.g4();
-                    com.overColour = dat.g4();
+                    com.colour = dat.g4s();
+                    com.activeColour = dat.g4s();
+                    com.overColour = dat.g4s();
                     break;
                 case Component.TYPE_TEXT:
                     com.center = dat.gbool();
@@ -164,9 +159,9 @@ export default class Component {
                     com.shadowed = dat.gbool();
                     com.text = dat.gjstr();
                     com.activeText = dat.gjstr();
-                    com.colour = dat.g4();
-                    com.activeColour = dat.g4();
-                    com.overColour = dat.g4();
+                    com.colour = dat.g4s();
+                    com.activeColour = dat.g4s();
+                    com.overColour = dat.g4s();
                     break;
                 case Component.TYPE_SPRITE:
                     com.graphic = dat.gjstr();
@@ -206,7 +201,7 @@ export default class Component {
                     com.center = dat.gbool();
                     com.font = dat.g1();
                     com.shadowed = dat.gbool();
-                    com.colour = dat.g4();
+                    com.colour = dat.g4s();
                     com.marginX = dat.g2s();
                     com.marginY = dat.g2s();
                     com.interactable = dat.gbool();
@@ -242,6 +237,22 @@ export default class Component {
         }
     }
 
+    // custom
+    static decodeExtra(dat: Packet) {
+        dat.g2(); // count
+
+        while (dat.available > 0) {
+            const id = dat.g2();
+            const debugname = dat.gjstr();
+            const overlay = dat.gbool();
+
+            Component.components[id].comName = debugname;
+            Component.components[id].overlay = overlay;
+
+            Component.componentNames.set(debugname, id);
+        }
+    }
+
     static get(id: number): Component {
         return Component.components[id];
     }
@@ -264,7 +275,7 @@ export default class Component {
     rootLayer: number = -1;
     comName: string | null = null;
     overlay: boolean = false;
-    type: number = -1;
+    comType: number = -1;
     buttonType: number = -1;
     clientCode: number = 0;
     width: number = 0;

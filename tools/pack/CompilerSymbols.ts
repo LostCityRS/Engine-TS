@@ -14,7 +14,7 @@ import { PlayerStatMap } from '#/engine/entity/PlayerStat.js';
 import { ScriptOpcodeMap } from '#/engine/script/ScriptOpcode.js';
 import ScriptOpcodePointers from '#/engine/script/ScriptOpcodePointers.js';
 import Environment from '#/util/Environment.js';
-import { loadDir, loadPack } from '#/util/NameMap.js';
+import { loadDir, loadPack } from '#tools/pack/NameMap.js';
 
 export function generateServerSymbols() {
     fs.mkdirSync('data/symbols', { recursive: true });
@@ -337,11 +337,18 @@ export function generateServerSymbols() {
         dbTableSymbols += `${i}\t${dbtables[i]}\n`;
 
         const table = DbTableType.get(i);
-        for (let j = 0; j < table.columnNames.length; j++) {
-            const columnIndex = (table.id << 12) | (j << 4);
-            const types = table.types[j].map((t: number) => ScriptVarType.getType(t)).join(',');
+        for (let column = 0; column < table.columnNames.length; column++) {
+            const types = table.types[column].map((t: number) => ScriptVarType.getType(t));
 
-            dbColumnSymbols += `${columnIndex}\t${table.debugname}:${table.columnNames[j]}\t${types}\n`;
+            const columnIndex = ((table.id & 0xffff) << 12) | ((column & 0x7f) << 4);
+            dbColumnSymbols += `${columnIndex}\t${table.debugname}:${table.columnNames[column]}\t${types.join(',')}\n`;
+
+            if (types.length > 1) {
+                for (let tuple = 0; tuple < types.length; tuple++) {
+                    const tupleIndex = ((table.id & 0xffff) << 12) | ((column & 0x7f) << 4) | ((tuple + 1) & 0xf);
+                    dbColumnSymbols += `${tupleIndex}\t${table.debugname}:${table.columnNames[column]}:${tuple}\t${types[tuple]}\n`;
+                }
+            }
         }
     }
     fs.writeFileSync('data/symbols/dbtable.sym', dbTableSymbols);
@@ -403,12 +410,4 @@ export function generateServerSymbols() {
         .sort((a, b) => a[1] - b[1])
         .map(([name, opcode]) => `${opcode}\t${name.toLowerCase()}`);
     fs.writeFileSync('data/symbols/npc_mode.sym', npcmodes.join('\n') + '\n');
-
-    // ----
-
-    if (fs.existsSync('data/pack/server/scripts')) {
-        fs.readdirSync('data/pack/server/scripts').forEach(file => {
-            fs.unlinkSync(`data/pack/server/scripts/${file}`);
-        });
-    }
 }

@@ -1,5 +1,5 @@
 import InvType from '#/cache/config/InvType.js';
-import { InvPack, ObjPack } from '#/util/PackFile.js';
+import { InvPack, ObjPack } from '#tools/pack/PackFile.js';
 import { ConfigValue, ConfigLine, PackedData, isConfigBoolean, getConfigBoolean } from '#tools/pack/config/PackShared.js';
 
 export function parseInvConfig(key: string, value: string): ConfigValue | null | undefined {
@@ -43,7 +43,7 @@ export function parseInvConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
 
-        if (key === 'size' && (number < 0 || number > 500)) {
+        if (key === 'size' && (number < 0 || number > 65535)) {
             return null;
         }
 

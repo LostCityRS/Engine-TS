@@ -360,11 +360,11 @@ async function configureDevStack() {
     fs.appendFileSync('.env', 'EASY_STARTUP=true\n');
 
     if (backend === 'sqlite') {
-        child_process.execSync('npm run sqlite:migrate', {
+        child_process.execSync('bun run sqlite:migrate', {
             stdio: 'inherit'
         });
     } else if (backend === 'mysql') {
-        child_process.execSync('npm run db:migrate', {
+        child_process.execSync('bun run db:migrate', {
             stdio: 'inherit'
         });
     }
@@ -387,7 +387,7 @@ async function configureSingle() {
     setLocalSupportServers();
 
     fs.appendFileSync('.env', 'EASY_STARTUP=true\n');
-    child_process.execSync('npm run sqlite:migrate', {
+    child_process.execSync('bun run sqlite:migrate', {
         stdio: 'inherit'
     });
     process.exit(0);
@@ -410,9 +410,10 @@ async function configureMulti() {
     await promptFriend();
     await promptLogger();
 
-    child_process.execSync('npm run db:migrate', {
+    child_process.execSync('bun run db:migrate', {
         stdio: 'inherit'
     });
+
     process.exit(0);
 }
 

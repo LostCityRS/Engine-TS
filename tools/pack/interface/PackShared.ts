@@ -1,8 +1,8 @@
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printError } from '#/util/Logger.js';
-import { loadDir, loadOrder } from '#/util/NameMap.js';
-import { InterfacePack, ModelPack, ObjPack, SeqPack, VarpPack } from '#/util/PackFile.js';
+import { loadDir, loadOrder } from '#tools/pack/NameMap.js';
+import { InterfacePack, ModelPack, ObjPack, SeqPack, VarpPack } from '#tools/pack/PackFile.js';
 
 function nameToType(name: string) {
     switch (name) {
@@ -159,7 +159,7 @@ type Component = {
     src: Record<string, string | number>;
 };
 
-export function packInterface(server: boolean) {
+export function packInterface() {
     const component: Record<number, Component> = {};
 
     const interfaceOrder = loadOrder(`${Environment.BUILD_SRC_DIR}/pack/interface.order`);
@@ -228,49 +228,50 @@ export function packInterface(server: boolean) {
 
     // ----
 
-    const data = Packet.alloc(4);
+    const client = Packet.alloc(5);
+    const server = Packet.alloc(5);
 
     let lastRoot = null;
-    data.p2(InterfacePack.size);
+    client.p2(InterfacePack.size);
+    server.p2(InterfacePack.size);
     for (let i = 0; i < interfaceOrder.length; i++) {
         const id = interfaceOrder[i];
         const com = component[id];
         const src = com.src;
 
         if (com.root === null || lastRoot !== com.root) {
-            data.p2(-1);
+            client.p2(-1);
 
             if (com.root) {
-                data.p2(InterfacePack.getByName(com.root));
+                client.p2(InterfacePack.getByName(com.root));
                 lastRoot = com.root;
             } else {
-                data.p2(id);
+                client.p2(id);
                 lastRoot = InterfacePack.getById(id);
             }
         }
 
-        data.p2(id);
+        client.p2(id);
 
-        if (server) {
-            data.pjstr(InterfacePack.getById(id));
-            data.pbool(src.type === 'overlay');
-        }
+        server.p2(id);
+        server.pjstr(InterfacePack.getById(id));
+        server.pbool(src.type === 'overlay');
 
-        const type = nameToType(src.type as string);
-        data.p1(type);
+        const comType = nameToType(src.type as string);
+        client.p1(comType);
 
         const buttonType = nameToButtonType(src.buttontype as string);
-        data.p1(buttonType);
+        client.p1(buttonType);
 
-        data.p2(parseInt(src.clientcode as string));
-        data.p2(parseInt(src.width as string));
-        data.p2(parseInt(src.height as string));
+        client.p2(parseInt(src.clientcode as string));
+        client.p2(parseInt(src.width as string));
+        client.p2(parseInt(src.height as string));
 
         if (src.overlayer) {
             const layerId = InterfacePack.getByName(`${com.root}:${src.overlayer}`);
-            data.p2(layerId + 0x100);
+            client.p2(layerId + 0x100);
         } else {
-            data.p1(0);
+            client.p1(0);
         }
 
         let comparatorCount = 0;
@@ -280,11 +281,11 @@ export function packInterface(server: boolean) {
             }
         }
 
-        data.p1(comparatorCount);
+        client.p1(comparatorCount);
         for (let j = 1; j <= comparatorCount; j++) {
             const parts = (src[`script${j}`] as string).split(',');
-            data.p1(nameToComparator(parts[0]));
-            data.p2(parseInt(parts[1]));
+            client.p1(nameToComparator(parts[0]));
+            client.p2(parseInt(parts[1]));
         }
 
         let scriptCount = 0;
@@ -294,10 +295,10 @@ export function packInterface(server: boolean) {
             }
         }
 
-        data.p1(scriptCount);
+        client.p1(scriptCount);
         for (let j = 1; j <= scriptCount; j++) {
             let opCount = 0;
-            for (let k = 0; k <= 5; k++) {
+            for (let k = 1; k <= 20; k++) {
                 const op = src[`script${j}op${k}`];
 
                 if (typeof op !== 'undefined') {
@@ -335,26 +336,26 @@ export function packInterface(server: boolean) {
 
             if (src[`script${j}op1`] === '') {
                 // TODO: clean this up, stats:com_0 and 2 others in the same file use this code path
-                data.p2(opCount);
+                client.p2(opCount);
             } else {
-                data.p2(opCount + 1);
+                client.p2(opCount + 1);
             }
-            for (let k = 0; k <= opCount; k++) {
+            for (let k = 1; k <= opCount; k++) {
                 const op = src[`script${j}op${k}`];
 
                 if (op) {
                     const parts = (op as string).split(',');
-                    data.p2(nameToScript(parts[0]));
+                    client.p2(nameToScript(parts[0]));
 
                     switch (parts[0]) {
                         case 'stat_level':
-                            data.p2(nameToStat(parts[1]));
+                            client.p2(nameToStat(parts[1]));
                             break;
                         case 'stat_base_level':
-                            data.p2(nameToStat(parts[1]));
+                            client.p2(nameToStat(parts[1]));
                             break;
                         case 'stat_xp':
-                            data.p2(nameToStat(parts[1]));
+                            client.p2(nameToStat(parts[1]));
                             break;
                         case 'inv_count': {
                             const comLink = InterfacePack.getByName(parts[1]);
@@ -367,8 +368,8 @@ export function packInterface(server: boolean) {
                                 printError(`${com.root} invalid lookup ${parts[2]}`);
                             }
 
-                            data.p2(comLink);
-                            data.p2(objLink);
+                            client.p2(comLink);
+                            client.p2(objLink);
                             break;
                         }
                         case 'pushvar': {
@@ -377,11 +378,11 @@ export function packInterface(server: boolean) {
                                 printError(`${com.root} invalid lookup ${parts[1]}`);
                             }
 
-                            data.p2(varpLink);
+                            client.p2(varpLink);
                             break;
                         }
                         case 'stat_xp_remaining':
-                            data.p2(nameToStat(parts[1]));
+                            client.p2(nameToStat(parts[1]));
                             break;
                         case 'inv_contains': {
                             const comLink = InterfacePack.getByName(parts[1]);
@@ -394,8 +395,8 @@ export function packInterface(server: boolean) {
                                 printError(`${com.root} invalid lookup ${parts[2]}`);
                             }
 
-                            data.p2(comLink);
-                            data.p2(objLink);
+                            client.p2(comLink);
+                            client.p2(objLink);
                             break;
                         }
                         case 'testbit': {
@@ -404,8 +405,8 @@ export function packInterface(server: boolean) {
                                 printError(`${com.root} invalid lookup ${parts[1]}`);
                             }
 
-                            data.p2(varpLink);
-                            data.p2(parseInt(parts[2]));
+                            client.p2(varpLink);
+                            client.p2(parseInt(parts[2]));
                             break;
                         }
                     }
@@ -413,39 +414,39 @@ export function packInterface(server: boolean) {
             }
 
             if (opCount) {
-                data.p2(0);
+                client.p2(0);
             }
         }
 
-        if (type === 0) {
-            data.p2(parseInt(src.scroll as string));
-            data.pbool(src.hide === 'yes');
+        if (comType === 0) {
+            client.p2(parseInt(src.scroll as string));
+            client.pbool(src.hide === 'yes');
 
-            data.p1(com.children.length);
+            client.p1(com.children.length);
             for (let j = 0; j < com.children.length; j++) {
                 const childId = com.children[j];
-                data.p2(childId);
-                data.p2(parseInt(component[childId].src.x as string));
-                data.p2(parseInt(component[childId].src.y as string));
+                client.p2(childId);
+                client.p2(parseInt(component[childId].src.x as string));
+                client.p2(parseInt(component[childId].src.y as string));
             }
         }
 
-        if (type === 2) {
-            data.pbool(src.draggable === 'yes');
-            data.pbool(src.interactable === 'yes');
-            data.pbool(src.usable === 'yes');
+        if (comType === 2) {
+            client.pbool(src.draggable === 'yes');
+            client.pbool(src.interactable === 'yes');
+            client.pbool(src.usable === 'yes');
 
             if (src.margin) {
-                data.p1(parseInt((src.margin as string).split(',')[0]));
-                data.p1(parseInt((src.margin as string).split(',')[1]));
+                client.p1(parseInt((src.margin as string).split(',')[0]));
+                client.p1(parseInt((src.margin as string).split(',')[1]));
             } else {
-                data.p1(0);
-                data.p1(0);
+                client.p1(0);
+                client.p1(0);
             }
 
             for (let j = 1; j <= 20; j++) {
                 if (typeof src[`slot${j}`] !== 'undefined') {
-                    data.pbool(true);
+                    client.pbool(true);
 
                     const parts = (src[`slot${j}`] as string).split(':');
                     const sprite = parts[0];
@@ -458,51 +459,51 @@ export function packInterface(server: boolean) {
                         y = offset[1];
                     }
 
-                    data.p2(parseInt(x));
-                    data.p2(parseInt(y));
-                    data.pjstr(sprite ?? '');
+                    client.p2(parseInt(x));
+                    client.p2(parseInt(y));
+                    client.pjstr(sprite ?? '');
                 } else {
-                    data.pbool(false);
+                    client.pbool(false);
                 }
             }
 
             for (let j = 1; j <= 5; j++) {
-                data.pjstr((src[`option${j}`] as string) ?? '');
+                client.pjstr((src[`option${j}`] as string) ?? '');
             }
         }
 
-        if (type === 3) {
-            data.pbool(src.fill === 'yes');
+        if (comType === 3) {
+            client.pbool(src.fill === 'yes');
         }
 
-        if (type === 4) {
-            data.pbool(src.center === 'yes');
-            data.p1(nameToFont(src.font as string));
-            data.pbool(src.shadowed === 'yes');
-            data.pjstr((src.text as string) ?? '');
-            data.pjstr((src.activetext as string) ?? '');
+        if (comType === 4) {
+            client.pbool(src.center === 'yes');
+            client.p1(nameToFont(src.font as string));
+            client.pbool(src.shadowed === 'yes');
+            client.pjstr((src.text as string) ?? '');
+            client.pjstr((src.activetext as string) ?? '');
         }
 
-        if (type === 3 || type === 4) {
-            data.p4(parseInt(src.colour as string));
-            data.p4(parseInt(src.activecolour as string));
-            data.p4(parseInt(src.overcolour as string));
+        if (comType === 3 || comType === 4) {
+            client.p4(parseInt(src.colour as string));
+            client.p4(parseInt(src.activecolour as string));
+            client.p4(parseInt(src.overcolour as string));
         }
 
-        if (type === 5) {
-            data.pjstr((src.graphic as string) ?? '');
-            data.pjstr((src.activegraphic as string) ?? '');
+        if (comType === 5) {
+            client.pjstr((src.graphic as string) ?? '');
+            client.pjstr((src.activegraphic as string) ?? '');
         }
 
-        if (type === 6) {
+        if (comType === 6) {
             if (src.model) {
                 const modelId = ModelPack.getByName(src.model as string);
                 if (modelId === -1) {
                     throw new Error(`\nError packing interfaces\n${com.root} Invalid model: ${src.model}`);
                 }
-                data.p2(modelId + 0x100);
+                client.p2(modelId + 0x100);
             } else {
-                data.p1(0);
+                client.p1(0);
             }
 
             if (src.activemodel) {
@@ -510,9 +511,9 @@ export function packInterface(server: boolean) {
                 if (modelId === -1) {
                     throw new Error(`\nError packing interfaces\n${com.root} Invalid activemodel: ${src.activemodel}`);
                 }
-                data.p2(modelId + 0x100);
+                client.p2(modelId + 0x100);
             } else {
-                data.p1(0);
+                client.p1(0);
             }
 
             if (src.anim) {
@@ -520,9 +521,9 @@ export function packInterface(server: boolean) {
                 if (seqId === -1) {
                     throw new Error(`\nError packing interfaces\n${com.root} Invalid anim: ${src.anim}`);
                 }
-                data.p2(seqId + 0x100);
+                client.p2(seqId + 0x100);
             } else {
-                data.p1(0);
+                client.p1(0);
             }
 
             if (src.activeanim) {
@@ -530,40 +531,40 @@ export function packInterface(server: boolean) {
                 if (seqId === -1) {
                     throw new Error(`\nError packing interfaces\n${com.root} Invalid activeanim: ${src.activeanim}`);
                 }
-                data.p2(seqId + 0x100);
+                client.p2(seqId + 0x100);
             } else {
-                data.p1(0);
+                client.p1(0);
             }
 
-            data.p2(parseInt(src.zoom as string));
-            data.p2(parseInt(src.xan as string));
-            data.p2(parseInt(src.yan as string));
+            client.p2(parseInt(src.zoom as string));
+            client.p2(parseInt(src.xan as string));
+            client.p2(parseInt(src.yan as string));
         }
 
-        if (type === 7) {
-            data.pbool(src.center === 'yes');
-            data.p1(nameToFont(src.font as string));
-            data.pbool(src.shadowed === 'yes');
-            data.p4(parseInt(src.colour as string));
+        if (comType === 7) {
+            client.pbool(src.center === 'yes');
+            client.p1(nameToFont(src.font as string));
+            client.pbool(src.shadowed === 'yes');
+            client.p4(parseInt(src.colour as string));
 
             if (src.margin) {
-                data.p2(parseInt((src.margin as string).split(',')[0]));
-                data.p2(parseInt((src.margin as string).split(',')[1]));
+                client.p2(parseInt((src.margin as string).split(',')[0]));
+                client.p2(parseInt((src.margin as string).split(',')[1]));
             } else {
-                data.p2(0);
-                data.p2(0);
+                client.p2(0);
+                client.p2(0);
             }
 
-            data.pbool(src.interactable === 'yes');
+            client.pbool(src.interactable === 'yes');
 
             for (let j = 1; j <= 5; j++) {
-                data.pjstr((src[`option${j}`] as string) ?? '');
+                client.pjstr((src[`option${j}`] as string) ?? '');
             }
         }
 
-        if (buttonType === 2 || type === 2) {
-            data.pjstr((src.actionverb as string) ?? '');
-            data.pjstr((src.action as string) ?? '');
+        if (buttonType === 2 || comType === 2) {
+            client.pjstr((src.actionverb as string) ?? '');
+            client.pjstr((src.action as string) ?? '');
 
             let flags = 0;
             if (src.actiontarget) {
@@ -584,13 +585,13 @@ export function packInterface(server: boolean) {
                     flags |= 0x10;
                 }
             }
-            data.p2(flags);
+            client.p2(flags);
         }
 
         if (buttonType === 1 || buttonType === 4 || buttonType === 5 || buttonType === 6) {
-            data.pjstr((src.option as string) ?? '');
+            client.pjstr((src.option as string) ?? '');
         }
     }
 
-    return data;
+    return { client, server };
 }

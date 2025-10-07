@@ -1,6 +1,5 @@
 import fs from 'fs';
 
-
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import SeqFrame from '#/cache/config/SeqFrame.js';
 import Jagfile from '#/io/Jagfile.js';
@@ -78,13 +77,13 @@ export default class SeqType extends ConfigType {
     frames: Int32Array | null = null;
     iframes: Int32Array | null = null;
     delay: Int32Array | null = null;
-    replayoff: number = -1;
+    loops: number = -1;
     walkmerge: Int32Array | null = null;
     stretches: boolean = false;
     priority: number = 5;
-    mainhand: number = -1;
-    offhand: number = -1;
-    replaycount: number = 99;
+    replaceheldleft: number = -1;
+    replaceheldright: number = -1;
+    maxloops: number = 99;
 
     duration: number = 0;
 
@@ -115,7 +114,7 @@ export default class SeqType extends ConfigType {
                 this.duration += this.delay[i];
             }
         } else if (code === 2) {
-            this.replayoff = dat.g2();
+            this.loops = dat.g2();
         } else if (code === 3) {
             const count = dat.g1();
             this.walkmerge = new Int32Array(count + 1);
@@ -130,11 +129,11 @@ export default class SeqType extends ConfigType {
         } else if (code === 5) {
             this.priority = dat.g1();
         } else if (code === 6) {
-            this.mainhand = dat.g2();
+            this.replaceheldleft = dat.g2();
         } else if (code === 7) {
-            this.offhand = dat.g2();
+            this.replaceheldright = dat.g2();
         } else if (code === 8) {
-            this.replaycount = dat.g1();
+            this.maxloops = dat.g1();
         } else if (code === 250) {
             this.debugname = dat.gjstr();
         } else {

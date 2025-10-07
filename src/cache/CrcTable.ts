@@ -35,44 +35,6 @@ export function makeCrcs() {
     CrcBuffer32 = Packet.getcrc(CrcBuffer.data, 0, CrcBuffer.data.length);
 }
 
-async function makeCrcAsync(path: string) {
-    const file = await fetch(path);
-    if (!file.ok) {
-        return;
-    }
-
-    const packet = new Packet(new Uint8Array(await file.arrayBuffer()));
-    const crc = Packet.getcrc(packet.data, 0, packet.data.length);
-    return crc;
-}
-
-export async function makeCrcsAsync() {
-    CrcTable = [];
-
-    CrcBuffer.pos = 0;
-    CrcBuffer.p4(0);
-
-    const [title, config, iface, media, models, textures, wordenc, sounds] = await Promise.all([
-        makeCrcAsync('data/pack/client/title'),
-        makeCrcAsync('data/pack/client/config'),
-        makeCrcAsync('data/pack/client/interface'),
-        makeCrcAsync('data/pack/client/media'),
-        makeCrcAsync('data/pack/client/models'),
-        makeCrcAsync('data/pack/client/textures'),
-        makeCrcAsync('data/pack/client/wordenc'),
-        makeCrcAsync('data/pack/client/sounds')
-    ]);
-
-    for (const crc of [title, config, iface, media, models, textures, wordenc, sounds]) {
-        if (crc) {
-            CrcTable.push(crc);
-            CrcBuffer.p4(crc);
-        }
-    }
-
-    CrcBuffer32 = Packet.getcrc(CrcBuffer.data, 0, CrcBuffer.data.length);
-}
-
 if (!Environment.STANDALONE_BUNDLE) {
     if (fs.existsSync('data/pack/client/')) {
         makeCrcs();

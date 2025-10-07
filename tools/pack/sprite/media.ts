@@ -1,155 +1,34 @@
+import path from 'path';
+
+import { listFilesExt } from '#tools/pack/Parse.js';
+import Environment from '#/util/Environment.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
-import Environment from '#/util/Environment.js';
-import { shouldBuildFileAny } from '#/util/PackFile.js';
-import { convertImage } from '#/util/PixPack.js';
+import { convertImage } from '#tools/pack/PixPack.js';
+import { fileExists } from '#tools/pack/FsCache.js';
 
 export async function packClientMedia() {
-    if (!shouldBuildFileAny(`${Environment.BUILD_SRC_DIR}/sprites`, 'data/pack/client/media')) {
-        return;
+    const index = Packet.alloc(3);
+
+    const sprites = listFilesExt(`${Environment.BUILD_SRC_DIR}/sprites`, '.png');
+
+    // organize spritesheets to be last (to help with over-reads)
+    sprites.sort((a, b) => {
+        const aExists = fileExists(`${Environment.BUILD_SRC_DIR}/sprites/meta/${path.basename(a, path.extname(a))}.opt`);
+        const bExists = fileExists(`${Environment.BUILD_SRC_DIR}/sprites/meta/${path.basename(b, path.extname(b))}.opt`);
+        return aExists === bExists ? 0 : (aExists && !bExists ? 1 : -1);
+    });
+
+    const all = new Map();
+    for (const name of sprites) {
+        const safeName = path.basename(name, path.extname(name));
+        all.set(safeName, await convertImage(index, `${Environment.BUILD_SRC_DIR}/sprites`, safeName));
     }
-
-    const jagOrder = [
-        'combatboxes.dat',
-        'staticons.dat',
-        'gnomeball_buttons.dat',
-        'miscgraphics2.dat',
-        'miscgraphics3.dat',
-        'backleft1.dat',
-        'backleft2.dat',
-        'tradebacking.dat',
-        'steelborder.dat',
-        'prayeron.dat',
-        'mapflag.dat',
-        'compass.dat',
-        'mapback.dat',
-        'headicons.dat',
-        'mapscene.dat',
-        'staticons2.dat',
-        'cross.dat',
-        'magicoff.dat',
-        'magicon2.dat',
-        'miscgraphics.dat',
-        'index.dat',
-        'magicon.dat',
-        'combaticons.dat',
-        'mapdots.dat',
-        'backtop1.dat',
-        'backtop2.dat',
-        'chatback.dat',
-        'backbase1.dat',
-        'backbase2.dat',
-        'hitmarks.dat',
-        'sideicons.dat',
-        'scrollbar.dat',
-        'prayerglow.dat',
-        'redstone1.dat',
-        'redstone2.dat',
-        'redstone3.dat',
-        'backhmid1.dat',
-        'backhmid2.dat',
-        'combaticons2.dat',
-        'combaticons3.dat',
-        'backvmid1.dat',
-        'backvmid2.dat',
-        'backvmid3.dat',
-        'wornicons.dat',
-        'sworddecor.dat',
-        'invback.dat',
-        'leftarrow.dat',
-        'magicoff2.dat',
-        'mapfunction.dat',
-        'prayeroff.dat',
-        'steelborder2.dat',
-        'rightarrow.dat',
-        'backright1.dat',
-        'backright2.dat'
-    ];
-
-    const indexOrder = [
-        'backbase1.dat', // 0
-        'backbase2.dat', // 54
-        'backhmid1.dat', // 108
-        'backhmid2.dat', // 162
-        'backleft1.dat', // 216
-        'backleft2.dat', // 270
-        'backright1.dat', // 324
-        'backright2.dat', // 378
-        'backtop1.dat', // 432
-        'backtop2.dat', // 486
-        'backvmid1.dat', // 540
-        'backvmid2.dat', // 594
-        'backvmid3.dat', // 648
-        'mapback.dat', // 702
-        'chatback.dat', // 741
-        'invback.dat', // 765
-        'magicon.dat', // 792
-        'magicoff.dat', // 1288
-        'prayeron.dat', // 1769
-        'prayeroff.dat', // 2048
-        'prayerglow.dat', // 2204
-        'wornicons.dat', // 2228
-        'sideicons.dat', // 2320
-        'compass.dat', // 2509
-        'miscgraphics.dat', // 2554
-        'miscgraphics2.dat', // 2757
-        'miscgraphics3.dat', // 2889
-        'staticons.dat', // 2965
-        'staticons2.dat', // 3153
-        'combaticons.dat', // 3302
-        'combaticons2.dat', // 3504
-        'combaticons3.dat', // 3706
-        'combatboxes.dat', // 3887
-        'tradebacking.dat', // 3963
-        'headicons.dat', // 3984
-        'hitmarks.dat', // 4079
-        'cross.dat', // 4132
-        'mapdots.dat', // 4202
-        'sworddecor.dat', // 4316
-        'redstone1.dat', // 4502
-        'redstone2.dat', // 4541
-        'redstone3.dat', // 4580
-        'leftarrow.dat', // 4619
-        'rightarrow.dat', // 4796
-        'steelborder.dat', // 4973
-        'steelborder2.dat', // 5057
-        'scrollbar.dat', // 5127
-        'mapscene.dat', // 5158
-        'mapfunction.dat', // 5648
-        'magicon2.dat', // 6377
-        'magicoff2.dat', // 6750
-        'gnomeball_buttons.dat', // 7117
-        'mapflag.dat' // 7440
-    ];
-
-    const files: Record<string, Packet> = {};
-
-    // ----
-
-    const index = Packet.alloc(2);
-    for (let i = 0; i < indexOrder.length; i++) {
-        const safeName = indexOrder[i].replace('.dat', '');
-        const data = await convertImage(index, `${Environment.BUILD_SRC_DIR}/sprites`, safeName);
-
-        // TODO (jkm) check for presence , rather than using `!`
-        files[`${safeName}.dat`] = data!;
+    
+    const media = new Jagfile();
+    media.write('index.dat', index);
+    for (const [name, sprite] of all) {
+        media.write(`${name}.dat`, sprite);
     }
-
-    files['index.dat'] = index;
-
-    // ----
-
-    const jag = new Jagfile();
-
-    for (let i = 0; i < jagOrder.length; i++) {
-        const name = jagOrder[i];
-        const data = files[name];
-        // data.save(`dump/media/${name}`, data.length);
-        jag.write(`${name}`, data);
-    }
-
-    jag.save('data/pack/client/media');
-    for (const packet of Object.values(files)) {
-        packet.release();
-    }
+    media.save('data/pack/client/media');
 }

@@ -1,8 +1,11 @@
 import fs from 'fs';
+import path from 'path';
 
-import Packet2 from '#/io/Packet.js';
+import BZip2 from '#/io/BZip2.js';
+import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
-import { shouldBuild, shouldBuildFile } from '#/util/PackFile.js';
+import { shouldBuildFile } from '#tools/pack/PackFile.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
 
 function readMap(map) {
     let land = [];
@@ -93,47 +96,51 @@ function readMap(map) {
     return { land, loc, npc, obj };
 }
 
-export function packServerMap() {
+export function packMaps() {
     if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps`)) {
         return;
     }
 
-    let queue = [];
+    const maps = listFilesExt(`${Environment.BUILD_SRC_DIR}/maps`, '.jm2');
 
-    fs.readdirSync(`${Environment.BUILD_SRC_DIR}/maps`)
-        .filter(f => f.endsWith('.jm2'))
-        .forEach(file => {
-            let [x, z] = file.slice(1).split('.').shift().split('_');
-            if (
-                !shouldBuildFile(`${Environment.BUILD_SRC_DIR}/maps/${file}`, `data/pack/server/maps/m${x}_${z}`) &&
-                !shouldBuildFile(`${Environment.BUILD_SRC_DIR}/maps/${file}`, `data/pack/server/maps/l${x}_${z}`) &&
-                !shouldBuildFile(`${Environment.BUILD_SRC_DIR}/maps/${file}`, `data/pack/server/maps/n${x}_${z}`) &&
-                !shouldBuildFile(`${Environment.BUILD_SRC_DIR}/maps/${file}`, `data/pack/server/maps/o${x}_${z}`) &&
-                !shouldBuild(`${Environment.BUILD_SRC_DIR}/maps`, '.csv', `data/pack/server/maps/m${x}_${z}`) &&
-                !shouldBuild('src/cache/packmap', '.js', `data/pack/server/maps/m${x}_${z}`)
-            ) {
-                return;
-            }
-
-            queue.push({ file, x, z });
-        });
-
-    if (!queue.length) {
-        return;
+    if (!fs.existsSync('data/pack/client/maps')) {
+        fs.mkdirSync('data/pack/client/maps', { recursive: true });
     }
 
-    fs.mkdirSync('data/pack/server/maps', { recursive: true });
+    if (!fs.existsSync('data/pack/server/maps')) {
+        fs.mkdirSync('data/pack/server/maps', { recursive: true });
+    }
 
-    queue.forEach(({ file, x, z }) => {
-        let data = fs
-            .readFileSync(`${Environment.BUILD_SRC_DIR}/maps/${file}`, 'ascii')
-            .replace(/\r/g, '')
-            .split('\n')
-            .filter(x => x.length);
-        let map = readMap(data);
+    for (const file of maps) {
+        const basename = path.basename(file, path.extname(file));
+        const [mapX, mapZ] = basename.slice(1).split('_');
+
+        const mapFile = `data/pack/client/maps/m${mapX}_${mapZ}`;
+        const locFile = `data/pack/client/maps/l${mapX}_${mapZ}`;
+        const serverMapFile = `data/pack/server/maps/m${mapX}_${mapZ}`;
+        const serverLocFile = `data/pack/server/maps/l${mapX}_${mapZ}`;
+        const serverNpcFile = `data/pack/server/maps/n${mapX}_${mapZ}`;
+        const serverObjFile = `data/pack/server/maps/o${mapX}_${mapZ}`;
+
+        const packerUpdated = shouldBuildFile(__filename, mapFile);
+
+        let data = null;
+        let map = null;
+        if (
+            packerUpdated ||
+            shouldBuildFile(file, mapFile) || shouldBuildFile(file, locFile) ||
+            shouldBuildFile(file, serverNpcFile) || shouldBuildFile(file, serverLocFile)
+        ) {
+            data = fs
+                .readFileSync(file, 'utf8')
+                .replace(/\r/g, '')
+                .split('\n')
+                .filter(x => x.length);
+            map = readMap(data);
+        }
 
         // encode land data
-        {
+        if (packerUpdated || shouldBuildFile(file, mapFile) || shouldBuildFile(file, serverMapFile)) {
             let levelHeightmap = [];
             let levelTileOverlayIds = [];
             let levelTileOverlayShape = [];
@@ -217,26 +224,8 @@ export function packServerMap() {
                 }
             }
 
-            // get size to pre-allocate
-            // let size = 64 * 64 * 4;
-            // for (let level = 0; level < 4; level++) {
-            //     for (let x = 0; x < 64; x++) {
-            //         for (let z = 0; z < 64; z++) {
-            //             let height = levelHeightmap[level][x][z];
-            //             let overlay = levelTileOverlayIds[level][x][z];
-
-            //             if (overlay != -1) {
-            //                 size += 1;
-            //             }
-
-            //             if (height != 0) {
-            //                 size += 1;
-            //             }
-            //         }
-            //     }
-            // }
-
-            let out = Packet2.alloc(3);
+            // encode into client format
+            let out = Packet.alloc(3);
             for (let level = 0; level < 4; level++) {
                 for (let x = 0; x < 64; x++) {
                     for (let z = 0; z < 64; z++) {
@@ -285,12 +274,14 @@ export function packServerMap() {
                 }
             }
 
-            out.save(`data/pack/server/maps/m${x}_${z}`);
+            const data = out.data.subarray(0, out.pos);
+            fs.writeFileSync(mapFile, BZip2.compress(data, true));
+            fs.writeFileSync(serverMapFile, data);
             out.release();
         }
 
         // encode loc data
-        {
+        if (packerUpdated || shouldBuildFile(file, locFile) || shouldBuildFile(file, serverLocFile)) {
             let locs = {};
 
             for (let level = 0; level < 4; level++) {
@@ -310,26 +301,26 @@ export function packServerMap() {
 
                         let tile = map.loc[level][x][z];
                         for (let i = 0; i < tile.length; i++) {
-                            let [id, type, rotation] = tile[i];
+                            let [id, shape, angle] = tile[i];
 
                             if (!locs[id]) {
                                 locs[id] = [];
                             }
 
-                            if (typeof type === 'undefined') {
-                                type = 10;
+                            if (typeof shape === 'undefined') {
+                                shape = 10;
                             }
 
-                            if (typeof rotation === 'undefined') {
-                                rotation = 0;
+                            if (typeof angle === 'undefined') {
+                                angle = 0;
                             }
 
                             locs[id].push({
                                 level,
                                 x,
                                 z,
-                                type: Number(type),
-                                rotation: Number(rotation)
+                                shape: Number(shape),
+                                angle: Number(angle)
                             });
                         }
                     }
@@ -339,7 +330,7 @@ export function packServerMap() {
             let locIds = Object.keys(locs)
                 .map(id => parseInt(id))
                 .sort((a, b) => a - b);
-            let out = Packet2.alloc(2);
+            let out = Packet.alloc(3);
             let lastLocId = -1;
             for (let i = 0; i < locIds.length; i++) {
                 let locId = locIds[i];
@@ -356,7 +347,7 @@ export function packServerMap() {
                     out.psmart(currentLocData - lastLocData + 1);
                     lastLocData = currentLocData;
 
-                    let locInfo = (loc.type << 2) | loc.rotation;
+                    let locInfo = (loc.shape << 2) | loc.angle;
                     out.p1(locInfo);
                 }
 
@@ -364,13 +355,14 @@ export function packServerMap() {
             }
 
             out.psmart(0); // end of map
-            out.save(`data/pack/server/maps/l${x}_${z}`);
+            const data = out.data.subarray(0, out.pos);
+            fs.writeFileSync(locFile, BZip2.compress(data, true));
+            fs.writeFileSync(serverLocFile, data);
             out.release();
         }
 
-        // encode npc data
-        {
-            let out = Packet2.alloc(1);
+        if (packerUpdated || shouldBuildFile(file, serverNpcFile)) {
+            let out = Packet.alloc(1);
 
             for (let level = 0; level < 4; level++) {
                 if (!map.npc[level]) {
@@ -400,13 +392,12 @@ export function packServerMap() {
                 }
             }
 
-            out.save(`data/pack/server/maps/n${x}_${z}`);
+            out.save(serverNpcFile);
             out.release();
         }
 
-        // encode obj data
-        {
-            let out = Packet2.alloc(1);
+        if (packerUpdated || shouldBuildFile(file, serverObjFile)) {
+            let out = Packet.alloc(1);
 
             for (let level = 0; level < 4; level++) {
                 if (!map.obj[level]) {
@@ -437,8 +428,8 @@ export function packServerMap() {
                 }
             }
 
-            out.save(`data/pack/server/maps/o${x}_${z}`);
+            out.save(serverObjFile);
             out.release();
         }
-    });
+    }
 }
