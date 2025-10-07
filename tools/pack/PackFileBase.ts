@@ -72,6 +72,10 @@ export class PackFile {
     }
 
     save() {
+        if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/pack`)) {
+            fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/pack`, { recursive: true });
+        }
+
         fs.writeFileSync(
             `${Environment.BUILD_SRC_DIR}/pack/${this.type}.pack`,
             Array.from(this.pack.entries())
