@@ -68,42 +68,46 @@ export function parseStructConfig(key: string, value: string): ConfigValue | nul
 }
 
 export function packStructConfigs(configs: Map<string, ConfigLine[]>): { client: PackedData; server: PackedData } {
-    const client: PackedData = new PackedData(StructPack.size);
-    const server: PackedData = new PackedData(StructPack.size);
+    const client: PackedData = new PackedData(StructPack.max);
+    const server: PackedData = new PackedData(StructPack.max);
 
-    for (let i = 0; i < StructPack.size; i++) {
-        const debugname = StructPack.getById(i);
-        const config = configs.get(debugname)!;
+    for (let id = 0; id < StructPack.max; id++) {
+        const debugname = StructPack.getById(id);
+        const config = configs.get(debugname);
 
-        const params: ParamValue[] = [];
+        if (config) {
+            const params: ParamValue[] = [];
 
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
 
-            if (key === 'param') {
-                params.push(value as ParamValue);
+                if (key === 'param') {
+                    params.push(value as ParamValue);
+                }
             }
-        }
 
-        if (params.length > 0) {
-            server.p1(249);
+            if (params.length > 0) {
+                server.p1(249);
 
-            server.p1(params.length);
-            for (let k = 0; k < params.length; k++) {
-                const paramData = params[k];
-                server.p3(paramData.id);
-                server.pbool(paramData.type === ScriptVarType.STRING);
+                server.p1(params.length);
+                for (let k = 0; k < params.length; k++) {
+                    const paramData = params[k];
+                    server.p3(paramData.id);
+                    server.pbool(paramData.type === ScriptVarType.STRING);
 
-                if (paramData.type === ScriptVarType.STRING) {
-                    server.pjstr(paramData.value as string);
-                } else {
-                    server.p4(paramData.value as number);
+                    if (paramData.type === ScriptVarType.STRING) {
+                        server.pjstr(paramData.value as string);
+                    } else {
+                        server.p4(paramData.value as number);
+                    }
                 }
             }
         }
 
-        server.p1(250);
-        server.pjstr(debugname);
+        if (debugname.length) {
+            server.p1(250);
+            server.pjstr(debugname);
+        }
 
         client.next();
         server.next();

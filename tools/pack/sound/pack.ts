@@ -23,7 +23,7 @@ export function packClientSound() {
         nameToFile.set(name, file);
     }
 
-    const jag = new Jagfile();
+    const jag = Jagfile.new();
 
     const out = Packet.alloc(5);
     for (const id of order) {
@@ -48,6 +48,6 @@ export function packClientSound() {
     // }
 
     jag.write('sounds.dat', out);
-    jag.save('data/pack/client/sounds', true);
+    jag.save('data/pack/client/sounds');
     out.release();
 }

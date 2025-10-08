@@ -255,6 +255,7 @@ export const enum ScriptOpcode {
     NPC_ATTACKRANGE, // official
     NPC_HASOP, // official
     NPC_ARRIVEDELAY,
+    NPC_INRANGE,
 
     // Loc ops (3000-3499)
     LOC_ADD = 3000, // official
@@ -293,6 +294,8 @@ export const enum ScriptOpcode {
     NC_NAME,
     NC_OP,
     NC_PARAM,
+    NC_SIZE,
+    NC_VISLEVEL,
 
     // Loc config ops (4100-4199)
     LC_CATEGORY = 4100,
@@ -333,6 +336,7 @@ export const enum ScriptOpcode {
     INV_DEL, // official
     INV_DELSLOT,
     INV_DROPITEM,
+    INV_DROPITEM_DELAYED,
     INV_DROPSLOT,
     INV_FREESPACE,
     INV_GETNUM,
@@ -698,6 +702,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['NPC_ATTACKRANGE', ScriptOpcode.NPC_ATTACKRANGE],
     ['NPC_HASOP', ScriptOpcode.NPC_HASOP],
     ['NPC_ARRIVEDELAY', ScriptOpcode.NPC_ARRIVEDELAY],
+    ['NPC_INRANGE', ScriptOpcode.NPC_INRANGE],
     ['LOC_ADD', ScriptOpcode.LOC_ADD],
     ['LOC_ANGLE', ScriptOpcode.LOC_ANGLE],
     ['LOC_ANIM', ScriptOpcode.LOC_ANIM],
@@ -730,6 +735,8 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['NC_NAME', ScriptOpcode.NC_NAME],
     ['NC_OP', ScriptOpcode.NC_OP],
     ['NC_PARAM', ScriptOpcode.NC_PARAM],
+    ['NC_SIZE', ScriptOpcode.NC_SIZE],
+    ['NC_VISLEVEL', ScriptOpcode.NC_VISLEVEL],
     ['LC_CATEGORY', ScriptOpcode.LC_CATEGORY],
     ['LC_DEBUGNAME', ScriptOpcode.LC_DEBUGNAME],
     ['LC_DESC', ScriptOpcode.LC_DESC],
@@ -764,6 +771,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['INV_DEL', ScriptOpcode.INV_DEL],
     ['INV_DELSLOT', ScriptOpcode.INV_DELSLOT],
     ['INV_DROPITEM', ScriptOpcode.INV_DROPITEM],
+    ['INV_DROPITEM_DELAYED', ScriptOpcode.INV_DROPITEM_DELAYED],
     ['INV_DROPSLOT', ScriptOpcode.INV_DROPSLOT],
     ['INV_FREESPACE', ScriptOpcode.INV_FREESPACE],
     ['INV_GETNUM', ScriptOpcode.INV_GETNUM],

@@ -470,6 +470,7 @@ export default class Player extends PathingEntity {
     // ----
 
     onLogin() {
+        // confirmed order:
         // - rebuild_normal
         // - chat_filter_settings
         // - varp_reset
@@ -481,8 +482,10 @@ export default class Player extends PathingEntity {
         // - runenergy
         // - reset anims
         // - social
+
         this.buildArea.rebuildNormal();
         this.write(new ChatFilterSettings(this.publicChat, this.privateChat, this.tradeDuel));
+
         this.write(new IfClose());
         this.write(new UpdateUid192(this.pid));
         this.write(new ResetClientVarCache());
@@ -535,7 +538,7 @@ export default class Player extends PathingEntity {
         this.closeModal();
         // tabs could have been updated while reconnecting, make sure we sync them now
         for (let i = 0; i < this.tabs.length; i++) {
-            this.write(new IfSetTab(i, this.tabs[i]));
+            this.write(new IfSetTab(this.tabs[i], i));
         }
         this.refreshInvs();
         for (let i = 0; i < this.stats.length; i++) {
@@ -716,6 +719,19 @@ export default class Player extends PathingEntity {
         }
     }
 
+    clearComListeners(root: number) {
+        if (root == -1) {
+            return;
+        }
+
+        for (let i = 0; i < this.invListeners.length; i++) {
+            const { com } = this.invListeners[i];
+            if (Component.get(com).rootLayer === root) {
+                this.invStopListenOnCom(com);
+            }
+        }
+    }
+
     closeModal() {
         this.weakQueue.clear();
 
@@ -741,6 +757,7 @@ export default class Player extends PathingEntity {
                 this.executeScript(ScriptRunner.init(closeTrigger, this), false);
             }
 
+            this.clearComListeners(this.modalMain);
             this.modalMain = -1;
         }
 
@@ -751,6 +768,7 @@ export default class Player extends PathingEntity {
                 this.executeScript(ScriptRunner.init(closeTrigger, this), false);
             }
 
+            this.clearComListeners(this.modalChat);
             this.modalChat = -1;
         }
 
@@ -761,6 +779,7 @@ export default class Player extends PathingEntity {
                 this.executeScript(ScriptRunner.init(closeTrigger, this), false);
             }
 
+            this.clearComListeners(this.modalSide);
             this.modalSide = -1;
         }
 
@@ -955,7 +974,20 @@ export default class Player extends PathingEntity {
 
         // prio trigger details by target<type<com
         if (this.target instanceof Npc || this.target instanceof Loc || this.target instanceof Obj) {
-            const type = this.target instanceof Npc ? NpcType.get(this.target.type) : this.target instanceof Loc ? LocType.get(this.target.type) : ObjType.get(this.target.type);
+            let type: NpcType | LocType | ObjType | null = null;
+
+            if (this.target instanceof Npc) {
+                type = NpcType.get(this.target.type);
+            } else if (this.target instanceof Loc) {
+                type = LocType.get(this.target.type);
+            } else if (this.target instanceof Obj) {
+                type = ObjType.get(this.target.type);
+            }
+
+            if (!type) {
+                return null;
+            }
+
             typeId = type.id;
             categoryId = type.category;
         }
@@ -976,7 +1008,20 @@ export default class Player extends PathingEntity {
 
         // prio trigger details by target<type<com
         if (this.target instanceof Npc || this.target instanceof Loc || this.target instanceof Obj) {
-            const type = this.target instanceof Npc ? NpcType.get(this.target.type) : this.target instanceof Loc ? LocType.get(this.target.type) : ObjType.get(this.target.type);
+            let type: NpcType | LocType | ObjType | null = null;
+
+            if (this.target instanceof Npc) {
+                type = NpcType.get(this.target.type);
+            } else if (this.target instanceof Loc) {
+                type = LocType.get(this.target.type);
+            } else if (this.target instanceof Obj) {
+                type = ObjType.get(this.target.type);
+            }
+
+            if (!type) {
+                return null;
+            }
+
             typeId = type.id;
             categoryId = type.category;
         }
@@ -1032,9 +1077,11 @@ export default class Player extends PathingEntity {
         if (!Environment.NODE_PRODUCTION && !opTrigger && !apTrigger) {
             let debugname = '_';
             if (this.target instanceof Npc) {
-                debugname = NpcType.get(this.target.type)?.debugname ?? this.target.type.toString();
+                const type = NpcType.get(this.target.type);
+                debugname = type.debugname ?? this.target.type.toString();
             } else if (this.target instanceof Loc) {
-                debugname = LocType.get(this.target.type)?.debugname ?? this.target.type.toString();
+                const type = LocType.get(this.target.type);
+                debugname = type.debugname ?? this.target.type.toString();
             } else if (this.target instanceof Obj) {
                 debugname = ObjType.get(this.target.type)?.debugname ?? this.target.type.toString();
             } else if ((this.targetSubject.com !== -1 && this.targetOp === ServerTriggerType.APNPCT) || this.targetOp === ServerTriggerType.APPLAYERT || this.targetOp === ServerTriggerType.APLOCT || this.targetOp === ServerTriggerType.APOBJT) {
@@ -1395,10 +1442,14 @@ export default class Player extends PathingEntity {
             return;
         }
 
-        const index = this.invListeners.findIndex(l => l.type === inv && l.com === com);
-        if (index !== -1) {
-            // already listening
+        const sameTypeCom = this.invListeners.findIndex(l => l.type === inv && l.com === com);
+        if (sameTypeCom !== -1) {
             return;
+        }
+
+        const sameCom = this.invListeners.findIndex(l => l.com === com);
+        if (sameCom !== -1) {
+            this.invListeners.splice(sameCom, 1);
         }
 
         const invType = InvType.get(inv);

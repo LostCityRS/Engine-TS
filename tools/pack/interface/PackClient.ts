@@ -5,7 +5,7 @@ import { packInterface } from '#tools/pack/interface/PackShared.js';
 import { shouldBuild } from '#tools/pack/PackFile.js';
 
 export function packClientInterface() {
-    const jag = new Jagfile();
+    const jag = Jagfile.new(true);
 
     if (
         shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.if', 'data/pack/client/interface') ||

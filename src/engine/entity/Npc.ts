@@ -431,6 +431,14 @@ export default class Npc extends PathingEntity {
         this.uid = (type << 16) | this.nid;
         this.resetOnRevert = reset;
 
+        if(reset) {
+            const npcType = NpcType.get(type);
+            for (let index = 0; index < npcType.stats.length; index++) {
+                const level = npcType.stats[index];
+                this.levels[index] = Math.max(level - (this.baseLevels[index] - this.levels[index]), 0);
+                this.baseLevels[index] = level;
+            }
+        }
         if (type === this.baseType && this.lifecycle === EntityLifeCycle.RESPAWN) {
             this.setLifeCycle(-1);
         } else {
@@ -610,7 +618,7 @@ export default class Npc extends PathingEntity {
         return this.target.isValid();
     }
 
-    private targetWithinMaxRange(): boolean {
+    public targetWithinMaxRange(): boolean {
         if (!this.target) {
             return true;
         }
@@ -847,7 +855,7 @@ export default class Npc extends PathingEntity {
             return false;
         }
         const type: NpcType = NpcType.get(this.type);
-        const script: ScriptFile | null = this.getTrigger();
+        const script: ScriptFile | null = this.getTrigger(type);
 
         // Run opTrigger
         if (this.checkOpTrigger() && this.inOperableDistance(this.target) && (this.target instanceof PathingEntity || allowOpScenery)) {
@@ -970,10 +978,10 @@ export default class Npc extends PathingEntity {
 
     // --- Other
 
-    private getTrigger(): ScriptFile | null {
+    private getTrigger(type : NpcType): ScriptFile | null {
         const trigger: ServerTriggerType | null = this.getTriggerForMode(this.targetOp);
         if (trigger) {
-            return ScriptProvider.getByTrigger(trigger, this.type, -1) ?? null;
+            return ScriptProvider.getByTrigger(trigger, this.type, type.category) ?? null;
         }
         return null;
     }

@@ -2,6 +2,7 @@ import CategoryType from '#/cache/config/CategoryType.js';
 import InvType from '#/cache/config/InvType.js';
 import ObjType from '#/cache/config/ObjType.js';
 import { CoordGrid } from '#/engine/CoordGrid.js';
+import { ObjDelayedRequest } from '#/engine/entity/ObjDelayedRequest.js';
 import { EntityLifeCycle } from '#/engine/entity/EntityLifeCycle.js';
 import { isClientConnected } from '#/engine/entity/NetworkPlayer.js';
 import Obj from '#/engine/entity/Obj.js';
@@ -183,6 +184,29 @@ const InvOps: CommandHandlers = {
         World.addObj(floorObj, player.hash64, duration);
         state.activeObj = floorObj;
         state.pointerAdd(ActiveObj[state.intOperand]);
+    }),
+
+    [ScriptOpcode.INV_DROPITEM_DELAYED]: checkedHandler(ActivePlayer, state => {
+        const [inv, coord, obj, count, duration, delay] = state.popInts(6);
+
+        const invType: InvType = check(inv, InvTypeValid);
+        const position: CoordGrid = check(coord, CoordValid);
+        const objType: ObjType = check(obj, ObjTypeValid);
+        check(count, ObjStackValid);
+        check(duration, DurationValid);
+
+        if (!state.pointerGet(ProtectedActivePlayer[state.intOperand]) && invType.protect && invType.scope !== InvType.SCOPE_SHARED) {
+            throw new Error(`$inv requires protected access: ${invType.debugname}`);
+        }
+
+        const player = state.activePlayer;
+        const completed = player.invDel(invType.id, objType.id, count);
+        if (completed == 0) {
+            return;
+        }
+
+        const floorObj: Obj = new Obj(position.level, position.x, position.z, EntityLifeCycle.DESPAWN, objType.id, completed);
+        World.objDelayedQueue.addTail(new ObjDelayedRequest(floorObj, duration, delay, player.hash64));
     }),
 
     // https://x.com/JagexAsh/status/1679942100249464833

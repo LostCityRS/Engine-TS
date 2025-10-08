@@ -98,6 +98,7 @@ import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 import { createWorker } from '#/util/WorkerFactory.js';
 
 import InputTrackingBlob from './entity/tracking/InputEvent.js';
+import { ObjDelayedRequest } from './entity/ObjDelayedRequest.js';
 import DbTableIndex from '#/cache/config/DbTableIndex.js';
 
 const priv = forge.pki.privateKeyFromPem(Environment.STANDALONE_BUNDLE ? await (await fetch('data/config/private.pem')).text() : fs.readFileSync('data/config/private.pem', 'ascii'));
@@ -144,6 +145,7 @@ class World {
     readonly locObjTracker: LinkList<LocObjEvent>;
     readonly queue: LinkList<EntityQueueState>;
     readonly npcEventQueue: LinkList<NpcEventRequest>;
+    readonly objDelayedQueue: LinkList<ObjDelayedRequest>;
 
     // debug data
     readonly lastCycleStats: number[];
@@ -172,6 +174,7 @@ class World {
         this.locObjTracker = new LinkList();
         this.queue = new LinkList();
         this.npcEventQueue = new LinkList();
+        this.objDelayedQueue = new LinkList();
         this.lastCycleStats = new Array(12).fill(0);
         this.cycleStats = new Array(12).fill(0);
 
@@ -244,11 +247,17 @@ class World {
 
         if (clearInvs) {
             this.invs.clear();
-            for (let i = 0; i < InvType.count; i++) {
-                const inv = InvType.get(i);
+            for (let id = 0; id < InvType.count; id++) {
+                const inv = InvType.get(id);
 
-                if (inv && inv.scope === InvType.SCOPE_SHARED) {
-                    this.invs.add(Inventory.fromType(i));
+                if (inv.scope === InvType.SCOPE_SHARED) {
+                    this.invs.add(Inventory.fromType(id));
+                } else if (inv.scope === InvType.SCOPE_TEMP) {
+                    for (const player of this.players) {
+                        if (player.invs.has(id)) {
+                            player.invs.delete(id);
+                        }
+                    }
                 }
             }
         }
@@ -581,6 +590,19 @@ class World {
             }
         }
 
+        // - add objs delayed
+        for (let request: ObjDelayedRequest | null = this.objDelayedQueue.head(); request; request = this.objDelayedQueue.next()) {
+            const delay = request.delay--;
+            if (delay > 0) {
+                continue;
+            }
+            try {
+                request.unlink();
+                this.addObj(request.obj, request.receiver64, request.duration);
+            } catch (err) {
+                console.error(err);
+            }
+        }
         // - npc ai_spawn scripts
         // - npc hunt players if not busy
         for (const npc of this.npcs) {
@@ -921,9 +943,7 @@ class World {
 
                 player.client.state = 1;
 
-                if (Environment.ENGINE_REVISION > 225 && player.staffModLevel >= 2) {
-                    player.client.send(Uint8Array.from([19]));
-                } else if (player.staffModLevel >= 1) {
+                if (player.staffModLevel >= 1) {
                     player.client.send(Uint8Array.from([18]));
                 } else {
                     player.client.send(Uint8Array.from([2]));
@@ -1992,10 +2012,7 @@ class World {
                 }
 
                 const ignored: bigint[] = data.ignored.map((i: string) => BigInt(i));
-
-                if (ignored.length > 0) {
-                    player.write(new UpdateIgnoreList(ignored));
-                }
+                player.write(new UpdateIgnoreList(ignored));
             } else if (opcode == FriendsServerOpcodes.PRIVATE_MESSAGE) {
                 // username37: username.toString(),
                 // targetUsername37: target.toString(),
@@ -2095,9 +2112,7 @@ class World {
             // todo: login encoders/decoders
             client.opcode = World.loginBuf.g1();
 
-            if (Environment.ENGINE_REVISION > 225 && client.opcode === 14) {
-                client.waiting = 1;
-            } else if (client.opcode === 16 || client.opcode === 18) {
+            if (client.opcode === 16 || client.opcode === 18) {
                 client.waiting = -1;
             } else {
                 client.waiting = 0;
@@ -2123,17 +2138,7 @@ class World {
         World.loginBuf.pos = 0;
         client.read(World.loginBuf.data, 0, client.waiting);
 
-        if (Environment.ENGINE_REVISION > 225 && client.opcode === 14) {
-            client.send(Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]));
-
-            const _loginServer = World.loginBuf.g1();
-            client.send(Uint8Array.from([0]));
-
-            const seed = new Packet(new Uint8Array(8));
-            seed.p4(Math.floor(Math.random() * 0x00ffffff));
-            seed.p4(Math.floor(Math.random() * 0xffffffff));
-            client.send(seed.data);
-        } else if (client.opcode === 16 || client.opcode === 18) {
+        if (client.opcode === 16 || client.opcode === 18) {
             const rev = World.loginBuf.g1();
             if (rev !== Environment.ENGINE_REVISION) {
                 client.send(Uint8Array.from([6]));

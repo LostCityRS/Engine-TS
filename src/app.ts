@@ -16,9 +16,10 @@ if (Environment.BUILD_STARTUP_UPDATE) {
 }
 
 if (!fs.existsSync('data/pack/client/config') || !fs.existsSync('data/pack/server/script.dat')) {
-    printInfo('Packing cache, please wait until you see the world is ready.');
+    printInfo('Packing cache for the first time, please wait until you see the world is ready.');
 
     try {
+        // todo: different logic so the main thread doesn't have to load pack files
         await packServer();
         await packClient();
     } catch (err) {

@@ -5,6 +5,7 @@ tsconfig.tsbuildinfo
 
 data/pack/
 data/src/
+data/unpack/
 
 data/players/
 data/sessions/

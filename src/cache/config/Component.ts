@@ -230,10 +230,6 @@ export default class Component {
             }
 
             Component.components[id] = com;
-
-            if (com.comName) {
-                Component.componentNames.set(com.comName, id);
-            }
         }
     }
 

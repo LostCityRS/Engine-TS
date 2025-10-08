@@ -197,9 +197,9 @@ export default class NpcType extends ConfigType {
         } else if (code === 98) {
             this.resizev = dat.g2();
         } else if (code === 200) {
-            this.wanderrange = dat.g1();
+            this.wanderrange = dat.g2();
         } else if (code === 201) {
-            this.maxrange = dat.g1();
+            this.maxrange = dat.g2();
         } else if (code === 202) {
             this.huntrange = dat.g1();
         } else if (code === 203) {
@@ -209,7 +209,7 @@ export default class NpcType extends ConfigType {
         } else if (code === 206) {
             this.moverestrict = dat.g1();
         } else if (code == 207) {
-            this.attackrange = dat.g1();
+            this.attackrange = dat.g2();
         } else if (code === 208) {
             this.blockwalk = dat.g1();
         } else if (code === 209) {

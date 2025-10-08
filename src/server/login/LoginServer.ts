@@ -15,6 +15,7 @@ import { toSafeName } from '#/util/JString.js';
 import { printInfo } from '#/util/Logger.js';
 import { getUnreadMessageCount } from '#/server/login/Messages.js';
 import { startManagementWeb } from '#/web.js';
+import InvType from '#/cache/config/InvType.js';
 
 async function updateHiscores(account: { id: number, staffmodlevel: number } | undefined, player: Player, profile: string) {
     if (!account)
@@ -141,6 +142,8 @@ export default class LoginServer {
             startManagementWeb();
         }
 
+        InvType.load('data/pack');
+
         this.server = new WebSocketServer({ port: Environment.LOGIN_PORT, host: '0.0.0.0' }, () => {
             printInfo(`Login server listening on port ${Environment.LOGIN_PORT}`);
         });
@@ -162,7 +165,7 @@ export default class LoginServer {
                             .where('profile', '=', profile)
                             .execute();
                     } else if (type === 'player_login') {
-                        const { replyTo, username, password, uid, socket, remoteAddress, reconnecting, hasSave } = msg;
+                        const { nodeMembers, replyTo, username, password, uid, socket, remoteAddress, reconnecting, hasSave } = msg;
                         const safeName = toSafeName(username);
                         
                         if (this.loginRequests.has(safeName)) {
@@ -189,7 +192,7 @@ export default class LoginServer {
                                 return;
                             }
 
-                            const account = await db.selectFrom('account')
+                            let account = await db.selectFrom('account')
                                 .leftJoin('account_login', join => join
                                     .onRef('account_id', '=', 'id')
                                     .on('profile', '=', profile)
@@ -210,15 +213,18 @@ export default class LoginServer {
                                     })
                                     .executeTakeFirst();
 
-                                s.send(
-                                    JSON.stringify({
-                                        replyTo,
-                                        response: 4,
-                                        staffmodlevel: 0,
-                                        account_id: Number(insertResult.insertId),  // bigint
-                                    })
-                                );
-                                return;
+                                if (typeof insertResult.insertId === 'undefined') {
+                                    return;
+                                }
+
+                                account = await db.selectFrom('account')
+                                    .leftJoin('account_login', join => join
+                                        .onRef('account_id', '=', 'id')
+                                        .on('profile', '=', profile)
+                                    )
+                                    .where('username', '=', username)
+                                    .selectAll()
+                                    .executeTakeFirst();
                             }
 
                             if (account) {
@@ -279,7 +285,7 @@ export default class LoginServer {
                                 return;
                             }
 
-                            if (Environment.NODE_MEMBERS && !account.members) {
+                            if (nodeMembers && !account.members) {
                                 if (Environment.NODE_AUTO_SUBSCRIBE_MEMBERS) {
                                     // Set members=1 for the account and proceed with login
                                     await db.updateTable('account').where('id', '=', account.id).set('members', 1).executeTakeFirstOrThrow();
@@ -435,8 +441,7 @@ export default class LoginServer {
                                     .where('account_id', '=', account.id)
                                     .where('profile', '=', profile)
                                     .executeTakeFirst();
-                            }
-                            else {
+                            } else {
                                 await db.insertInto('account_login')
                                     .values({
                                         account_id: account.id,

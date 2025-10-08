@@ -92,73 +92,77 @@ export function parseInvConfig(key: string, value: string): ConfigValue | null |
 }
 
 export function packInvConfigs(configs: Map<string, ConfigLine[]>): { client: PackedData; server: PackedData } {
-    const client: PackedData = new PackedData(InvPack.size);
-    const server: PackedData = new PackedData(InvPack.size);
+    const client: PackedData = new PackedData(InvPack.max);
+    const server: PackedData = new PackedData(InvPack.max);
 
-    for (let i = 0; i < InvPack.size; i++) {
-        const debugname = InvPack.getById(i);
-        const config = configs.get(debugname)!;
+    for (let id = 0; id < InvPack.max; id++) {
+        const debugname = InvPack.getById(id);
+        const config = configs.get(debugname);
 
-        // collect these to write at the end
-        const stock = [];
+        if (config) {
+            // collect these to write at the end
+            const stock = [];
 
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
 
-            if (key === 'scope') {
-                server.p1(1);
-                server.p1(value as number);
-            } else if (key === 'size') {
-                server.p1(2);
-                server.p2(value as number);
-            } else if (key.startsWith('stock')) {
-                stock.push(value);
-            } else if (key === 'stackall') {
-                if (value === true) {
-                    server.p1(3);
+                if (key === 'scope') {
+                    server.p1(1);
+                    server.p1(value as number);
+                } else if (key === 'size') {
+                    server.p1(2);
+                    server.p2(value as number);
+                } else if (key.startsWith('stock')) {
+                    stock.push(value);
+                } else if (key === 'stackall') {
+                    if (value === true) {
+                        server.p1(3);
+                    }
+                } else if (key === 'restock') {
+                    if (value === true) {
+                        server.p1(5);
+                    }
+                } else if (key === 'allstock') {
+                    if (value === true) {
+                        server.p1(6);
+                    }
+                } else if (key === 'protect') {
+                    if (value === false) {
+                        server.p1(7);
+                    }
+                } else if (key === 'runweight') {
+                    if (value === true) {
+                        server.p1(8);
+                    }
+                } else if (key === 'dummyinv') {
+                    if (value === true) {
+                        server.p1(9);
+                    }
                 }
-            } else if (key === 'restock') {
-                if (value === true) {
-                    server.p1(5);
-                }
-            } else if (key === 'allstock') {
-                if (value === true) {
-                    server.p1(6);
-                }
-            } else if (key === 'protect') {
-                if (value === false) {
-                    server.p1(7);
-                }
-            } else if (key === 'runweight') {
-                if (value === true) {
-                    server.p1(8);
-                }
-            } else if (key === 'dummyinv') {
-                if (value === true) {
-                    server.p1(9);
+            }
+
+            if (stock.length > 0) {
+                server.p1(4);
+                server.p1(stock.length);
+
+                for (let i = 0; i < stock.length; i++) {
+                    const [id, count, rate] = stock[i] as number[];
+                    server.p2(id);
+                    server.p2(count);
+
+                    if (typeof rate !== 'undefined') {
+                        server.p4(rate);
+                    } else {
+                        server.p4(0);
+                    }
                 }
             }
         }
 
-        if (stock.length > 0) {
-            server.p1(4);
-            server.p1(stock.length);
-
-            for (let i = 0; i < stock.length; i++) {
-                const [id, count, rate] = stock[i] as number[];
-                server.p2(id);
-                server.p2(count);
-
-                if (typeof rate !== 'undefined') {
-                    server.p4(rate);
-                } else {
-                    server.p4(0);
-                }
-            }
+        if (debugname.length) {
+            server.p1(250);
+            server.pjstr(debugname);
         }
-
-        server.p1(250);
-        server.pjstr(debugname);
 
         client.next();
         server.next();

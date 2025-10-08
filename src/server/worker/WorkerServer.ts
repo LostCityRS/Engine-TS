@@ -3,7 +3,6 @@ import Packet from '#/io/Packet.js';
 import ClientSocket from '#/server/ClientSocket.js';
 import NullClientSocket from '#/server/NullClientSocket.js';
 import WorkerClientSocket from '#/server/worker/WorkerClientSocket.js';
-import Environment from '#/util/Environment.js';
 
 export default class WorkerServer {
     sockets: Map<string, ClientSocket> = new Map();
@@ -19,12 +18,10 @@ export default class WorkerServer {
                     const socket = new WorkerClientSocket(self, e.data.id);
                     this.sockets.set(e.data.id, socket);
 
-                    if (Environment.ENGINE_REVISION <= 225) {
-                        const seed = new Packet(new Uint8Array(8));
-                        seed.p4(Math.floor(Math.random() * 0xffffffff));
-                        seed.p4(Math.floor(Math.random() * 0xffffffff));
-                        socket.send(seed.data);
-                    }
+                    const seed = new Packet(new Uint8Array(8));
+                    seed.p4(Math.floor(Math.random() * 0xffffffff));
+                    seed.p4(Math.floor(Math.random() * 0xffffffff));
+                    socket.send(seed.data);
                     break;
                 }
                 case 'data': {
