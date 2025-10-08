@@ -55,30 +55,34 @@ export function parseMesAnimConfig(key: string, value: string): ConfigValue | nu
 }
 
 export function packMesAnimConfigs(configs: Map<string, ConfigLine[]>): { client: PackedData; server: PackedData } {
-    const client: PackedData = new PackedData(MesAnimPack.size);
-    const server: PackedData = new PackedData(MesAnimPack.size);
+    const client: PackedData = new PackedData(MesAnimPack.max);
+    const server: PackedData = new PackedData(MesAnimPack.max);
 
-    for (let i = 0; i < MesAnimPack.size; i++) {
-        const debugname = MesAnimPack.getById(i);
-        const config = configs.get(debugname)!;
+    for (let id = 0; id < MesAnimPack.max; id++) {
+        const debugname = MesAnimPack.getById(id);
+        const config = configs.get(debugname);
 
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
+        if (config) {
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
 
-            if (key.startsWith('len')) {
-                const len = Number(key.substring('len'.length));
-                if (isNaN(len)) {
-                    continue;
+                if (key.startsWith('len')) {
+                    const len = Number(key.substring('len'.length));
+                    if (isNaN(len)) {
+                        continue;
+                    }
+
+                    const opcode = Math.max(0, len - 1) + 1;
+                    server.p1(opcode);
+                    server.p2(value as number);
                 }
-
-                const opcode = Math.max(0, len - 1) + 1;
-                server.p1(opcode);
-                server.p2(value as number);
             }
         }
 
-        server.p1(250);
-        server.pjstr(debugname);
+        if (debugname.length) {
+            server.p1(250);
+            server.pjstr(debugname);
+        }
 
         client.next();
         server.next();

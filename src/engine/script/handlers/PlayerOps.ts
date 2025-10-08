@@ -630,10 +630,6 @@ const PlayerOps: CommandHandlers = {
         state.activePlayer.write(new IfSetModel(com, model));
     }),
 
-    [ScriptOpcode.IF_SETRECOL]: checkedHandler(ActivePlayer, () => {
-        throw new Error();
-    }),
-
     [ScriptOpcode.TUT_FLASH]: checkedHandler(ActivePlayer, state => {
         state.activePlayer.write(new TutFlash(check(state.popInt(), NumberNotNull)));
     }),
@@ -661,6 +657,11 @@ const PlayerOps: CommandHandlers = {
 
     [ScriptOpcode.IF_OPENMAIN]: checkedHandler(ActivePlayer, state => {
         state.activePlayer.openMainModal(check(state.popInt(), NumberNotNull));
+    }),
+
+    [ScriptOpcode.IF_OPENOVERLAY]: checkedHandler(ActivePlayer, state => {
+        const com = state.popInt();
+        state.activePlayer.openOverlay(com);
     }),
 
     [ScriptOpcode.TUT_OPEN]: checkedHandler(ActivePlayer, state => {

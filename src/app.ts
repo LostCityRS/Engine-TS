@@ -19,6 +19,7 @@ if (!fs.existsSync('data/pack/client/config') || !fs.existsSync('data/pack/serve
     printInfo('Packing cache for the first time, please wait until you see the world is ready.');
 
     try {
+        // todo: different logic so the main thread doesn't have to load pack files
         const modelFlags: number[] = [];
         await packClient(modelFlags);
         await packServer();

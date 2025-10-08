@@ -13,12 +13,17 @@ export function genHash(name: string): number {
 type JagQueueFile = {
     hash: number;
     name: string;
-    data?: Uint8Array;
+
     write?: boolean;
+    data?: Uint8Array;
+    packedSize?: number;
+    unpackedSize?: number;
+
     delete?: boolean;
+
     rename?: boolean;
-    newName?: string;
     newHash?: number;
+    newName?: string;
 };
 
 export default class Jagfile {
@@ -29,7 +34,7 @@ export default class Jagfile {
     fileUnpackedSize: number[] = [];
     filePackedSize: number[] = [];
     filePos: number[] = [];
-    unpacked = false;
+    compressWhole = false;
 
     fileQueue: JagQueueFile[] = [];
     fileWrite: Uint8Array[] = [];
@@ -52,11 +57,11 @@ export default class Jagfile {
 
         if (unpackedSize === packedSize) {
             this.data = new Uint8Array(src.data);
-            this.unpacked = false;
+            this.compressWhole = false;
         } else {
             this.data = BZip2.decompress(src.data.subarray(6), unpackedSize, true);
             src = new Packet(this.data);
-            this.unpacked = true;
+            this.compressWhole = true;
         }
 
         this.fileCount = src.g2();
@@ -76,6 +81,12 @@ export default class Jagfile {
         }
     }
 
+    static new(compressWhole: boolean = false) {
+        const jag = new Jagfile();
+        jag.compressWhole = compressWhole;
+        return jag;
+    }
+
     get(index: number): Packet | null {
         if (index < 0 || index >= this.fileCount) {
             return null;
@@ -90,7 +101,7 @@ export default class Jagfile {
         }
 
         const src: Uint8Array = this.data.subarray(this.filePos[index], this.filePos[index] + this.filePackedSize[index]);
-        if (this.unpacked) {
+        if (this.compressWhole) {
             return new Packet(src);
         } else {
             return new Packet(BZip2.decompress(src, this.fileUnpackedSize[index], true));
@@ -121,16 +132,40 @@ export default class Jagfile {
         return null;
     }
 
-    write(name: string, data: Packet): void {
+    write(name: string, src: Packet): void {
         const hash: number = genHash(name);
 
-        this.fileQueue.push({ hash, name, write: true, data: data.data.subarray(0, data.pos) });
+        if (this.compressWhole) {
+            this.fileQueue.push({
+                hash, name,
+
+                write: true,
+                data: src.data.subarray(0, src.pos),
+                packedSize: src.pos,
+                unpackedSize: src.pos
+            });
+        } else {
+            const data = BZip2.compress(src.data.subarray(0, src.pos), false, true);
+
+            this.fileQueue.push({
+                hash, name,
+
+                write: true,
+                data,
+                packedSize: data.length,
+                unpackedSize: src.pos
+            });
+        }
     }
 
     delete(name: string): void {
         const hash: number = genHash(name);
 
-        this.fileQueue.push({ hash, name, delete: true });
+        this.fileQueue.push({
+            hash, name,
+
+            delete: true
+        });
     }
 
     rename(oldName: string, newName: string): void {
@@ -138,15 +173,14 @@ export default class Jagfile {
         const newHash: number = genHash(newName);
 
         this.fileQueue.push({
-            hash: oldHash,
-            name: oldName,
+            hash: oldHash, name: oldName,
+
             rename: true,
-            newName,
-            newHash
+            newHash, newName
         });
     }
 
-    save(path: string, doNotCompressWhole: boolean = false): void {
+    save(path: string): void {
         let buf: Packet = Packet.alloc(5);
 
         for (let i: number = 0; i < this.fileQueue.length; i++) {
@@ -164,10 +198,10 @@ export default class Jagfile {
                     throw new Error('Cannot write without data');
                 }
 
-                this.fileUnpackedSize[index] = queued.data.length;
-                this.filePackedSize[index] = queued.data.length;
-                this.filePos[index] = -1;
                 this.fileWrite[index] = queued.data;
+                this.fileUnpackedSize[index] = queued.unpackedSize!;
+                this.filePackedSize[index] = queued.packedSize!;
+                this.filePos[index] = -1;
             }
 
             if (queued.delete && index !== -1) {
@@ -192,13 +226,7 @@ export default class Jagfile {
                 this.fileName[index] = queued.newName;
             }
 
-            this.fileQueue.splice(i, 1);
-            i--;
-        }
-
-        let compressWhole: boolean = this.fileCount === 1;
-        if (doNotCompressWhole && compressWhole) {
-            compressWhole = false;
+            this.fileQueue.splice(i--, 1);
         }
 
         // write header
@@ -206,12 +234,6 @@ export default class Jagfile {
         for (let i: number = 0; i < this.fileCount; i++) {
             buf.p4(this.fileHash[i]);
             buf.p3(this.fileUnpackedSize[i]);
-
-            if (this.fileWrite[i] && !compressWhole) {
-                this.fileWrite[i] = BZip2.compress(this.fileWrite[i], false, true);
-                this.filePackedSize[i] = this.fileWrite[i].length;
-            }
-
             buf.p3(this.filePackedSize[i]);
         }
 
@@ -223,9 +245,9 @@ export default class Jagfile {
 
         const jag: Packet = Packet.alloc(5);
         jag.p3(buf.pos);
-        if (compressWhole) {
-            const sub = buf.data.subarray(0, buf.pos);
 
+        if (this.compressWhole) {
+            const sub = buf.data.subarray(0, buf.pos);
             const compressed = new Packet(BZip2.compress(sub, false, true));
             compressed.pos = compressed.data.length;
 
@@ -236,7 +258,7 @@ export default class Jagfile {
         jag.p3(buf.pos);
         jag.pdata(buf.data, 0, buf.pos);
 
-        if (!compressWhole) {
+        if (!this.compressWhole) {
             buf.release();
         }
 

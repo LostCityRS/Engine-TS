@@ -5,6 +5,7 @@ import Environment from '#/util/Environment.js';
 import { PackFile } from '#tools/pack/PackFileBase.js';
 import { listFilesExt, loadDirExtFull } from '#tools/pack/Parse.js';
 import { fileExists, fileStats } from '#tools/pack/FsCache.js';
+import { printDebug, printError } from '#/util/Logger.js';
 // import { printWarning } from '#/util/Logger.js';
 
 function validateFilesPack(pack: PackFile, paths: string[], ext: string, verify: boolean = true): void {
@@ -74,31 +75,20 @@ function validateImagePack(pack: PackFile, path: string, ext: string): void {
     pack.save();
 }
 
-function validateConfigPack(pack: PackFile, ext: string, regen: boolean = false, reduce: boolean = false, reuse: boolean = false, recycle: boolean = false): void {
+function validateConfigPack(pack: PackFile, ext: string, transmitted: boolean = false): void {
     const names = crawlConfigNames(ext);
     const configNames = new Set(names);
 
-    if (regen) {
-        if (reduce) {
-            // remove missing ids (shifts ids)
-            // remove missing names (shifts ids)
-        } else if (reuse) {
-            // if something was deleted, prioritize placing new names in those deleted slots
-        } else if (recycle) {
-            // completely scorched earth (resets ids)
-        } else {
-            // just add new ids to the end
-            pack.load(`${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
-        }
+    pack.load(`${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
 
+    if (!transmitted || (!Environment.BUILD_VERIFY && transmitted)) {
         for (let i = 0; i < names.length; i++) {
             if (!pack.names.has(names[i])) {
                 pack.register(pack.max++, names[i]);
             }
         }
+
         pack.refreshNames();
-    } else {
-        pack.load(`${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
     }
 
     const missing = [];
@@ -111,11 +101,17 @@ function validateConfigPack(pack: PackFile, ext: string, regen: boolean = false,
     }
 
     if (Environment.BUILD_VERIFY && missing.length > 0) {
-        for (const name of missing) {
-            console.log(name);
+        if (missing.length > 1) {
+            printError(`Missing ${pack.type} pack IDs for:`);
+        } else {
+            printError(`Missing ${pack.type} pack ID for:`);
         }
 
-        throw new Error(`Missing pack IDs, you may need to edit ${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
+        for (const name of missing) {
+            printDebug(`[${name}]`);
+        }
+
+        throw new Error(`You may need to edit ${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
     }
 
     for (const name of pack.names) {
@@ -124,7 +120,7 @@ function validateConfigPack(pack: PackFile, ext: string, regen: boolean = false,
         }
     }
 
-    if (regen) {
+    if (!transmitted || (!Environment.BUILD_VERIFY && transmitted)) {
         pack.save();
     }
 }
@@ -196,31 +192,31 @@ export const AnimSetPack = new PackFile('animset', validateFilesPack, [`${Enviro
 export const AnimPack = new PackFile('anim', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/models`], '.frame', false);
 export const BasePack = new PackFile('base', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/models`], '.base', false);
 export const CategoryPack = new PackFile('category', validateCategoryPack);
-export const DbRowPack = new PackFile('dbrow', validateConfigPack, '.dbrow', true, false, false, true);
-export const DbTablePack = new PackFile('dbtable', validateConfigPack, '.dbtable', true, false, false, true);
-export const EnumPack = new PackFile('enum', validateConfigPack, '.enum', true, false, false, true);
-export const FloPack = new PackFile('flo', validateConfigPack, '.flo');
-export const HuntPack = new PackFile('hunt', validateConfigPack, '.hunt', true, false, false, true);
-export const IdkPack = new PackFile('idk', validateConfigPack, '.idk');
+export const DbRowPack = new PackFile('dbrow', validateConfigPack, '.dbrow');
+export const DbTablePack = new PackFile('dbtable', validateConfigPack, '.dbtable');
+export const EnumPack = new PackFile('enum', validateConfigPack, '.enum');
+export const FloPack = new PackFile('flo', validateConfigPack, '.flo', true);
+export const HuntPack = new PackFile('hunt', validateConfigPack, '.hunt');
+export const IdkPack = new PackFile('idk', validateConfigPack, '.idk', true);
 export const InterfacePack = new PackFile('interface', validateInterfacePack);
-export const InvPack = new PackFile('inv', validateConfigPack, '.inv', true);
-export const LocPack = new PackFile('loc', validateConfigPack, '.loc');
-export const MesAnimPack = new PackFile('mesanim', validateConfigPack, '.mesanim', true, false, false, true);
+export const InvPack = new PackFile('inv', validateConfigPack, '.inv');
+export const LocPack = new PackFile('loc', validateConfigPack, '.loc', true);
+export const MesAnimPack = new PackFile('mesanim', validateConfigPack, '.mesanim');
 export const MapPack = new PackFile('map', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/maps`], '.jm2', false);
 export const MidiPack = new PackFile('midi', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/jingles`, `${Environment.BUILD_SRC_DIR}/songs`], '.mid');
 export const ModelPack = new PackFile('model', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/models`], '.ob2');
-export const NpcPack = new PackFile('npc', validateConfigPack, '.npc');
-export const ObjPack = new PackFile('obj', validateConfigPack, '.obj');
-export const ParamPack = new PackFile('param', validateConfigPack, '.param', true, false, false, true);
+export const NpcPack = new PackFile('npc', validateConfigPack, '.npc', true);
+export const ObjPack = new PackFile('obj', validateConfigPack, '.obj', true);
+export const ParamPack = new PackFile('param', validateConfigPack, '.param');
 export const ScriptPack = new PackFile('script', regenScriptPack);
-export const SeqPack = new PackFile('seq', validateConfigPack, '.seq');
+export const SeqPack = new PackFile('seq', validateConfigPack, '.seq', true);
 export const SynthPack = new PackFile('synth', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/synth`], '.synth');
-export const SpotAnimPack = new PackFile('spotanim', validateConfigPack, '.spotanim');
-export const StructPack = new PackFile('struct', validateConfigPack, '.struct', true, false, false, true);
+export const SpotAnimPack = new PackFile('spotanim', validateConfigPack, '.spotanim', true);
+export const StructPack = new PackFile('struct', validateConfigPack, '.struct');
 export const TexturePack = new PackFile('texture', validateImagePack, `${Environment.BUILD_SRC_DIR}/textures`, '.png');
 export const VarpPack = new PackFile('varp', validateConfigPack, '.varp', true);
-export const VarnPack = new PackFile('varn', validateConfigPack, '.varn', true, false, false, true);
-export const VarsPack = new PackFile('vars', validateConfigPack, '.vars', true, false, false, true);
+export const VarnPack = new PackFile('varn', validateConfigPack, '.varn');
+export const VarsPack = new PackFile('vars', validateConfigPack, '.vars');
 
 export function revalidatePack() {
     AnimPack.reload();

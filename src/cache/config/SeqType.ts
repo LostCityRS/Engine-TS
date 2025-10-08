@@ -3,6 +3,7 @@ import fs from 'fs';
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
+import AnimFrame from '#/cache/graphics/AnimFrame.js';
 
 export default class SeqType extends ConfigType {
     private static configNames = new Map<string, number>();
@@ -13,19 +14,14 @@ export default class SeqType extends ConfigType {
             return;
         }
 
+        // adds some startup time but we need it for seqlength
+        if (!AnimFrame.instances.length) {
+            AnimFrame.load();
+        }
+
         const server = Packet.load(`${dir}/server/seq.dat`);
         const jag = Jagfile.load(`${dir}/client/config`);
         this.parse(server, jag);
-    }
-
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/seq.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const [server, jag] = await Promise.all([file.arrayBuffer(), Jagfile.loadAsync(`${dir}/client/config`)]);
-        this.parse(new Packet(new Uint8Array(server)), jag);
     }
 
     static parse(server: Packet, jag: Jagfile) {
@@ -41,6 +37,7 @@ export default class SeqType extends ConfigType {
             const config = new SeqType(id);
             config.decodeType(server);
             config.decodeType(client);
+            config.postDecode();
 
             SeqType.configs[id] = config;
 
@@ -73,6 +70,7 @@ export default class SeqType extends ConfigType {
 
     // ----
 
+    frameCount: number = 0;
     frames: Int32Array | null = null;
     iframes: Int32Array | null = null;
     delay: Int32Array | null = null;
@@ -87,16 +85,17 @@ export default class SeqType extends ConfigType {
     postanim_move: number = -1;
     duplicatebehavior: number = 0;
 
+    // precalculated for seqlength
     duration: number = 0;
 
     decode(code: number, dat: Packet) {
         if (code === 1) {
-            const count = dat.g1();
-            this.frames = new Int32Array(count);
-            this.iframes = new Int32Array(count);
-            this.delay = new Int32Array(count);
+            this.frameCount = dat.g1();
+            this.frames = new Int32Array(this.frameCount);
+            this.iframes = new Int32Array(this.frameCount);
+            this.delay = new Int32Array(this.frameCount);
 
-            for (let i = 0; i < count; i++) {
+            for (let i = 0; i < this.frameCount; i++) {
                 this.frames[i] = dat.g2();
 
                 this.iframes[i] = dat.g2();
@@ -106,7 +105,7 @@ export default class SeqType extends ConfigType {
 
                 this.delay[i] = dat.g2();
                 if (this.delay[i] === 0) {
-                    this.delay[i] = 0; // SeqFrame.instances[this.frames[i]].delay;
+                    this.delay[i] = AnimFrame.instances[this.frames[i]].delay;
                 }
 
                 if (this.delay[i] === 0) {
@@ -146,6 +145,34 @@ export default class SeqType extends ConfigType {
             this.debugname = dat.gjstr();
         } else {
             throw new Error(`Unrecognized seq config code: ${code}`);
+        }
+    }
+
+    postDecode() {
+        if (this.frameCount === 0) {
+            this.frameCount = 1;
+            this.frames = new Int32Array(1);
+            this.frames[0] = -1;
+            this.iframes = new Int32Array(1);
+            this.iframes[0] = -1;
+            this.delay = new Int32Array(1);
+            this.delay[0] = -1;
+        }
+
+        if (this.preanim_move === -1) {
+            if (this.walkmerge === null) {
+                this.preanim_move = 0;
+            } else {
+                this.preanim_move = 2;
+            }
+        }
+
+        if (this.postanim_move === -1) {
+            if (this.walkmerge === null) {
+                this.postanim_move = 0;
+            } else {
+                this.postanim_move = 2;
+            }
         }
     }
 }

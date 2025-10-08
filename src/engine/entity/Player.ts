@@ -371,6 +371,8 @@ export default class Player extends PathingEntity {
     modalSide = -1;
     lastModalSide = -1;
     modalTutorial = -1;
+    overlay = -1;
+    lastOverlay = -1;
     refreshModal = false;
     refreshModalClose = false;
     requestModalClose = false;
@@ -470,6 +472,7 @@ export default class Player extends PathingEntity {
     // ----
 
     onLogin() {
+        // confirmed order:
         // - rebuild_normal
         // - chat_filter_settings
         // - varp_reset
@@ -481,8 +484,10 @@ export default class Player extends PathingEntity {
         // - runenergy
         // - reset anims
         // - social
+
         this.buildArea.rebuildNormal();
         this.write(new ChatFilterSettings(this.publicChat, this.privateChat, this.tradeDuel));
+
         this.write(new IfClose());
         this.write(new UpdateUid192(this.pid, this.members));
         this.write(new ResetClientVarCache());
@@ -1074,9 +1079,11 @@ export default class Player extends PathingEntity {
         if (!Environment.NODE_PRODUCTION && !opTrigger && !apTrigger) {
             let debugname = '_';
             if (this.target instanceof Npc) {
-                debugname = NpcType.get(this.target.type)?.debugname ?? this.target.type.toString();
+                const type = NpcType.get(this.target.type);
+                debugname = type.debugname ?? this.target.type.toString();
             } else if (this.target instanceof Loc) {
-                debugname = LocType.get(this.target.type)?.debugname ?? this.target.type.toString();
+                const type = LocType.get(this.target.type);
+                debugname = type.debugname ?? this.target.type.toString();
             } else if (this.target instanceof Obj) {
                 debugname = ObjType.get(this.target.type)?.debugname ?? this.target.type.toString();
             } else if ((this.targetSubject.com !== -1 && this.targetOp === ServerTriggerType.APNPCT) || this.targetOp === ServerTriggerType.APPLAYERT || this.targetOp === ServerTriggerType.APLOCT || this.targetOp === ServerTriggerType.APOBJT) {
@@ -1895,7 +1902,7 @@ export default class Player extends PathingEntity {
     // todo: make compiler do this at pack time
     playSong(name: string) {
         // todo: don't rely on MidiPack (server should be runnable using only packed content)
-        const id = MidiPack.getByName(name.toLowerCase().replaceAll(' ', '_'));
+        const id = MidiPack.getByName(name.toLowerCase().replaceAll(' ', '_').replace(/[^a-z0-9_-]/g, ''));
         if (id !== -1) {
             this.write(new MidiSong(id));
         }
@@ -1926,6 +1933,18 @@ export default class Player extends PathingEntity {
         this.modalState |= ModalState.MAIN;
         this.modalMain = com;
         this.refreshModal = true;
+    }
+
+    openOverlay(com: number) {
+        if (this.overlay === com) {
+            return;
+        }
+
+        if (com === -1) {
+            this.clearComListeners(this.overlay);
+        }
+
+        this.overlay = com;
     }
 
     openChat(com: number) {

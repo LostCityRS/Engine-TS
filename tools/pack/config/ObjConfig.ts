@@ -195,16 +195,16 @@ export function parseObjConfig(key: string, value: string): ConfigValue | null |
 }
 
 export function packObjConfigs(configs: Map<string, ConfigLine[]>, modelFlags: number[]): { client: PackedData; server: PackedData } {
-    const client: PackedData = new PackedData(ObjPack.size);
-    const server: PackedData = new PackedData(ObjPack.size);
+    const client: PackedData = new PackedData(ObjPack.max);
+    const server: PackedData = new PackedData(ObjPack.max);
 
     const template_for_cert = ObjPack.getByName('template_for_cert');
     if (template_for_cert === -1) {
-        printWarning('template_for_cert does not exist, cannot auto-generate certificates');
+        printWarning('necessary template_for_cert does not exist');
     }
 
-    for (let i = 0; i < ObjPack.size; i++) {
-        const debugname = ObjPack.getById(i);
+    for (let id = 0; id < ObjPack.max; id++) {
+        const debugname = ObjPack.getById(id);
         let config;
 
         // todo: cert_ config names get used... what to do now...
@@ -240,247 +240,251 @@ export function packObjConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
             }
         }
 
-        // collect these to write at the end
-        const recol_s: number[] = [];
-        const recol_d: number[] = [];
-        let name: string | null = null;
-        const params: ParamValue[] = [];
+        if (config) {
+            // collect these to write at the end
+            const recol_s: number[] = [];
+            const recol_d: number[] = [];
+            let name: string | null = null;
+            const params: ParamValue[] = [];
 
-        // used for model_index
-        const model: number[] = [];
-        const worn: number[] = [];
-        let members: boolean = false;
+            // used for model_index
+            const model: number[] = [];
+            const worn: number[] = [];
+            let members: boolean = false;
 
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
 
-            if (key === 'name') {
-                name = value as string;
-            } else if (key.startsWith('recol')) {
-                const index = parseInt(key.substring('recol'.length, key.length - 1)) - 1;
-                if (key.endsWith('s')) {
-                    recol_s[index] = value as number;
-                } else {
-                    recol_d[index] = value as number;
-                }
-            } else if (key === 'param') {
-                params.push(value as ParamValue);
-            } else if (key === 'model') {
-                client.p1(1);
-                client.p2(value as number);
-                model.push(value as number);
-            } else if (key === 'desc') {
-                client.p1(3);
-                client.pjstr(value as string);
-            } else if (key === '2dzoom') {
-                client.p1(4);
-                client.p2(value as number);
-            } else if (key === '2dxan') {
-                client.p1(5);
-                client.p2(value as number);
-            } else if (key === '2dyan') {
-                client.p1(6);
-                client.p2(value as number);
-            } else if (key === '2dxof') {
-                client.p1(7);
-                client.p2(value as number);
-            } else if (key === '2dyof') {
-                client.p1(8);
-                client.p2(value as number);
-            } else if (key === 'code9') {
-                if (value === true) {
-                    client.p1(9);
-                }
-            } else if (key === 'code10') {
-                client.p1(10);
-                client.p2(value as number);
-            } else if (key === 'stackable') {
-                if (value === true) {
-                    client.p1(11);
-                }
-            } else if (key === 'cost') {
-                client.p1(12);
-                client.p4(value as number);
-            } else if (key === 'wearpos') {
-                server.p1(13);
-                server.p1(value as number);
-            } else if (key === 'wearpos2') {
-                server.p1(14);
-                server.p1(value as number);
-            } else if (key === 'tradeable') {
-                if (value === false) {
-                    server.p1(15);
-                }
-            } else if (key === 'members') {
-                if (value === true) {
-                    client.p1(16);
-                    members = true;
-                }
-            } else if (key === 'manwear') {
-                const values = value as number[];
-                client.p1(23);
-                client.p2(values[0]);
-                client.p1(values[1]);
-                worn.push(values[0]);
-            } else if (key === 'manwear2') {
-                client.p1(24);
-                client.p2(value as number);
-                worn.push(value as number);
-            } else if (key === 'womanwear') {
-                const values = value as number[];
-                client.p1(25);
-                client.p2(values[0]);
-                client.p1(values[1]);
-                worn.push(values[0]);
-            } else if (key === 'womanwear2') {
-                client.p1(26);
-                client.p2(value as number);
-                worn.push(value as number);
-            } else if (key === 'wearpos3') {
-                server.p1(27);
-                server.p1(value as number);
-            } else if (key.startsWith('op')) {
-                const index = parseInt(key.substring('op'.length)) - 1;
-                client.p1(30 + index);
-                client.pjstr(value as string);
-            } else if (key.startsWith('iop')) {
-                const index = parseInt(key.substring('iop'.length)) - 1;
-                client.p1(35 + index);
-                client.pjstr(value as string);
-            } else if (key === 'weight') {
-                server.p1(75);
-                server.p2(value as number);
-            } else if (key === 'manwear3') {
-                client.p1(78);
-                client.p2(value as number);
-                worn.push(value as number);
-            } else if (key === 'womanwear3') {
-                client.p1(79);
-                client.p2(value as number);
-                worn.push(value as number);
-            } else if (key === 'manhead') {
-                client.p1(90);
-                client.p2(value as number);
-                modelFlags[value as number] |= 0x80;
-            } else if (key === 'womanhead') {
-                client.p1(91);
-                client.p2(value as number);
-                modelFlags[value as number] |= 0x80;
-            } else if (key === 'manhead2') {
-                client.p1(92);
-                client.p2(value as number);
-                modelFlags[value as number] |= 0x80;
-            } else if (key === 'womanhead2') {
-                client.p1(93);
-                client.p2(value as number);
-                modelFlags[value as number] |= 0x80;
-            } else if (key === 'category') {
-                server.p1(94);
-                server.p2(value as number);
-            } else if (key === '2dzan') {
-                client.p1(95);
-                client.p2(value as number);
-            } else if (key === 'dummyitem') {
-                server.p1(96);
-                server.p1(value as number);
-            } else if (key === 'certlink') {
-                client.p1(97);
-                client.p2(value as number);
-            } else if (key === 'certtemplate') {
-                client.p1(98);
-                client.p2(value as number);
-            } else if (key.startsWith('count')) {
-                const index = parseInt(key.substring('count'.length)) - 1;
-                const values = value as number[];
+                if (key === 'name') {
+                    name = value as string;
+                } else if (key.startsWith('recol')) {
+                    const index = parseInt(key.substring('recol'.length, key.length - 1)) - 1;
+                    if (key.endsWith('s')) {
+                        recol_s[index] = value as number;
+                    } else {
+                        recol_d[index] = value as number;
+                    }
+                } else if (key === 'param') {
+                    params.push(value as ParamValue);
+                } else if (key === 'model') {
+                    client.p1(1);
+                    client.p2(value as number);
+                    model.push(value as number);
+                } else if (key === 'desc') {
+                    client.p1(3);
+                    client.pjstr(value as string);
+                } else if (key === '2dzoom') {
+                    client.p1(4);
+                    client.p2(value as number);
+                } else if (key === '2dxan') {
+                    client.p1(5);
+                    client.p2(value as number);
+                } else if (key === '2dyan') {
+                    client.p1(6);
+                    client.p2(value as number);
+                } else if (key === '2dxof') {
+                    client.p1(7);
+                    client.p2(value as number);
+                } else if (key === '2dyof') {
+                    client.p1(8);
+                    client.p2(value as number);
+                } else if (key === 'code9') {
+                    if (value === true) {
+                        client.p1(9);
+                    }
+                } else if (key === 'code10') {
+                    client.p1(10);
+                    client.p2(value as number);
+                } else if (key === 'stackable') {
+                    if (value === true) {
+                        client.p1(11);
+                    }
+                } else if (key === 'cost') {
+                    client.p1(12);
+                    client.p4(value as number);
+                } else if (key === 'wearpos') {
+                    server.p1(13);
+                    server.p1(value as number);
+                } else if (key === 'wearpos2') {
+                    server.p1(14);
+                    server.p1(value as number);
+                } else if (key === 'tradeable') {
+                    if (value === false) {
+                        server.p1(15);
+                    }
+                } else if (key === 'members') {
+                    if (value === true) {
+                        client.p1(16);
+                        members = true;
+                    }
+                } else if (key === 'manwear') {
+                    const values = value as number[];
+                    client.p1(23);
+                    client.p2(values[0]);
+                    client.p1(values[1]);
+                    worn.push(values[0]);
+                } else if (key === 'manwear2') {
+                    client.p1(24);
+                    client.p2(value as number);
+                    worn.push(value as number);
+                } else if (key === 'womanwear') {
+                    const values = value as number[];
+                    client.p1(25);
+                    client.p2(values[0]);
+                    client.p1(values[1]);
+                    worn.push(values[0]);
+                } else if (key === 'womanwear2') {
+                    client.p1(26);
+                    client.p2(value as number);
+                    worn.push(value as number);
+                } else if (key === 'wearpos3') {
+                    server.p1(27);
+                    server.p1(value as number);
+                } else if (key.startsWith('op')) {
+                    const index = parseInt(key.substring('op'.length)) - 1;
+                    client.p1(30 + index);
+                    client.pjstr(value as string);
+                } else if (key.startsWith('iop')) {
+                    const index = parseInt(key.substring('iop'.length)) - 1;
+                    client.p1(35 + index);
+                    client.pjstr(value as string);
+                } else if (key === 'weight') {
+                    server.p1(75);
+                    server.p2(value as number);
+                } else if (key === 'manwear3') {
+                    client.p1(78);
+                    client.p2(value as number);
+                    worn.push(value as number);
+                } else if (key === 'womanwear3') {
+                    client.p1(79);
+                    client.p2(value as number);
+                    worn.push(value as number);
+                } else if (key === 'manhead') {
+                    client.p1(90);
+                    client.p2(value as number);
+                    modelFlags[value as number] |= 0x80;
+                } else if (key === 'womanhead') {
+                    client.p1(91);
+                    client.p2(value as number);
+                    modelFlags[value as number] |= 0x80;
+                } else if (key === 'manhead2') {
+                    client.p1(92);
+                    client.p2(value as number);
+                    modelFlags[value as number] |= 0x80;
+                } else if (key === 'womanhead2') {
+                    client.p1(93);
+                    client.p2(value as number);
+                    modelFlags[value as number] |= 0x80;
+                } else if (key === 'category') {
+                    server.p1(94);
+                    server.p2(value as number);
+                } else if (key === '2dzan') {
+                    client.p1(95);
+                    client.p2(value as number);
+                } else if (key === 'dummyitem') {
+                    server.p1(96);
+                    server.p1(value as number);
+                } else if (key === 'certlink') {
+                    client.p1(97);
+                    client.p2(value as number);
+                } else if (key === 'certtemplate') {
+                    client.p1(98);
+                    client.p2(value as number);
+                } else if (key.startsWith('count')) {
+                    const index = parseInt(key.substring('count'.length)) - 1;
+                    const values = value as number[];
 
-                client.p1(100 + index);
-                client.p2(values[0]);
-                client.p2(values[1]);
-            } else if (key === 'resizex') {
-                client.p1(110);
-                client.p2(value as number);
-            } else if (key === 'resizey') {
-                client.p1(111);
-                client.p2(value as number);
-            } else if (key === 'resizez') {
-                client.p1(112);
-                client.p2(value as number);
-            } else if (key === 'ambient') {
-                client.p1(113);
-                client.p1(value as number);
-            } else if (key === 'contrast') {
-                client.p1(114);
-                client.p1(value as number);
-            } else if (key === 'respawnrate') {
-                server.p1(201);
-                server.p2(value as number);
+                    client.p1(100 + index);
+                    client.p2(values[0]);
+                    client.p2(values[1]);
+                } else if (key === 'resizex') {
+                    client.p1(110);
+                    client.p2(value as number);
+                } else if (key === 'resizey') {
+                    client.p1(111);
+                    client.p2(value as number);
+                } else if (key === 'resizez') {
+                    client.p1(112);
+                    client.p2(value as number);
+                } else if (key === 'ambient') {
+                    client.p1(113);
+                    client.p1(value as number);
+                } else if (key === 'contrast') {
+                    client.p1(114);
+                    client.p1(value as number);
+                } else if (key === 'respawnrate') {
+                    server.p1(201);
+                    server.p2(value as number);
+                }
+            }
+
+            if (members) {
+                for (let i = 0; i < model.length; i++) {
+                    modelFlags[model[i]] |= 0x40;
+                }
+
+                for (let i = 0; i < worn.length; i++) {
+                    modelFlags[worn[i]] |= 0x10;
+                }
+            } else {
+                for (let i = 0; i < model.length; i++) {
+                    modelFlags[model[i]] |= 0x20;
+                }
+
+                for (let i = 0; i < worn.length; i++) {
+                    modelFlags[worn[i]] |= 0x08;
+                }
+            }
+
+            // reverse-lookup the certificate (so the server can find it quicker)
+            const cert = ObjPack.getByName('cert_' + debugname);
+            if (cert !== -1) {
+                server.p1(97);
+                server.p2(cert);
+            }
+
+            if (recol_s.length > 0) {
+                client.p1(40);
+                client.p1(recol_s.length);
+
+                for (let k = 0; k < recol_s.length; k++) {
+                    if (recol_s[k] >= 100 || recol_d[k] >= 100) {
+                        client.p2(ColorConversion.rgb15toHsl16(recol_s[k]));
+                        client.p2(ColorConversion.rgb15toHsl16(recol_d[k]));
+                    } else {
+                        client.p2(recol_s[k]);
+                        client.p2(recol_d[k]);
+                    }
+                }
+            }
+
+            if (name !== null) {
+                client.p1(2);
+                client.pjstr(name);
+            }
+
+            if (params.length > 0) {
+                server.p1(249);
+
+                server.p1(params.length);
+                for (let k = 0; k < params.length; k++) {
+                    const paramData = params[k];
+                    server.p3(paramData.id);
+                    server.pbool(paramData.type === ScriptVarType.STRING);
+
+                    if (paramData.type === ScriptVarType.STRING) {
+                        server.pjstr(paramData.value as string);
+                    } else {
+                        server.p4(paramData.value as number);
+                    }
+                }
             }
         }
 
-        if (members) {
-            for (let i = 0; i < model.length; i++) {
-                modelFlags[model[i]] |= 0x40;
-            }
-
-            for (let i = 0; i < worn.length; i++) {
-                modelFlags[worn[i]] |= 0x10;
-            }
-        } else {
-            for (let i = 0; i < model.length; i++) {
-                modelFlags[model[i]] |= 0x20;
-            }
-
-            for (let i = 0; i < worn.length; i++) {
-                modelFlags[worn[i]] |= 0x08;
-            }
+        if (debugname.length) {
+            server.p1(250);
+            server.pjstr(debugname);
         }
-
-        // reverse-lookup the certificate (so the server can find it quicker)
-        const cert = ObjPack.getByName('cert_' + debugname);
-        if (cert !== -1) {
-            server.p1(97);
-            server.p2(cert);
-        }
-
-        if (recol_s.length > 0) {
-            client.p1(40);
-            client.p1(recol_s.length);
-
-            for (let k = 0; k < recol_s.length; k++) {
-                if (recol_s[k] >= 100 || recol_d[k] >= 100) {
-                    client.p2(ColorConversion.rgb15toHsl16(recol_s[k]));
-                    client.p2(ColorConversion.rgb15toHsl16(recol_d[k]));
-                } else {
-                    client.p2(recol_s[k]);
-                    client.p2(recol_d[k]);
-                }
-            }
-        }
-
-        if (name !== null) {
-            client.p1(2);
-            client.pjstr(name);
-        }
-
-        if (params.length > 0) {
-            server.p1(249);
-
-            server.p1(params.length);
-            for (let k = 0; k < params.length; k++) {
-                const paramData = params[k];
-                server.p3(paramData.id);
-                server.pbool(paramData.type === ScriptVarType.STRING);
-
-                if (paramData.type === ScriptVarType.STRING) {
-                    server.pjstr(paramData.value as string);
-                } else {
-                    server.p4(paramData.value as number);
-                }
-            }
-        }
-
-        server.p1(250);
-        server.pjstr(debugname);
 
         client.next();
         server.next();

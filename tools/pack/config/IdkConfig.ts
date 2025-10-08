@@ -124,77 +124,81 @@ export function parseIdkConfig(key: string, value: string): ConfigValue | null |
 }
 
 export function packIdkConfigs(configs: Map<string, ConfigLine[]>, modelFlags: number[]) {
-    const client: PackedData = new PackedData(IdkPack.size);
-    const server: PackedData = new PackedData(IdkPack.size);
+    const client: PackedData = new PackedData(IdkPack.max);
+    const server: PackedData = new PackedData(IdkPack.max);
 
-    for (let i = 0; i < IdkPack.size; i++) {
-        const debugname = IdkPack.getById(i);
-        const config = configs.get(debugname)!;
+    for (let id = 0; id < IdkPack.max; id++) {
+        const debugname = IdkPack.getById(id);
+        const config = configs.get(debugname);
 
-        // collect these to write at the end
-        const recol_s: number[] = [];
-        const recol_d: number[] = [];
-        const models: number[] = [];
-        const heads: number[] = [];
+        if (config) {
+            // collect these to write at the end
+            const recol_s: number[] = [];
+            const recol_d: number[] = [];
+            const models: number[] = [];
+            const heads: number[] = [];
 
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
-            if (key.startsWith('model')) {
-                const index = parseInt(key.substring('model'.length)) - 1;
-                models[index] = value as number;
-                modelFlags[value as number] |= 0x80;
-            } else if (key.startsWith('head')) {
-                const index = parseInt(key.substring('head'.length)) - 1;
-                heads[index] = value as number;
-                modelFlags[value as number] |= 0x80;
-            } else if (key.startsWith('recol') && key.endsWith('s')) {
-                const index = parseInt(key.substring('recol'.length, key.length - 1)) - 1;
-                recol_s[index] = value as number;
-            } else if (key.startsWith('recol') && key.endsWith('d')) {
-                const index = parseInt(key.substring('recol'.length, key.length - 1)) - 1;
-                recol_d[index] = value as number;
-            } else if (key === 'type') {
-                client.p1(1);
-                client.p1(value as number);
-            } else if (key === 'disable') {
-                if (value === true) {
-                    client.p1(3);
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
+                if (key.startsWith('model')) {
+                    const index = parseInt(key.substring('model'.length)) - 1;
+                    models[index] = value as number;
+                    modelFlags[value as number] |= 0x80;
+                } else if (key.startsWith('head')) {
+                    const index = parseInt(key.substring('head'.length)) - 1;
+                    heads[index] = value as number;
+                    modelFlags[value as number] |= 0x80;
+                } else if (key.startsWith('recol') && key.endsWith('s')) {
+                    const index = parseInt(key.substring('recol'.length, key.length - 1)) - 1;
+                    recol_s[index] = value as number;
+                } else if (key.startsWith('recol') && key.endsWith('d')) {
+                    const index = parseInt(key.substring('recol'.length, key.length - 1)) - 1;
+                    recol_d[index] = value as number;
+                } else if (key === 'type') {
+                    client.p1(1);
+                    client.p1(value as number);
+                } else if (key === 'disable') {
+                    if (value === true) {
+                        client.p1(3);
+                    }
+                }
+            }
+
+            if (recol_s.length) {
+                for (let i = 0; i < recol_s.length; i++) {
+                    client.p1(40 + i);
+                    client.p2(recol_s[i]);
+                }
+            }
+
+            if (recol_d.length) {
+                for (let i = 0; i < recol_d.length; i++) {
+                    client.p1(50 + i);
+                    client.p2(recol_d[i]);
+                }
+            }
+
+            if (heads.length) {
+                for (let i = 0; i < heads.length; i++) {
+                    client.p1(60 + i);
+                    client.p2(heads[i]);
+                }
+            }
+
+            if (models.length) {
+                client.p1(2);
+                client.p1(models.length);
+
+                for (let i = 0; i < models.length; i++) {
+                    client.p2(models[i]);
                 }
             }
         }
 
-        if (recol_s.length) {
-            for (let i = 0; i < recol_s.length; i++) {
-                client.p1(40 + i);
-                client.p2(recol_s[i]);
-            }
+        if (debugname.length) {
+            server.p1(250);
+            server.pjstr(debugname);
         }
-
-        if (recol_d.length) {
-            for (let i = 0; i < recol_d.length; i++) {
-                client.p1(50 + i);
-                client.p2(recol_d[i]);
-            }
-        }
-
-        if (heads.length) {
-            for (let i = 0; i < heads.length; i++) {
-                client.p1(60 + i);
-                client.p2(heads[i]);
-            }
-        }
-
-        if (models.length) {
-            client.p1(2);
-            client.p1(models.length);
-
-            for (let i = 0; i < models.length; i++) {
-                client.p2(models[i]);
-            }
-        }
-
-        server.p1(250);
-        server.pjstr(debugname);
 
         client.next();
         server.next();

@@ -24,7 +24,7 @@ export function packClientSound(cache: FileStream) {
         nameToFile.set(name, file);
     }
 
-    const jag = new Jagfile();
+    const jag = Jagfile.new();
 
     const out = Packet.alloc(5);
     for (const id of order) {
@@ -49,7 +49,7 @@ export function packClientSound(cache: FileStream) {
     }
 
     jag.write('sounds.dat', out);
-    jag.save('data/pack/client/sounds', true);
+    jag.save('data/pack/client/sounds');
     out.release();
 
     cache.write(0, 8, fs.readFileSync('data/pack/client/sounds'));

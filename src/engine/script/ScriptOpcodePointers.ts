@@ -189,6 +189,10 @@ const ScriptOpcodePointers: {
         require: ['active_player'],
         require2: ['active_player2']
     },
+    [ScriptOpcode.IF_OPENOVERLAY]: {
+        require: ['active_player'],
+        require2: ['active_player2']
+    },
     [ScriptOpcode.IF_OPENSIDE]: {
         require: ['active_player']
     },
@@ -203,9 +207,6 @@ const ScriptOpcodePointers: {
         require2: ['active_player2']
     },
     [ScriptOpcode.IF_SETMODEL]: {
-        require: ['active_player']
-    },
-    [ScriptOpcode.IF_SETRECOL]: {
         require: ['active_player']
     },
     [ScriptOpcode.IF_SETNPCHEAD]: {
