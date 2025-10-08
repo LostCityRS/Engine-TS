@@ -2171,7 +2171,6 @@ class World {
                 crcs[i] = World.loginBuf.g4s();
 
                 if (crcs[i] !== CrcTable[i]) {
-                    console.log(crcs[i], CrcTable[i]);
                     client.send(Uint8Array.from([6]));
                     client.close();
                     return;

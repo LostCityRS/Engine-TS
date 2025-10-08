@@ -119,7 +119,7 @@ export default class FileStream {
         }
     }
 
-    write(index: number, file: number, data: Uint8Array, version: number = 0): boolean {
+    write(archive: number, file: number, data: Uint8Array, version: number = 0): boolean {
         if (data instanceof Packet) {
             data = data.data;
         }
@@ -128,7 +128,7 @@ export default class FileStream {
             return false;
         }
 
-        if (index < 0 || index > this.idx.length || !this.idx[index]) {
+        if (archive < 0 || archive > this.idx.length || !this.idx[archive]) {
             return false;
         }
 
@@ -140,7 +140,7 @@ export default class FileStream {
             data = temp;
         }
 
-        const idx: RandomAccessFile = this.idx[index];
+        const idx: RandomAccessFile = this.idx[archive];
         let sector = Math.trunc((this.dat.length + 519) / 520);
         if (sector === 0) {
             sector = 1;
@@ -172,7 +172,7 @@ export default class FileStream {
             header.p2(file);
             header.p2(part);
             header.p3(nextSector);
-            header.p1(index + 1);
+            header.p1(archive + 1);
             this.dat.pdata(header);
 
             let available: number = data.length - written;
@@ -183,6 +183,41 @@ export default class FileStream {
             this.dat.pdata(data.subarray(written, written + available));
             written += available;
             sector = nextSector;
+        }
+
+        return true;
+    }
+
+    has(archive: number, file: number): boolean {
+        if (!this.dat) {
+            return false;
+        }
+
+        if (archive < 0 || archive >= this.idx.length || !this.idx[archive]) {
+            return false;
+        }
+
+        if (file < 0 || file >= this.count(archive)) {
+            return false;
+        }
+
+        if (this.packed[archive][file]) {
+            return true;
+        }
+
+        const idx: RandomAccessFile = this.idx[archive];
+        idx.pos = file * 6;
+        const idxHeader: Packet = idx.gPacket(6);
+
+        const size: number = idxHeader.g3();
+        const sector: number = idxHeader.g3();
+
+        if (size > 2000000) {
+            return false;
+        }
+
+        if (sector <= 0 || sector > this.dat.length / 520) {
+            return false;
         }
 
         return true;

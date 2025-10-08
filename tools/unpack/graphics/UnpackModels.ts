@@ -18,16 +18,18 @@ if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/_unpack`)) {
 }
 
 const modelCount = cache.count(1);
-for (let i = 0; i < modelCount; i++) {
-    if (!ModelPack.getById(i)) {
-        ModelPack.register(i, `model_${i}`);
+console.log(`Extracting ${modelCount} models`);
+
+for (let id = 0; id < modelCount; id++) {
+    if (!ModelPack.getById(id)) {
+        ModelPack.register(id, `model_${id}`);
     }
-    const name = ModelPack.getById(i);
+    const name = ModelPack.getById(id);
 
     const existingFile = existingFiles.find(x => x.endsWith(`/${name}.ob2`));
     const destFile = existingFile ?? `${Environment.BUILD_SRC_DIR}/models/_unpack/${name}.ob2`;
 
-    const model = cache.read(1, i);
+    const model = cache.read(1, id);
     if (model) {
         fs.writeFileSync(destFile, zlib.gunzipSync(model));
     } else {
