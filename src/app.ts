@@ -20,8 +20,8 @@ if (!fs.existsSync('data/pack/client/config') || !fs.existsSync('data/pack/serve
 
     try {
         // todo: different logic so the main thread doesn't have to load pack files
-        await packServer();
         await packClient();
+        await packServer();
     } catch (err) {
         if (err instanceof Error) {
             printError(err.message);
