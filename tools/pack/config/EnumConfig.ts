@@ -58,92 +58,96 @@ export function parseEnumConfig(key: string, value: string): ConfigValue | null 
 }
 
 export function packEnumConfigs(configs: Map<string, ConfigLine[]>): { client: PackedData; server: PackedData } {
-    const client: PackedData = new PackedData(EnumPack.size);
-    const server: PackedData = new PackedData(EnumPack.size);
+    const client: PackedData = new PackedData(EnumPack.max);
+    const server: PackedData = new PackedData(EnumPack.max);
 
-    for (let i = 0; i < EnumPack.size; i++) {
-        const debugname = EnumPack.getById(i);
-        const config = configs.get(debugname)!;
+    for (let id = 0; id < EnumPack.max; id++) {
+        const debugname = EnumPack.getById(id);
+        const config = configs.get(debugname);
 
-        // collect these to write at the end
-        const val = [];
+        if (config) {
+            // collect these to write at the end
+            const val = [];
 
-        // need to read-ahead for type info
-        const inputtype = config.find(line => line.key === 'inputtype')!.value as number;
-        const outputtype = config.find(line => line.key === 'outputtype')!.value as number;
+            // need to read-ahead for type info
+            const inputtype = config.find(line => line.key === 'inputtype')!.value as number;
+            const outputtype = config.find(line => line.key === 'outputtype')!.value as number;
 
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
 
-            if (key === 'val') {
-                val.push(value as string);
-            } else if (key === 'inputtype') {
-                server.p1(1);
-                if ((value as number) === ScriptVarType.AUTOINT) {
-                    server.p1(ScriptVarType.INT);
-                } else {
+                if (key === 'val') {
+                    val.push(value as string);
+                } else if (key === 'inputtype') {
+                    server.p1(1);
+                    if ((value as number) === ScriptVarType.AUTOINT) {
+                        server.p1(ScriptVarType.INT);
+                    } else {
+                        server.p1(value as number);
+                    }
+                } else if (key === 'outputtype') {
+                    server.p1(2);
                     server.p1(value as number);
-                }
-            } else if (key === 'outputtype') {
-                server.p1(2);
-                server.p1(value as number);
-            } else if (key === 'default') {
-                if (outputtype === ScriptVarType.STRING) {
-                    server.p1(3);
-                    server.pjstr(lookupParamValue(outputtype, value as string) as string);
-                } else {
-                    server.p1(4);
-                    server.p4(lookupParamValue(outputtype, value as string) as number);
+                } else if (key === 'default') {
+                    if (outputtype === ScriptVarType.STRING) {
+                        server.p1(3);
+                        server.pjstr(lookupParamValue(outputtype, value as string) as string);
+                    } else {
+                        server.p1(4);
+                        server.p4(lookupParamValue(outputtype, value as string) as number);
+                    }
                 }
             }
-        }
 
-        if (outputtype === ScriptVarType.STRING) {
-            server.p1(5);
-        } else {
-            server.p1(6);
-        }
-
-        server.p2(val.length);
-        for (let i = 0; i < val.length; i++) {
-            if (inputtype === ScriptVarType.AUTOINT) {
-                server.p4(i);
+            if (outputtype === ScriptVarType.STRING) {
+                server.p1(5);
             } else {
-                const key = val[i].substring(0, val[i].indexOf(','));
-                const value = lookupParamValue(inputtype, key);
-
-                if (value === null) {
-                    throw packStepError(debugname, `Invalid value-key: ${val[i]}`);
-                }
-
-                server.p4(value as number);
+                server.p1(6);
             }
 
-            if (outputtype === ScriptVarType.AUTOINT) {
-                const value = lookupParamValue(outputtype, val[i]);
-
-                if (value === null) {
-                    throw packStepError(debugname, `Invalid value: ${val[i]}`);
-                }
-
-                server.p4(value as number);
-            } else {
-                const value = lookupParamValue(outputtype, val[i].substring(val[i].indexOf(',') + 1));
-
-                if (value === null) {
-                    throw packStepError(debugname, `Invalid value: ${val[i]}`);
-                }
-
-                if (outputtype === ScriptVarType.STRING) {
-                    server.pjstr(value as string);
+            server.p2(val.length);
+            for (let i = 0; i < val.length; i++) {
+                if (inputtype === ScriptVarType.AUTOINT) {
+                    server.p4(i);
                 } else {
+                    const key = val[i].substring(0, val[i].indexOf(','));
+                    const value = lookupParamValue(inputtype, key);
+
+                    if (value === null) {
+                        throw packStepError(debugname, `Invalid value-key: ${val[i]}`);
+                    }
+
                     server.p4(value as number);
                 }
+
+                if (outputtype === ScriptVarType.AUTOINT) {
+                    const value = lookupParamValue(outputtype, val[i]);
+
+                    if (value === null) {
+                        throw packStepError(debugname, `Invalid value: ${val[i]}`);
+                    }
+
+                    server.p4(value as number);
+                } else {
+                    const value = lookupParamValue(outputtype, val[i].substring(val[i].indexOf(',') + 1));
+
+                    if (value === null) {
+                        throw packStepError(debugname, `Invalid value: ${val[i]}`);
+                    }
+
+                    if (outputtype === ScriptVarType.STRING) {
+                        server.pjstr(value as string);
+                    } else {
+                        server.p4(value as number);
+                    }
+                }
             }
         }
 
-        server.p1(250);
-        server.pjstr(debugname);
+        if (debugname.length) {
+            server.p1(250);
+            server.pjstr(debugname);
+        }
 
         client.next();
         server.next();

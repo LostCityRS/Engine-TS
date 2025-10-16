@@ -43,7 +43,7 @@ export async function packWorldmap() {
 
     // ---
 
-    const jag = new Jagfile();
+    const jag = Jagfile.new();
 
     // ----
 

@@ -27,7 +27,7 @@ export async function packClientMedia(cache: FileStream) {
         all.set(safeName, await convertImage(index, `${Environment.BUILD_SRC_DIR}/sprites`, safeName));
     }
     
-    const media = new Jagfile();
+    const media = Jagfile.new();
     media.write('index.dat', index);
     for (const [name, sprite] of all) {
         media.write(`${name}.dat`, sprite);

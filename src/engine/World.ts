@@ -2015,10 +2015,7 @@ class World {
                 }
 
                 const ignored: bigint[] = data.ignored.map((i: string) => BigInt(i));
-
-                if (ignored.length > 0) {
-                    player.write(new UpdateIgnoreList(ignored));
-                }
+                player.write(new UpdateIgnoreList(ignored));
             } else if (opcode == FriendsServerOpcodes.PRIVATE_MESSAGE) {
                 // username37: username.toString(),
                 // targetUsername37: target.toString(),

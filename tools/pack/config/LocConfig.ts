@@ -168,260 +168,266 @@ export function parseLocConfig(key: string, value: string): ConfigValue | null |
 }
 
 export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: number[]): { client: PackedData; server: PackedData } {
-    const client: PackedData = new PackedData(LocPack.size);
-    const server: PackedData = new PackedData(LocPack.size);
+    const client: PackedData = new PackedData(LocPack.max);
+    const server: PackedData = new PackedData(LocPack.max);
 
-    for (let i = 0; i < LocPack.size; i++) {
-        const debugname = LocPack.getById(i);
-        const config = configs.get(debugname)!;
+    for (let id = 0; id < LocPack.max; id++) {
+        const debugname = LocPack.getById(id);
+        const config = configs.get(debugname);
 
-        // collect these to write at the end
-        const recol_s: number[] = [];
-        const recol_d: number[] = [];
-        const srcModels: string[] = [];
-        let name: string | null = null;
-        let active: number = -1; // not written last, but affects name output
-        let desc: string | null = null;
-        const params: ParamValue[] = [];
+        if (config) {
+            // collect these to write at the end
+            const recol_s: number[] = [];
+            const recol_d: number[] = [];
+            const srcModels: string[] = [];
+            let name: string | null = null;
+            let active: number = -1; // not written last, but affects name output
+            let desc: string | null = null;
+            const params: ParamValue[] = [];
 
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
 
-            if (key === 'name') {
-                name = value as string;
-            } else if (key === 'desc') {
-                desc = value as string;
-            } else if (key.startsWith('model')) {
-                srcModels.push(value as string);
-            } else if (key.startsWith('recol')) {
-                const index = parseInt(key[5]) - 1;
-                if (key.endsWith('s')) {
-                    recol_s[index] = value as number;
-                } else {
-                    recol_d[index] = value as number;
-                }
-            } else if (key.startsWith('retex')) {
-                // retextures stored in recol until rev 465
-                const index = parseInt(key[5]) - 1;
-                if (key.endsWith('s')) {
-                    recol_s[index] = value as number;
-                } else {
-                    recol_d[index] = value as number;
-                }
-            } else if (key === 'param') {
-                params.push(value as ParamValue);
-            } else if (key === 'width') {
-                client.p1(14);
-                client.p1(value as number);
-            } else if (key === 'length') {
-                client.p1(15);
-                client.p1(value as number);
-            } else if (key === 'blockwalk') {
-                if (value === false) {
-                    client.p1(17);
-                }
-            } else if (key === 'blockrange') {
-                if (value === false) {
-                    client.p1(18);
-                }
-            } else if (key === 'active') {
-                client.p1(19);
-                client.pbool(value as boolean);
-                active = value ? 1 : 0;
-            } else if (key === 'hillskew') {
-                if (value === true) {
-                    client.p1(21);
-                }
-            } else if (key === 'sharelight') {
-                if (value === true) {
-                    client.p1(22);
-                }
-            } else if (key === 'occlude') {
-                if (value === true) {
-                    client.p1(23);
-                }
-            } else if (key === 'anim') {
-                client.p1(24);
-                client.p2(value as number);
-            } else if (key === 'hasalpha') {
-                if (value === true) {
-                    client.p1(25);
-                }
-            } else if (key === 'wallwidth') {
-                client.p1(28);
-                client.p1(value as number);
-            } else if (key === 'ambient') {
-                client.p1(29);
-                client.p1(value as number);
-            } else if (key === 'contrast') {
-                client.p1(39);
-                client.p1(value as number);
-            } else if (key.startsWith('op')) {
-                const index = parseInt(key.substring('op'.length)) - 1;
-                client.p1(30 + index);
-                client.pjstr(value as string);
-            } else if (key === 'mapfunction') {
-                client.p1(60);
-                client.p2(value as number);
-            } else if (key === 'category') {
-                server.p1(61);
-                server.p2(value as number);
-            } else if (key === 'mirror') {
-                if (value === true) {
-                    client.p1(62);
-                }
-            } else if (key === 'shadow') {
-                if (value === false) {
-                    client.p1(64);
-                }
-            } else if (key === 'resizex') {
-                client.p1(65);
-                client.p2(value as number);
-            } else if (key === 'resizey') {
-                client.p1(66);
-                client.p2(value as number);
-            } else if (key === 'resizez') {
-                client.p1(67);
-                client.p2(value as number);
-            } else if (key === 'mapscene') {
-                client.p1(68);
-                client.p2(value as number);
-            } else if (key === 'forceapproach') {
-                client.p1(69);
-                client.p1(value as number);
-            } else if (key === 'offsetx') {
-                client.p1(70);
-                client.p2(value as number);
-            } else if (key === 'offsety') {
-                client.p1(71);
-                client.p2(value as number);
-            } else if (key === 'offsetz') {
-                client.p1(72);
-                client.p2(value as number);
-            } else if (key === 'forcedecor') {
-                if (value === true) {
-                    client.p1(73);
-                }
-            }
-        }
-
-        if (recol_s.length > 0) {
-            client.p1(40);
-            client.p1(recol_s.length);
-
-            for (let k = 0; k < recol_s.length; k++) {
-                client.p2(recol_s[k]);
-                client.p2(recol_d[k]);
-            }
-        }
-
-        const models: LocModelShape[] = [];
-        for (let i = 0; i < srcModels.length; i++) {
-            let directReference = ModelPack.getByName(srcModels[i]) !== -1;
-            for (let shape = 0; shape <= 22; shape++) {
-                if (shape === 10) {
-                    continue;
-                }
-
-                if (ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}`) !== -1) {
-                    directReference = false;
-                    break;
-                }
-            }
-
-            if (directReference) {
-                // if a model directly points to a shape, we are forcing that shape to appear as centrepiece_straight
-                const forceModelId = ModelPack.getByName(srcModels[i]);
-                if (forceModelId !== -1) {
-                    models.push({ model: forceModelId, shape: LocShapeSuffix._8 });
-                    continue;
-                }
-            }
-
-            // centrepiece_straight comes first in their data, so we check it first
-            const modelId = ModelPack.getByName(`${srcModels[i]}_8`);
-
-            if (modelId !== -1) {
-                models.push({ model: modelId, shape: LocShapeSuffix._8 });
-            }
-
-            // now we can check the rest of the shapes
-            for (let shape = 0; shape <= 22; shape++) {
-                if (shape === LocShapeSuffix._8) {
-                    continue;
-                }
-
-                const modelId = ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}`);
-                if (modelId !== -1) {
-                    models.push({ model: modelId, shape });
-                }
-            }
-        }
-
-        if (srcModels.length > 0 && models.length === 0) {
-            throw packStepError(debugname, 'Failed to find suitable loc models');
-        }
-
-        if (models.length > 0) {
-            client.p1(1);
-
-            client.p1(models.length);
-            for (let i = 0; i < models.length; i++) {
-                modelFlags[models[i].model] |= 0x4;
-                client.p2(models[i].model);
-                client.p1(models[i].shape);
-            }
-        }
-
-        if (name === null && active !== 0) {
-            // edge case: a loc has no name= property but contains a centrepiece_straight shape or active=yes
-            //   we have to transmit a name - so we fall back to the debugname
-            let shouldTransmit: boolean = active === 1;
-
-            if (active === -1) {
-                for (let i = 0; i < models.length; i++) {
-                    if (models[i].shape === LocShapeSuffix._8) {
-                        // the presence of any _8 shape means we have to transmit a name
-                        shouldTransmit = true;
-                        break;
+                if (key === 'name') {
+                    name = value as string;
+                } else if (key === 'desc') {
+                    desc = value as string;
+                } else if (key.startsWith('model')) {
+                    srcModels.push(value as string);
+                } else if (key.startsWith('recol')) {
+                    const index = parseInt(key[5]) - 1;
+                    if (key.endsWith('s')) {
+                        recol_s[index] = value as number;
+                    } else {
+                        recol_d[index] = value as number;
+                    }
+                } else if (key.startsWith('retex')) {
+                    // retextures stored in recol until rev 465
+                    const index = parseInt(key[5]) - 1;
+                    if (key.endsWith('s')) {
+                        recol_s[index] = value as number;
+                    } else {
+                        recol_d[index] = value as number;
+                    }
+                } else if (key === 'param') {
+                    params.push(value as ParamValue);
+                } else if (key === 'width') {
+                    client.p1(14);
+                    client.p1(value as number);
+                } else if (key === 'length') {
+                    client.p1(15);
+                    client.p1(value as number);
+                } else if (key === 'blockwalk') {
+                    if (value === false) {
+                        client.p1(17);
+                    }
+                } else if (key === 'blockrange') {
+                    if (value === false) {
+                        client.p1(18);
+                    }
+                } else if (key === 'active') {
+                    client.p1(19);
+                    client.pbool(value as boolean);
+                    active = value ? 1 : 0;
+                } else if (key === 'hillskew') {
+                    if (value === true) {
+                        client.p1(21);
+                    }
+                } else if (key === 'sharelight') {
+                    if (value === true) {
+                        client.p1(22);
+                    }
+                } else if (key === 'occlude') {
+                    if (value === true) {
+                        client.p1(23);
+                    }
+                } else if (key === 'anim') {
+                    client.p1(24);
+                    client.p2(value as number);
+                } else if (key === 'hasalpha') {
+                    if (value === true) {
+                        client.p1(25);
+                    }
+                } else if (key === 'wallwidth') {
+                    client.p1(28);
+                    client.p1(value as number);
+                } else if (key === 'ambient') {
+                    client.p1(29);
+                    client.p1(value as number);
+                } else if (key === 'contrast') {
+                    client.p1(39);
+                    client.p1(value as number);
+                } else if (key.startsWith('op')) {
+                    const index = parseInt(key.substring('op'.length)) - 1;
+                    client.p1(30 + index);
+                    client.pjstr(value as string);
+                } else if (key === 'mapfunction') {
+                    client.p1(60);
+                    client.p2(value as number);
+                } else if (key === 'category') {
+                    server.p1(61);
+                    server.p2(value as number);
+                } else if (key === 'mirror') {
+                    if (value === true) {
+                        client.p1(62);
+                    }
+                } else if (key === 'shadow') {
+                    if (value === false) {
+                        client.p1(64);
+                    }
+                } else if (key === 'resizex') {
+                    client.p1(65);
+                    client.p2(value as number);
+                } else if (key === 'resizey') {
+                    client.p1(66);
+                    client.p2(value as number);
+                } else if (key === 'resizez') {
+                    client.p1(67);
+                    client.p2(value as number);
+                } else if (key === 'mapscene') {
+                    client.p1(68);
+                    client.p2(value as number);
+                } else if (key === 'forceapproach') {
+                    client.p1(69);
+                    client.p1(value as number);
+                } else if (key === 'offsetx') {
+                    client.p1(70);
+                    client.p2(value as number);
+                } else if (key === 'offsety') {
+                    client.p1(71);
+                    client.p2(value as number);
+                } else if (key === 'offsetz') {
+                    client.p1(72);
+                    client.p2(value as number);
+                } else if (key === 'forcedecor') {
+                    if (value === true) {
+                        client.p1(73);
                     }
                 }
             }
 
-            if (shouldTransmit) {
-                name = debugname;
+            if (recol_s.length > 0) {
+                client.p1(40);
+                client.p1(recol_s.length);
+
+                for (let k = 0; k < recol_s.length; k++) {
+                    client.p2(recol_s[k]);
+                    client.p2(recol_d[k]);
+                }
             }
-        }
 
-        if (name !== null) {
-            client.p1(2);
-            client.pjstr(name);
-        }
+            const models: LocModelShape[] = [];
+            for (let i = 0; i < srcModels.length; i++) {
+                let directReference = ModelPack.getByName(srcModels[i]) !== -1;
+                for (let shape = 0; shape <= 22; shape++) {
+                    if (shape === 10) {
+                        continue;
+                    }
 
-        if (desc !== null) {
-            client.p1(3);
-            client.pjstr(desc);
-        }
+                    if (ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}`) !== -1) {
+                        directReference = false;
+                        break;
+                    }
+                }
 
-        if (params.length > 0) {
-            server.p1(249);
+                if (directReference) {
+                    // if a model directly points to a shape, we are forcing that shape to appear as centrepiece_straight
+                    const forceModelId = ModelPack.getByName(srcModels[i]);
+                    if (forceModelId !== -1) {
+                        modelFlags[forceModelId] |= 0x4;
+                        models.push({ model: forceModelId, shape: LocShapeSuffix._8 });
+                        continue;
+                    }
+                }
 
-            server.p1(params.length);
-            for (let k = 0; k < params.length; k++) {
-                const paramData = params[k];
-                server.p3(paramData.id);
-                server.pbool(paramData.type === ScriptVarType.STRING);
+                // centrepiece_straight comes first in their data, so we check it first
+                const modelId = ModelPack.getByName(`${srcModels[i]}_8`);
 
-                if (paramData.type === ScriptVarType.STRING) {
-                    server.pjstr(paramData.value as string);
-                } else {
-                    server.p4(paramData.value as number);
+                if (modelId !== -1) {
+                    modelFlags[modelId] |= 0x4;
+                    models.push({ model: modelId, shape: LocShapeSuffix._8 });
+                }
+
+                // now we can check the rest of the shapes
+                for (let shape = 0; shape <= 22; shape++) {
+                    if (shape === LocShapeSuffix._8) {
+                        continue;
+                    }
+
+                    const modelId = ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}`);
+                    if (modelId !== -1) {
+                        modelFlags[modelId] |= 0x4;
+                        models.push({ model: modelId, shape });
+                    }
+                }
+            }
+
+            if (srcModels.length > 0 && models.length === 0) {
+                throw packStepError(debugname, 'Failed to find suitable loc models');
+            }
+
+            if (models.length > 0) {
+                client.p1(1);
+
+                client.p1(models.length);
+                for (let i = 0; i < models.length; i++) {
+                    client.p2(models[i].model);
+                    client.p1(models[i].shape);
+                }
+            }
+
+            if (name === null && active !== 0) {
+                // edge case: a loc has no name= property but contains a centrepiece_straight shape or active=yes
+                //   we have to transmit a name - so we fall back to the debugname
+                let shouldTransmit: boolean = active === 1;
+
+                if (active === -1) {
+                    for (let i = 0; i < models.length; i++) {
+                        if (models[i].shape === LocShapeSuffix._8) {
+                            // the presence of any _8 shape means we have to transmit a name
+                            shouldTransmit = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (shouldTransmit) {
+                    name = debugname;
+                }
+            }
+
+            if (name !== null) {
+                client.p1(2);
+                client.pjstr(name);
+            }
+
+            if (desc !== null) {
+                client.p1(3);
+                client.pjstr(desc);
+            }
+
+            if (params.length > 0) {
+                server.p1(249);
+
+                server.p1(params.length);
+                for (let k = 0; k < params.length; k++) {
+                    const paramData = params[k];
+                    server.p3(paramData.id);
+                    server.pbool(paramData.type === ScriptVarType.STRING);
+
+                    if (paramData.type === ScriptVarType.STRING) {
+                        server.pjstr(paramData.value as string);
+                    } else {
+                        server.p4(paramData.value as number);
+                    }
                 }
             }
         }
 
-        server.p1(250);
-        server.pjstr(debugname);
+        if (debugname.length) {
+            server.p1(250);
+            server.pjstr(debugname);
+        }
 
         client.next();
         server.next();

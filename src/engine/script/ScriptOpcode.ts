@@ -115,14 +115,13 @@ export const enum ScriptOpcode {
     IF_OPENCHAT,
     TUT_OPEN,
     IF_OPENMAIN,
-    // IF_OPENOVERLAY comes later
+    IF_OPENOVERLAY,
     IF_OPENMAIN_SIDE,
     IF_OPENSIDE,
     IF_SETANIM, // official
     IF_SETCOLOUR, // official
     IF_SETHIDE, // official
     IF_SETMODEL, // official
-    IF_SETRECOL,
     IF_SETNPCHEAD, // official
     IF_SETOBJECT, // official
     IF_SETPLAYERHEAD, // official
@@ -295,6 +294,7 @@ export const enum ScriptOpcode {
     NC_OP,
     NC_PARAM,
     NC_SIZE,
+    NC_VISLEVEL,
 
     // Loc config ops (4100-4199)
     LC_CATEGORY = 4100,
@@ -565,12 +565,12 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['TUT_OPEN', ScriptOpcode.TUT_OPEN],
     ['IF_OPENMAIN', ScriptOpcode.IF_OPENMAIN],
     ['IF_OPENMAIN_SIDE', ScriptOpcode.IF_OPENMAIN_SIDE],
+    ['IF_OPENOVERLAY', ScriptOpcode.IF_OPENOVERLAY],
     ['IF_OPENSIDE', ScriptOpcode.IF_OPENSIDE],
     ['IF_SETANIM', ScriptOpcode.IF_SETANIM],
     ['IF_SETCOLOUR', ScriptOpcode.IF_SETCOLOUR],
     ['IF_SETHIDE', ScriptOpcode.IF_SETHIDE],
     ['IF_SETMODEL', ScriptOpcode.IF_SETMODEL],
-    ['IF_SETRECOL', ScriptOpcode.IF_SETRECOL],
     ['IF_SETNPCHEAD', ScriptOpcode.IF_SETNPCHEAD],
     ['IF_SETOBJECT', ScriptOpcode.IF_SETOBJECT],
     ['IF_SETPLAYERHEAD', ScriptOpcode.IF_SETPLAYERHEAD],
@@ -735,6 +735,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['NC_OP', ScriptOpcode.NC_OP],
     ['NC_PARAM', ScriptOpcode.NC_PARAM],
     ['NC_SIZE', ScriptOpcode.NC_SIZE],
+    ['NC_VISLEVEL', ScriptOpcode.NC_VISLEVEL],
     ['LC_CATEGORY', ScriptOpcode.LC_CATEGORY],
     ['LC_DEBUGNAME', ScriptOpcode.LC_DEBUGNAME],
     ['LC_DESC', ScriptOpcode.LC_DESC],

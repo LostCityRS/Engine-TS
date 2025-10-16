@@ -15,7 +15,7 @@ export async function packClientTexture(cache: FileStream) {
         all.push(await convertImage(index, `${Environment.BUILD_SRC_DIR}/textures`, TexturePack.getById(id)));
     }
 
-    const textures = new Jagfile();
+    const textures = Jagfile.new();
     textures.write('index.dat', index);
     for (let id = 0; id < all.length; id++) {
         textures.write(`${id}.dat`, all[id]);

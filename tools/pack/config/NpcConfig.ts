@@ -71,7 +71,7 @@ export function parseNpcConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
 
-        if ((key === 'wanderrange' || key === 'maxrange' || key === 'huntrange' || key === 'attackrange') && (number < 0 || number > 200)) {
+        if ((key === 'wanderrange' || key === 'maxrange' || key === 'huntrange' || key === 'attackrange') && (number < 0 || number > 32767)) {
             return null;
         }
 
@@ -266,249 +266,253 @@ export function parseNpcConfig(key: string, value: string): ConfigValue | null |
 }
 
 export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: number[]): { client: PackedData; server: PackedData } {
-    const client: PackedData = new PackedData(NpcPack.size);
-    const server: PackedData = new PackedData(NpcPack.size);
+    const client: PackedData = new PackedData(NpcPack.max);
+    const server: PackedData = new PackedData(NpcPack.max);
 
-    for (let i = 0; i < NpcPack.size; i++) {
-        const debugname = NpcPack.getById(i);
-        const config = configs.get(debugname)!;
+    for (let id = 0; id < NpcPack.max; id++) {
+        const debugname = NpcPack.getById(id);
+        const config = configs.get(debugname);
 
-        // collect these to write at the end
-        const recol_s: number[] = [];
-        const recol_d: number[] = [];
-        let name: string | null = null;
-        const models: number[] = [];
-        const heads: number[] = [];
-        const params: ParamValue[] = [];
-        const patrol = [];
-        let vislevel = false;
+        if (config) {
+            // collect these to write at the end
+            const recol_s: number[] = [];
+            const recol_d: number[] = [];
+            let name: string | null = null;
+            const models: number[] = [];
+            const heads: number[] = [];
+            const params: ParamValue[] = [];
+            const patrol = [];
+            let vislevel = false;
 
-        for (let j = 0; j < config.length; j++) {
-            const { key, value } = config[j];
+            for (let j = 0; j < config.length; j++) {
+                const { key, value } = config[j];
 
-            if (key === 'name') {
-                name = value as string;
-            } else if (key.startsWith('model')) {
-                const index = parseInt(key.substring('model'.length)) - 1;
-                models[index] = value as number;
-                modelFlags[value as number] |= 0x4;
-            } else if (key.match(/head\d+/)) {
-                const index = parseInt(key.substring('head'.length)) - 1;
-                heads[index] = value as number;
-                modelFlags[value as number] |= 0x4;
-            } else if (key.startsWith('recol')) {
-                const index = parseInt(key.substring('recol'.length, key.length - 1)) - 1;
-                if (key.endsWith('s')) {
-                    recol_s[index] = value as number;
-                } else {
-                    recol_d[index] = value as number;
-                }
-            } else if (key === 'param') {
-                params.push(value as ParamValue);
-            } else if (key === 'desc') {
-                client.p1(3);
-                client.pjstr(value as string);
-            } else if (key === 'size') {
-                client.p1(12);
-                client.p1(value as number);
-            } else if (key === 'readyanim') {
-                client.p1(13);
-                client.p2(value as number);
-            } else if (key === 'walkanim') {
-                if (Array.isArray(value)) {
-                    client.p1(17);
-                    client.p2(value[0] as number);
-                    client.p2(value[1] as number);
-                    client.p2(value[2] as number);
-                    client.p2(value[3] as number);
-                } else {
-                    client.p1(14);
+                if (key === 'name') {
+                    name = value as string;
+                } else if (key.startsWith('model')) {
+                    const index = parseInt(key.substring('model'.length)) - 1;
+                    models[index] = value as number;
+                    modelFlags[value as number] |= 0x4;
+                } else if (key.match(/head\d+/)) {
+                    const index = parseInt(key.substring('head'.length)) - 1;
+                    heads[index] = value as number;
+                    modelFlags[value as number] |= 0x4;
+                } else if (key.startsWith('recol')) {
+                    const index = parseInt(key.substring('recol'.length, key.length - 1)) - 1;
+                    if (key.endsWith('s')) {
+                        recol_s[index] = value as number;
+                    } else {
+                        recol_d[index] = value as number;
+                    }
+                } else if (key === 'param') {
+                    params.push(value as ParamValue);
+                } else if (key === 'desc') {
+                    client.p1(3);
+                    client.pjstr(value as string);
+                } else if (key === 'size') {
+                    client.p1(12);
+                    client.p1(value as number);
+                } else if (key === 'readyanim') {
+                    client.p1(13);
                     client.p2(value as number);
+                } else if (key === 'walkanim') {
+                    if (Array.isArray(value)) {
+                        client.p1(17);
+                        client.p2(value[0] as number);
+                        client.p2(value[1] as number);
+                        client.p2(value[2] as number);
+                        client.p2(value[3] as number);
+                    } else {
+                        client.p1(14);
+                        client.p2(value as number);
+                    }
+                } else if (key === 'hasalpha') {
+                    if (value === true) {
+                        client.p1(16);
+                    }
+                } else if (key === 'category') {
+                    server.p1(18);
+                    server.p2(value as number);
+                } else if (key.startsWith('op')) {
+                    const index = parseInt(key.substring('op'.length)) - 1;
+                    client.p1(30 + index);
+                    client.pjstr(value as string);
+                } else if (key === 'attack') {
+                    server.p1(74);
+                    server.p2(value as number);
+                } else if (key === 'defence') {
+                    server.p1(75);
+                    server.p2(value as number);
+                } else if (key === 'strength') {
+                    server.p1(76);
+                    server.p2(value as number);
+                } else if (key === 'hitpoints') {
+                    server.p1(77);
+                    server.p2(value as number);
+                } else if (key === 'ranged') {
+                    server.p1(78);
+                    server.p2(value as number);
+                } else if (key === 'magic') {
+                    server.p1(79);
+                    server.p2(value as number);
+                } else if (key === 'resizex') {
+                    client.p1(90);
+                    client.p2(value as number);
+                } else if (key === 'resizey') {
+                    client.p1(91);
+                    client.p2(value as number);
+                } else if (key === 'resizez') {
+                    client.p1(92);
+                    client.p2(value as number);
+                } else if (key === 'minimap') {
+                    if (value === false) {
+                        client.p1(93);
+                    }
+                } else if (key === 'vislevel') {
+                    client.p1(95);
+                    client.p2(value as number);
+                    vislevel = true;
+                } else if (key === 'resizeh') {
+                    client.p1(97);
+                    client.p2(value as number);
+                } else if (key === 'resizev') {
+                    client.p1(98);
+                    client.p2(value as number);
+                } else if (key === 'alwaysontop') {
+                    client.p1(99);
+                } else if (key === 'ambient') {
+                    client.p1(100);
+                    client.p1(value as number);
+                } else if (key === 'contrast') {
+                    client.p1(101);
+                    client.p1(value as number);
+                } else if (key === 'headicon') {
+                    client.p1(102);
+                    client.p2(value as number);
+                } else if (key === 'wanderrange') {
+                    server.p1(200);
+                    server.p2(value as number);
+                } else if (key === 'maxrange') {
+                    server.p1(201);
+                    server.p2(value as number);
+                } else if (key === 'huntrange') {
+                    server.p1(202);
+                    server.p1(value as number);
+                } else if (key === 'timer') {
+                    server.p1(203);
+                    server.p2(value as number);
+                } else if (key === 'respawnrate') {
+                    server.p1(204);
+                    server.p2(value as number);
+                } else if (key === 'moverestrict') {
+                    server.p1(206);
+                    server.p1(value as number);
+                } else if (key === 'attackrange') {
+                    server.p1(207);
+                    server.p2(value as number);
+                } else if (key === 'blockwalk') {
+                    server.p1(208);
+                    server.p1(value as number);
+                } else if (key === 'huntmode') {
+                    server.p1(209);
+                    server.p1(value as number);
+                } else if (key === 'defaultmode') {
+                    server.p1(210);
+                    server.p1(value as number);
+                } else if (key === 'members') {
+                    if (value === true) {
+                        server.p1(211);
+                    }
+                } else if (key.startsWith('patrol')) {
+                    patrol.push(value);
+                } else if (key === 'givechase') {
+                    if (value === false) {
+                        server.p1(213);
+                    }
                 }
-            } else if (key === 'hasalpha') {
-                if (value === true) {
-                    client.p1(16);
+            }
+
+            if (recol_s.length > 0) {
+                client.p1(40);
+                client.p1(recol_s.length);
+
+                for (let k = 0; k < recol_s.length; k++) {
+                    if (recol_s[k] >= 100 || recol_d[k] >= 100) {
+                        client.p2(ColorConversion.rgb15toHsl16(recol_s[k]));
+                        client.p2(ColorConversion.rgb15toHsl16(recol_d[k]));
+                    } else {
+                        client.p2(recol_s[k]);
+                        client.p2(recol_d[k]);
+                    }
                 }
-            } else if (key === 'category') {
-                server.p1(18);
-                server.p2(value as number);
-            } else if (key.startsWith('op')) {
-                const index = parseInt(key.substring('op'.length)) - 1;
-                client.p1(30 + index);
-                client.pjstr(value as string);
-            } else if (key === 'attack') {
-                server.p1(74);
-                server.p2(value as number);
-            } else if (key === 'defence') {
-                server.p1(75);
-                server.p2(value as number);
-            } else if (key === 'strength') {
-                server.p1(76);
-                server.p2(value as number);
-            } else if (key === 'hitpoints') {
-                server.p1(77);
-                server.p2(value as number);
-            } else if (key === 'ranged') {
-                server.p1(78);
-                server.p2(value as number);
-            } else if (key === 'magic') {
-                server.p1(79);
-                server.p2(value as number);
-            } else if (key === 'resizex') {
-                client.p1(90);
-                client.p2(value as number);
-            } else if (key === 'resizey') {
-                client.p1(91);
-                client.p2(value as number);
-            } else if (key === 'resizez') {
-                client.p1(92);
-                client.p2(value as number);
-            } else if (key === 'minimap') {
-                if (value === false) {
-                    client.p1(93);
+            }
+
+            if (name === null) {
+                name = debugname;
+            }
+
+            if (name !== null) {
+                client.p1(2);
+                client.pjstr(name);
+            }
+
+            if (models.length > 0) {
+                client.p1(1);
+
+                client.p1(models.length);
+                for (let k = 0; k < models.length; k++) {
+                    client.p2(models[k]);
                 }
-            } else if (key === 'vislevel') {
+            }
+
+            if (heads.length > 0) {
+                client.p1(60);
+
+                client.p1(heads.length);
+                for (let k = 0; k < heads.length; k++) {
+                    client.p2(heads[k]);
+                }
+            }
+
+            if (!vislevel) {
+                // TODO: calculate NPC level based on stats
                 client.p1(95);
-                client.p2(value as number);
-                vislevel = true;
-            } else if (key === 'resizeh') {
-                client.p1(97);
-                client.p2(value as number);
-            } else if (key === 'resizev') {
-                client.p1(98);
-                client.p2(value as number);
-            } else if (key === 'alwaysontop') {
-                client.p1(99);
-            } else if (key === 'ambient') {
-                client.p1(100);
-                client.p1(value as number);
-            } else if (key === 'contrast') {
-                client.p1(101);
-                client.p1(value as number);
-            } else if (key === 'headicon') {
-                client.p1(102);
-                client.p2(value as number);
-            } else if (key === 'wanderrange') {
-                server.p1(200);
-                server.p1(value as number);
-            } else if (key === 'maxrange') {
-                server.p1(201);
-                server.p1(value as number);
-            } else if (key === 'huntrange') {
-                server.p1(202);
-                server.p1(value as number);
-            } else if (key === 'timer') {
-                server.p1(203);
-                server.p2(value as number);
-            } else if (key === 'respawnrate') {
-                server.p1(204);
-                server.p2(value as number);
-            } else if (key === 'moverestrict') {
-                server.p1(206);
-                server.p1(value as number);
-            } else if (key === 'attackrange') {
-                server.p1(207);
-                server.p1(value as number);
-            } else if (key === 'blockwalk') {
-                server.p1(208);
-                server.p1(value as number);
-            } else if (key === 'huntmode') {
-                server.p1(209);
-                server.p1(value as number);
-            } else if (key === 'defaultmode') {
-                server.p1(210);
-                server.p1(value as number);
-            } else if (key === 'members') {
-                if (value === true) {
-                    server.p1(211);
+                client.p2(1);
+            }
+
+            if (patrol.length > 0) {
+                server.p1(212);
+                server.p1(patrol.length);
+
+                for (let i = 0; i < patrol.length; i++) {
+                    const [packedCoord, delay] = patrol[i] as number[];
+                    server.p4(packedCoord);
+                    server.p1(delay);
                 }
-            } else if (key.startsWith('patrol')) {
-                patrol.push(value);
-            } else if (key === 'givechase') {
-                if (value === false) {
-                    server.p1(213);
+            }
+
+            if (params.length) {
+                server.p1(249);
+
+                server.p1(params.length);
+                for (let k = 0; k < params.length; k++) {
+                    const paramData = params[k] as ParamValue;
+                    server.p3(paramData.id);
+                    server.pbool(paramData.type === ScriptVarType.STRING);
+
+                    if (paramData.type === ScriptVarType.STRING) {
+                        server.pjstr(paramData.value as string);
+                    } else {
+                        server.p4(paramData.value as number);
+                    }
                 }
             }
         }
 
-        if (recol_s.length > 0) {
-            client.p1(40);
-            client.p1(recol_s.length);
-
-            for (let k = 0; k < recol_s.length; k++) {
-                if (recol_s[k] >= 100 || recol_d[k] >= 100) {
-                    client.p2(ColorConversion.rgb15toHsl16(recol_s[k]));
-                    client.p2(ColorConversion.rgb15toHsl16(recol_d[k]));
-                } else {
-                    client.p2(recol_s[k]);
-                    client.p2(recol_d[k]);
-                }
-            }
+        if (debugname.length) {
+            server.p1(250);
+            server.pjstr(debugname);
         }
-
-        if (name === null) {
-            name = debugname;
-        }
-
-        if (name !== null) {
-            client.p1(2);
-            client.pjstr(name);
-        }
-
-        if (models.length > 0) {
-            client.p1(1);
-
-            client.p1(models.length);
-            for (let k = 0; k < models.length; k++) {
-                client.p2(models[k]);
-            }
-        }
-
-        if (heads.length > 0) {
-            client.p1(60);
-
-            client.p1(heads.length);
-            for (let k = 0; k < heads.length; k++) {
-                client.p2(heads[k]);
-            }
-        }
-
-        if (!vislevel) {
-            // TODO: calculate NPC level based on stats
-            client.p1(95);
-            client.p2(1);
-        }
-
-        if (patrol.length > 0) {
-            server.p1(212);
-            server.p1(patrol.length);
-
-            for (let i = 0; i < patrol.length; i++) {
-                const [packedCoord, delay] = patrol[i] as number[];
-                server.p4(packedCoord);
-                server.p1(delay);
-            }
-        }
-
-        if (params.length) {
-            server.p1(249);
-
-            server.p1(params.length);
-            for (let k = 0; k < params.length; k++) {
-                const paramData = params[k] as ParamValue;
-                server.p3(paramData.id);
-                server.pbool(paramData.type === ScriptVarType.STRING);
-
-                if (paramData.type === ScriptVarType.STRING) {
-                    server.pjstr(paramData.value as string);
-                } else {
-                    server.p4(paramData.value as number);
-                }
-            }
-        }
-
-        server.p1(250);
-        server.pjstr(debugname);
 
         client.next();
         server.next();

@@ -11,6 +11,7 @@ import World from '#/engine/World.js';
 import { WorldStat } from '#/engine/WorldStat.js';
 import Zone from '#/engine/zone/Zone.js';
 import Packet from '#/io/Packet.js';
+import ClientGameProtCategory from '#/network/game/client/ClientGameProtCategory.js';
 import ServerGameMessageEncoder from '#/network/game/server/ServerGameMessageEncoder.js';
 import CamLookAt from '#/network/game/server/model/CamLookAt.js';
 import CamMoveTo from '#/network/game/server/model/CamMoveTo.js';
@@ -18,6 +19,7 @@ import IfClose from '#/network/game/server/model/IfClose.js';
 import IfOpenChat from '#/network/game/server/model/IfOpenChat.js';
 import IfOpenMain from '#/network/game/server/model/IfOpenMain.js';
 import IfOpenMainSide from '#/network/game/server/model/IfOpenMainSide.js';
+import IfOpenOverlay from '#/network/game/server/model/IfOpenOverlay.js';
 import IfOpenSide from '#/network/game/server/model/IfOpenSide.js';
 import Logout from '#/network/game/server/model/Logout.js';
 import NpcInfo from '#/network/game/server/model/NpcInfo.js';
@@ -32,10 +34,9 @@ import ClientSocket from '#/server/ClientSocket.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import NullClientSocket from '#/server/NullClientSocket.js';
 import { printError } from '#/util/Logger.js';
-import ServerGameProtRepository from '#/network/game/server/ServerGameProtRepository.js';
-import ClientGameProtCategory from '#/network/game/client/ClientGameProtCategory.js';
 import ClientGameProt from '#/network/game/client/ClientGameProt.js';
 import ClientGameProtRepository from '#/network/game/client/ClientGameProtRepository.js';
+import ServerGameProtRepository from '#/network/game/server/ServerGameProtRepository.js';
 
 export class NetworkPlayer extends Player {
     client: ClientSocket;
@@ -178,6 +179,11 @@ export class NetworkPlayer extends Player {
             }
 
             this.refreshModal = false;
+        }
+
+        if (this.overlay !== this.lastOverlay) {
+            this.write(new IfOpenOverlay(this.overlay));
+            this.lastOverlay = this.overlay;
         }
 
         for (const message of this.buffer) {

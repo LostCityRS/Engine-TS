@@ -104,7 +104,7 @@ export default {
     // used to keep some semblance of sanity in our folder structure
     BUILD_VERIFY_FOLDER: tryParseBoolean(process.env.BUILD_VERIFY_FOLDER, true),
     // used for unpacking/custom development
-    BUILD_VERIFY_PACK: tryParseBoolean(process.env.BUILD_VERIFY_PACK, false),
+    BUILD_VERIFY_PACK: tryParseBoolean(process.env.BUILD_VERIFY_PACK, true),
     // used for unpacking/custom development
     BUILD_SRC_DIR: tryParseString(process.env.BUILD_SRC_DIR, '../content')
 };

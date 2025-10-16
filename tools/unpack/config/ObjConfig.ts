@@ -7,24 +7,28 @@ import { printWarning } from '#/util/Logger.js';
 import { ModelPack, ObjPack, SeqPack, TexturePack } from '#tools/pack/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
 
 function renameModel(id: number, name: string) {
+    const existingFiles = listFilesExt(`${Environment.BUILD_SRC_DIR}/models`, '.ob2');
+
     let model = ModelPack.getById(id);
     if (model.startsWith('model_')) {
-        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`)) {
-            let attempt = `${!name.startsWith('obj_') ? 'obj_' : ''}${name}`;
-            let i = 2;
-            while (ModelPack.getByName(attempt) !== -1) {
-                attempt = `${!name.startsWith('obj_') ? 'obj_' : ''}${name}i${i}`;
-                i++;
-            }
-            if (attempt !== name) {
-                name = attempt;
-            }
+        let attempt = `${!name.startsWith('obj_') ? 'obj_' : ''}${name}`;
+        let i = 2;
+        while (ModelPack.getByName(attempt) !== -1) {
+            attempt = `${!name.startsWith('obj_') ? 'obj_' : ''}${name}i${i}`;
+            i++;
+        }
+        if (attempt !== name) {
+            name = attempt;
+        }
 
-            fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`, `${Environment.BUILD_SRC_DIR}/models/obj/${name}.ob2`);
+        const filePath = existingFiles.find(x => x.endsWith(`/${model}.ob2`));
+        if (filePath) {
+            fs.renameSync(filePath, `${Environment.BUILD_SRC_DIR}/models/obj/${name}.ob2`);
         } else {
-            console.error('Model does not exist');
+            console.error('Model not found on filesystem', 'obj', model);
         }
 
         model = name;
@@ -201,6 +205,21 @@ export function unpackObjConfig(config: ConfigIdx, id: number): string[] {
 
             const objName = ObjPack.getById(objId) || 'obj_' + objId;
             def.push(`count${index}=${objName},${count}`);
+        } else if (code === 110) {
+            const resizex = dat.g2();
+            def.push(`resizex=${resizex}`);
+        } else if (code === 111) {
+            const resizey = dat.g2();
+            def.push(`resizey=${resizey}`);
+        } else if (code === 112) {
+            const resizez = dat.g2();
+            def.push(`resizez=${resizez}`);
+        } else if (code === 113) {
+            const ambient = dat.g1b();
+            def.push(`ambient=${ambient}`);
+        } else if (code === 114) {
+            const contrast = dat.g1b();
+            def.push(`contrast=${contrast}`);
         } else {
             printWarning(`unknown obj code ${code}`);
         }

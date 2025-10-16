@@ -334,18 +334,9 @@ export async function packConfigs(cache: FileStream, modelFlags: number[]) {
     // Now that they're up to date, load them for us to use elsewhere during this process
     ParamType.load('data/pack');
 
-    const jag = new Jagfile();
+    const jag = Jagfile.new();
 
     const rebuildClient = true;
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.seq', 'data/pack/client/config') ||
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.loc', 'data/pack/client/config') ||
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.flo', 'data/pack/client/config') ||
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.spotanim', 'data/pack/client/config') ||
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.npc', 'data/pack/client/config') ||
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.obj', 'data/pack/client/config') ||
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.idk', 'data/pack/client/config') ||
-    // shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varp', 'data/pack/client/config') ||
-    // shouldBuild('tools/pack/config', '.ts', 'data/pack/client/config');
 
     // not a config but we want the server to know all the possible categories
     if (shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/category.pack`, 'data/pack/server/category.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/category.dat')) {

@@ -8,7 +8,7 @@ import Environment from '#/util/Environment.js';
 import { fileExists } from '#tools/pack/FsCache.js';
 
 export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
-    const versionlist = new Jagfile();
+    const versionlist = Jagfile.new(true);
 
     const modelVersion = Packet.alloc(3);
     const modelCrc = Packet.alloc(4);

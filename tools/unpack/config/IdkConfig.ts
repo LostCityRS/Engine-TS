@@ -7,24 +7,28 @@ import { printWarning } from '#/util/Logger.js';
 import { IdkPack, ModelPack, TexturePack } from '#tools/pack/PackFile.js';
 
 import { ConfigIdx } from './Common.js';
+import { listFilesExt } from '#tools/pack/Parse.js';
 
 function renameModel(id: number, name: string) {
+    const existingFiles = listFilesExt(`${Environment.BUILD_SRC_DIR}/models`, '.ob2');
+
     let model = ModelPack.getById(id);
     if (model.startsWith('model_')) {
-        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`)) {
-            let attempt = `${!name.startsWith('idk_') ? 'idk_' : ''}${name}`;
-            let i = 2;
-            while (ModelPack.getByName(attempt) !== -1) {
-                attempt = `${!name.startsWith('idk_') ? 'idk_' : ''}${name}_${i}`;
-                i++;
-            }
-            if (attempt !== name) {
-                name = attempt;
-            }
+        let attempt = `${!name.startsWith('idk_') ? 'idk_' : ''}${name}`;
+        let i = 2;
+        while (ModelPack.getByName(attempt) !== -1) {
+            attempt = `${!name.startsWith('idk_') ? 'idk_' : ''}${name}_${i}`;
+            i++;
+        }
+        if (attempt !== name) {
+            name = attempt;
+        }
 
-            fs.renameSync(`${Environment.BUILD_SRC_DIR}/models/_unpack/${model}.ob2`, `${Environment.BUILD_SRC_DIR}/models/idk/${name}.ob2`);
+        const filePath = existingFiles.find(x => x.endsWith(`/${model}.ob2`));
+        if (filePath) {
+            fs.renameSync(filePath, `${Environment.BUILD_SRC_DIR}/models/idk/${name}.ob2`);
         } else {
-            console.error('Model does not exist');
+            console.error('Model not found on filesystem', 'idk', model);
         }
 
         model = name;
