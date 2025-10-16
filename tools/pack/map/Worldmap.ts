@@ -615,7 +615,17 @@ export async function packWorldmap() {
         [0x00b0a82d, 0x00a9974a], // debugname=desert_shadow overlay=true occlude=true rgb=0xc4ac4e
         [0x0080782f, 0x00886b4d], // debugname=duel_arena overlay=true occlude=true rgb=0xb79767
         [0x0080283c, 0x00b47a4e], // debugname=duelarena overlay=false occlude=true rgb=0xd9bb93
-        [0x00b06826, 0x0071673f] // debugname=hive overlay=true occlude=true rgb=0x97874f
+        [0x00b06826, 0x0071673f], // debugname=hive overlay=true occlude=true rgb=0x97874f
+        [0x00000000, 0x007d5b2b], // debugname=agility overlay=true occlude=true rgb=0x7d5b2b
+        [0x00000000, 0x00504020], // debugname=brownmud overlay=true occlude=true rgb=0x504020
+        [0x00000000, 0x005c5444], // debugname=mountain_overlay overlay=true occlude=true rgb=0x5c5444
+        [0x00000000, 0x00464034], // debugname=mountain_dark_overlay overlay=true occlude=true rgb=0x464034
+        [0x00000000, 0x00000000], // debugname=elfbrick overlay=true occlude=true texture=elfbrick
+        [0x00000000, 0x00303525], // debugname=elf_wastelands overlay=true occlude=true rgb=0x303525
+        [0x00000000, 0x002d0000], // debugname=dark_red overlay=true occlude=true rgb=0x2d0000
+        [0x00000000, 0x00484757], // debugname=grey_blue overlay=true occlude=true rgb=0x484757
+        [0x00000000, 0x00544d37], // debugname=viking_town_overlay overlay=true occlude=true rgb=0x544d37
+        [0x00000000, 0x005e461c]  // debugname=viking_mud_overlay overlay=true occlude=true rgb=0x5e461c
     ];
 
     for (let i = 0; i < FloType.configs.length; i++) {
