@@ -83,7 +83,7 @@ export default class BuildArea {
                 }
             }
 
-            this.player.write(new RebuildNormal(zoneX, zoneZ, this.mapsquares));
+            this.player.write(new RebuildNormal(zoneX, zoneZ, this.mapsquares, CoordGrid.local(this.player.x, this.player.x), CoordGrid.local(this.player.z, this.player.z), this.player.level));
 
             this.player.originX = this.player.x;
             this.player.originZ = this.player.z;

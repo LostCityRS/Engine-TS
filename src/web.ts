@@ -1,12 +1,11 @@
 import { register } from 'prom-client';
 
-import { CrcBuffer } from '#/cache/CrcTable.js';
 import World from '#/engine/World.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import NullClientSocket from '#/server/NullClientSocket.js';
 import WSClientSocket from '#/server/ws/WSClientSocket.js';
 import Environment from '#/util/Environment.js';
-import OnDemand from '#/engine/OnDemand.js';
+import Js5 from '#/engine/Js5.js';
 
 function getIp(req: Request) {
     // todo: environment flag to respect cf-connecting-ip (NOT safe if origin is exposed publicly by IP + proxied)
@@ -54,24 +53,6 @@ export async function startWeb() {
                 }
 
                 return new Response(null, { status: 404 });
-            } else if (url.pathname.startsWith('/crc')) {
-                return new Response(Buffer.from(CrcBuffer.data));
-            } else if (url.pathname.startsWith('/title')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 1)!));
-            } else if (url.pathname.startsWith('/config')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 2)!));
-            } else if (url.pathname.startsWith('/interface')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 3)!));
-            } else if (url.pathname.startsWith('/media')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 4)!));
-            } else if (url.pathname.startsWith('/versionlist')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 5)!));
-            } else if (url.pathname.startsWith('/textures')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 6)!));
-            } else if (url.pathname.startsWith('/wordenc')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 7)!));
-            } else if (url.pathname.startsWith('/sounds')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 8)!));
             } else {
                 return new Response(null, { status: 404 });
             }
@@ -95,7 +76,7 @@ export async function startWeb() {
                         World.onClientData(client);
                     } else if (client.state === 2) {
                         if (Environment.NODE_WS_ONDEMAND) {
-                            OnDemand.onClientData(client);
+                            Js5.onClientData(client);
                         } else {
                             client.terminate();
                         }

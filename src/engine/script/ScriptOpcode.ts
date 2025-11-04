@@ -110,16 +110,6 @@ export const enum ScriptOpcode {
     HINT_NPC, // todo: take active_npc
     HINT_PLAYER, // todo: take active_player
     HINT_STOP,
-    IF_CLOSE, // official
-    TUT_CLOSE,
-    IF_MULTIZONE, // moved to engine, remove this
-    IF_OPENCHAT,
-    IF_OPENFULL,
-    TUT_OPEN,
-    IF_OPENMAIN,
-    IF_OPENOVERLAY,
-    IF_OPENMAIN_SIDE,
-    IF_OPENSIDE,
     IF_SETANGLE,
     IF_SETANIM, // official
     IF_SETCOLOUR, // official
@@ -132,9 +122,6 @@ export const enum ScriptOpcode {
     IF_SETPOSITION, // official
     IF_SETRESUMEBUTTONS,
     IF_SETROTATION,
-    IF_SETTAB,
-    IF_SETTABACTIVE,
-    TUT_FLASH,
     IF_SETTEXT, // official
     LAST_LOGIN_INFO,
     LAST_COM,
@@ -191,7 +178,6 @@ export const enum ScriptOpcode {
     STRONGQUEUE,
     UID, // official
     WEAKQUEUE, // official
-    IF_OPENMAINOVERLAY,
     AFK_EVENT,
     LOWMEMORY,
     SETIDKIT,
@@ -213,6 +199,9 @@ export const enum ScriptOpcode {
     MINIMAP_TOGGLE,
     IF_SETSCROLLPOS, // official, see server packets
     SET_PLAYER_OP, // todo: real name?
+    IF_OPENTOP,
+    IF_OPENSUB,
+    IF_CLOSESUB,
 
     // Npc ops (2500-2999)
     NPC_ADD = 2500, // official
@@ -570,31 +559,17 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['HINT_NPC', ScriptOpcode.HINT_NPC],
     ['HINT_PLAYER', ScriptOpcode.HINT_PLAYER],
     ['HINT_STOP', ScriptOpcode.HINT_STOP],
-    ['IF_CLOSE', ScriptOpcode.IF_CLOSE],
-    ['TUT_CLOSE', ScriptOpcode.TUT_CLOSE],
-    ['IF_MULTIZONE', ScriptOpcode.IF_MULTIZONE],
-    ['IF_OPENCHAT', ScriptOpcode.IF_OPENCHAT],
-    ['IF_OPENFULL', ScriptOpcode.IF_OPENFULL],
-    ['TUT_OPEN', ScriptOpcode.TUT_OPEN],
-    ['IF_OPENMAIN', ScriptOpcode.IF_OPENMAIN],
-    ['IF_OPENMAIN_SIDE', ScriptOpcode.IF_OPENMAIN_SIDE],
-    ['IF_OPENOVERLAY', ScriptOpcode.IF_OPENOVERLAY],
-    ['IF_OPENSIDE', ScriptOpcode.IF_OPENSIDE],
     ['IF_SETANGLE', ScriptOpcode.IF_SETANGLE],
     ['IF_SETANIM', ScriptOpcode.IF_SETANIM],
     ['IF_SETCOLOUR', ScriptOpcode.IF_SETCOLOUR],
     ['IF_SETHIDE', ScriptOpcode.IF_SETHIDE],
     ['IF_SETMODEL', ScriptOpcode.IF_SETMODEL],
-    ['IF_SETRECOL', ScriptOpcode.IF_SETRECOL],
     ['IF_SETROTATION', ScriptOpcode.IF_SETROTATION],
     ['IF_SETNPCHEAD', ScriptOpcode.IF_SETNPCHEAD],
     ['IF_SETOBJECT', ScriptOpcode.IF_SETOBJECT],
     ['IF_SETPLAYERHEAD', ScriptOpcode.IF_SETPLAYERHEAD],
     ['IF_SETPOSITION', ScriptOpcode.IF_SETPOSITION],
     ['IF_SETRESUMEBUTTONS', ScriptOpcode.IF_SETRESUMEBUTTONS],
-    ['IF_SETTAB', ScriptOpcode.IF_SETTAB],
-    ['IF_SETTABACTIVE', ScriptOpcode.IF_SETTABACTIVE],
-    ['TUT_FLASH', ScriptOpcode.TUT_FLASH],
     ['IF_SETTEXT', ScriptOpcode.IF_SETTEXT],
     ['LAST_LOGIN_INFO', ScriptOpcode.LAST_LOGIN_INFO],
     ['LAST_COM', ScriptOpcode.LAST_COM],
@@ -652,8 +627,10 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['STRONGQUEUE', ScriptOpcode.STRONGQUEUE],
     ['UID', ScriptOpcode.UID],
     ['WEAKQUEUE', ScriptOpcode.WEAKQUEUE],
-    ['IF_OPENMAINOVERLAY', ScriptOpcode.IF_OPENMAINOVERLAY],
     ['SET_PLAYER_OP', ScriptOpcode.SET_PLAYER_OP],
+    ['IF_OPENTOP', ScriptOpcode.IF_OPENTOP],
+    ['IF_OPENSUB', ScriptOpcode.IF_OPENSUB],
+    ['IF_CLOSESUB', ScriptOpcode.IF_CLOSESUB],
     ['AFK_EVENT', ScriptOpcode.AFK_EVENT],
     ['LOWMEMORY', ScriptOpcode.LOWMEMORY],
     ['SETIDKIT', ScriptOpcode.SETIDKIT],

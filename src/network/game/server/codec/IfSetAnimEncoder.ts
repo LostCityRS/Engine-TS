@@ -6,8 +6,12 @@ import IfSetAnim from '#/network/game/server/model/IfSetAnim.js';
 export default class IfSetAnimEncoder extends ServerGameMessageEncoder<IfSetAnim> {
     prot = ServerGameProt.IF_SETANIM;
 
-    encode(buf: Packet, message: IfSetAnim): void {
-        buf.p2_alt3(message.component);
-        buf.p2_alt2(message.seq);
+    encode(buf: Packet, _message: IfSetAnim): void {
+        buf.p4_alt3(0);
+        buf.p2_alt1(0);
+        buf.p2_alt2(0);
+
+        // buf.p2_alt3(message.component);
+        // buf.p2_alt2(message.seq);
     }
 }

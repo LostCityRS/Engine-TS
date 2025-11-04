@@ -1,6 +1,3 @@
-import fs from 'fs';
-
-
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import Packet from '#/io/Packet.js';
@@ -9,23 +6,7 @@ export default class EnumType extends ConfigType {
     static configNames = new Map<string, number>();
     static configs: EnumType[] = [];
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/enum.dat`)) {
-            return;
-        }
-
-        const dat = Packet.load(`${dir}/server/enum.dat`);
-        this.parse(dat);
-    }
-
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/enum.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const dat = new Packet(new Uint8Array(await file.arrayBuffer()));
-        this.parse(dat);
+    static load(_dir: string) {
     }
 
     static parse(dat: Packet) {

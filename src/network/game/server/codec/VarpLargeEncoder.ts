@@ -5,9 +5,10 @@ import VarpLarge from '#/network/game/server/model/VarpLarge.js';
 
 export default class VarpLargeEncoder extends ServerGameMessageEncoder<VarpLarge> {
     prot = ServerGameProt.VARP_LARGE;
+    usable = true;
 
     encode(buf: Packet, message: VarpLarge): void {
-        buf.p4_alt3(message.value);
-        buf.p2_alt1(message.varp);
+        buf.p4(message.value);
+        buf.p2_alt2(message.varp);
     }
 }

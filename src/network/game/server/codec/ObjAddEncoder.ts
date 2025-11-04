@@ -5,10 +5,11 @@ import ObjAdd from '#/network/game/server/model/ObjAdd.js';
 
 export default class ObjAddEncoder extends ServerGameZoneMessageEncoder<ObjAdd> {
     prot = ServerGameZoneProt.OBJ_ADD;
+    usable = true;
 
     encode(buf: Packet, message: ObjAdd): void {
-        buf.p2(message.obj);
-        buf.p1_alt2(message.coord);
-        buf.p2_alt2(Math.min(message.count, 65535));
+        buf.p2_alt1(Math.min(message.count, 65535));
+        buf.p1(message.coord);
+        buf.p2_alt2(message.obj);
     }
 }

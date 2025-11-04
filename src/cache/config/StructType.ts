@@ -1,6 +1,3 @@
-import fs from 'fs';
-
-
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import { ParamHelper, ParamHolder, ParamMap } from '#/cache/config/ParamHelper.js';
 import Packet from '#/io/Packet.js';
@@ -9,23 +6,7 @@ export default class StructType extends ConfigType implements ParamHolder {
     private static configNames = new Map<string, number>();
     private static configs: StructType[] = [];
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/struct.dat`)) {
-            return;
-        }
-
-        const dat = Packet.load(`${dir}/server/struct.dat`);
-        this.parse(dat);
-    }
-
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/struct.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const dat = new Packet(new Uint8Array(await file.arrayBuffer()));
-        this.parse(dat);
+    static load(_dir: string) {
     }
 
     static parse(dat: Packet) {

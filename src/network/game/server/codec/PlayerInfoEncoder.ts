@@ -5,6 +5,7 @@ import PlayerInfo from '#/network/game/server/model/PlayerInfo.js';
 
 export default class PlayerInfoEncoder extends ServerGameMessageEncoder<PlayerInfo> {
     prot = ServerGameProt.PLAYER_INFO;
+    usable = true;
 
     encode(buf: Packet, message: PlayerInfo): void {
         buf.pdata(message.bytes, 0, message.bytes.length);

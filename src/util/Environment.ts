@@ -24,10 +24,10 @@ export default {
     WEB_MANAGEMENT_PORT: tryParseInt(process.env.WEB_MANAGEMENT_PORT, 8898),
 
     /// game server
-    ENGINE_REVISION: tryParseInt(process.env.ENGINE_REVISION, 377),
-    // world id - offset by 9, so 1 = 10, 2 = 11, etc
-    NODE_ID: tryParseInt(process.env.NODE_ID, 10),
-    NODE_PORT: tryParseInt(process.env.NODE_PORT, 43594),
+    ENGINE_REVISION: tryParseInt(process.env.ENGINE_REVISION, 530),
+    // world id
+    NODE_ID: tryParseInt(process.env.NODE_ID, 1),
+    NODE_PORT: tryParseInt(process.env.NODE_PORT, 40001),
     // members content
     NODE_MEMBERS: tryParseBoolean(process.env.NODE_MEMBERS, true),
     // automatically upgrade accounts to members on successful login to a members world

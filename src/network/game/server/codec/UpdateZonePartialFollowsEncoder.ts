@@ -6,9 +6,10 @@ import UpdateZonePartialFollows from '#/network/game/server/model/UpdateZonePart
 
 export default class UpdateZonePartialFollowsEncoder extends ServerGameMessageEncoder<UpdateZonePartialFollows> {
     prot = ServerGameProt.UPDATE_ZONE_PARTIAL_FOLLOWS;
+    usable = true;
 
     encode(buf: Packet, message: UpdateZonePartialFollows): void {
-        buf.p1_alt2((message.zoneX << 3) - CoordGrid.zoneOrigin(message.originX));
-        buf.p1_alt1((message.zoneZ << 3) - CoordGrid.zoneOrigin(message.originZ));
+        buf.p1((message.zoneX << 3) - CoordGrid.zoneOrigin(message.originX));
+        buf.p1_alt2((message.zoneZ << 3) - CoordGrid.zoneOrigin(message.originZ));
     }
 }

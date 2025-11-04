@@ -5,10 +5,11 @@ import LocAnim from '#/network/game/server/model/LocAnim.js';
 
 export default class LocAnimEncoder extends ServerGameZoneMessageEncoder<LocAnim> {
     prot = ServerGameZoneProt.LOC_ANIM;
+    usable = true;
 
     encode(buf: Packet, message: LocAnim): void {
-        buf.p2(message.seq);
-        buf.p1_alt1((message.shape << 2) | (message.angle & 0x3));
-        buf.p1(message.coord);
+        buf.p1_alt3(message.coord);
+        buf.p1_alt3((message.shape << 2) | (message.angle & 0x3));
+        buf.p2_alt1(message.seq);
     }
 }

@@ -6,9 +6,10 @@ import UpdateZoneFullFollows from '#/network/game/server/model/UpdateZoneFullFol
 
 export default class UpdateZoneFullFollowsEncoder extends ServerGameMessageEncoder<UpdateZoneFullFollows> {
     prot = ServerGameProt.UPDATE_ZONE_FULL_FOLLOWS;
+    usable = true;
 
     encode(buf: Packet, message: UpdateZoneFullFollows): void {
-        buf.p1_alt3((message.zoneZ << 3) - CoordGrid.zoneOrigin(message.originZ));
         buf.p1_alt2((message.zoneX << 3) - CoordGrid.zoneOrigin(message.originX));
+        buf.p1((message.zoneZ << 3) - CoordGrid.zoneOrigin(message.originZ));
     }
 }

@@ -5,6 +5,7 @@ import UpdateIgnoreList from '#/network/game/server/model/UpdateIgnoreList.js';
 
 export default class UpdateIgnoreListEncoder extends ServerGameMessageEncoder<UpdateIgnoreList> {
     prot = ServerGameProt.UPDATE_IGNORELIST;
+    usable = true;
 
     encode(buf: Packet, message: UpdateIgnoreList): void {
         for (const name of message.names) {

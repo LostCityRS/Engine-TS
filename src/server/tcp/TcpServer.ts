@@ -5,7 +5,7 @@ import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import NullClientSocket from '#/server/NullClientSocket.js';
 import TcpClientSocket from '#/server/tcp/TcpClientSocket.js';
 import Environment from '#/util/Environment.js';
-import OnDemand from '#/engine/OnDemand.js';
+import Js5 from '#/engine/Js5.js';
 
 export default class TcpServer {
     tcp: net.Server;
@@ -32,10 +32,11 @@ export default class TcpServer {
 
                     if (client.state === 0) {
                         World.onClientData(client);
-                    } else {
-                        OnDemand.onClientData(client);
+                    } else if (client.state === 2) {
+                        Js5.onClientData(client);
                     }
-                } catch (_) {
+                } catch (e) {
+                    console.error(e);
                     client.terminate();
                 }
             });

@@ -5,11 +5,9 @@ import MinimapToggle from '#/network/game/server/model/MinimapToggle.js';
 
 export default class MinimapToggleEncoder extends ServerGameMessageEncoder<MinimapToggle> {
     prot = ServerGameProt.MINIMAP_TOGGLE;
+    usable = true;
 
     encode(buf: Packet, message: MinimapToggle): void {
-        // 0 normal
-        // 1 disable click
-        // 2 blacked out
         buf.p1(message.minimapType);
     }
 }

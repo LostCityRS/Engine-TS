@@ -5,6 +5,7 @@ import ObjCount from '#/network/game/server/model/ObjCount.js';
 
 export default class ObjCountEncoder extends ServerGameZoneMessageEncoder<ObjCount> {
     prot = ServerGameZoneProt.OBJ_COUNT;
+    usable = true;
 
     encode(buf: Packet, message: ObjCount): void {
         buf.p1(message.coord);

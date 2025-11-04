@@ -5,6 +5,7 @@ import MessageGame from '#/network/game/server/model/MessageGame.js';
 
 export default class MessageGameEncoder extends ServerGameMessageEncoder<MessageGame> {
     prot = ServerGameProt.MESSAGE_GAME;
+    usable = true;
 
     encode(buf: Packet, message: MessageGame): void {
         buf.pjstr(message.msg);

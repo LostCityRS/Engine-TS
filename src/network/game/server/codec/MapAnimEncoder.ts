@@ -5,6 +5,7 @@ import MapAnim from '#/network/game/server/model/MapAnim.js';
 
 export default class MapAnimEncoder extends ServerGameZoneMessageEncoder<MapAnim> {
     prot = ServerGameZoneProt.MAP_ANIM;
+    usable = true;
 
     encode(buf: Packet, message: MapAnim): void {
         buf.p1(message.coord);

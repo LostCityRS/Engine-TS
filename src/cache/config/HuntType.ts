@@ -1,6 +1,3 @@
-import fs from 'fs';
-
-
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import { HuntCheckNotTooStrong } from '#/engine/entity/hunt/HuntCheckNotTooStrong.js';
 import { HuntModeType } from '#/engine/entity/hunt/HuntModeType.js';
@@ -13,22 +10,7 @@ export default class HuntType extends ConfigType {
     private static configNames: Map<string, number> = new Map();
     private static configs: HuntType[] = [];
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/hunt.dat`)) {
-            return;
-        }
-        const dat = Packet.load(`${dir}/server/hunt.dat`);
-        this.parse(dat);
-    }
-
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/hunt.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const dat = new Packet(new Uint8Array(await file.arrayBuffer()));
-        this.parse(dat);
+    static load(_dir: string) {
     }
 
     static parse(dat: Packet) {

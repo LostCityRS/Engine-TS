@@ -1,5 +1,3 @@
-import fs from 'fs';
-
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import Packet from '#/io/Packet.js';
@@ -9,23 +7,7 @@ export default class VarSharedType extends ConfigType {
     private static configNames = new Map<string, number>();
     private static configs: VarSharedType[] = [];
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/vars.dat`)) {
-            return;
-        }
-
-        const dat = Packet.load(`${dir}/server/vars.dat`);
-        this.parse(dat);
-    }
-
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/vars.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const dat = new Packet(new Uint8Array(await file.arrayBuffer()));
-        this.parse(dat);
+    static load(_dir: string) {
     }
 
     static parse(dat: Packet) {

@@ -1,6 +1,3 @@
-import fs from 'fs';
-
-
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
@@ -9,24 +6,7 @@ export default class SpotanimType extends ConfigType {
     private static configNames = new Map();
     private static configs: SpotanimType[] = [];
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/spotanim.dat`)) {
-            return;
-        }
-
-        const server = Packet.load(`${dir}/server/spotanim.dat`);
-        const jag = Jagfile.load(`${dir}/client/config`);
-        this.parse(server, jag);
-    }
-
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/spotanim.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const [server, jag] = await Promise.all([file.arrayBuffer(), Jagfile.loadAsync(`${dir}/client/config`)]);
-        this.parse(new Packet(new Uint8Array(server)), jag);
+    static load(_dir: string) {
     }
 
     static parse(server: Packet, jag: Jagfile) {

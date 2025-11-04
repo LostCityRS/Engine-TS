@@ -1,95 +1,89 @@
 export default class ServerGameProt {
     // interfaces
-    static readonly IF_OPENCHAT = new ServerGameProt(109, 2);
-    static readonly IF_OPENMAIN_SIDE = new ServerGameProt(128, 4);
-    static readonly IF_CLOSE = new ServerGameProt(29, 0);
-    static readonly IF_SETTAB = new ServerGameProt(10, 3);
-    static readonly IF_SETTAB_ACTIVE = new ServerGameProt(252, 1);
-    static readonly IF_OPENMAIN = new ServerGameProt(159, 2);
-    static readonly IF_OPENSIDE = new ServerGameProt(246, 2);
-    static readonly IF_OPENOVERLAY = new ServerGameProt(50, 2);
-    static readonly IF_OPENFULL = new ServerGameProt(253, 4);
+    static readonly IF_OPENTOP = new ServerGameProt(145, 4);
+    static readonly IF_OPENSUB = new ServerGameProt(155, 9);
 
     // updating interfaces
-    static readonly IF_SETANGLE = new ServerGameProt(186, 8); // todo: Real name? 
-    static readonly IF_SETCOLOUR = new ServerGameProt(218, 4); // NXT naming
-    static readonly IF_SETHIDE = new ServerGameProt(82, 3); // NXT naming
-    static readonly IF_SETOBJECT = new ServerGameProt(21, 6); // NXT naming
-    static readonly IF_SETMODEL = new ServerGameProt(216, 4); // NXT naming
-    static readonly IF_SETROTATION = new ServerGameProt(18, 6); // todo: Real name?    
-    static readonly IF_SETRECOL = new ServerGameProt(103, 6); // NXT naming
-    static readonly IF_SETANIM = new ServerGameProt(2, 4); // NXT naming
-    static readonly IF_SETPLAYERHEAD = new ServerGameProt(255, 2); // NXT naming
-    static readonly IF_SETTEXT = new ServerGameProt(232, -2); // NXT naming
-    static readonly IF_SETNPCHEAD = new ServerGameProt(162, 4); // NXT naming
-    static readonly IF_SETPOSITION = new ServerGameProt(166, 6); // NXT naming
-    static readonly IF_SETSCROLLPOS = new ServerGameProt(200, 4); // NXT naming
+    static readonly IF_SETANGLE = new ServerGameProt(132, 8); // todo: Real name? 
+    static readonly IF_SETCOLOUR = new ServerGameProt(2, 4); // NXT naming
+    static readonly IF_SETHIDE = new ServerGameProt(21, 3); // NXT naming
+    static readonly IF_SETOBJECT = new ServerGameProt(50, 6); // NXT naming
+    static readonly IF_SETMODEL = new ServerGameProt(130, 4); // NXT naming
+    static readonly IF_SETROTATION = new ServerGameProt(207, 6); // todo: Real name?    
+    static readonly IF_SETANIM = new ServerGameProt(36, 4); // NXT naming
+    static readonly IF_SETPLAYERHEAD = new ServerGameProt(66, 2); // NXT naming
+    static readonly IF_SETTEXT = new ServerGameProt(171, -2); // NXT naming
+    static readonly IF_SETNPCHEAD = new ServerGameProt(73, 4); // NXT naming
+    static readonly IF_SETPOSITION = new ServerGameProt(119, 6); // NXT naming
+    static readonly IF_SETSCROLLPOS = new ServerGameProt(220, 4); // NXT naming
 
     // tutorial area
-    static readonly TUT_FLASH = new ServerGameProt(238, 1);
-    static readonly TUT_OPEN = new ServerGameProt(158, 2);
+    static readonly TUT_FLASH = new ServerGameProt(9005, 1);
+    static readonly TUT_OPEN = new ServerGameProt(9006, 2);
 
     // inventory
-    static readonly UPDATE_INV_STOP_TRANSMIT = new ServerGameProt(219, 2); // NXT naming
-    static readonly UPDATE_INV_FULL = new ServerGameProt(206, -2); // NXT naming
-    static readonly UPDATE_INV_PARTIAL = new ServerGameProt(134, -2); // NXT naming
+    static readonly UPDATE_INV_STOP_TRANSMIT = new ServerGameProt(144, 2); // NXT naming
+    static readonly UPDATE_INV_FULL = new ServerGameProt(105, -2); // NXT naming
+    static readonly UPDATE_INV_PARTIAL = new ServerGameProt(22, -2); // NXT naming
 
     // camera control
-    static readonly CAM_LOOKAT = new ServerGameProt(167, 6); // NXT naming
-    static readonly CAM_SHAKE = new ServerGameProt(67, 4); // NXT naming
-    static readonly CAM_MOVETO = new ServerGameProt(3, 6); // NXT naming
-    static readonly CAM_RESET = new ServerGameProt(148, 0); // NXT naming
+    static readonly CAM_LOOKAT = new ServerGameProt(125, 6); // NXT naming
+    static readonly CAM_SHAKE = new ServerGameProt(27, 4); // NXT naming
+    static readonly CAM_MOVETO = new ServerGameProt(154, 6); // NXT naming
+    static readonly CAM_RESET = new ServerGameProt(24, 0); // NXT naming
 
     // entity updates
-    static readonly NPC_INFO = new ServerGameProt(71, -2); // NXT naming
-    static readonly PLAYER_INFO = new ServerGameProt(90, -2); // NXT naming
+    static readonly NPC_INFO = new ServerGameProt(32, -2); // NXT naming
+    static readonly PLAYER_INFO = new ServerGameProt(225, -2); // NXT naming
 
     // social
-    static readonly FRIENDLIST_LOADED = new ServerGameProt(251, 1); // NXT naming
-    static readonly MESSAGE_GAME = new ServerGameProt(63, -1); // NXT naming
-    static readonly UPDATE_IGNORELIST = new ServerGameProt(226, -2); // NXT naming
-    static readonly CHAT_FILTER_SETTINGS = new ServerGameProt(201, 3); // NXT naming
-    static readonly MESSAGE_PRIVATE = new ServerGameProt(135, -1); // NXT naming
-    static readonly UPDATE_FRIENDLIST = new ServerGameProt(78, 9); // NXT naming
+    static readonly FRIENDLIST_LOADED = new ServerGameProt(197, 1); // NXT naming
+    static readonly MESSAGE_GAME = new ServerGameProt(70, -1); // NXT naming
+    static readonly UPDATE_IGNORELIST = new ServerGameProt(126, -2); // NXT naming
+    static readonly CHAT_FILTER_SETTINGS = new ServerGameProt(232, 3); // NXT naming
+    static readonly MESSAGE_PRIVATE = new ServerGameProt(0, -1); // NXT naming
+    static readonly UPDATE_FRIENDLIST = new ServerGameProt(62, -1); // NXT naming
 
     // misc
     static readonly UNSET_MAP_FLAG = new ServerGameProt(61, 0); // NXT has "SET_MAP_FLAG" but we cannot control the position
-    static readonly UPDATE_RUNWEIGHT = new ServerGameProt(174, 2); // NXT naming
-    static readonly HINT_ARROW = new ServerGameProt(199, 6); // NXT naming
-    static readonly UPDATE_REBOOT_TIMER = new ServerGameProt(190, 2); // NXT naming
-    static readonly UPDATE_STAT = new ServerGameProt(49, 6); // NXT naming
-    static readonly UPDATE_RUNENERGY = new ServerGameProt(125, 1); // NXT naming
-    static readonly RESET_ANIMS = new ServerGameProt(13, 0); // NXT naming
-    static readonly UPDATE_PID = new ServerGameProt(126, 3);
-    static readonly LAST_LOGIN_INFO = new ServerGameProt(76, 23); // NXT naming
-    static readonly LOGOUT = new ServerGameProt(5, 0); // NXT naming
+    static readonly UPDATE_RUNWEIGHT = new ServerGameProt(159, 2); // NXT naming
+    static readonly HINT_ARROW = new ServerGameProt(217, 6); // NXT naming
+    static readonly UPDATE_REBOOT_TIMER = new ServerGameProt(85, 2); // NXT naming
+    static readonly UPDATE_STAT = new ServerGameProt(38, 6); // NXT naming
+    static readonly UPDATE_RUNENERGY = new ServerGameProt(234, 1); // NXT naming
+    static readonly RESET_ANIMS = new ServerGameProt(131, 0); // NXT naming
+    static readonly UPDATE_PID = new ServerGameProt(169, 3);
+    static readonly LAST_LOGIN_INFO = new ServerGameProt(164, 4); // NXT naming
+    static readonly LOGOUT = new ServerGameProt(86, 0); // NXT naming
     static readonly P_COUNTDIALOG = new ServerGameProt(58, 0); // named after runescript command + client resume_p_countdialog packet
-    static readonly SET_MULTIWAY = new ServerGameProt(233, 1);
-    static readonly P_NAMEDIALOG = new ServerGameProt(6, 0);
-    static readonly SET_PLAYER_OP = new ServerGameProt(157, -1);
-    static readonly MINIMAP_TOGGLE = new ServerGameProt(156, 1);
+    static readonly SET_MULTIWAY = new ServerGameProt(9000, 1);
+    static readonly P_NAMEDIALOG = new ServerGameProt(9001, 0);
+    static readonly SET_PLAYER_OP = new ServerGameProt(44, -1);
+    static readonly MINIMAP_TOGGLE = new ServerGameProt(192, 1);
 
     // maps
-    static readonly REBUILD_NORMAL = new ServerGameProt(222, 4); // NXT naming
-    static readonly REBUILD_REGION = new ServerGameProt(53, -1); // NXT naming
+    static readonly REBUILD_NORMAL = new ServerGameProt(162, -2); // NXT naming
+    static readonly REBUILD_REGION = new ServerGameProt(214, -2); // NXT naming
 
     // vars
-    static readonly VARP_SMALL = new ServerGameProt(182, 3); // NXT naming
-    static readonly VARP_LARGE = new ServerGameProt(115, 6); // NXT naming
-    static readonly RESET_CLIENT_VARCACHE = new ServerGameProt(113, 0); // NXT naming
+    static readonly VARP_SMALL = new ServerGameProt(60, 3); // NXT naming
+    static readonly VARP_LARGE = new ServerGameProt(226, 6); // NXT naming
+    static readonly RESET_CLIENT_VARCACHE = new ServerGameProt(89, 0); // NXT naming
 
     // audio
-    static readonly SYNTH_SOUND = new ServerGameProt(26, 5); // NXT naming
-    static readonly MIDI_SONG = new ServerGameProt(220, 2); // NXT naming
-    static readonly MIDI_JINGLE = new ServerGameProt(249, 5); // NXT naming
+    static readonly SYNTH_SOUND = new ServerGameProt(172, 5); // NXT naming
+    static readonly MIDI_SONG = new ServerGameProt(4, 2); // NXT naming
+    static readonly MIDI_JINGLE = new ServerGameProt(208, 5); // NXT naming
 
     // zones
-    static readonly UPDATE_ZONE_PARTIAL_FOLLOWS = new ServerGameProt(75, 2); // NXT naming
-    static readonly UPDATE_ZONE_FULL_FOLLOWS = new ServerGameProt(40, 2); // NXT naming
-    static readonly UPDATE_ZONE_PARTIAL_ENCLOSED = new ServerGameProt(183, -2); // NXT naming
+    static readonly UPDATE_ZONE_PARTIAL_FOLLOWS = new ServerGameProt(112, 2); // NXT naming
+    static readonly UPDATE_ZONE_FULL_FOLLOWS = new ServerGameProt(26, 2); // NXT naming
+    static readonly UPDATE_ZONE_PARTIAL_ENCLOSED = new ServerGameProt(230, -2); // NXT naming
 
     constructor(
         readonly id: number,
         readonly length: number
     ) {}
 }
+
+// const lengths = [-1, 0, 8, 0, 2, 0, 0, 0, 0, 12, 0, 1, 0, 3, 7, 0, 15, 6, 0, 0, 4, 7, -2, -1, 2, 0, 2, 8, 0, 0, 0, 0, -2, 5, 0, 0, 8, 3, 6, 0, 0, 0, -1, 0, -1, 0, 0, 6, -2, 0, 12, 0, 0, 0, -1, -2, 10, 0, 0, 0, 3, 0, -1, 0, 0, 5, 6, 0, 0, 8, -1, -1, 0, 8, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 6, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 5, 0, 0, -2, 0, 0, 0, 0, 0, 12, 2, 0, -2, -2, 20, 0, 0, 10, 0, 15, 0, -1, 0, 8, -2, 0, 0, 0, 8, 0, 12, 0, 0, 7, 0, 0, 0, 0, 0, -1, -1, 0, 4, 5, 0, 0, 0, 6, 0, 0, 0, 0, 8, 9, 0, 0, 0, 2, -1, 0, -2, 0, 4, 14, 0, 0, 0, 24, 0, -2, 5, 0, 0, 0, 10, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 2, 1, 0, 0, 2, -1, 1, 0, 0, 0, 0, 14, 0, 0, 0, 0, 10, 5, 0, 0, 0, 0, 0, -2, 0, 0, 9, 0, 0, 8, 0, 0, 0, 0, -2, 6, 0, 0, 0, -2, 0, 3, 0, 1, 7, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 3, 0, 0];

@@ -5,6 +5,7 @@ import Logout from '#/network/game/server/model/Logout.js';
 
 export default class LogoutEncoder extends ServerGameMessageEncoder<Logout> {
     prot = ServerGameProt.LOGOUT;
+    usable = true;
 
     encode(_: Packet, __: Logout): void {}
 }

@@ -6,7 +6,10 @@ import IfSetPlayerHead from '#/network/game/server/model/IfSetPlayerHead.js';
 export default class IfSetPlayerHeadEncoder extends ServerGameMessageEncoder<IfSetPlayerHead> {
     prot = ServerGameProt.IF_SETPLAYERHEAD;
 
-    encode(buf: Packet, message: IfSetPlayerHead): void {
-        buf.p2_alt3(message.component);
+    encode(buf: Packet, _message: IfSetPlayerHead): void {
+        buf.p2_alt3(0);
+        buf.p4_alt2(0);
+
+        // buf.p2_alt3(message.component);
     }
 }

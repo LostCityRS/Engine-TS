@@ -1,5 +1,3 @@
-import fs from 'fs';
-
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import { ParamHelper, ParamMap } from '#/cache/config/ParamHelper.js';
 import { BlockWalk } from '#/engine/entity/BlockWalk.js';
@@ -15,23 +13,7 @@ export default class NpcType extends ConfigType {
     static configNames = new Map();
     static configs: NpcType[] = [];
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/npc.dat`)) {
-            return;
-        }
-        const server = Packet.load(`${dir}/server/npc.dat`);
-        const jag = Jagfile.load(`${dir}/client/config`);
-        this.parse(server, jag);
-    }
-
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/npc.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const [server, jag] = await Promise.all([file.arrayBuffer(), Jagfile.loadAsync(`${dir}/client/config`)]);
-        this.parse(new Packet(new Uint8Array(server)), jag);
+    static load(_dir: string) {
     }
 
     static parse(server: Packet, jag: Jagfile) {

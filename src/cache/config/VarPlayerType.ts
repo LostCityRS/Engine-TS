@@ -1,6 +1,3 @@
-import fs from 'fs';
-
-
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import Jagfile from '#/io/Jagfile.js';
@@ -17,24 +14,7 @@ export default class VarPlayerType extends ConfigType {
     // engine-level client <-> server varp
     static RUN = 0;
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/varp.dat`)) {
-            return;
-        }
-
-        const server = Packet.load(`${dir}/server/varp.dat`);
-        const jag = Jagfile.load(`${dir}/client/config`);
-        this.parse(server, jag);
-    }
-
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/varp.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const [server, jag] = await Promise.all([file.arrayBuffer(), Jagfile.loadAsync(`${dir}/client/config`)]);
-        this.parse(new Packet(new Uint8Array(server)), jag);
+    static load(_dir: string) {
     }
 
     static parse(server: Packet, jag: Jagfile) {

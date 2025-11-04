@@ -5,6 +5,7 @@ import SynthSound from '#/network/game/server/model/SynthSound.js';
 
 export default class SynthSoundEncoder extends ServerGameMessageEncoder<SynthSound> {
     prot = ServerGameProt.SYNTH_SOUND;
+    usable = true;
 
     encode(buf: Packet, message: SynthSound): void {
         buf.p2(message.synth);

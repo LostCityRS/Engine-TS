@@ -9,7 +9,9 @@ export default class UpdateInvPartialEncoder extends ServerGameMessageEncoder<Up
     encode(buf: Packet, message: UpdateInvPartial): void {
         const { component, inv } = message;
 
-        buf.p2(component);
+        buf.p4(component);
+        buf.p2(inv.type);
+
         for (const slot of message.slots) {
             const obj = inv.get(slot);
 

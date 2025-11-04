@@ -98,7 +98,7 @@ async function promptNodeId() {
 async function promptNodePort() {
     const port = await number({
         message: 'Set world port',
-        default: 43594,
+        default: 40000,
         required: true
     });
 

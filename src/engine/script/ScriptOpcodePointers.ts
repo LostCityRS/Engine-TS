@@ -168,37 +168,6 @@ const ScriptOpcodePointers: {
         require: ['active_npc'],
         require2: ['active_npc2']
     },
-    [ScriptOpcode.IF_CLOSE]: {
-        require: ['active_player'],
-        require2: ['active_player2']
-    },
-    [ScriptOpcode.TUT_CLOSE]: {
-        require: ['active_player']
-    },
-    [ScriptOpcode.IF_OPENCHAT]: {
-        require: ['active_player']
-    },
-    [ScriptOpcode.IF_OPENFULL]: {
-        require: ['active_player']
-    },
-    [ScriptOpcode.TUT_OPEN]: {
-        require: ['active_player']
-    },
-    [ScriptOpcode.IF_OPENMAIN]: {
-        require: ['active_player'],
-        require2: ['active_player2']
-    },
-    [ScriptOpcode.IF_OPENMAIN_SIDE]: {
-        require: ['active_player'],
-        require2: ['active_player2']
-    },
-    [ScriptOpcode.IF_OPENOVERLAY]: {
-        require: ['active_player'],
-        require2: ['active_player2']
-    },
-    [ScriptOpcode.IF_OPENSIDE]: {
-        require: ['active_player']
-    },
     [ScriptOpcode.IF_SETANIM]: {
         require: ['active_player']
     },
@@ -215,9 +184,6 @@ const ScriptOpcodePointers: {
     [ScriptOpcode.IF_SETANGLE]: {
         require: ['active_player']
     },
-    [ScriptOpcode.IF_SETRECOL]: {
-        require: ['active_player']
-    },
     [ScriptOpcode.IF_SETNPCHEAD]: {
         require: ['active_player']
     },
@@ -231,16 +197,6 @@ const ScriptOpcodePointers: {
         require: ['active_player']
     },
     [ScriptOpcode.IF_SETRESUMEBUTTONS]: {
-        require: ['active_player']
-    },
-    [ScriptOpcode.IF_SETTAB]: {
-        require: ['active_player']
-    },
-    [ScriptOpcode.IF_SETTABACTIVE]: {
-        require: ['active_player'],
-        require2: ['active_player2']
-    },
-    [ScriptOpcode.TUT_FLASH]: {
         require: ['active_player']
     },
     [ScriptOpcode.IF_SETTEXT]: {
@@ -537,6 +493,15 @@ const ScriptOpcodePointers: {
         require: ['active_player']
     },
     [ScriptOpcode.SET_PLAYER_OP]: {
+        require: ['active_player']
+    },
+    [ScriptOpcode.IF_OPENTOP]: {
+        require: ['active_player']
+    },
+    [ScriptOpcode.IF_OPENSUB]: {
+        require: ['active_player']
+    },
+    [ScriptOpcode.IF_CLOSESUB]: {
         require: ['active_player']
     },
 

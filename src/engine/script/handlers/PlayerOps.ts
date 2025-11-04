@@ -22,10 +22,7 @@ import {
     CoordValid,
     HitTypeValid,
     IDKTypeValid,
-    InvTypeValid,
-    NpcTypeValid,
     NumberNotNull,
-    ObjTypeValid,
     PlayerStatValid,
     SeqTypeValid,
     StringNotNull,
@@ -38,26 +35,10 @@ import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
 import CamReset from '#/network/game/server/model/CamReset.js';
 import CamShake from '#/network/game/server/model/CamShake.js';
-import IfSetAnim from '#/network/game/server/model/IfSetAnim.js';
-import IfSetColour from '#/network/game/server/model/IfSetColour.js';
-import IfSetHide from '#/network/game/server/model/IfSetHide.js';
-import IfSetModel from '#/network/game/server/model/IfSetModel.js';
-import IfSetAngle from '#/network/game/server/model/IfSetAngle.js';
-import IfSetNpcHead from '#/network/game/server/model/IfSetNpcHead.js';
-import IfSetObject from '#/network/game/server/model/IfSetObject.js';
-import IfSetPlayerHead from '#/network/game/server/model/IfSetPlayerHead.js';
-import IfSetPosition from '#/network/game/server/model/IfSetPosition.js';
-import IfSetRotation from '#/network/game/server/model/IfSetRotation.js';
 import IfSetScrollPos from '#/network/game/server/model/IfSetScrollPos.js';
-import IfSetTabActive from '#/network/game/server/model/IfSetTabActive.js';
-import IfSetText from '#/network/game/server/model/IfSetText.js';
 import MinimapToggle from '#/network/game/server/model/MinimapToggle.js';
-import PCountDialog from '#/network/game/server/model/PCountDialog.js';
 import SynthSound from '#/network/game/server/model/SynthSound.js';
-import TutFlash from '#/network/game/server/model/TutFlash.js';
-import ColorConversion from '#/util/ColorConversion.js';
 import Environment from '#/util/Environment.js';
-import IfOpenFull from '#/network/game/server/model/IfOpenFull.js';
 import SetPlayerOp from '#/network/game/server/model/SetPlayerOp.js';
 
 const PlayerOps: CommandHandlers = {
@@ -164,7 +145,7 @@ const PlayerOps: CommandHandlers = {
     }),
 
     [ScriptOpcode.BUILDAPPEARANCE]: checkedHandler(ActivePlayer, state => {
-        state.activePlayer.buildAppearance(check(state.popInt(), InvTypeValid).id);
+        state.activePlayer.buildAppearance(state.popInt());
     }),
 
     [ScriptOpcode.CAM_LOOKAT]: checkedHandler(ActivePlayer, state => {
@@ -204,10 +185,6 @@ const PlayerOps: CommandHandlers = {
         const coord: CoordGrid = check(state.popInt(), CoordValid);
 
         state.activePlayer.faceSquare(coord.x, coord.z);
-    }),
-
-    [ScriptOpcode.IF_CLOSE]: checkedHandler(ActivePlayer, state => {
-        state.activePlayer.closeModal();
     }),
 
     [ScriptOpcode.LAST_COM]: state => {
@@ -330,7 +307,6 @@ const PlayerOps: CommandHandlers = {
     }),
 
     [ScriptOpcode.P_COUNTDIALOG]: checkedHandler(ProtectedActivePlayer, state => {
-        state.activePlayer.write(new PCountDialog());
         state.execution = ScriptState.COUNTDIALOG;
     }),
 
@@ -584,153 +560,37 @@ const PlayerOps: CommandHandlers = {
         state.activePlayer.preventLogoutUntil = World.currentTick + check(state.popInt(), NumberNotNull);
     }),
 
-    [ScriptOpcode.IF_SETCOLOUR]: checkedHandler(ActivePlayer, state => {
-        const [com, colour] = state.popInts(2);
-
-        check(com, NumberNotNull);
-        check(colour, NumberNotNull);
-
-        state.activePlayer.write(new IfSetColour(com, ColorConversion.rgb24to15(colour)));
+    [ScriptOpcode.IF_SETCOLOUR]: checkedHandler(ActivePlayer, _state => {
     }),
 
-    [ScriptOpcode.IF_OPENCHAT]: checkedHandler(ActivePlayer, state => {
-        state.activePlayer.openChat(check(state.popInt(), NumberNotNull));
+    [ScriptOpcode.IF_SETANGLE]: checkedHandler(ActivePlayer, _state => {
     }),
 
-    [ScriptOpcode.IF_OPENMAIN_SIDE]: checkedHandler(ActivePlayer, state => {
-        const [main, side] = state.popInts(2);
-
-        check(main, NumberNotNull);
-        check(side, NumberNotNull);
-
-        state.activePlayer.openMainModalSide(main, side);
+    [ScriptOpcode.IF_SETHIDE]: checkedHandler(ActivePlayer, _state => {
     }),
 
-    [ScriptOpcode.IF_SETANGLE]: checkedHandler(ActivePlayer, state => {
-        const [com, xan, yan, zoom] = state.popInts(4);
-
-        check(com, NumberNotNull);
-        check(xan, NumberNotNull);
-        check(yan, NumberNotNull);
-        check(zoom, NumberNotNull);
-        
-        state.activePlayer.write(new IfSetAngle(xan, com, zoom, yan));
+    [ScriptOpcode.IF_SETOBJECT]: checkedHandler(ActivePlayer, _state => {
     }),
 
-    [ScriptOpcode.IF_SETHIDE]: checkedHandler(ActivePlayer, state => {
-        const [com, hide] = state.popInts(2);
-
-        check(com, NumberNotNull);
-        check(hide, NumberNotNull);
-
-        state.activePlayer.write(new IfSetHide(com, hide === 1));
+    [ScriptOpcode.IF_SETMODEL]: checkedHandler(ActivePlayer, _state => {
     }),
 
-    [ScriptOpcode.IF_SETOBJECT]: checkedHandler(ActivePlayer, state => {
-        const [com, obj, scale] = state.popInts(3);
-
-        check(com, NumberNotNull);
-        check(obj, ObjTypeValid);
-        check(scale, NumberNotNull);
-
-        state.activePlayer.write(new IfSetObject(com, obj, scale));
+    [ScriptOpcode.IF_SETROTATION]: checkedHandler(ActivePlayer, _state => {
     }),
 
-    [ScriptOpcode.IF_SETTABACTIVE]: checkedHandler(ActivePlayer, state => {
-        state.activePlayer.write(new IfSetTabActive(check(state.popInt(), NumberNotNull)));
+    [ScriptOpcode.IF_SETANIM]: checkedHandler(ActivePlayer, _state => {
     }),
 
-    [ScriptOpcode.IF_SETMODEL]: checkedHandler(ActivePlayer, state => {
-        const [com, model] = state.popInts(2);
-
-        check(com, NumberNotNull);
-        check(model, NumberNotNull);
-
-        state.activePlayer.write(new IfSetModel(com, model));
+    [ScriptOpcode.IF_SETPLAYERHEAD]: checkedHandler(ActivePlayer, _state => {
     }),
 
-    [ScriptOpcode.IF_SETROTATION]: checkedHandler(ActivePlayer, state => {
-        const [com, xAngleSpeed, yAngleSpeed] = state.popInts(3);
-
-        check(com, NumberNotNull);
-        check(xAngleSpeed, NumberNotNull);
-        check(yAngleSpeed, NumberNotNull);
-
-        state.activePlayer.write(new IfSetRotation(xAngleSpeed, com, yAngleSpeed));
+    [ScriptOpcode.IF_SETTEXT]: checkedHandler(ActivePlayer, _state => {
     }),
 
-    [ScriptOpcode.IF_SETRECOL]: checkedHandler(ActivePlayer, () => {
-        throw new Error();
+    [ScriptOpcode.IF_SETNPCHEAD]: checkedHandler(ActivePlayer, _state => {
     }),
 
-    [ScriptOpcode.TUT_FLASH]: checkedHandler(ActivePlayer, state => {
-        state.activePlayer.write(new TutFlash(check(state.popInt(), NumberNotNull)));
-    }),
-
-    [ScriptOpcode.IF_SETANIM]: checkedHandler(ActivePlayer, state => {
-        const [com, seq] = state.popInts(2);
-
-        check(com, NumberNotNull);
-
-        state.activePlayer.write(new IfSetAnim(com, seq));
-    }),
-
-    [ScriptOpcode.IF_SETTAB]: checkedHandler(ActivePlayer, state => {
-        const [com, tab] = state.popInts(2);
-
-        check(tab, NumberNotNull);
-
-        state.activePlayer.setTab(com, tab);
-    }),
-
-    [ScriptOpcode.IF_OPENMAIN]: checkedHandler(ActivePlayer, state => {
-        state.activePlayer.openMainModal(check(state.popInt(), NumberNotNull));
-    }),
-
-    [ScriptOpcode.IF_OPENOVERLAY]: checkedHandler(ActivePlayer, state => {
-        const com = state.popInt();
-        state.activePlayer.openOverlay(com);
-    }),
-
-    [ScriptOpcode.TUT_OPEN]: checkedHandler(ActivePlayer, state => {
-        state.activePlayer.openTutorial(check(state.popInt(), NumberNotNull));
-    }),
-
-    [ScriptOpcode.IF_OPENSIDE]: checkedHandler(ActivePlayer, state => {
-        state.activePlayer.openSideModal(check(state.popInt(), NumberNotNull));
-    }),
-
-    [ScriptOpcode.IF_SETPLAYERHEAD]: checkedHandler(ActivePlayer, state => {
-        state.activePlayer.write(new IfSetPlayerHead(check(state.popInt(), NumberNotNull)));
-    }),
-
-    [ScriptOpcode.IF_OPENFULL]: checkedHandler(ActivePlayer, state => {
-        const [overlayCom, mainCom] = state.popInts(2);
-        state.activePlayer.write(new IfOpenFull(overlayCom, mainCom));
-    }),
-
-    [ScriptOpcode.IF_SETTEXT]: checkedHandler(ActivePlayer, state => {
-        const text = state.popString();
-        const com = check(state.popInt(), NumberNotNull);
-
-        state.activePlayer.write(new IfSetText(com, text));
-    }),
-
-    [ScriptOpcode.IF_SETNPCHEAD]: checkedHandler(ActivePlayer, state => {
-        const [com, npc] = state.popInts(2);
-
-        check(com, NumberNotNull);
-        check(npc, NpcTypeValid);
-
-        state.activePlayer.write(new IfSetNpcHead(com, npc));
-    }),
-
-    [ScriptOpcode.IF_SETPOSITION]: checkedHandler(ActivePlayer, state => {
-        const [com, x, y] = state.popInts(3);
-
-        check(com, NumberNotNull);
-
-        state.activePlayer.write(new IfSetPosition(com, x, y));
+    [ScriptOpcode.IF_SETPOSITION]: checkedHandler(ActivePlayer, _state => {
     }),
 
     [ScriptOpcode.STAT_ADVANCE]: checkedHandler(ActivePlayer, state => {
@@ -854,10 +714,6 @@ const PlayerOps: CommandHandlers = {
 
     [ScriptOpcode.HINT_STOP]: state => {
         state.activePlayer.stopHint();
-    },
-
-    [ScriptOpcode.TUT_CLOSE]: state => {
-        state.activePlayer.closeTutorial();
     },
 
     // https://x.com/JagexAsh/status/1684174294086033410
@@ -1214,6 +1070,19 @@ const PlayerOps: CommandHandlers = {
         
         state.activePlayer.write(new SetPlayerOp(index, text, primary));
     }),
+
+    [ScriptOpcode.IF_OPENTOP]: state => {
+        const [interfaceId] = state.popInts(1);
+        state.activePlayer.ifOpenTop(interfaceId);
+    },
+
+    [ScriptOpcode.IF_OPENSUB]: state => {
+        const [interfaceId, component, type] = state.popInts(3);
+        state.activePlayer.ifOpenSub(interfaceId, component, type);
+    },
+
+    [ScriptOpcode.IF_CLOSESUB]: _state => {
+    },
 };
 
 /**

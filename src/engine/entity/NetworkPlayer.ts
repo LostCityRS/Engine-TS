@@ -4,7 +4,6 @@ import * as rsbuf from '@2004scape/rsbuf';
 
 import InvType from '#/cache/config/InvType.js';
 import { CoordGrid } from '#/engine/CoordGrid.js';
-import { ModalState } from '#/engine/entity/ModalState.js';
 import Player from '#/engine/entity/Player.js';
 import { WealthEventParams } from '#/engine/entity/tracking/WealthEvent.js';
 import World from '#/engine/World.js';
@@ -15,16 +14,8 @@ import ClientGameProtCategory from '#/network/game/client/ClientGameProtCategory
 import ServerGameMessageEncoder from '#/network/game/server/ServerGameMessageEncoder.js';
 import CamLookAt from '#/network/game/server/model/CamLookAt.js';
 import CamMoveTo from '#/network/game/server/model/CamMoveTo.js';
-import IfClose from '#/network/game/server/model/IfClose.js';
-import IfOpenChat from '#/network/game/server/model/IfOpenChat.js';
-import IfOpenMain from '#/network/game/server/model/IfOpenMain.js';
-import IfOpenMainSide from '#/network/game/server/model/IfOpenMainSide.js';
-import IfOpenOverlay from '#/network/game/server/model/IfOpenOverlay.js';
-import IfOpenSide from '#/network/game/server/model/IfOpenSide.js';
 import Logout from '#/network/game/server/model/Logout.js';
-import NpcInfo from '#/network/game/server/model/NpcInfo.js';
 import PlayerInfo from '#/network/game/server/model/PlayerInfo.js';
-import SetMultiway from '#/network/game/server/model/SetMultiway.js';
 import UpdateInvFull from '#/network/game/server/model/UpdateInvFull.js';
 import UpdateRunEnergy from '#/network/game/server/model/UpdateRunEnergy.js';
 import UpdateRunWeight from '#/network/game/server/model/UpdateRunWeight.js';
@@ -37,6 +28,7 @@ import { printError } from '#/util/Logger.js';
 import ClientGameProt from '#/network/game/client/ClientGameProt.js';
 import ClientGameProtRepository from '#/network/game/client/ClientGameProtRepository.js';
 import ServerGameProtRepository from '#/network/game/server/ServerGameProtRepository.js';
+import ClientGameProtSize from '#/network/game/client/ClientGameProtSize.js';
 
 export class NetworkPlayer extends Player {
     client: ClientSocket;
@@ -68,7 +60,12 @@ export class NetworkPlayer extends Player {
         this.restrictedLimit = 0;
 
         const bytesStart = this.client.in.pos;
-        while (this.userLimit < ClientGameProtCategory.USER_EVENT.limit && this.clientLimit < ClientGameProtCategory.CLIENT_EVENT.limit && this.restrictedLimit < ClientGameProtCategory.RESTRICTED_EVENT.limit && this.read()) {
+        while (
+            this.userLimit < ClientGameProtCategory.USER_EVENT.limit &&
+            this.clientLimit < ClientGameProtCategory.CLIENT_EVENT.limit &&
+            this.restrictedLimit < ClientGameProtCategory.RESTRICTED_EVENT.limit &&
+            this.read()
+        ) {
             // empty
         }
         const bytesRead = bytesStart - this.client.in.pos;
@@ -98,14 +95,16 @@ export class NetworkPlayer extends Player {
                 this.client.opcode = NetworkPlayer.inBuf.g1();
             }
 
-            const packetType = ClientGameProt.byId[this.client.opcode];
-            if (!packetType) {
-                this.client.opcode = -1;
-                this.client.close();
-                return false;
-            }
+            this.client.waiting = ClientGameProtSize[this.client.opcode];
 
-            this.client.waiting = packetType.length;
+            // const packetType = ClientGameProt.byId[this.client.opcode];
+            // if (!packetType) {
+            //     this.client.opcode = -1;
+            //     this.client.close();
+            //     return false;
+            // }
+
+            // this.client.waiting = packetType.length;
         }
 
         if (this.client.waiting === -1) {
@@ -124,6 +123,7 @@ export class NetworkPlayer extends Player {
             }
         }
 
+        console.log('in', this.client.opcode, this.client.waiting);
         if (this.client.available < this.client.waiting) {
             return false;
         }
@@ -132,18 +132,21 @@ export class NetworkPlayer extends Player {
         this.client.read(NetworkPlayer.inBuf.data, 0, this.client.waiting);
 
         const packetType = ClientGameProt.byId[this.client.opcode];
-        const decoder = ClientGameProtRepository.getDecoder(packetType);
+        if (packetType) {
+            const decoder = ClientGameProtRepository.getDecoder(packetType);
 
-        if (decoder) {
-            const message = decoder.decode(NetworkPlayer.inBuf, this.client.waiting);
-            const success: boolean = ClientGameProtRepository.getHandler(packetType)?.handle(message, this) ?? false;
-            // todo: move out of model
-            if (success && message.category === ClientGameProtCategory.USER_EVENT) {
-                this.userLimit++;
-            } else if (message.category === ClientGameProtCategory.RESTRICTED_EVENT) {
-                this.restrictedLimit++;
-            } else {
-                this.clientLimit++;
+            if (decoder) {
+                const message = decoder.decode(NetworkPlayer.inBuf, this.client.waiting);
+                const success: boolean = ClientGameProtRepository.getHandler(packetType)?.handle(message, this) ?? false;
+
+                // todo: move out of model
+                if (success && message.category === ClientGameProtCategory.USER_EVENT) {
+                    this.userLimit++;
+                } else if (message.category === ClientGameProtCategory.RESTRICTED_EVENT) {
+                    this.restrictedLimit++;
+                } else {
+                    this.clientLimit++;
+                }
             }
         }
 
@@ -156,35 +159,35 @@ export class NetworkPlayer extends Player {
             return;
         }
 
-        if (this.modalMain !== this.lastModalMain || this.modalChat !== this.lastModalChat || this.modalSide !== this.lastModalSide || this.refreshModalClose) {
-            if (this.refreshModalClose) {
-                this.write(new IfClose());
-            }
-            this.refreshModalClose = false;
+        // if (this.modalMain !== this.lastModalMain || this.modalChat !== this.lastModalChat || this.modalSide !== this.lastModalSide || this.refreshModalClose) {
+        //     if (this.refreshModalClose) {
+        //         this.write(new IfClose());
+        //     }
+        //     this.refreshModalClose = false;
 
-            this.lastModalMain = this.modalMain;
-            this.lastModalChat = this.modalChat;
-            this.lastModalSide = this.modalSide;
-        }
+        //     this.lastModalMain = this.modalMain;
+        //     this.lastModalChat = this.modalChat;
+        //     this.lastModalSide = this.modalSide;
+        // }
 
-        if (this.refreshModal) {
-            if ((this.modalState & ModalState.MAIN) !== ModalState.NONE && (this.modalState & ModalState.SIDE) !== ModalState.NONE) {
-                this.write(new IfOpenMainSide(this.modalMain, this.modalSide));
-            } else if ((this.modalState & ModalState.MAIN) !== ModalState.NONE) {
-                this.write(new IfOpenMain(this.modalMain));
-            } else if ((this.modalState & ModalState.CHAT) !== ModalState.NONE) {
-                this.write(new IfOpenChat(this.modalChat));
-            } else if ((this.modalState & ModalState.SIDE) !== ModalState.NONE) {
-                this.write(new IfOpenSide(this.modalSide));
-            }
+        // if (this.refreshModal) {
+        //     if ((this.modalState & ModalState.MAIN) !== ModalState.NONE && (this.modalState & ModalState.SIDE) !== ModalState.NONE) {
+        //         this.write(new IfOpenMainSide(this.modalMain, this.modalSide));
+        //     } else if ((this.modalState & ModalState.MAIN) !== ModalState.NONE) {
+        //         this.write(new IfOpenMain(this.modalMain));
+        //     } else if ((this.modalState & ModalState.CHAT) !== ModalState.NONE) {
+        //         this.write(new IfOpenChat(this.modalChat));
+        //     } else if ((this.modalState & ModalState.SIDE) !== ModalState.NONE) {
+        //         this.write(new IfOpenSide(this.modalSide));
+        //     }
 
-            this.refreshModal = false;
-        }
+        //     this.refreshModal = false;
+        // }
 
-        if (this.overlay !== this.lastOverlay) {
-            this.write(new IfOpenOverlay(this.overlay));
-            this.lastOverlay = this.overlay;
-        }
+        // if (this.overlay !== this.lastOverlay) {
+        //     this.write(new IfOpenOverlay(this.overlay));
+        //     this.lastOverlay = this.overlay;
+        // }
 
         for (const message of this.buffer) {
             this.writeInner(message);
@@ -202,6 +205,10 @@ export class NetworkPlayer extends Player {
         const encoder: ServerGameMessageEncoder<ServerGameMessage> | undefined = ServerGameProtRepository.getEncoder(message);
         if (!encoder) {
             printError(`No encoder for message ${message.constructor.name}`);
+            return;
+        }
+
+        if (!encoder.usable) {
             return;
         }
 
@@ -235,7 +242,8 @@ export class NetworkPlayer extends Player {
             buf.psize2(buf.pos - start);
         }
 
-        this.client.send(buf.data.slice(0, buf.pos));
+        console.log('out', message.constructor.name);
+        this.client.send(buf.data.subarray(0, buf.pos));
         World.cycleStats[WorldStat.BANDWIDTH_OUT] += buf.pos;
     }
 
@@ -291,13 +299,6 @@ export class NetworkPlayer extends Player {
         if (this.lastZone !== zone) {
             this.buildArea.rebuildZones();
 
-            // zone triggers
-            const lastWasMulti = World.gameMap.isMulti(this.lastZone);
-            const nowIsMulti = World.gameMap.isMulti(zone);
-            if (lastWasMulti != nowIsMulti) {
-                this.write(new SetMultiway(nowIsMulti));
-            }
-
             if (this.lastZone !== -1) {
                 const { level, x, z } = CoordGrid.unpackCoord(this.lastZone);
                 this.triggerZoneExit(level, x, z);
@@ -313,7 +314,7 @@ export class NetworkPlayer extends Player {
     }
 
     updateNpcs() {
-        this.write(new NpcInfo(rsbuf.npcInfo(this.client.out.pos, this.pid, Math.abs(this.lastTickX - this.x), Math.abs(this.lastTickZ - this.z), this.lastLevel !== this.level)));
+        // this.write(new NpcInfo(rsbuf.npcInfo(this.client.out.pos, this.pid, Math.abs(this.lastTickX - this.x), Math.abs(this.lastTickZ - this.z), this.lastLevel !== this.level)));
     }
 
     updateZones() {

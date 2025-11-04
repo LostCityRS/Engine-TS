@@ -7,6 +7,6 @@ export default class UpdateInvStopTransmitEncoder extends ServerGameMessageEncod
     prot = ServerGameProt.UPDATE_INV_STOP_TRANSMIT;
 
     encode(buf: Packet, message: UpdateInvStopTransmit): void {
-        buf.p2_alt1(message.component);
+        buf.p4_alt3(message.component);
     }
 }

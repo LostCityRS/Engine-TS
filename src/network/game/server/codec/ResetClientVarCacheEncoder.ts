@@ -5,6 +5,7 @@ import ResetClientVarCache from '#/network/game/server/model/ResetClientVarCache
 
 export default class ResetClientVarCacheEncoder extends ServerGameMessageEncoder<ResetClientVarCache> {
     prot = ServerGameProt.RESET_CLIENT_VARCACHE;
+    usable = true;
 
     encode(_: Packet, __: ResetClientVarCache): void {}
 }

@@ -5,6 +5,7 @@ import UpdateRunEnergy from '#/network/game/server/model/UpdateRunEnergy.js';
 
 export default class UpdateRunEnergyEncoder extends ServerGameMessageEncoder<UpdateRunEnergy> {
     prot = ServerGameProt.UPDATE_RUNENERGY;
+    usable = true;
 
     encode(buf: Packet, message: UpdateRunEnergy): void {
         buf.p1((message.energy / 100) | 0);

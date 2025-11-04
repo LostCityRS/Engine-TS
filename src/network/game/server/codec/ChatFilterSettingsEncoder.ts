@@ -6,9 +6,13 @@ import ChatFilterSettings from '#/network/game/server/model/ChatFilterSettings.j
 export default class ChatFilterSettingsEncoder extends ServerGameMessageEncoder<ChatFilterSettings> {
     prot = ServerGameProt.CHAT_FILTER_SETTINGS;
 
-    encode(buf: Packet, message: ChatFilterSettings): void {
-        buf.p1(message.publicChat);
-        buf.p1(message.privateChat);
-        buf.p1(message.tradeDuel);
+    encode(buf: Packet, _message: ChatFilterSettings): void {
+        buf.p1(0);
+        buf.p1(0);
+        buf.p1(0);
+
+        // buf.p1(message.publicChat);
+        // buf.p1(message.privateChat);
+        // buf.p1(message.tradeDuel);
     }
 }

@@ -1,5 +1,3 @@
-import fs from 'fs';
-
 import kleur from 'kleur';
 
 import { ConfigType } from '#/cache/config/ConfigType.js';
@@ -10,29 +8,11 @@ import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printFatalError } from '#/util/Logger.js';
 
-
 export default class ObjType extends ConfigType {
     static configNames: Map<string, number> = new Map();
     static configs: ObjType[] = [];
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/obj.dat`)) {
-            return;
-        }
-
-        const server = Packet.load(`${dir}/server/obj.dat`);
-        const jag = Jagfile.load(`${dir}/client/config`);
-        this.parse(server, jag);
-    }
-
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/obj.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const [server, jag] = await Promise.all([file.arrayBuffer(), Jagfile.loadAsync(`${dir}/client/config`)]);
-        this.parse(new Packet(new Uint8Array(server)), jag);
+    static load(_dir: string) {
     }
 
     static parse(server: Packet, jag: Jagfile) {

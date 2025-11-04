@@ -1,7 +1,4 @@
-import fs from 'fs';
-
 import Packet from '#/io/Packet.js';
-import Jagfile from '#/io/Jagfile.js';
 
 export default class Component {
     static TYPE_LAYER: number = 0;
@@ -24,20 +21,7 @@ export default class Component {
     private static componentNames: Map<string, number> = new Map();
     private static components: Component[] = [];
 
-    static load(dir: string): void {
-        if (!fs.existsSync(`${dir}/client/interface`)) {
-            return;
-        }
-
-        const client = new Jagfile(Packet.load(`${dir}/client/interface`));
-        if (!client.has('data')) {
-            return;
-        }
-
-        this.decode(client.read('data')!);
-
-        const server = Packet.load(`${dir}/server/interface.dat`);
-        this.decodeExtra(server);
+    static load(_dir: string): void {
     }
 
     static decode(dat: Packet) {

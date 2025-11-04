@@ -30,7 +30,6 @@ import StructType from '#/cache/config/StructType.js';
 import VarNpcType from '#/cache/config/VarNpcType.js';
 import VarPlayerType from '#/cache/config/VarPlayerType.js';
 import VarSharedType from '#/cache/config/VarSharedType.js';
-import { CrcTable, makeCrcs } from '#/cache/CrcTable.js';
 import WordEnc from '#/cache/wordenc/WordEnc.js';
 import { BlockWalk } from '#/engine/entity/BlockWalk.js';
 import { EntityLifeCycle } from '#/engine/entity/EntityLifeCycle.js';
@@ -96,11 +95,12 @@ import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 import { createWorker } from '#/util/WorkerFactory.js';
 
 import InputTrackingBlob from './entity/tracking/InputEvent.js';
-import OnDemand from './OnDemand.js';
+import Js5 from './Js5.js';
 import { ObjDelayedRequest } from './entity/ObjDelayedRequest.js';
 import VarBitType from '#/cache/config/VarBitType.js';
 import DbTableIndex from '#/cache/config/DbTableIndex.js';
 import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
+import { WorldList, WorldListBuf } from '#/util/WorldList.js';
 
 const priv = forge.pki.privateKeyFromPem(Environment.STANDALONE_BUNDLE ? await (await fetch('data/config/private.pem')).text() : fs.readFileSync('data/config/private.pem', 'ascii'));
 
@@ -113,7 +113,6 @@ class World {
     private loginThread = createWorker(Environment.STANDALONE_BUNDLE ? 'LoginThread.js' : './src/server/login/LoginThread.ts');
     private friendThread = createWorker(Environment.STANDALONE_BUNDLE ? 'FriendThread.js' : './src/server/friend/FriendThread.ts');
     private loggerThread = createWorker(Environment.STANDALONE_BUNDLE ? 'LoggerThread.js' : './src/server/logger/LoggerThread.ts');
-    private devThread: Worker | NodeWorker | null = null;
 
     private static readonly PLAYERS: number = Environment.NODE_MAX_PLAYERS;
     private static readonly NPCS: number = Environment.NODE_MAX_NPCS;
@@ -311,9 +310,6 @@ class World {
                 printDebug(`Loaded ${count} scripts.`);
             }
         }
-
-        // todo: check if any jag files changed (transmitted) then reload crcs, instead of always
-        makeCrcs();
     }
 
     async start(skipMaps = false, startCycle = true): Promise<void> {
@@ -341,19 +337,11 @@ class World {
         }, 2000);
 
         if (!Environment.STANDALONE_BUNDLE) {
-            if (!Environment.NODE_PRODUCTION) {
-                this.createDevThread();
-
-                if (Environment.BUILD_STARTUP) {
-                    this.rebuild();
-                }
-            }
-
             printInfo(kleur.green().bold('World ready') + kleur.white().bold(' (use the Java client)'));
         }
 
         if (startCycle) {
-            OnDemand.cycle();
+            Js5.cycle();
 
             this.nextTick = Date.now() + World.TICKRATE;
             this.cycle();
@@ -938,11 +926,20 @@ class World {
                 }
 
                 player.client.state = 1;
-                player.client.send(Uint8Array.from([
-                    2,
-                    Math.min(player.staffModLevel, 2),
-                    0 // tracking status
-                ]));
+
+                const reply = Packet.alloc(1);
+                reply.p1(2);
+                reply.p1(Math.min(player.staffModLevel, 2));
+                reply.p1(0); // blackmarks?
+                reply.pbool(false); // underage
+                reply.pbool(false); // chat consent
+                reply.pbool(false); // advert consent
+                reply.pbool(false); // quickchat world
+                reply.pbool(false); // input tracked
+                reply.p2(player.pid);
+                reply.pbool(true); // player member
+                reply.pbool(true); // members world
+                player.client.send(reply.data.subarray(0, reply.pos));
             }
 
             // insert player into first available slot
@@ -1776,50 +1773,6 @@ class World {
         return (((4000 - playerCount) * rate) / 4000) | 0; // assuming scale works the same way as the runescript one
     }
 
-    private createDevThread() {
-        this.devThread = createWorker('./src/cache/DevThread.ts');
-
-        if (this.devThread instanceof NodeWorker) {
-            this.devThread.on('message', msg => {
-                try {
-                    if (msg.type === 'dev_reload') {
-                        this.reload();
-                    } else if (msg.type === 'dev_failure') {
-                        if (msg.error) {
-                            console.error(msg.error);
-
-                            this.broadcastMes(msg.error.replaceAll(`${Environment.BUILD_SRC_DIR}/scripts/`, ''));
-                            this.broadcastMes('Check the console for more information.');
-                        }
-                    } else if (msg.type === 'dev_progress') {
-                        if (msg.broadcast) {
-                            console.log(msg.broadcast);
-
-                            this.broadcastMes(msg.broadcast);
-                        } else if (msg.text) {
-                            console.log(msg.text);
-                        }
-                    }
-                } catch (err) {
-                    console.error(err);
-                }
-            });
-
-            // todo: catch all cases where it might exit instead of throwing an error, so we aren't
-            // re-initializing the file watchers after errors
-            this.devThread.on('exit', () => {
-                try {
-                    // todo: remove this mes after above the todo above is addressed
-                    this.broadcastMes('Error while rebuilding - see console for more info.');
-
-                    this.createDevThread();
-                } catch (err) {
-                    console.error(err);
-                }
-            });
-        }
-    }
-
     rebootTimer(duration: number): void {
         this.shutdownTick = this.currentTick + duration;
 
@@ -1847,11 +1800,6 @@ class World {
     }
 
     rebuild() {
-        if (this.devThread) {
-            this.devThread.postMessage({
-                type: 'world_rebuild'
-            });
-        }
     }
 
     onLoginMessage(msg: GenericLoginThreadResponse) {
@@ -2115,9 +2063,17 @@ class World {
             client.opcode = World.loginBuf.g1();
 
             if (client.opcode === 14) {
+                // login server
                 client.waiting = 1;
+            } else if (client.opcode === 15) {
+                // js5 server
+                client.waiting = 4;
             } else if (client.opcode === 16 || client.opcode === 18) {
-                client.waiting = -1;
+                // game login
+                client.waiting = -2;
+            } else if (client.opcode === 255) {
+                // worldlist
+                client.waiting = 4;
             } else {
                 client.waiting = 0;
             }
@@ -2143,38 +2099,37 @@ class World {
         client.read(World.loginBuf.data, 0, client.waiting);
 
         if (client.opcode === 14) {
-            client.send(Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]));
-
             const _loginServer = World.loginBuf.g1();
-            client.send(Uint8Array.from([0]));
 
-            const seed = new Packet(new Uint8Array(8));
-            seed.p4(Math.floor(Math.random() * 0x00ffffff));
-            seed.p4(Math.floor(Math.random() * 0xffffffff));
-            client.send(seed.data);
+            const reply = Packet.alloc(0);
+            reply.p1(0);
+            reply.p4(Math.floor(Math.random() * 0x00ffffff));
+            reply.p4(Math.floor(Math.random() * 0xffffffff));
+            client.send(reply.data.subarray(0, reply.pos));
         } else if (client.opcode === 16 || client.opcode === 18) {
-            let rev = World.loginBuf.g1();
-            if (rev === 255) {
-                rev = World.loginBuf.g2();
-            }
+            const rev = World.loginBuf.g4();
             if (rev !== Environment.ENGINE_REVISION) {
                 client.send(Uint8Array.from([6]));
                 client.close();
                 return;
             }
 
-            const info = World.loginBuf.g1();
-            const lowMemory = (info & 0x1) !== 0;
+            const _unk1 = World.loginBuf.g1();
+            const _unk2 = World.loginBuf.g1();
+            const _unk3 = World.loginBuf.g1();
+            const _unk4 = World.loginBuf.g1();
+            const _unk5 = World.loginBuf.g2();
+            const _unk6 = World.loginBuf.g2();
+            const _unk7 = World.loginBuf.g1();
+            World.loginBuf.pos += 24; // uid
+            const _unk8 = World.loginBuf.gjstr();
+            const _unk9 = World.loginBuf.g4();
+            const _unk10 = World.loginBuf.g4();
+            const _unk11 = World.loginBuf.g2();
 
-            const crcs = new Array(9 * 4);
-            for (let i = 0; i < 9; i++) {
-                crcs[i] = World.loginBuf.g4s();
-
-                if (crcs[i] !== CrcTable[i]) {
-                    client.send(Uint8Array.from([6]));
-                    client.close();
-                    return;
-                }
+            // crcs
+            for (let i = 0; i < 28; i++) {
+                World.loginBuf.g4();
             }
 
             World.loginBuf.rsadec(priv);
@@ -2198,15 +2153,8 @@ class World {
             }
             client.encryptor = new Isaac(seed);
 
-            const uid = World.loginBuf.g4s();
-            const username = World.loginBuf.gjstr();
+            const username = fromBase37(World.loginBuf.g8());
             const password = World.loginBuf.gjstr();
-
-            if (username.length < 1 || username.length > 12) {
-                client.send(Uint8Array.from([3]));
-                client.close();
-                return;
-            }
 
             if (password.length < 1 || password.length > 20) {
                 client.send(Uint8Array.from([3]));
@@ -2236,14 +2184,42 @@ class World {
                 remoteAddress: client.remoteAddress,
                 username: safeName,
                 password,
-                uid,
-                lowMemory,
+                uid: 0,
+                lowMemory: false,
                 reconnecting: client.opcode === 18,
                 hasSave: client.opcode === 18 ? typeof this.getPlayerByUsername(username) !== 'undefined' : false
             });
         } else if (client.opcode === 15) {
+            const rev = World.loginBuf.g4s();
+            if (rev !== Environment.ENGINE_REVISION) {
+                client.state = -1;
+                client.send(Uint8Array.from([6]));
+                return;
+            }
+
             client.state = 2;
-            client.send(new Uint8Array(8));
+            client.send(Uint8Array.from([0]));
+        } else if (client.opcode === 255) {
+            const reply = Packet.alloc(2);
+            reply.p1(0);
+
+            reply.p2(0);
+            const start = reply.pos;
+
+            reply.pbool(true); // encoding a world list update
+            reply.pbool(true); // encoding all information about the world list (countries, size of list, etc.)
+            reply.pdata(WorldListBuf, 0, WorldListBuf.length);
+            reply.p4(Date.now() / 1000);
+
+            const minId = WorldList.reduce((min, world) => Math.min(min, world.id), Infinity);
+            for (let i = 0; i < WorldList.length; i++) {
+                const world = WorldList[i];
+                reply.psmart(world.id - minId);
+                reply.p2(world.players);
+            }
+
+            reply.psize2(reply.pos - start);
+            client.send(reply.data.subarray(0, reply.pos));
         } else {
             client.terminate();
         }

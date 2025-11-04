@@ -8,8 +8,6 @@
     "#tools/*": "./tools/*"
   },
   "scripts": {
-    "build": "bun run tools/pack/Build.ts",
-    "clean": "bun run tools/pack/Clean.ts",
     "db:migrate": "prisma migrate deploy --schema prisma/multiworld/schema.prisma",
     "db:reset": "prisma migrate reset --force --schema prisma/multiworld/schema.prisma",
     "db:schema": "prisma migrate dev --schema prisma/multiworld/schema.prisma",
@@ -39,7 +37,7 @@
     "@inquirer/prompts": "^7.2.3",
     "@jimp/js-png": "^1.6.0",
     "@jimp/plugin-quantize": "^1.6.0",
-    "axios": "^1.7.9",
+    "axios": "^1.13.1",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",

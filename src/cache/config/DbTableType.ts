@@ -1,6 +1,3 @@
-import fs from 'fs';
-
-
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import Packet from '#/io/Packet.js';
@@ -14,13 +11,7 @@ export default class DbTableType extends ConfigType {
     static LIST = 0x4;
     static CLIENTSIDE = 0x8;
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/dbtable.dat`)) {
-            return;
-        }
-
-        const dat = Packet.load(`${dir}/server/dbtable.dat`);
-        this.parse(dat);
+    static load(_dir: string) {
     }
 
     static parse(dat: Packet) {

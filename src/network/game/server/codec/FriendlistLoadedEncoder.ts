@@ -6,11 +6,9 @@ import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 export default class FriendlistLoadedEncoder extends ServerGameMessageEncoder<FriendlistLoaded> {
     prot = ServerGameProt.FRIENDLIST_LOADED;
 
-    encode(buf: Packet, message: FriendlistLoaded): void {
-        // 0 loading friend list
-        // 1 connecting to friendserver
-        // 2 online
-        // else Please wait...
-        buf.p1(message.status);
+    encode(buf: Packet, _message: FriendlistLoaded): void {
+        buf.p1(0);
+
+        // buf.p1(message.status);
     }
 }

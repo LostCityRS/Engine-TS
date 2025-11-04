@@ -4,7 +4,6 @@ import { PlayerInfoProt, Visibility } from '@2004scape/rsbuf';
 import { CollisionType, CollisionFlag } from '@2004scape/rsmod-pathfinder';
 
 import Component from '#/cache/config/Component.js';
-import FontType from '#/cache/config/FontType.js';
 import InvType from '#/cache/config/InvType.js';
 import LocType from '#/cache/config/LocType.js';
 import NpcType from '#/cache/config/NpcType.js';
@@ -48,18 +47,12 @@ import Packet from '#/io/Packet.js';
 import { ServerGameProtPriority } from '#/network/game/server/ServerGameProtPriority.js';
 import ChatFilterSettings from '#/network/game/server/model/ChatFilterSettings.js';
 import HintArrow from '#/network/game/server/model/HintArrow.js';
-import IfClose from '#/network/game/server/model/IfClose.js';
-import IfSetTab from '#/network/game/server/model/IfSetTab.js';
 import LastLoginInfo from '#/network/game/server/model/LastLoginInfo.js';
 import MessageGame from '#/network/game/server/model/MessageGame.js';
-import MidiJingle from '#/network/game/server/model/MidiJingle.js';
-import MidiSong from '#/network/game/server/model/MidiSong.js';
 import ResetAnims from '#/network/game/server/model/ResetAnims.js';
 import ResetClientVarCache from '#/network/game/server/model/ResetClientVarCache.js';
-import TutOpen from '#/network/game/server/model/TutOpen.js';
 import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 import UpdateInvStopTransmit from '#/network/game/server/model/UpdateInvStopTransmit.js';
-import UpdateUid192 from '#/network/game/server/model/UpdatePid.js';
 import UpdateRebootTimer from '#/network/game/server/model/UpdateRebootTimer.js';
 import UpdateRunEnergy from '#/network/game/server/model/UpdateRunEnergy.js';
 import UpdateStat from '#/network/game/server/model/UpdateStat.js';
@@ -71,10 +64,11 @@ import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/engine/ent
 import Environment from '#/util/Environment.js';
 import { toDisplayName } from '#/util/JString.js';
 import LinkList from '#/util/LinkList.js';
-import { MidiPack } from '#tools/pack/PackFile.js';
 import VarBitType from '#/cache/config/VarBitType.js';
 import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 import UpdateIgnoreList from '#/network/game/server/model/UpdateIgnoreList.js';
+import IfOpenTop from '#/network/game/server/model/IfOpenTop.js';
+import IfOpenSub from '#/network/game/server/model/IfOpenSub.js';
 
 const levelExperience = new Int32Array(99);
 
@@ -287,7 +281,7 @@ export default class Player extends PathingEntity {
     ];
     colors: number[] = [0, 0, 0, 0, 0];
     gender: number = 0;
-    run: number = 0;
+    run: number = 1;
     tempRun: number = 0;
     runenergy: number = 10000;
     lastRunEnergy: number = -1;
@@ -331,7 +325,7 @@ export default class Player extends PathingEntity {
     basWalkBackward: number = -1;
     basWalkLeft: number = -1;
     basWalkRight: number = -1;
-    basRunning: number = -1;
+    basRunning: number = 0;
     animProtect: number = 0;
     invListeners: InventoryListener[] = [];
     allowDesign: boolean = false;
@@ -411,7 +405,8 @@ export default class Player extends PathingEntity {
     lastDate: bigint = 0n;
 
     constructor(username: string, username37: bigint, hash64: bigint) {
-        super(0, 3094, 3106, 1, 1, EntityLifeCycle.FOREVER, MoveRestrict.NORMAL, BlockWalk.NPC, MoveStrategy.SMART, PlayerInfoProt.FACE_COORD, PlayerInfoProt.FACE_ENTITY); // tutorial island.
+        super(0, 3094, 3106, 1, 1, EntityLifeCycle.FOREVER, MoveRestrict.NORMAL, BlockWalk.NPC, MoveStrategy.FLY, PlayerInfoProt.FACE_COORD, PlayerInfoProt.FACE_ENTITY);
+
         this.username = username;
         this.username37 = username37;
         this.hash64 = hash64;
@@ -496,8 +491,6 @@ export default class Player extends PathingEntity {
             this.write(new UpdateIgnoreList([]));
         }
 
-        this.write(new IfClose());
-        this.write(new UpdateUid192(this.pid, this.members));
         this.write(new ResetClientVarCache());
         for (let varp = 0; varp < this.vars.length; varp++) {
             const type = VarPlayerType.get(varp);
@@ -547,9 +540,9 @@ export default class Player extends PathingEntity {
         }
         this.closeModal();
         // tabs could have been updated while reconnecting, make sure we sync them now
-        for (let i = 0; i < this.tabs.length; i++) {
-            this.write(new IfSetTab(this.tabs[i], i));
-        }
+        // for (let i = 0; i < this.tabs.length; i++) {
+        //     this.write(new IfSetTab(this.tabs[i], i));
+        // }
         this.refreshInvs();
         for (let i = 0; i < this.stats.length; i++) {
             this.write(new UpdateStat(i, this.stats[i], this.levels[i]));
@@ -716,18 +709,6 @@ export default class Player extends PathingEntity {
     }
 
     // ----
-
-    closeTutorial() {
-        if (this.modalTutorial !== -1) {
-            const closeTrigger = ScriptProvider.getByTrigger(ServerTriggerType.IF_CLOSE, this.modalTutorial);
-            if (closeTrigger) {
-                this.executeScript(ScriptRunner.init(closeTrigger, this), false);
-            }
-
-            this.modalTutorial = -1;
-            this.write(new TutOpen(-1));
-        }
-    }
 
     clearComListeners(root: number) {
         if (root == -1) {
@@ -1376,17 +1357,11 @@ export default class Player extends PathingEntity {
             stream.p1(this.colors[i]);
         }
 
-        stream.p2(this.basReadyAnim);
-        stream.p2(this.basTurnOnSpot);
-        stream.p2(this.basWalkForward);
-        stream.p2(this.basWalkBackward);
-        stream.p2(this.basWalkLeft);
-        stream.p2(this.basWalkRight);
-        stream.p2(this.basRunning);
-
+        stream.p2(423);
         stream.p8(this.username37);
         stream.p1(this.combatLevel);
         stream.p2(0); // skill level
+        stream.p1(0); // sound radius
 
         const appearance: Uint8Array = new Uint8Array(stream.pos);
         stream.pos = 0;
@@ -1939,77 +1914,10 @@ export default class Player extends PathingEntity {
     }
 
     // todo: make compiler do this at pack time
-    playSong(name: string) {
-        // todo: don't rely on MidiPack (server should be runnable using only packed content)
-        const id = MidiPack.getByName(name.toLowerCase().replaceAll(' ', '_').replace(/[^a-z0-9_-]/g, ''));
-        if (id !== -1) {
-            this.write(new MidiSong(id));
-        }
+    playSong(_name: string) {
     }
 
-    playJingle(delay: number, name: string): void {
-        const id = MidiPack.getByName(name.toLowerCase());
-        if (id !== -1) {
-            this.write(new MidiJingle(id, delay));
-        }
-    }
-
-    openMainModal(com: number) {
-        if ((this.modalState & ModalState.CHAT) !== ModalState.NONE) {
-            // close chat modal if we're opening a new main modal
-            this.write(new IfClose());
-            this.modalState &= ~ModalState.CHAT;
-            this.modalChat = -1;
-        }
-
-        if ((this.modalState & ModalState.SIDE) !== ModalState.NONE) {
-            // close side modal if we're opening a new main modal
-            this.write(new IfClose());
-            this.modalState &= ~ModalState.SIDE;
-            this.modalSide = -1;
-        }
-
-        this.modalState |= ModalState.MAIN;
-        this.modalMain = com;
-        this.refreshModal = true;
-    }
-
-    openOverlay(com: number) {
-        if (this.overlay === com) {
-            return;
-        }
-
-        if (com === -1) {
-            this.clearComListeners(this.overlay);
-        }
-
-        this.overlay = com;
-    }
-
-    openChat(com: number) {
-        this.modalState |= ModalState.CHAT;
-        this.modalChat = com;
-        this.refreshModal = true;
-    }
-
-    openSideModal(com: number) {
-        this.modalState |= ModalState.SIDE;
-        this.modalSide = com;
-        this.refreshModal = true;
-    }
-
-    openTutorial(com: number) {
-        this.write(new TutOpen(com));
-        this.modalState |= ModalState.TUT;
-        this.modalTutorial = com;
-    }
-
-    openMainModalSide(top: number, side: number) {
-        this.modalState |= ModalState.MAIN;
-        this.modalMain = top;
-        this.modalState |= ModalState.SIDE;
-        this.modalSide = side;
-        this.refreshModal = true;
+    playJingle(_delay: number, _name: string): void {
     }
 
     exactMove(startX: number, startZ: number, endX: number, endZ: number, startCycle: number, endCycle: number, direction: number) {
@@ -2032,11 +1940,11 @@ export default class Player extends PathingEntity {
 
     setTab(com: number, tab: number) {
         this.tabs[tab] = com;
-        this.write(new IfSetTab(com, tab));
+        // this.write(new IfSetTab(com, tab));
     }
 
-    isComponentVisible(com: Component) {
-        return this.modalMain === com.rootLayer || this.modalChat === com.rootLayer || this.modalSide === com.rootLayer || this.tabs.findIndex(l => l === com.rootLayer) !== -1 || this.modalTutorial === com.rootLayer;
+    isComponentVisible(_com: Component) {
+        return true;
     }
 
     updateAfkZones(): void {
@@ -2142,11 +2050,13 @@ export default class Player extends PathingEntity {
     }
 
     wrappedMessageGame(mes: string) {
-        const font = FontType.get(1);
-        const lines = font.split(mes, 456);
-        for (const line of lines) {
-            this.messageGame(line);
-        }
+        this.messageGame(mes);
+
+        // const font = FontType.get(1);
+        // const lines = font.split(mes, 456);
+        // for (const line of lines) {
+        //     this.messageGame(line);
+        // }
     }
 
     write(message: ServerGameMessage) {
@@ -2228,5 +2138,19 @@ export default class Player extends PathingEntity {
         }
 
         return super.isValid();
+    }
+
+    #transmitId: number = 0;
+
+    get transmitId() {
+        return this.#transmitId++;
+    }
+
+    ifOpenTop(interfaceId: number) {
+        this.write(new IfOpenTop(interfaceId, this.transmitId));
+    }
+
+    ifOpenSub(interfaceId: number, component: number, type: number) {
+        this.write(new IfOpenSub(interfaceId, component, type, this.transmitId));
     }
 }

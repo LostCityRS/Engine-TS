@@ -1,5 +1,4 @@
 import AnimBase from '#/cache/graphics/AnimBase.js';
-import OnDemand from '#/engine/OnDemand.js';
 import Packet from '#/io/Packet.js';
 
 export default class AnimFrame {
@@ -15,13 +14,6 @@ export default class AnimFrame {
     z: Int32Array = new Int32Array();
 
     static load() {
-        const count = OnDemand.cache.count(2);
-        for (let i = 0; i < count; i++) {
-            const data = OnDemand.cache.read(2, i, true);
-            if (data) {
-                AnimFrame.unpack(data);
-            }
-        }
     }
 
     static unpack(src: Uint8Array) {

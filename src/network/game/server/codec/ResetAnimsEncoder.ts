@@ -5,6 +5,7 @@ import ResetAnims from '#/network/game/server/model/ResetAnims.js';
 
 export default class ResetAnimsEncoder extends ServerGameMessageEncoder<ResetAnims> {
     prot = ServerGameProt.RESET_ANIMS;
+    usable = true;
 
     encode(_: Packet, __: ResetAnims): void {}
 }

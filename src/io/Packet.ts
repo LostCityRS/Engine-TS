@@ -264,7 +264,7 @@ export default class Packet extends DoublyLinkable {
         return this.g1() === 1;
     }
 
-    gjstr(terminator: number = 10): string {
+    gjstr(terminator: number = 0): string {
         const view: DataView = this.view;
         const length: number = view.byteLength;
         let str: string = '';
@@ -333,7 +333,17 @@ export default class Packet extends DoublyLinkable {
         for (let i: number = 0; i < length; i++) {
             view.setUint8(this.pos++, str.charCodeAt(i));
         }
-        view.setUint8(this.pos++, 10);
+        view.setUint8(this.pos++, 0);
+    }
+
+    pjstr2(str: string): void {
+        const view: DataView = this.view;
+        view.setUint8(this.pos++, 0);
+        const length: number = str.length;
+        for (let i: number = 0; i < length; i++) {
+            view.setUint8(this.pos++, str.charCodeAt(i));
+        }
+        view.setUint8(this.pos++, 0);
     }
 
     pdata(src: Uint8Array, offset: number, length: number): void {

@@ -1,5 +1,3 @@
-import fs from 'fs';
-
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
@@ -9,19 +7,7 @@ export default class SeqType extends ConfigType {
     private static configNames = new Map<string, number>();
     private static configs: SeqType[] = [];
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/seq.dat`)) {
-            return;
-        }
-
-        // adds some startup time but we need it for seqlength
-        if (!AnimFrame.instances.length) {
-            AnimFrame.load();
-        }
-
-        const server = Packet.load(`${dir}/server/seq.dat`);
-        const jag = Jagfile.load(`${dir}/client/config`);
-        this.parse(server, jag);
+    static load(_dir: string) {
     }
 
     static parse(server: Packet, jag: Jagfile) {

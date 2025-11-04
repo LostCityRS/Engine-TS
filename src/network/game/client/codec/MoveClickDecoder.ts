@@ -9,9 +9,9 @@ export default class MoveClickDecoder extends ClientGameMessageDecoder<MoveClick
     }
 
     decode(buf: Packet, length: number) {
-        const startX: number = buf.g2_alt3();
-        const ctrlHeld: number = buf.g1();
-        const startZ: number = buf.g2_alt3();
+        const ctrlHeld: number = buf.g1_alt1();
+        const startX: number = buf.g2();
+        const startZ: number = buf.g2_alt2();
 
         const offset: number = this.prot === ClientGameProt.MOVE_MINIMAPCLICK ? 14 : 0;
         const waypoints: number = (length - buf.pos - offset) / 2;
@@ -20,7 +20,7 @@ export default class MoveClickDecoder extends ClientGameMessageDecoder<MoveClick
 
         for (let index: number = 1; index <= waypoints && index < 25; index++) {
             path.push({
-                x: startX + buf.g1b(),
+                x: startX + buf.g1b_alt1(),
                 z: startZ + buf.g1b_alt3()
             });
         }

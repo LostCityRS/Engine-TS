@@ -5,8 +5,9 @@ import UpdateRebootTimer from '#/network/game/server/model/UpdateRebootTimer.js'
 
 export default class UpdateRebootTimerEncoder extends ServerGameMessageEncoder<UpdateRebootTimer> {
     prot = ServerGameProt.UPDATE_REBOOT_TIMER;
+    usable = true;
 
     encode(buf: Packet, message: UpdateRebootTimer): void {
-        buf.p2_alt1(message.ticks);
+        buf.p2(message.ticks);
     }
 }

@@ -5,6 +5,7 @@ import UpdateRunWeight from '#/network/game/server/model/UpdateRunWeight.js';
 
 export default class UpdateRunWeightEncoder extends ServerGameMessageEncoder<UpdateRunWeight> {
     prot = ServerGameProt.UPDATE_RUNWEIGHT;
+    usable = true;
 
     encode(buf: Packet, message: UpdateRunWeight): void {
         buf.p2(message.kg);

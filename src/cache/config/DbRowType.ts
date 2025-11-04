@@ -1,6 +1,3 @@
-import fs from 'fs';
-
-
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import DbTableType from '#/cache/config/DbTableType.js';
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
@@ -10,22 +7,7 @@ export default class DbRowType extends ConfigType {
     private static configNames = new Map<string, number>();
     private static configs: DbRowType[] = [];
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/dbrow.dat`)) {
-            return;
-        }
-        const dat = Packet.load(`${dir}/server/dbrow.dat`);
-        this.parse(dat);
-    }
-
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/dbrow.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const dat = new Packet(new Uint8Array(await file.arrayBuffer()));
-        this.parse(dat);
+    static load(_dir: string) {
     }
 
     static parse(dat: Packet) {

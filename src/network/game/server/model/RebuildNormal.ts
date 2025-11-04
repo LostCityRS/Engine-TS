@@ -8,6 +8,9 @@ export default class RebuildNormal extends ServerGameMessage {
         readonly zoneX: number,
         readonly zoneZ: number,
         readonly mapsquares: Set<number>,
+        readonly localX: number,
+        readonly localZ: number,
+        readonly level: number
     ) {
         super();
     }

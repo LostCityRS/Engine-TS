@@ -6,6 +6,8 @@ tsconfig.tsbuildinfo
 data/pack/
 data/src/
 data/unpack/
+data/cache/
+data/xteas.json
 
 data/players/
 data/sessions/

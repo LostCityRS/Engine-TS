@@ -3,13 +3,7 @@ import Jagfile from '#/io/Jagfile.js';
 export default class FontType {
     static instances: FontType[] = [];
 
-    static load(dir: string) {
-        const title = Jagfile.load(`${dir}/client/title`);
-
-        FontType.instances[0] = new FontType(title, 'p11_full', false);
-        FontType.instances[1] = new FontType(title, 'p12_full', false);
-        FontType.instances[2] = new FontType(title, 'b12_full', false);
-        FontType.instances[3] = new FontType(title, 'q8_full', true);
+    static load(_dir: string) {
     }
 
     static get(id: number) {

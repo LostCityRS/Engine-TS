@@ -4,6 +4,7 @@ import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 
 export default abstract class ServerGameMessageEncoder<T extends ServerGameMessage> {
     abstract prot: ServerGameProt;
+    usable: boolean = false;
 
     abstract encode(buf: Packet, message: T): void;
 

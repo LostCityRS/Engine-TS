@@ -6,9 +6,13 @@ import IfSetText from '#/network/game/server/model/IfSetText.js';
 export default class IfSetTextEncoder extends ServerGameMessageEncoder<IfSetText> {
     prot = ServerGameProt.IF_SETTEXT;
 
-    encode(buf: Packet, message: IfSetText): void {
-        buf.p2_alt3(message.component);
-        buf.pjstr(message.text);
+    encode(buf: Packet, _message: IfSetText): void {
+        buf.p4_alt3(0);
+        buf.pjstr('');
+        buf.p2_alt2(0);
+
+        // buf.p2_alt3(message.component);
+        // buf.pjstr(message.text);
     }
 
     test(message: IfSetText): number {

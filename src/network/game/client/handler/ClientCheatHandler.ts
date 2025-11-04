@@ -507,19 +507,6 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                     return false;
                 }
                 World.addNpc(new Npc(player.level, player.x, player.z, type.size, type.size, EntityLifeCycle.DESPAWN, World.getNextNid(), type.id, type.moverestrict, type.blockwalk), 500);
-            } else if (cmd === 'openmain') {
-                if (args.length < 1) {
-                    return false;
-                }
-
-                const name: string = args[0];
-                const type: Component | null = Component.getByName(name);
-
-                if (!type || type.rootLayer !== type.id) {
-                    return false;
-                }
-
-                player.openMainModal(type.id);
             }
         }
 

@@ -1,6 +1,3 @@
-import fs from 'fs';
-
-
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
@@ -10,14 +7,7 @@ export default class VarBitType extends ConfigType {
     private static configNames = new Map<string, number>();
     private static configs: VarBitType[] = [];
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/varbit.dat`)) {
-            return;
-        }
-
-        const server = Packet.load(`${dir}/server/varbit.dat`);
-        const jag = Jagfile.load(`${dir}/client/config`);
-        this.parse(server, jag);
+    static load(_dir: string) {
     }
 
     static parse(server: Packet, jag: Jagfile) {

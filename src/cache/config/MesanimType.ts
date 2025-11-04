@@ -1,29 +1,11 @@
-import fs from 'fs';
-
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import Packet from '#/io/Packet.js';
-
 
 export default class MesanimType extends ConfigType {
     private static configNames = new Map<string, number>();
     private static configs: MesanimType[] = [];
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/mesanim.dat`)) {
-            return;
-        }
-        const dat = Packet.load(`${dir}/server/mesanim.dat`);
-        this.parse(dat);
-    }
-
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/mesanim.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const dat = new Packet(new Uint8Array(await file.arrayBuffer()));
-        this.parse(dat);
+    static load(_dir: string) {
     }
 
     static parse(dat: Packet) {

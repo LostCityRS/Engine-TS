@@ -1,31 +1,12 @@
-import fs from 'fs';
-
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import Packet from '#/io/Packet.js';
-
 
 // this is a virtual type (just contains debugname) so we have an easily reloadable, portable category lookup
 export default class CategoryType extends ConfigType {
     private static configNames = new Map<string, number>();
     private static configs: CategoryType[] = [];
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/category.dat`)) {
-            return;
-        }
-
-        const dat = Packet.load(`${dir}/server/category.dat`);
-        this.parse(dat);
-    }
-
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/category.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const dat = new Packet(new Uint8Array(await file.arrayBuffer()));
-        this.parse(dat);
+    static load(_dir: string) {
     }
 
     static parse(dat: Packet) {

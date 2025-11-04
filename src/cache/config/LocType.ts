@@ -1,5 +1,3 @@
-import fs from 'fs';
-
 import kleur from 'kleur';
 
 import { ConfigType } from '#/cache/config/ConfigType.js';
@@ -12,24 +10,7 @@ export default class LocType extends ConfigType {
     static configNames: Map<string, number> = new Map();
     static configs: LocType[] = [];
 
-    static load(dir: string) {
-        if (!fs.existsSync(`${dir}/server/loc.dat`)) {
-            return;
-        }
-
-        const server = Packet.load(`${dir}/server/loc.dat`);
-        const jag = Jagfile.load(`${dir}/client/config`);
-        this.parse(server, jag);
-    }
-
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/loc.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const [server, jag] = await Promise.all([file.arrayBuffer(), Jagfile.loadAsync(`${dir}/client/config`)]);
-        this.parse(new Packet(new Uint8Array(server)), jag);
+    static load(_dir: string) {
     }
 
     static parse(server: Packet, jag: Jagfile) {
