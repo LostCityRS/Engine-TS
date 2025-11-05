@@ -289,6 +289,7 @@ export default class Npc extends PathingEntity {
             }
             this.heroPoints.clear();
             this.queue.clear();
+            this.clearWaypoints();
 
             for (let i = 0; i < this.vars.length; i++) {
                 const varn = VarNpcType.get(i);
