@@ -181,6 +181,7 @@ export const enum ScriptOpcode {
     SPOTANIM_PL,
     STAFFMODLEVEL, // official
     STAT, // official
+    STAT_TOTAL,
     STAT_ADD,
     STAT_BASE, // official
     STAT_HEAL, // official
@@ -642,6 +643,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['SPOTANIM_PL', ScriptOpcode.SPOTANIM_PL],
     ['STAFFMODLEVEL', ScriptOpcode.STAFFMODLEVEL],
     ['STAT', ScriptOpcode.STAT],
+    ['STAT_TOTAL', ScriptOpcode.STAT_TOTAL],
     ['STAT_ADD', ScriptOpcode.STAT_ADD],
     ['STAT_BASE', ScriptOpcode.STAT_BASE],
     ['STAT_HEAL', ScriptOpcode.STAT_HEAL],
