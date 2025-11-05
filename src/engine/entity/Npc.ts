@@ -121,15 +121,17 @@ export default class Npc extends PathingEntity {
         // Npc Events (Respawn, Revert, Despawn)
         if (!this.delayed && --this.lifecycleTick === 0) {
             try {
-                // Respawn NPC
-                if (this.lifecycle === EntityLifeCycle.RESPAWN && !this.isActive) {
-                    World.addNpc(this, -1, false);
-                }
-                // Revert NPC
                 if (this.lifecycle === EntityLifeCycle.RESPAWN) {
-                    this.revertType();
+                    // Respawn NPC (npc_del)
+                    if (!this.isActive) {
+                        World.addNpc(this, -1, false);
+                    }
+                    // Revert NPC (npc_changetype)
+                    else {
+                        this.revertType();
+                    }
                 }
-                // Despawn NPC
+                // Despawn NPC (npc_add)
                 else if (this.lifecycle === EntityLifeCycle.DESPAWN) {
                     World.removeNpc(this, -1);
                     // Queue despawn trigger
