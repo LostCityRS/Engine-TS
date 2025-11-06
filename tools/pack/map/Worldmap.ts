@@ -10,30 +10,25 @@ import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
-import { shouldBuildFile, shouldBuildFileAny } from '#tools/pack/PackFile.js';
 import { convertImage } from '#tools/pack/PixPack.js';
 
-function packWater(underlay: Packet, overlay: Packet, mx: number, mz: number) {
-    underlay.p1(mx);
-    underlay.p1(mz);
+// function packWater(underlay: Packet, overlay: Packet, mx: number, mz: number) {
+//     underlay.p1(mx);
+//     underlay.p1(mz);
 
-    overlay.p1(mx);
-    overlay.p1(mz);
+//     overlay.p1(mx);
+//     overlay.p1(mz);
 
-    for (let i = 0; i < 4096; i++) {
-        underlay.p1(1 + FloType.getId('muddygrass'));
+//     for (let i = 0; i < 4096; i++) {
+//         underlay.p1(1 + FloType.getId('muddygrass'));
 
-        overlay.p1(1 + FloType.getId('water'));
-        overlay.p1(0);
-    }
-}
+//         overlay.p1(1 + FloType.getId('water'));
+//         overlay.p1(0);
+//     }
+// }
 
 export async function packWorldmap() {
     if (!fs.existsSync('data/pack/server/maps')) {
-        return;
-    }
-
-    if (!shouldBuildFileAny('data/pack/server/maps', 'data/pack/mapview/worldmap.jag') && !shouldBuildFile('tools/pack/map/Worldmap.ts', 'data/pack/mapview/worldmap.jag')) {
         return;
     }
 
@@ -112,12 +107,19 @@ export async function packWorldmap() {
     const free2play = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').replace(/\r/g, '').split('\n');
     const freemap = processCsv(free2play, 'free');
 
+    const ignoreraw = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/ignore.csv`, 'ascii').replace(/\r/g, '').split('\n');
+    const ignoremap = processCsv(ignoreraw, 'ignore');
+
     const maps: string[] = fs.readdirSync('data/pack/server/maps').filter((x: string): boolean => x[0] === 'm');
     for (let index: number = 0; index < maps.length; index++) {
         const [mx, mz] = maps[index]
             .substring(1)
             .split('_')
             .map((x: string) => parseInt(x));
+
+        if (ignoremap.has(CoordGrid.packCoord(0, mx << 6, mz << 6))) {
+            continue;
+        }
 
         // ----
 
@@ -502,22 +504,22 @@ export async function packWorldmap() {
         }
     }
 
-    packWater(underlay, overlay, 39, 56);
-    packWater(underlay, overlay, 40, 56);
-    packWater(underlay, overlay, 42, 44);
-    packWater(underlay, overlay, 42, 45);
-    packWater(underlay, overlay, 42, 46);
-    packWater(underlay, overlay, 42, 47);
-    packWater(underlay, overlay, 42, 48);
-    packWater(underlay, overlay, 43, 44);
-    packWater(underlay, overlay, 44, 44);
-    packWater(underlay, overlay, 45, 44);
-    packWater(underlay, overlay, 46, 44);
-    packWater(underlay, overlay, 47, 44);
-    packWater(underlay, overlay, 47, 45);
-    packWater(underlay, overlay, 47, 46);
-    packWater(underlay, overlay, 48, 45);
-    packWater(underlay, overlay, 48, 46);
+    // packWater(underlay, overlay, 39, 56);
+    // packWater(underlay, overlay, 40, 56);
+    // packWater(underlay, overlay, 42, 44);
+    // packWater(underlay, overlay, 42, 45);
+    // packWater(underlay, overlay, 42, 46);
+    // packWater(underlay, overlay, 42, 47);
+    // packWater(underlay, overlay, 42, 48);
+    // packWater(underlay, overlay, 43, 44);
+    // packWater(underlay, overlay, 44, 44);
+    // packWater(underlay, overlay, 45, 44);
+    // packWater(underlay, overlay, 46, 44);
+    // packWater(underlay, overlay, 47, 44);
+    // packWater(underlay, overlay, 47, 45);
+    // packWater(underlay, overlay, 47, 46);
+    // packWater(underlay, overlay, 48, 45);
+    // packWater(underlay, overlay, 48, 46);
 
     jag.write('underlay.dat', underlay);
 
@@ -615,7 +617,17 @@ export async function packWorldmap() {
         [0x00b0a82d, 0x00a9974a], // debugname=desert_shadow overlay=true occlude=true rgb=0xc4ac4e
         [0x0080782f, 0x00886b4d], // debugname=duel_arena overlay=true occlude=true rgb=0xb79767
         [0x0080283c, 0x00b47a4e], // debugname=duelarena overlay=false occlude=true rgb=0xd9bb93
-        [0x00b06826, 0x0071673f] // debugname=hive overlay=true occlude=true rgb=0x97874f
+        [0x00b06826, 0x0071673f], // debugname=hive overlay=true occlude=true rgb=0x97874f
+        [0x0080a41c, 0x00654c20], // debugname=agility overlay=true occlude=true rgb=0x7d5b2b
+        [0x00909012, 0x003c3013], // debugname=brownmud overlay=true occlude=true rgb=0x504020
+        [0x0090301a, 0x00594f3f], // debugname=mountain_overlay overlay=true occlude=true rgb=0x5c5444
+        [0x00903014, 0x00383632], // debugname=mountain_dark_overlay overlay=true occlude=true rgb=0x464034
+        [0x00000000, 0x007d6a3c], // debugname=elfbrick overlay=true occlude=true rgb=0x000000 texture=elfbrick
+        [0x01203c0f, 0x00171912], // debugname=elf_wastelands overlay=true occlude=true rgb=0x303525
+        [0x00015407, 0x00440601], // debugname=dark_red overlay=true occlude=true rgb=0x2d0000
+        [0x0390601d, 0x00514c6a], // debugname=grey_blue overlay=true occlude=true rgb=0x484757
+        [0x00a04417, 0x00433f30], // debugname=viking_town_overlay overlay=true occlude=true rgb=0x544d37
+        [0x0090b814, 0x00625416], // debugname=viking_mud_overlay overlay=true occlude=true rgb=0x5e461c
     ];
 
     for (let i = 0; i < FloType.configs.length; i++) {
@@ -668,3 +680,5 @@ export async function packWorldmap() {
 
     jag.save('data/pack/mapview/worldmap.jag');
 }
+
+await packWorldmap();
