@@ -702,7 +702,7 @@ const PlayerOps: CommandHandlers = {
     }),
 
     [ScriptOpcode.IF_SETSCROLLPOS]: checkedHandler(ActivePlayer, state => {
-        const [com, y] = state.popInts(3);
+        const [com, y] = state.popInts(2);
 
         check(com, NumberNotNull);
 
