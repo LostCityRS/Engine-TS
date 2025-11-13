@@ -1837,7 +1837,7 @@ export default class Player extends PathingEntity {
             return;
         }
 
-        if (anim == -1 || this.animId == -1 || SeqType.get(anim).priority > SeqType.get(this.animId).priority || SeqType.get(this.animId).priority === 0) {
+        if (anim == -1 || this.animId == -1 || SeqType.get(anim).priority >= SeqType.get(this.animId).priority) {
             this.animId = anim;
             this.animDelay = delay;
             this.masks |= PlayerInfoProt.ANIM;
