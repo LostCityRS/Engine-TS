@@ -447,6 +447,15 @@ const PlayerOps: CommandHandlers = {
         state.pushInt(state.activePlayer.levels[stat]);
     }),
 
+    [ScriptOpcode.STAT_TOTAL]: checkedHandler(ActivePlayer, state => {
+        let total = 0;
+        for (let stat = 0; stat < state.activePlayer.baseLevels.length; stat++) {
+            total += state.activePlayer.baseLevels[stat];
+        }
+
+        state.pushInt(total);
+    }),
+
     [ScriptOpcode.STAT_BASE]: checkedHandler(ActivePlayer, state => {
         const stat: PlayerStat = check(state.popInt(), PlayerStatValid);
 
