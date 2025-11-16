@@ -428,8 +428,8 @@ const ServerOps: CommandHandlers = {
                 for (let i = 0; i < 50; i++) {
                     const distX = Math.floor(Math.random() * (2 * maxRadius + 1)) - maxRadius;
                     const distZ = Math.floor(Math.random() * (2 * maxRadius + 1)) - maxRadius;
-                    const distanceSquared = distX * distX + distZ * distZ;
-                    if (distanceSquared < minRadius * minRadius || distanceSquared > maxRadius * maxRadius) {
+                    const distance = Math.max(Math.abs(distX), Math.abs(distZ));
+                    if (distance < minRadius || distance > maxRadius) {
                         continue;
                     }
                     const randomX = origin.x + distX;
@@ -446,8 +446,8 @@ const ServerOps: CommandHandlers = {
                 for (let i = 0; i < 50; i++) {
                     const distX = Math.floor(Math.random() * (2 * maxRadius + 1)) - maxRadius;
                     const distZ = Math.floor(Math.random() * (2 * maxRadius + 1)) - maxRadius;
-                    const distanceSquared = distX * distX + distZ * distZ;
-                    if (distanceSquared < minRadius * minRadius || distanceSquared > maxRadius * maxRadius) {
+                    const distance = Math.max(Math.abs(distX), Math.abs(distZ));
+                    if (distance < minRadius || distance > maxRadius) {
                         continue;
                     }
                     const randomX = origin.x + distX;
@@ -464,8 +464,8 @@ const ServerOps: CommandHandlers = {
                 for (let i = 0; i < 50; i++) {
                     const distX = Math.floor(Math.random() * (2 * maxRadius + 1)) - maxRadius;
                     const distZ = Math.floor(Math.random() * (2 * maxRadius + 1)) - maxRadius;
-                    const distanceSquared = distX * distX + distZ * distZ;
-                    if (distanceSquared < minRadius * minRadius || distanceSquared > maxRadius * maxRadius) {
+                    const distance = Math.max(Math.abs(distX), Math.abs(distZ));
+                    if (distance < minRadius || distance > maxRadius) {
                         continue;
                     }
                     const randomX = origin.x + distX;
@@ -485,8 +485,8 @@ const ServerOps: CommandHandlers = {
                 for (let x = origin.x - maxRadius; x <= origin.x + maxRadius; x++) {
                     const distX = x - origin.x;
                     const distZ = Math.floor(Math.random() * (2 * maxRadius + 1)) - maxRadius;
-                    const distanceSquared = distX * distX + distZ * distZ;
-                    if (distanceSquared < minRadius * minRadius || distanceSquared > maxRadius * maxRadius) {
+                    const distance = Math.max(Math.abs(distX), Math.abs(distZ));
+                    if (distance < minRadius || distance > maxRadius) {
                         continue;
                     }
                     const randomZ = origin.z + distZ;
@@ -502,8 +502,8 @@ const ServerOps: CommandHandlers = {
                 for (let x = origin.x - maxRadius; x <= origin.x + maxRadius; x++) {
                     const distX = x - origin.x;
                     const distZ = Math.floor(Math.random() * (2 * maxRadius + 1)) - maxRadius;
-                    const distanceSquared = distX * distX + distZ * distZ;
-                    if (distanceSquared < minRadius * minRadius || distanceSquared > maxRadius * maxRadius) {
+                    const distance = Math.max(Math.abs(distX), Math.abs(distZ));
+                    if (distance < minRadius || distance > maxRadius) {
                         continue;
                     }
                     const randomZ = origin.z + distZ;
@@ -519,8 +519,8 @@ const ServerOps: CommandHandlers = {
                 for (let x = origin.x - maxRadius; x <= origin.x + maxRadius; x++) {
                     const distX = x - origin.x;
                     const distZ = Math.floor(Math.random() * (2 * maxRadius + 1)) - maxRadius;
-                    const distanceSquared = distX * distX + distZ * distZ;
-                    if (distanceSquared < minRadius * minRadius || distanceSquared > maxRadius * maxRadius) {
+                    const distance = Math.max(Math.abs(distX), Math.abs(distZ));
+                    if (distance < minRadius || distance > maxRadius) {
                         continue;
                     }
                     const randomZ = origin.z + distZ;
