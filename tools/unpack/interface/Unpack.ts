@@ -300,7 +300,6 @@ class IfType {
         for (let id = 0; id < IfType.count; id++) {
             const com = IfType.instances[id];
             if (!com) {
-                InterfacePack.register(id, 'null:null');
                 continue;
             }
 
@@ -324,7 +323,11 @@ class IfType {
             }
 
             const name = InterfacePack.getById(com.id);
-            if (!name || name.split(':')[1].startsWith('com_')) {
+            const [_parentName, comName] = name.split(':');
+            if (name && typeof comName === 'undefined') {
+                printFatalError(`Issue with component ${com.id} must be manually resolved`);
+            }
+            if (!name || (typeof comName !== 'undefined' && comName.startsWith('com_'))) {
                 InterfacePack.register(com.id, `${InterfacePack.getById(com.rootLayer)}:com_${comCount[com.rootLayer]}`);
             }
             comCount[com.rootLayer]++;

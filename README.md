@@ -23,8 +23,8 @@ The [Server](https://github.com/LostCityRS/Server) repository will simplify setu
 In absence of the [Server](https://github.com/LostCityRS/Server) scripts, download the specific engine and content repositories/branches you desire and extract them to the same parent folder.
 
 ```sh
-git clone https://github.com/LostCityRS/Engine-TS -b 244 --single-branch engine
-git clone https://github.com/LostCityRS/Content -b 244 --single-branch content
+git clone https://github.com/LostCityRS/Engine-TS -b 245.2 --single-branch engine
+git clone https://github.com/LostCityRS/Content -b 245.2 --single-branch content
 cd engine
 bun start
 ```
