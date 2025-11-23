@@ -1980,12 +1980,36 @@ export default class Player extends PathingEntity {
     }
 
     openChat(com: number) {
+        if ((this.modalState & ModalState.MAIN) !== ModalState.NONE) {
+            this.write(new IfClose());
+            this.modalState &= ~ModalState.MAIN;
+            this.modalChat = -1;
+        }
+
+        if ((this.modalState & ModalState.SIDE) !== ModalState.NONE) {
+            this.write(new IfClose());
+            this.modalState &= ~ModalState.SIDE;
+            this.modalChat = -1;
+        }
+
         this.modalState |= ModalState.CHAT;
         this.modalChat = com;
         this.refreshModal = true;
     }
 
     openSideModal(com: number) {
+        if ((this.modalState & ModalState.MAIN) !== ModalState.NONE) {
+            this.write(new IfClose());
+            this.modalState &= ~ModalState.MAIN;
+            this.modalChat = -1;
+        }
+
+        if ((this.modalState & ModalState.CHAT) !== ModalState.NONE) {
+            this.write(new IfClose());
+            this.modalState &= ~ModalState.CHAT;
+            this.modalSide = -1;
+        }
+
         this.modalState |= ModalState.SIDE;
         this.modalSide = com;
         this.refreshModal = true;
@@ -1998,6 +2022,12 @@ export default class Player extends PathingEntity {
     }
 
     openMainModalSide(top: number, side: number) {
+        if ((this.modalState & ModalState.CHAT) !== ModalState.NONE) {
+            this.write(new IfClose());
+            this.modalState &= ~ModalState.CHAT;
+            this.modalChat = -1;
+        }
+
         this.modalState |= ModalState.MAIN;
         this.modalMain = top;
         this.modalState |= ModalState.SIDE;
