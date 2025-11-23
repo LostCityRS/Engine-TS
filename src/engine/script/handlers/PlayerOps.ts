@@ -203,7 +203,7 @@ const PlayerOps: CommandHandlers = {
     }),
 
     [ScriptOpcode.IF_CLOSE]: checkedHandler(ActivePlayer, state => {
-        state.activePlayer.closeModal(true);
+        state.activePlayer.closeModal();
     }),
 
     [ScriptOpcode.LAST_COM]: state => {

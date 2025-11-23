@@ -200,7 +200,7 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                     varp = VarPlayerType.get(varbit.basevar);
 
                     if (varp.protect) {
-                        player.closeModal(true);
+                        player.closeModal();
 
                         if (!player.canAccess()) {
                             player.messageGame('Please finish what you are doing first.');
@@ -219,7 +219,7 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                 }
 
                 if (varp.protect) {
-                    player.closeModal(true);
+                    player.closeModal();
 
                     if (!player.canAccess()) {
                         player.messageGame('Please finish what you are doing first.');
@@ -256,7 +256,7 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                 }
 
                 if (varp.protect) {
-                    other.closeModal(true);
+                    other.closeModal();
 
                     if (!other.canAccess()) {
                         player.messageGame(`${args[0]} is busy right now.`);
@@ -286,7 +286,7 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                     varp = VarPlayerType.get(varbit.basevar);
 
                     if (varp.protect) {
-                        player.closeModal(true);
+                        player.closeModal();
 
                         if (!player.canAccess()) {
                             player.messageGame('Please finish what you are doing first.');
@@ -433,7 +433,7 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                     return false;
                 }
 
-                other.closeModal(true);
+                other.closeModal();
 
                 if (!other.canAccess()) {
                     player.messageGame(`${args[0]} is busy right now.`);
@@ -559,7 +559,7 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                     return false;
                 }
 
-                player.closeModal(true);
+                player.closeModal();
 
                 if (!player.canAccess()) {
                     player.messageGame('Please finish what you are doing first.');
@@ -593,7 +593,7 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                     return false;
                 }
 
-                player.closeModal(true);
+                player.closeModal();
 
                 if (!player.canAccess()) {
                     player.messageGame('Please finish what you are doing first.');

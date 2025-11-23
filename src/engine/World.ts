@@ -803,7 +803,7 @@ class World {
             }
 
             if (player.loggingOut && (force || this.currentTick >= player.preventLogoutUntil)) {
-                player.closeModal(true);
+                player.closeModal();
 
                 let queueDiscardable = true;
                 for (let request = player.queue.head(); request !== null; request = player.queue.next()) {

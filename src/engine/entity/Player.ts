@@ -538,7 +538,7 @@ export default class Player extends PathingEntity {
             const ticksBeforeShutdown = World.shutdownTicksRemaining;
             this.write(new UpdateRebootTimer(ticksBeforeShutdown));
         }
-        this.closeModal(true);
+        this.closeModal();
         // tabs could have been updated while reconnecting, make sure we sync them now
         for (let i = 0; i < this.tabs.length; i++) {
             this.write(new IfSetTab(this.tabs[i], i));
@@ -735,7 +735,7 @@ export default class Player extends PathingEntity {
         }
     }
 
-    closeModal(refresh: boolean) {
+    closeModal() {
         this.weakQueue.clear();
 
         if (!this.delayed) {
@@ -786,9 +786,7 @@ export default class Player extends PathingEntity {
             this.modalSide = -1;
         }
 
-        if(refresh) {
-            this.refreshModalClose = true;
-        }
+        this.refreshModalClose = true;
     }
 
     containsModalInterface() {
@@ -859,7 +857,7 @@ export default class Player extends PathingEntity {
         }
         if (this.requestModalClose) {
             this.requestModalClose = false;
-            this.closeModal(true);
+            this.closeModal();
         }
 
         this.processQueue();
@@ -955,7 +953,7 @@ export default class Player extends PathingEntity {
     // clear current interaction but leave walk queue intact
     clearPendingAction() {
         this.clearInteraction();
-        this.closeModal(true);
+        this.closeModal();
     }
 
     hasInteraction() {
@@ -1950,7 +1948,20 @@ export default class Player extends PathingEntity {
     }
 
     openMainModal(com: number) {
-        this.closeModal(false);
+        if ((this.modalState & ModalState.CHAT) !== ModalState.NONE) {
+            // close chat modal if we're opening a new main modal
+            this.write(new IfClose());
+            this.modalState &= ~ModalState.CHAT;
+            this.modalChat = -1;
+        }
+
+        if ((this.modalState & ModalState.SIDE) !== ModalState.NONE) {
+            // close side modal if we're opening a new main modal
+            this.write(new IfClose());
+            this.modalState &= ~ModalState.SIDE;
+            this.modalSide = -1;
+        }
+
         this.modalState |= ModalState.MAIN;
         this.modalMain = com;
         this.refreshModal = true;
@@ -1969,14 +1980,12 @@ export default class Player extends PathingEntity {
     }
 
     openChat(com: number) {
-        this.closeModal(false);
         this.modalState |= ModalState.CHAT;
         this.modalChat = com;
         this.refreshModal = true;
     }
 
     openSideModal(com: number) {
-        this.closeModal(false);
         this.modalState |= ModalState.SIDE;
         this.modalSide = com;
         this.refreshModal = true;
@@ -1989,7 +1998,6 @@ export default class Player extends PathingEntity {
     }
 
     openMainModalSide(top: number, side: number) {
-        this.closeModal(false);
         this.modalState |= ModalState.MAIN;
         this.modalMain = top;
         this.modalState |= ModalState.SIDE;
@@ -2121,7 +2129,7 @@ export default class Player extends PathingEntity {
 
             if ((this.modalState & ModalState.MAIN) === ModalState.NONE) {
                 // close chat dialogues automatically and leave main modals alone
-                this.closeModal(true);
+                this.closeModal();
             }
         }
     }
