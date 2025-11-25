@@ -8,6 +8,12 @@ import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 
 export default class MoveClickHandler extends ClientGameMessageHandler<MoveClick> {
     handle(message: MoveClick, player: NetworkPlayer): boolean {
+        if (player.staffModLevel >= 3 && message.ctrlHeld === 1) {
+            const dest = message.path[message.path.length - 1];
+            player.teleport(dest.x, dest.z, player.level);
+            return true;
+        }
+
         if (player.delayed) {
             player.write(new UnsetMapFlag());
             return false;
