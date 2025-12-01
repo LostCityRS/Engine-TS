@@ -161,6 +161,7 @@ export type private_chat = {
     coord: number;
     to_account_id: number;
     message: string;
+    muted: number;
 };
 export type public_chat = {
     id: Generated<number>;
@@ -170,6 +171,7 @@ export type public_chat = {
     timestamp: string;
     coord: number;
     message: string;
+    muted: number;
 };
 export type report = {
     id: Generated<number>;

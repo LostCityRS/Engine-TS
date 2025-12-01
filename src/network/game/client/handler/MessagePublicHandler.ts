@@ -6,6 +6,7 @@ import Packet from '#/io/Packet.js';
 import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import MessagePublic from '#/network/game/client/model/MessagePublic.js';
 import WordPack from '#/wordenc/WordPack.js';
+import World from '#/engine/World.js';
 
 export default class MessagePublicHandler extends ClientGameMessageHandler<MessagePublic> {
     handle(message: MessagePublic, player: Player): boolean {
@@ -15,16 +16,16 @@ export default class MessagePublicHandler extends ClientGameMessageHandler<Messa
             return false;
         }
 
-        if (player.muted_until !== null && player.muted_until > new Date()) {
-            // todo: do we still log their attempt to chat?
-            return false;
-        }
-
         const buf: Packet = Packet.alloc(0);
         buf.pdata(input, 0, input.length);
         buf.pos = 0;
         const unpack: string = WordPack.unpack(buf, input.length);
         buf.release();
+
+        if (player.muted_until !== null && player.muted_until > new Date()) {
+            World.logPublicChat(player, unpack);
+            return false;
+        }
 
         player.messageColor = color;
         player.messageEffect = effect;

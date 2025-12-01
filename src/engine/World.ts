@@ -1669,7 +1669,7 @@ class World {
         }
     }
 
-    sendPrivateMessage(player: Player, targetUsername37: bigint, message: string): void {
+    attemptPrivateMessage(player: Player, targetUsername37: bigint, message: string): void {
         //printDebug(`[World] sendPrivateMessage => player: ${player.username}, target: ${targetUsername37} (${fromBase37(targetUsername37)}), message: '${message}'`);
 
         this.friendThread.postMessage({
