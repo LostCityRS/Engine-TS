@@ -541,6 +541,10 @@ export default class Npc extends PathingEntity {
     }
 
     private processQueue() {
+        if (!this.isActive) {
+            return;
+        }
+
         for (const request of this.queue.all()) {
             // purposely only decrements the delay when the npc is not delayed
             if (!this.delayed) {
@@ -561,7 +565,7 @@ export default class Npc extends PathingEntity {
     }
 
     private processMovementInteraction() {
-        if (this.delayed) {
+        if (this.delayed || !this.isActive) {
             return;
         }
 
