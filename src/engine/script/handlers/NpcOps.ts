@@ -391,6 +391,7 @@ const NpcOps: CommandHandlers = {
 
     [ScriptOpcode.NPC_TELE]: checkedHandler(ActiveNpc, state => {
         const coord: CoordGrid = check(state.popInt(), CoordValid);
+
         state.activeNpc.teleport(coord.x, coord.z, coord.level);
     }),
 

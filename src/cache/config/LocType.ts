@@ -137,6 +137,7 @@ export default class LocType extends ConfigType {
         } else if (code === 5) {
             const count = dat.g1();
             this.models = new Uint16Array(count);
+            this.shapes = null;
 
             for (let i = 0; i < count; i++) {
                 this.models[i] = dat.g2();

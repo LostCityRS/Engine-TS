@@ -520,6 +520,21 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                 }
 
                 player.openMainModal(type.id);
+            } else if (cmd === 'openoverlay') {
+                if (args.length < 1) {
+                    return false;
+                }
+
+                const name: string = args[0];
+                const type: Component | null = Component.getByName(name);
+
+                if (!type || type.rootLayer !== type.id) {
+                    return false;
+                }
+
+                player.openOverlay(type.id);
+            } else if (cmd === 'closeoverlay') {
+                player.openOverlay(-1);
             }
         }
 

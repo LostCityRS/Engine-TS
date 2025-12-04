@@ -150,6 +150,7 @@ class ClientGameProtRepository {
         this.bind(new OpPlayerDecoder(ClientGameProt.OPPLAYER2, 2), new OpPlayerHandler());
         this.bind(new OpPlayerDecoder(ClientGameProt.OPPLAYER3, 3), new OpPlayerHandler());
         this.bind(new OpPlayerDecoder(ClientGameProt.OPPLAYER4, 4), new OpPlayerHandler());
+        this.bind(new OpPlayerDecoder(ClientGameProt.OPPLAYER5, 5), new OpPlayerHandler());
         this.bind(new OpPlayerTDecoder(), new OpPlayerTHandler());
         this.bind(new OpPlayerUDecoder(), new OpPlayerUHandler());
         this.bind(new ResumePauseButtonDecoder(), new ResumePauseButtonHandler());

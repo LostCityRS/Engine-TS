@@ -95,11 +95,11 @@ import { printDebug, printError, printInfo } from '#/util/Logger.js';
 import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 import { createWorker } from '#/util/WorkerFactory.js';
 
-import InputTrackingBlob from './entity/tracking/InputEvent.js';
+import InputTrackingBlob from './entity/tracking/InputTrackingBlob.js';
 import OnDemand from './OnDemand.js';
 import { ObjDelayedRequest } from './entity/ObjDelayedRequest.js';
-import VarBitType from '#/cache/config/VarBitType.js';
 import DbTableIndex from '#/cache/config/DbTableIndex.js';
+import VarBitType from '#/cache/config/VarBitType.js';
 import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 
 const priv = forge.pki.privateKeyFromPem(Environment.STANDALONE_BUNDLE ? await (await fetch('data/config/private.pem')).text() : fs.readFileSync('data/config/private.pem', 'ascii'));
@@ -938,10 +938,11 @@ class World {
                 }
 
                 player.client.state = 1;
+
                 player.client.send(Uint8Array.from([
                     2,
                     Math.min(player.staffModLevel, 2),
-                    0 // tracking status
+                    1 // mouse tracking can only be enabled on login
                 ]));
             }
 
@@ -2068,7 +2069,7 @@ class World {
 
                 const player = this.getPlayerByUsername(username);
                 if (player) {
-                    player.submitInput = state;
+                    player.input.active = state;
                 }
             } else if (opcode === FriendsServerOpcodes.RELAY_RELOAD) {
                 this.reload(false);
@@ -2332,7 +2333,7 @@ class World {
             const offenderPlayer = this.getPlayerByUsername(offender);
             if (offenderPlayer) {
                 // Immediately turn on tracking when a user is reported as macroing or abusing a bug.
-                offenderPlayer.submitInput = true;
+                offenderPlayer.input.active = true;
             }
         }
         this.loggerThread.postMessage({

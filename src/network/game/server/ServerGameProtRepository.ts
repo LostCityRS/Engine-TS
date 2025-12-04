@@ -9,7 +9,6 @@ import CamResetEncoder from '#/network/game/server/codec/CamResetEncoder.js';
 import CamShakeEncoder from '#/network/game/server/codec/CamShakeEncoder.js';
 import ChatFilterSettingsEncoder from '#/network/game/server/codec/ChatFilterSettingsEncoder.js';
 import HintArrowEncoder from '#/network/game/server/codec/HintArrowEncoder.js';
-import FriendlistLoadedEncoder from '#/network/game/server/codec/FriendlistLoadedEncoder.js';
 import IfCloseEncoder from '#/network/game/server/codec/IfCloseEncoder.js';
 import IfOpenChatEncoder from '#/network/game/server/codec/IfOpenChatEncoder.js';
 import IfOpenFullEncoder from '#/network/game/server/codec/IfOpenFullEncoder.js';
@@ -26,7 +25,6 @@ import IfSetNpcHeadEncoder from '#/network/game/server/codec/IfSetNpcHeadEncoder
 import IfSetObjectEncoder from '#/network/game/server/codec/IfSetObjectEncoder.js';
 import IfSetPlayerHeadEncoder from '#/network/game/server/codec/IfSetPlayerHeadEncoder.js';
 import IfSetPositionEncoder from '#/network/game/server/codec/IfSetPositionEncoder.js';
-import IfSetScrollPosEncoder from '#/network/game/server/codec/IfSetScrollPosEncoder.js';
 import IfSetRotationEncoder from '#/network/game/server/codec/IfSetRotationEncoder.js';
 import IfSetTabActiveEncoder from '#/network/game/server/codec/IfSetTabActiveEncoder.js';
 import IfSetTabEncoder from '#/network/game/server/codec/IfSetTabEncoder.js';
@@ -80,7 +78,6 @@ import CamReset from '#/network/game/server/model/CamReset.js';
 import CamShake from '#/network/game/server/model/CamShake.js';
 import ChatFilterSettings from '#/network/game/server/model/ChatFilterSettings.js';
 import HintArrow from '#/network/game/server/model/HintArrow.js';
-import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 import IfClose from '#/network/game/server/model/IfClose.js';
 import IfOpenChat from '#/network/game/server/model/IfOpenChat.js';
 import IfOpenFull from '#/network/game/server/model/IfOpenFull.js';
@@ -98,7 +95,6 @@ import IfSetObject from '#/network/game/server/model/IfSetObject.js';
 import IfSetPlayerHead from '#/network/game/server/model/IfSetPlayerHead.js';
 import IfSetPosition from '#/network/game/server/model/IfSetPosition.js';
 import IfSetRotation from '#/network/game/server/model/IfSetRotation.js';
-import IfSetScrollPos from '#/network/game/server/model/IfSetScrollPos.js';
 import IfSetTab from '#/network/game/server/model/IfSetTab.js';
 import IfSetTabActive from '#/network/game/server/model/IfSetTabActive.js';
 import IfSetText from '#/network/game/server/model/IfSetText.js';
@@ -145,8 +141,12 @@ import UpdateZonePartialEnclosed from '#/network/game/server/model/UpdateZonePar
 import UpdateZonePartialFollows from '#/network/game/server/model/UpdateZonePartialFollows.js';
 import VarpLarge from '#/network/game/server/model/VarpLarge.js';
 import VarpSmall from '#/network/game/server/model/VarpSmall.js';
-import SetPlayerOp from './model/SetPlayerOp.js';
-import SetPlayerOpEncoder from './codec/SetPlayerOpEncoder.js';
+import IfSetScrollPos from '#/network/game/server/model/IfSetScrollPos.js';
+import IfSetScrollPosEncoder from '#/network/game/server/codec/IfSetScrollPosEncoder.js';
+import SetPlayerOp from '#/network/game/server/model/SetPlayerOp.js';
+import SetPlayerOpEncoder from '#/network/game/server/codec/SetPlayerOpEncoder.js';
+import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
+import FriendlistLoadedEncoder from '#/network/game/server/codec/FriendlistLoadedEncoder.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type GenericOutgoingMessage<T extends ServerGameMessage> = new (...args: any[]) => T;
@@ -176,7 +176,6 @@ class ServerGameProtRepository {
         this.bind(CamShake, new CamShakeEncoder());
         this.bind(ChatFilterSettings, new ChatFilterSettingsEncoder());
         this.bind(HintArrow, new HintArrowEncoder());
-        this.bind(FriendlistLoaded, new FriendlistLoadedEncoder());
         this.bind(IfClose, new IfCloseEncoder());
         this.bind(IfOpenChat, new IfOpenChatEncoder());
         this.bind(IfOpenFull, new IfOpenFullEncoder());
@@ -222,7 +221,6 @@ class ServerGameProtRepository {
         this.bind(ResetAnims, new ResetAnimsEncoder());
         this.bind(ResetClientVarCache, new ResetClientVarCacheEncoder());
         this.bind(SetMultiway, new SetMultiwayEncoder());
-        this.bind(SetPlayerOp, new SetPlayerOpEncoder());
         this.bind(SynthSound, new SynthSoundEncoder());
         this.bind(TutFlash, new TutFlashEncoder());
         this.bind(TutOpen, new TutOpenEncoder());
@@ -242,6 +240,8 @@ class ServerGameProtRepository {
         this.bind(UpdateZonePartialFollows, new UpdateZonePartialFollowsEncoder());
         this.bind(VarpLarge, new VarpLargeEncoder());
         this.bind(VarpSmall, new VarpSmallEncoder());
+        this.bind(SetPlayerOp, new SetPlayerOpEncoder());
+        this.bind(FriendlistLoaded, new FriendlistLoadedEncoder());
     }
 }
 

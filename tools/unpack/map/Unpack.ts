@@ -2,7 +2,7 @@ import fs from 'fs';
 
 import FileStream from '#/io/FileStream.js';
 import Environment from '#/util/Environment.js';
-import { printFatalError, printInfo, printWarning } from '#/util/Logger.js';
+import { printFatalError, printWarning } from '#/util/Logger.js';
 import Packet from '#/io/Packet.js';
 import Jagfile from '#/io/Jagfile.js';
 import { MapPack } from '#tools/pack/PackFile.js';
@@ -145,6 +145,8 @@ function readLocs(data: Packet) {
     return locs;
 }
 
+MapPack.clear();
+
 console.time('maps');
 const mapIndex = versionlist.read('map_index')!;
 for (let i = 0; i < mapIndex.length / 7; i++) {
@@ -159,12 +161,14 @@ for (let i = 0; i < mapIndex.length / 7; i++) {
     MapPack.register(landFile, `m${mapX}_${mapZ}`);
     MapPack.register(locFile, `l${mapX}_${mapZ}`);
 
-    printInfo(`Unpacking map for ${mapX}_${mapZ}`);
     const landData = cache.read(4, landFile, true);
     const locData = cache.read(4, locFile, true);
     if (!landData || !locData) {
-        printWarning('Missing map data');
+        printWarning(`Missing map file for ${mapX}_${mapZ}`);
+        continue;
     }
+
+    // printInfo(`Unpacking map for ${mapX}_${mapZ}`);
 
     // todo: preserve npc and obj sections
     const saved = [];

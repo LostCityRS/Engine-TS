@@ -98,7 +98,6 @@ export const enum ScriptOpcode {
     DAMAGE,
     DISPLAYNAME, // official, joke reply
     FACESQUARE, // official
-    FRIENDLIST_LOADED, //official
     FINDUID, // official
     GENDER,
     GETQUEUE, // official
@@ -559,7 +558,6 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['DAMAGE', ScriptOpcode.DAMAGE],
     ['DISPLAYNAME', ScriptOpcode.DISPLAYNAME],
     ['FACESQUARE', ScriptOpcode.FACESQUARE],
-    ['FRIENDLIST_LOADED', ScriptOpcode.FRIENDLIST_LOADED],
     ['FINDUID', ScriptOpcode.FINDUID],
     ['GENDER', ScriptOpcode.GENDER],
     ['GETQUEUE', ScriptOpcode.GETQUEUE],
@@ -655,7 +653,6 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['UID', ScriptOpcode.UID],
     ['WEAKQUEUE', ScriptOpcode.WEAKQUEUE],
     ['IF_OPENMAINOVERLAY', ScriptOpcode.IF_OPENMAINOVERLAY],
-    ['SET_PLAYER_OP', ScriptOpcode.SET_PLAYER_OP],
     ['AFK_EVENT', ScriptOpcode.AFK_EVENT],
     ['LOWMEMORY', ScriptOpcode.LOWMEMORY],
     ['SETIDKIT', ScriptOpcode.SETIDKIT],
@@ -675,6 +672,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['P_RUN', ScriptOpcode.P_RUN],
     ['PLAYERMEMBER', ScriptOpcode.PLAYERMEMBER],
     ['IF_SETSCROLLPOS', ScriptOpcode.IF_SETSCROLLPOS],
+    ['SET_PLAYER_OP', ScriptOpcode.SET_PLAYER_OP],
     ['NPC_ADD', ScriptOpcode.NPC_ADD],
     ['NPC_ANIM', ScriptOpcode.NPC_ANIM],
     ['NPC_BASESTAT', ScriptOpcode.NPC_BASESTAT],

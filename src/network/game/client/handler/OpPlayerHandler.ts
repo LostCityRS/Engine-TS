@@ -30,6 +30,8 @@ export default class OpPlayerHandler extends ClientGameMessageHandler<OpPlayer> 
             return false;
         }
 
+        // todo: validate set_player_op?
+
         let mode: ServerTriggerType;
         if (message.op === 1) {
             mode = ServerTriggerType.APPLAYER1;
@@ -37,8 +39,10 @@ export default class OpPlayerHandler extends ClientGameMessageHandler<OpPlayer> 
             mode = ServerTriggerType.APPLAYER2;
         } else if (message.op === 3) {
             mode = ServerTriggerType.APPLAYER3;
-        } else {
+        } else if (message.op === 4) {
             mode = ServerTriggerType.APPLAYER4;
+        } else {
+            mode = ServerTriggerType.APPLAYER5;
         }
 
         player.clearPendingAction();

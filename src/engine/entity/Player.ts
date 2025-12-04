@@ -34,6 +34,7 @@ import PathingEntity from '#/engine/entity/PathingEntity.js';
 import { PlayerLoading } from '#/engine/entity/PlayerLoading.js';
 import { PlayerQueueRequest, PlayerQueueType, QueueType, ScriptArgument } from '#/engine/entity/PlayerQueueRequest.js';
 import { PlayerStat, PlayerStatEnabled, PlayerStatFree, PlayerStatNameMap } from '#/engine/entity/PlayerStat.js';
+import InputTracking from '#/engine/entity/tracking/InputTracking.js';
 import { WealthEventParams } from '#/engine/entity/tracking/WealthEvent.js';
 import { changeNpcCollision, changePlayerCollision, findNaivePath, reachedEntity, reachedLoc, reachedObj } from '#/engine/GameMap.js';
 import { Inventory, InventoryListener } from '#/engine/Inventory.js';
@@ -306,7 +307,7 @@ export default class Player extends PathingEntity {
 
     // input tracking
     account_id: number = -1;
-    submitInput: boolean = false;
+    input: InputTracking;
 
     // runtime variables
     pid: number = -1;
@@ -420,6 +421,7 @@ export default class Player extends PathingEntity {
         this.varsString = new Array(VarPlayerType.count);
         this.lastStats.fill(-1);
         this.lastLevels.fill(-1);
+        this.input = new InputTracking(this);
 
         for (let i = 0; i < this.vars.length; i++) {
             const varp = VarPlayerType.get(i);
@@ -450,6 +452,7 @@ export default class Player extends PathingEntity {
         this.lastAppearance = 0;
         this.lastAppearanceBytes = null;
         this.isActive = false;
+        this.input.flush();
     }
 
     resetEntity(respawn: boolean) {
@@ -1281,6 +1284,7 @@ export default class Player extends PathingEntity {
     }
 
     processInputTracking(): void {
+        this.input.onCycle();
     }
 
     // ----
@@ -1987,12 +1991,36 @@ export default class Player extends PathingEntity {
     }
 
     openChat(com: number) {
+        if ((this.modalState & ModalState.MAIN) !== ModalState.NONE) {
+            this.write(new IfClose());
+            this.modalState &= ~ModalState.MAIN;
+            this.modalChat = -1;
+        }
+
+        if ((this.modalState & ModalState.SIDE) !== ModalState.NONE) {
+            this.write(new IfClose());
+            this.modalState &= ~ModalState.SIDE;
+            this.modalChat = -1;
+        }
+
         this.modalState |= ModalState.CHAT;
         this.modalChat = com;
         this.refreshModal = true;
     }
 
     openSideModal(com: number) {
+        if ((this.modalState & ModalState.MAIN) !== ModalState.NONE) {
+            this.write(new IfClose());
+            this.modalState &= ~ModalState.MAIN;
+            this.modalChat = -1;
+        }
+
+        if ((this.modalState & ModalState.CHAT) !== ModalState.NONE) {
+            this.write(new IfClose());
+            this.modalState &= ~ModalState.CHAT;
+            this.modalSide = -1;
+        }
+
         this.modalState |= ModalState.SIDE;
         this.modalSide = com;
         this.refreshModal = true;
@@ -2005,6 +2033,12 @@ export default class Player extends PathingEntity {
     }
 
     openMainModalSide(top: number, side: number) {
+        if ((this.modalState & ModalState.CHAT) !== ModalState.NONE) {
+            this.write(new IfClose());
+            this.modalState &= ~ModalState.CHAT;
+            this.modalChat = -1;
+        }
+
         this.modalState |= ModalState.MAIN;
         this.modalMain = top;
         this.modalState |= ModalState.SIDE;
