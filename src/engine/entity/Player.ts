@@ -412,7 +412,8 @@ export default class Player extends PathingEntity {
     lastDate: bigint = 0n;
 
     constructor(username: string, username37: bigint, hash64: bigint) {
-        super(0, 3094, 3106, 1, 1, EntityLifeCycle.FOREVER, MoveRestrict.NORMAL, BlockWalk.NPC, MoveStrategy.SMART, PlayerInfoProt.FACE_COORD, PlayerInfoProt.FACE_ENTITY); // tutorial island.
+        super(0, 3094, 3106, 1, 1, EntityLifeCycle.FOREVER, MoveRestrict.NORMAL, BlockWalk.NPC, MoveStrategy.SMART, PlayerInfoProt.FACE_COORD, PlayerInfoProt.FACE_ENTITY);
+
         this.username = username;
         this.username37 = username37;
         this.hash64 = hash64;
@@ -1720,11 +1721,18 @@ export default class Player extends PathingEntity {
 
     getVar(id: number) {
         const varp = VarPlayerType.get(id);
+        if (!varp) {
+            return 0;
+        }
+
         return varp.type === ScriptVarType.STRING ? this.varsString[varp.id] : this.vars[varp.id];
     }
 
     setVar(id: number, value: number | string) {
         const varp = VarPlayerType.get(id);
+        if (!varp) {
+            return;
+        }
 
         if (varp.type === ScriptVarType.STRING && typeof value === 'string') {
             this.varsString[varp.id] = value;

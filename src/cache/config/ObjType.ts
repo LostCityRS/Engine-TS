@@ -25,16 +25,6 @@ export default class ObjType extends ConfigType {
         this.parse(server, jag);
     }
 
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/obj.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const [server, jag] = await Promise.all([file.arrayBuffer(), Jagfile.loadAsync(`${dir}/client/config`)]);
-        this.parse(new Packet(new Uint8Array(server)), jag);
-    }
-
     static parse(server: Packet, jag: Jagfile) {
         ObjType.configNames = new Map();
         ObjType.configs = [];

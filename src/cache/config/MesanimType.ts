@@ -16,16 +16,6 @@ export default class MesanimType extends ConfigType {
         this.parse(dat);
     }
 
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/mesanim.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const dat = new Packet(new Uint8Array(await file.arrayBuffer()));
-        this.parse(dat);
-    }
-
     static parse(dat: Packet) {
         MesanimType.configNames = new Map();
         MesanimType.configs = [];

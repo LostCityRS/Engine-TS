@@ -18,16 +18,6 @@ export default class StructType extends ConfigType implements ParamHolder {
         this.parse(dat);
     }
 
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/struct.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const dat = new Packet(new Uint8Array(await file.arrayBuffer()));
-        this.parse(dat);
-    }
-
     static parse(dat: Packet) {
         StructType.configNames = new Map();
         StructType.configs = [];
