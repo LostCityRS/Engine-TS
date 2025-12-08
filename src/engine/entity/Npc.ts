@@ -464,9 +464,9 @@ export default class Npc extends PathingEntity {
     }
 
     spotanim(spotanim: number, height: number, delay: number) {
-        this.graphicId = spotanim;
-        this.graphicHeight = height;
-        this.graphicDelay = delay;
+        this.spotanimId = spotanim;
+        this.spotanimHeight = height;
+        this.spotanimTime = delay;
         this.masks |= NpcInfoProt.SPOT_ANIM;
     }
 
@@ -479,16 +479,16 @@ export default class Npc extends PathingEntity {
             this.levels[NpcStat.HITPOINTS] = current - damage;
         }
 
-        if (this.damageSlot % 2 === 1) {
-            this.damageTaken2 = damage;
-            this.damageType2 = type;
+        if (this.hitmarkSlot % 2 === 1) {
+            this.hitmark2Damage = damage;
+            this.hitmark2Type = type;
             this.masks |= NpcInfoProt.DAMAGE2;
         } else {
-            this.damageTaken = damage;
-            this.damageType = type;
+            this.hitmarkDamage = damage;
+            this.hitmarkType = type;
             this.masks |= NpcInfoProt.DAMAGE;
         }
-        this.damageSlot++;
+        this.hitmarkSlot++;
     }
 
     say(text: string) {
@@ -496,7 +496,7 @@ export default class Npc extends PathingEntity {
             return;
         }
 
-        this.chat = text;
+        this.sayMessage = text;
         this.masks |= NpcInfoProt.SAY;
     }
 

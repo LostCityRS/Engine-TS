@@ -259,7 +259,7 @@ export default class Player extends PathingEntity {
         sav.p1((this.publicChat << 4) | (this.privateChat << 2) | this.tradeDuel);
 
         // last login info
-        sav.p8(this.lastDate);
+        sav.p8(this.lastLoginTime);
 
         sav.p4(Packet.getcrc(sav.data, 0, sav.pos));
         return sav.data.subarray(0, sav.pos);
@@ -310,22 +310,12 @@ export default class Player extends PathingEntity {
     webClient: boolean = false;
     combatLevel: number = 3;
     headicons: number = 0;
-    appearance: number = -1;
-    lastAppearance: number = 0;
-    lastAppearanceBytes: Uint8Array | null = null;
     baseLevels = new Uint8Array(21);
     lastStats: Int32Array = new Int32Array(21); // we track this so we know to flush stats only once a tick on changes
     lastLevels: Uint8Array = new Uint8Array(21); // we track this so we know to flush stats only once a tick on changes
     originX: number = -1;
     originZ: number = -1;
     buildArea: BuildArea = new BuildArea(this);
-    basReadyAnim: number = -1;
-    basTurnOnSpot: number = -1;
-    basWalkForward: number = -1;
-    basWalkBackward: number = -1;
-    basWalkLeft: number = -1;
-    basWalkRight: number = -1;
-    basRunning: number = 0;
     animProtect: number = 0;
     invListeners: InventoryListener[] = [];
     allowDesign: boolean = false;
@@ -343,10 +333,6 @@ export default class Player extends PathingEntity {
     lastResponse: number = -1;
     lastConnected: number = -1;
 
-    messageColor: number | null = null;
-    messageEffect: number | null = null;
-    messageType: number | null = null;
-    message: Uint8Array | null = null;
     logMessage: string | null = null;
 
     // ---
@@ -402,10 +388,30 @@ export default class Player extends PathingEntity {
     socialProtect: boolean = false; // social packet spam protection
     reportAbuseProtect: boolean = false; // social packet spam protection
 
-    lastDate: bigint = 0n;
+    lastLoginTime: bigint = 0n;
+
+    // info updates
+    appearanceInv: number = -1;
+    appearanceBuf: Uint8Array | null = null;
+    lastAppearance: number = 0;
+    readyanim: number = -1;
+    turnanim: number = -1;
+    walkanim: number = -1;
+    walkanim_b: number = -1;
+    walkanim_l: number = -1;
+    walkanim_r: number = -1;
+    runanim: number = -1;
+    chatMessage: Uint8Array | null = null;
+    chatColour: number | null = null;
+    chatEffect: number | null = null;
+    chatRights: number | null = null;
 
     constructor(username: string, username37: bigint, hash64: bigint) {
-        super(0, 3094, 3106, 1, 1, EntityLifeCycle.FOREVER, MoveRestrict.NORMAL, BlockWalk.NPC, MoveStrategy.FLY, PlayerInfoProt.FACE_COORD, PlayerInfoProt.FACE_ENTITY);
+        super(
+            0, 3094, 3106, // tutorial island
+            1, 1,
+            EntityLifeCycle.FOREVER, MoveRestrict.NORMAL, BlockWalk.NPC, MoveStrategy.SMART, PlayerInfoProt.FACE_COORD, PlayerInfoProt.FACE_ENTITY
+        );
 
         this.username = username;
         this.username37 = username37;
@@ -441,9 +447,9 @@ export default class Player extends PathingEntity {
         this.timers.clear();
         this.heroPoints.clear();
         this.buildArea.clear(false);
-        this.appearance = -1;
+        this.appearanceInv = -1;
         this.lastAppearance = 0;
-        this.lastAppearanceBytes = null;
+        this.appearanceBuf = null;
         this.isActive = false;
     }
 
@@ -454,12 +460,12 @@ export default class Player extends PathingEntity {
         super.resetPathingEntity();
         this.repathed = false;
         this.protect = false;
-        this.messageColor = null;
-        this.messageEffect = null;
-        this.messageType = null;
-        this.message = null;
+        this.chatColour = null;
+        this.chatEffect = null;
+        this.chatRights = null;
+        this.chatMessage = null;
         this.logMessage = null;
-        this.appearance = -1;
+        this.appearanceInv = -1;
         this.socialProtect = false;
         this.reportAbuseProtect = false;
     }
@@ -657,7 +663,7 @@ export default class Player extends PathingEntity {
 
         if (this.moveSpeed !== MoveSpeed.INSTANT) {
             this.moveSpeed = this.defaultMoveSpeed();
-            if (this.basRunning === -1) {
+            if (this.runanim === -1) {
                 this.moveSpeed = MoveSpeed.WALK;
             } else if (this.tempRun) {
                 this.moveSpeed = MoveSpeed.RUN;
@@ -1308,7 +1314,7 @@ export default class Player extends PathingEntity {
 
         const skippedSlots = [];
 
-        let worn = this.getInventory(this.appearance);
+        let worn = this.getInventory(this.appearanceInv);
         if (!worn) {
             worn = new Inventory(InvType.WORN, 0);
         }
@@ -1357,7 +1363,14 @@ export default class Player extends PathingEntity {
             stream.p1(this.colors[i]);
         }
 
-        stream.p2(423);
+        stream.p2(this.readyanim);
+        stream.p2(this.turnanim);
+        stream.p2(this.walkanim);
+        stream.p2(this.walkanim_b);
+        stream.p2(this.walkanim_l);
+        stream.p2(this.walkanim_r);
+        stream.p2(this.runanim);
+
         stream.p8(this.username37);
         stream.p1(this.combatLevel);
         stream.p2(0); // skill level
@@ -1369,7 +1382,7 @@ export default class Player extends PathingEntity {
         stream.release();
 
         this.lastAppearance = World.currentTick;
-        this.lastAppearanceBytes = appearance;
+        this.appearanceBuf = appearance;
         return appearance;
     }
 
@@ -1842,7 +1855,7 @@ export default class Player extends PathingEntity {
     }
 
     buildAppearance(inv: number): void {
-        this.appearance = inv;
+        this.appearanceInv = inv;
         this.masks |= PlayerInfoProt.APPEARANCE;
     }
 
@@ -1859,9 +1872,9 @@ export default class Player extends PathingEntity {
     }
 
     spotanim(spotanim: number, height: number, delay: number) {
-        this.graphicId = spotanim;
-        this.graphicHeight = height;
-        this.graphicDelay = delay;
+        this.spotanimId = spotanim;
+        this.spotanimHeight = height;
+        this.spotanimTime = delay;
         this.masks |= PlayerInfoProt.SPOT_ANIM;
     }
 
@@ -1874,16 +1887,16 @@ export default class Player extends PathingEntity {
             this.levels[PlayerStat.HITPOINTS] = current - damage;
         }
 
-        if (this.damageSlot % 2 === 1) {
-            this.damageTaken2 = damage;
-            this.damageType2 = type;
+        if (this.hitmarkSlot % 2 === 1) {
+            this.hitmark2Damage = damage;
+            this.hitmark2Type = type;
             this.masks |= PlayerInfoProt.DAMAGE2;
         } else {
-            this.damageTaken = damage;
-            this.damageType = type;
+            this.hitmarkDamage = damage;
+            this.hitmarkType = type;
             this.masks |= PlayerInfoProt.DAMAGE;
         }
-        this.damageSlot++;
+        this.hitmarkSlot++;
     }
 
     setVisibility(visibility: Visibility) {
@@ -1905,7 +1918,7 @@ export default class Player extends PathingEntity {
     }
 
     say(message: string) {
-        this.chat = message;
+        this.sayMessage = message;
         this.masks |= PlayerInfoProt.SAY;
     }
 
@@ -1927,7 +1940,7 @@ export default class Player extends PathingEntity {
         this.exactEndZ = endZ;
         this.exactMoveStart = startCycle;
         this.exactMoveEnd = endCycle;
-        this.exactMoveDirection = direction;
+        this.exactMoveFacing = direction;
         this.masks |= PlayerInfoProt.EXACT_MOVE;
 
         // todo: interpolate over time? instant teleport? verify with true tile on osrs
@@ -2093,7 +2106,7 @@ export default class Player extends PathingEntity {
     }
 
     lastLoginInfo() {
-        const lastDate: bigint = this.lastDate === 0n ? BigInt(Date.now()) : this.lastDate;
+        const lastDate: bigint = this.lastLoginTime === 0n ? BigInt(Date.now()) : this.lastLoginTime;
         const nextDate: bigint = BigInt(Date.now());
 
         const lastIp = 2130706433; // 127.0.0.1
@@ -2104,16 +2117,8 @@ export default class Player extends PathingEntity {
         const unreadMessageCount = 0;
         const membersCreditDays = 365;
 
-        this.write(new LastLoginInfo(
-            lastIp,
-            currentDay,
-            daysSinceLogin,
-            daysSincePasswordChanged,
-            daysSinceRecoveriesChanged,
-            unreadMessageCount,
-            membersCreditDays
-        ));
-        this.lastDate = nextDate;
+        //this.write(new LastLoginInfo(lastIp, daysSinceLogin, daysSinceRecoveriesChanged, this.messageCount, warnMembersInNonMembers));
+        this.lastLoginTime = nextDate;
     }
 
     logout(): void {

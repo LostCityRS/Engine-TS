@@ -772,36 +772,36 @@ const PlayerOps: CommandHandlers = {
     },
 
     [ScriptOpcode.BAS_READYANIM]: state => {
-        state.activePlayer.basReadyAnim = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.readyanim = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_TURNONSPOT]: state => {
-        state.activePlayer.basTurnOnSpot = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.turnanim = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_WALK_F]: state => {
-        state.activePlayer.basWalkForward = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.walkanim = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_WALK_B]: state => {
-        state.activePlayer.basWalkBackward = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.walkanim_b = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_WALK_L]: state => {
-        state.activePlayer.basWalkLeft = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.walkanim_l = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_WALK_R]: state => {
-        state.activePlayer.basWalkRight = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.walkanim_r = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_RUNNING]: state => {
         const seq = state.popInt();
         if (seq === -1) {
-            state.activePlayer.basRunning = -1;
+            state.activePlayer.runanim = -1;
             return;
         }
-        state.activePlayer.basRunning = check(seq, SeqTypeValid).id;
+        state.activePlayer.runanim = check(seq, SeqTypeValid).id;
     },
 
     [ScriptOpcode.GENDER]: state => {

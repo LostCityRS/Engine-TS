@@ -73,7 +73,11 @@ export default abstract class PathingEntity extends Entity {
     targetX: number = -1;
     targetZ: number = -1;
 
-    // info update masks. resets at the end of every tick.
+    // sent on first add
+    faceAngleX: number = -1;
+    faceAngleZ: number = -1;
+
+    // info updates
     masks: number = 0;
     exactStartX: number = -1;
     exactStartZ: number = -1;
@@ -81,23 +85,21 @@ export default abstract class PathingEntity extends Entity {
     exactEndZ: number = -1;
     exactMoveStart: number = -1;
     exactMoveEnd: number = -1;
-    exactMoveDirection: number = -1;
-    faceX: number = -1;
-    faceZ: number = -1;
-    orientationX: number = -1;
-    orientationZ: number = -1;
+    exactMoveFacing: number = -1;
+    faceSquareX: number = -1;
+    faceSquareZ: number = -1;
     faceEntity: number = -1;
-    damageSlot: number = 0;
-    damageTaken: number = -1;
-    damageType: number = -1;
-    damageTaken2: number = -1;
-    damageType2: number = -1;
+    hitmarkSlot: number = 0;
+    hitmarkDamage: number = -1;
+    hitmarkType: number = -1;
+    hitmark2Damage: number = -1;
+    hitmark2Type: number = -1;
     animId: number = -1;
     animDelay: number = -1;
-    chat: string | null = null;
-    graphicId: number = -1;
-    graphicHeight: number = -1;
-    graphicDelay: number = -1;
+    sayMessage: string | null = null;
+    spotanimId: number = -1;
+    spotanimHeight: number = -1;
+    spotanimTime: number = -1;
 
     protected constructor(level: number, x: number, z: number, width: number, length: number, lifecycle: EntityLifeCycle, moveRestrict: MoveRestrict, blockWalk: BlockWalk, moveStrategy: MoveStrategy, coordmask: number, entitymask: number) {
         super(level, x, z, width, length, lifecycle);
@@ -323,12 +325,12 @@ export default abstract class PathingEntity extends Entity {
         // set the direction of the player/npc every time an interaction is set.
         // does not necessarily require the coord mask to be sent.
         // direction when the player/npc is first observed (updates on movement)
-        this.orientationX = fineX;
-        this.orientationZ = fineZ;
+        this.faceAngleX = fineX;
+        this.faceAngleZ = fineZ;
         if (client) {
             // direction update (only updates from facesquare or interactions)
-            this.faceX = fineX;
-            this.faceZ = fineZ;
+            this.faceSquareX = fineX;
+            this.faceSquareZ = fineZ;
             this.masks |= this.coordmask;
         }
     }
@@ -337,8 +339,8 @@ export default abstract class PathingEntity extends Entity {
      * Face and orient back to the default south.
      */
     unfocus(): void {
-        this.orientationX = CoordGrid.fine(this.x, this.width);
-        this.orientationZ = CoordGrid.fine(this.z - 1, this.length);
+        this.faceAngleX = CoordGrid.fine(this.x, this.width);
+        this.faceAngleZ = CoordGrid.fine(this.z - 1, this.length);
     }
 
     /**
@@ -595,22 +597,22 @@ export default abstract class PathingEntity extends Entity {
         this.exactEndZ = -1;
         this.exactMoveStart = -1;
         this.exactMoveEnd = -1;
-        this.exactMoveDirection = -1;
+        this.exactMoveFacing = -1;
         this.animId = -1;
         this.animDelay = -1;
         this.animId = -1;
         this.animDelay = -1;
-        this.chat = null;
-        this.damageTaken = -1;
-        this.damageType = -1;
-        this.damageTaken2 = -1;
-        this.damageType2 = -1;
-        this.damageSlot = 0;
-        this.graphicId = -1;
-        this.graphicHeight = -1;
-        this.graphicDelay = -1;
-        this.faceX = -1;
-        this.faceZ = -1;
+        this.sayMessage = null;
+        this.hitmarkDamage = -1;
+        this.hitmarkType = -1;
+        this.hitmark2Damage = -1;
+        this.hitmark2Type = -1;
+        this.hitmarkSlot = 0;
+        this.spotanimId = -1;
+        this.spotanimHeight = -1;
+        this.spotanimTime = -1;
+        this.faceSquareX = -1;
+        this.faceSquareZ = -1;
 
         if (!this.target && this.faceEntity !== -1) {
             this.masks |= this.entitymask;
