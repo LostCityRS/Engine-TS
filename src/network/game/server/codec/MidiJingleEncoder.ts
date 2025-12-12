@@ -8,7 +8,7 @@ export default class MidiJingleEncoder extends ServerGameMessageEncoder<MidiJing
 
     encode(buf: Packet, message: MidiJingle): void {
         buf.p2_alt1(message.id);
-        buf.p3_alt2(message.delay);
+        buf.p3_alt3(message.delay);
     }
 
     test(_message: MidiJingle): number {
