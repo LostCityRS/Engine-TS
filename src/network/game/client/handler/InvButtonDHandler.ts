@@ -12,9 +12,9 @@ export default class InvButtonDHandler extends ClientGameMessageHandler<InvButto
     handle(message: InvButtonD, player: Player): boolean {
         const { component: comId, slot, targetSlot } = message;
         // todo: pass message.mode to script
-
+        
         const com = Component.get(comId);
-        if (typeof com === 'undefined' || !player.isComponentVisible(com) || !com.draggable) {
+        if (typeof com === 'undefined' || !player.isComponentVisible(com) || (!com.draggable && !com.swappable)) {
             return false;
         }
 

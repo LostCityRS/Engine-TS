@@ -200,7 +200,8 @@ const ScriptOpcodePointers: {
         require: ['active_player']
     },
     [ScriptOpcode.IF_SETANIM]: {
-        require: ['active_player']
+        require: ['active_player'],
+        require2: ['active_player2']
     },
     [ScriptOpcode.IF_SETCOLOUR]: {
         require: ['active_player']
@@ -228,7 +229,8 @@ const ScriptOpcodePointers: {
         require: ['active_player']
     },
     [ScriptOpcode.IF_SETPOSITION]: {
-        require: ['active_player']
+        require: ['active_player'],
+        require2: ['active_player2']
     },
     [ScriptOpcode.IF_SETRESUMEBUTTONS]: {
         require: ['active_player']
@@ -283,13 +285,15 @@ const ScriptOpcodePointers: {
         require2: ['active_player2']
     },
     [ScriptOpcode.MIDI_JINGLE]: {
-        require: ['active_player']
+        require: ['active_player'],
+        require2: ['active_player2']
     },
     [ScriptOpcode.MIDI_SONG]: {
         require: ['active_player']
     },
     [ScriptOpcode.MINIMAP_TOGGLE]: {
-        require: ['active_player']
+        require: ['active_player'],
+        require2: ['active_player2']
     },
     [ScriptOpcode.NAME]: {
         require: ['active_player'],
