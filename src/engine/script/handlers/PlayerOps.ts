@@ -25,7 +25,6 @@ import {
     InvTypeValid,
     NpcTypeValid,
     NumberNotNull,
-    ObjTypeValid,
     PlayerStatValid,
     SeqTypeValid,
     StringNotNull,
@@ -639,7 +638,6 @@ const PlayerOps: CommandHandlers = {
         const [com, obj, scale] = state.popInts(3);
 
         check(com, NumberNotNull);
-        check(obj, ObjTypeValid);
         check(scale, NumberNotNull);
 
         state.activePlayer.write(new IfSetObject(com, obj, scale));
