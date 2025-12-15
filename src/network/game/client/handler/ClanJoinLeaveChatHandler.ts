@@ -1,7 +1,7 @@
-import Player from "#/engine/entity/Player.js";
-import ClientGameMessageHandler from "#/network/game/client/ClientGameMessageHandler.js";
-import ClanJoinLeaveChat from "#/network/game/client/model/ClanJoinLeaveChat.js";
-import { fromBase37 } from "#/util/JString.js";
+import Player from '#/engine/entity/Player.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
+import ClanJoinLeaveChat from '#/network/game/client/model/ClanJoinLeaveChat.js';
+import { fromBase37 } from '#/util/JString.js';
 
 export default class ClanJoinLeaveChatHandler extends ClientGameMessageHandler<ClanJoinLeaveChat> {
     handle(message: ClanJoinLeaveChat, _player: Player): boolean {

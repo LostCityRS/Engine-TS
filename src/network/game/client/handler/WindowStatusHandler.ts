@@ -1,7 +1,7 @@
-import Player from "#/engine/entity/Player.js";
+import Player from '#/engine/entity/Player.js';
 import World from '#/engine/World.js';
-import ClientGameMessageHandler from "#/network/game/client/ClientGameMessageHandler.js";
-import WindowStatus, { WindowMode } from "#/network/game/client/model/WindowStatus.js";
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
+import WindowStatus, { WindowMode } from '#/network/game/client/model/WindowStatus.js';
 
 export default class WindowStatusHandler extends ClientGameMessageHandler<WindowStatus> {
     handle(message: WindowStatus, player: Player): boolean {

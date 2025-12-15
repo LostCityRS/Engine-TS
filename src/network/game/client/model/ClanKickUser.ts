@@ -1,5 +1,5 @@
-import ClientGameMessage from "#/network/game/client/ClientGameMessage.js";
-import ClientGameProtCategory from "#/network/game/client/ClientGameProtCategory.js";
+import ClientGameMessage from '#/network/game/client/ClientGameMessage.js';
+import ClientGameProtCategory from '#/network/game/client/ClientGameProtCategory.js';
 
 export default class ClanKickUser extends ClientGameMessage {
     category = ClientGameProtCategory.USER_EVENT;

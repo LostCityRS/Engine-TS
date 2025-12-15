@@ -1,8 +1,8 @@
-import DetectModifiedClient from "#/network/game/client/model/DetectModifiedClient.js";
+import DetectModifiedClient from '#/network/game/client/model/DetectModifiedClient.js';
 import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
-import Player from "#/engine/entity/Player.js";
-import Environment from "#/util/Environment.js";
-import World from "#/engine/World.js";
+import Player from '#/engine/entity/Player.js';
+import Environment from '#/util/Environment.js';
+import World from '#/engine/World.js';
 
 export default class DetectModifiedClientHandler extends ClientGameMessageHandler<DetectModifiedClient> {
 
