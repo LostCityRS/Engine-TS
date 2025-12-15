@@ -2,13 +2,13 @@ export default class ClientGameProt {
     static all: ClientGameProt[] = [];
     static byId: ClientGameProt[] = [];
 
-    static readonly NO_TIMEOUT = new ClientGameProt(6, 9000, 0); // NXT naming
+    static readonly NO_TIMEOUT = new ClientGameProt(93, 9000, 0); // NXT naming
 
     static readonly IDLE_TIMER = new ClientGameProt(30, 9002, 0);
-    static readonly EVENT_MOUSE_CLICK = new ClientGameProt(31, 9003, 4); // NXT naming
-    static readonly EVENT_MOUSE_MOVE = new ClientGameProt(32, 9004, -1); // NXT naming
-    static readonly EVENT_APPLET_FOCUS = new ClientGameProt(33, 9005, 1); // NXT naming
-    static readonly EVENT_CAMERA_POSITION = new ClientGameProt(35, 9006, 4); // NXT naming
+    static readonly EVENT_MOUSE_CLICK = new ClientGameProt(31, 75, 4); // NXT naming
+    static readonly EVENT_MOUSE_MOVE = new ClientGameProt(32, 123, -1); // NXT naming
+    static readonly EVENT_APPLET_FOCUS = new ClientGameProt(33, 22, 1); // NXT naming
+    static readonly EVENT_CAMERA_POSITION = new ClientGameProt(35, 21, 4); // NXT naming
     static readonly EVENT_HAS_WINDOW = new ClientGameProt(36, 9007, 4);
     static readonly EVENT_SYNTH_ERROR = new ClientGameProt(37, 9008, 2);
 
@@ -67,34 +67,44 @@ export default class ClientGameProt {
     static readonly OPHELDT = new ClientGameProt(168, 9053, 8); // name based on runescript trigger
     static readonly OPHELDU = new ClientGameProt(169, 9054, 12); // name based on runescript trigger
 
-    static readonly INV_BUTTON1 = new ClientGameProt(190, 9055, 6); // NXT has "IF_BUTTON1" but for our interface system, this makes more sense
-    static readonly INV_BUTTON2 = new ClientGameProt(191, 9056, 6); // NXT has "IF_BUTTON2" but for our interface system, this makes more sense
-    static readonly INV_BUTTON3 = new ClientGameProt(192, 9057, 6); // NXT has "IF_BUTTON3" but for our interface system, this makes more sense
-    static readonly INV_BUTTON4 = new ClientGameProt(193, 9058, 6); // NXT has "IF_BUTTON4" but for our interface system, this makes more sense
-    static readonly INV_BUTTON5 = new ClientGameProt(194, 9059, 6); // NXT has "IF_BUTTON5" but for our interface system, this makes more sense
+    static readonly IF_BUTTON1 = new ClientGameProt(190, 9055, 6); // NXT naming
+    static readonly IF_BUTTON2 = new ClientGameProt(191, 9056, 6); // NXT naming
+    static readonly IF_BUTTON3 = new ClientGameProt(192, 9057, 6); // NXT naming
+    static readonly IF_BUTTON4 = new ClientGameProt(193, 9058, 6); // NXT naming
+    static readonly IF_BUTTON5 = new ClientGameProt(194, 9059, 6); // NXT naming
 
     static readonly IF_BUTTON = new ClientGameProt(200, 79, 9060); // NXT naming
     static readonly RESUME_PAUSEBUTTON = new ClientGameProt(201, 9061, 2); // NXT naming
-    static readonly CLOSE_MODAL = new ClientGameProt(202, 9062, 0); // NXT naming
+    static readonly CLOSE_MODAL = new ClientGameProt(202, 184, 0); // NXT naming
     static readonly RESUME_P_COUNTDIALOG = new ClientGameProt(203, 9063, 4); // NXT naming
     static readonly TUTORIAL_CLICKSIDE = new ClientGameProt(204, 9064, 1); // no original name
     static readonly RESUME_P_NAMEDIALOG = new ClientGameProt(205, 9065, 8); // NXT naming
 
-    static readonly MAP_BUILD_COMPLETE = new ClientGameProt(241, 9066, 0); // NXT naming
-    static readonly MOVE_OPCLICK = new ClientGameProt(242, 254, -1); // (comes with OP packets, name based on other MOVE packets)
-    static readonly REPORT_ABUSE = new ClientGameProt(243, 9068, 10);
+    static readonly MAP_BUILD_COMPLETE = new ClientGameProt(241, 110, 0); // NXT naming
+    static readonly MOVE_OPCLICK = new ClientGameProt(242, 77, -1); // (comes with OP packets, name based on other MOVE packets)
+    static readonly REPORT_ABUSE = new ClientGameProt(243, 99, 10); // NXT calls it 'BUG_REPORT'
     static readonly MOVE_MINIMAPCLICK = new ClientGameProt(244, 39, -1); // NXT naming
-    static readonly INV_BUTTOND = new ClientGameProt(245, 9070, 7); // NXT has "IF_BUTTOND" but for our interface system, this makes more sense
-    static readonly IGNORELIST_DEL = new ClientGameProt(246, 9071, 8); // NXT naming
-    static readonly IGNORELIST_ADD = new ClientGameProt(247, 9072, 8); // NXT naming
+    static readonly IF_BUTTOND = new ClientGameProt(245, 9070, 7); // NXT naming
+    static readonly IGNORELIST_DEL = new ClientGameProt(246, 213, 8); // NXT naming
+    static readonly IGNORELIST_ADD = new ClientGameProt(247, 34, 8); // NXT naming
     static readonly IF_PLAYERDESIGN = new ClientGameProt(248, 9073, 13);
     static readonly CHAT_SETMODE = new ClientGameProt(249, 9074, 3); // NXT naming
-    static readonly MESSAGE_PRIVATE = new ClientGameProt(250, 9075, -1); // NXT naming
-    static readonly FRIENDLIST_DEL = new ClientGameProt(251, 9076, 8); // NXT naming
-    static readonly FRIENDLIST_ADD = new ClientGameProt(252, 9077, 8); // NXT naming
+    static readonly MESSAGE_PRIVATE = new ClientGameProt(250, 201, -1); // NXT naming
+    static readonly FRIENDLIST_DEL = new ClientGameProt(251, 57, 8); // NXT naming
+    static readonly FRIENDLIST_ADD = new ClientGameProt(252, 120, 8); // NXT naming
     static readonly CLIENT_CHEAT = new ClientGameProt(253, 44, -1); // NXT naming
-    static readonly MESSAGE_PUBLIC = new ClientGameProt(254, 9079, -1); // NXT naming
+    static readonly MESSAGE_PUBLIC = new ClientGameProt(254, 237, -1); // NXT naming
     static readonly MOVE_GAMECLICK = new ClientGameProt(255, 215, -1); // NXT naming
+
+    // in these new revision we can't actually get the packed index from a leftover array, thus non-logical indexing
+    static readonly CLAN_JOINCHAT_LEAVECHAT = new ClientGameProt(256, 104, 8); // NXT naming
+    static readonly CLAN_KICKUSER = new ClientGameProt(257, 162, 8); // NXT naming
+    static readonly FRIEND_SETRANK = new ClientGameProt(258, 188, 9); // NXT naming
+
+    static readonly WINDOW_STATUS = new ClientGameProt(259, 243, 6); // NXT naming
+    static readonly DETECT_MODIFIED_CLIENT = new ClientGameProt(260, 20, 4); // NXT naming
+    static readonly TRANSMITVAR_VERIFYID = new ClientGameProt(261, 177, 2); // NXT naming
+    static readonly SOUND_SONGEND = new ClientGameProt(262, 137, 4); // NXT naming
 
     // in these old revisions we can actually get the packet index from a leftover array in the client source
     constructor(

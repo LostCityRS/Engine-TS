@@ -4,7 +4,7 @@ import ClientGameProt from '#/network/game/client/ClientGameProt.js';
 import InvButtonD from '#/network/game/client/model/InvButtonD.js';
 
 export default class InvButtonDDecoder extends ClientGameMessageDecoder<InvButtonD> {
-    prot = ClientGameProt.INV_BUTTOND;
+    prot = ClientGameProt.IF_BUTTOND;
 
     decode(buf: Packet) {
         const targetSlot = buf.g2_alt3();

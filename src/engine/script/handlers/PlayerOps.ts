@@ -206,11 +206,11 @@ const PlayerOps: CommandHandlers = {
             ServerTriggerType.OPHELD5,
             ServerTriggerType.OPHELDU,
             ServerTriggerType.OPHELDT,
-            ServerTriggerType.INV_BUTTON1,
-            ServerTriggerType.INV_BUTTON2,
-            ServerTriggerType.INV_BUTTON3,
-            ServerTriggerType.INV_BUTTON4,
-            ServerTriggerType.INV_BUTTON5
+            ServerTriggerType.IF_BUTTON1,
+            ServerTriggerType.IF_BUTTON2,
+            ServerTriggerType.IF_BUTTON3,
+            ServerTriggerType.IF_BUTTON4,
+            ServerTriggerType.IF_BUTTON5
         ];
         if (!allowedTriggers.includes(state.trigger)) {
             throw new Error('is not safe to use in this trigger');
@@ -228,12 +228,12 @@ const PlayerOps: CommandHandlers = {
             ServerTriggerType.OPHELD5,
             ServerTriggerType.OPHELDU,
             ServerTriggerType.OPHELDT,
-            ServerTriggerType.INV_BUTTON1,
-            ServerTriggerType.INV_BUTTON2,
-            ServerTriggerType.INV_BUTTON3,
-            ServerTriggerType.INV_BUTTON4,
-            ServerTriggerType.INV_BUTTON5,
-            ServerTriggerType.INV_BUTTOND
+            ServerTriggerType.IF_BUTTON1,
+            ServerTriggerType.IF_BUTTON2,
+            ServerTriggerType.IF_BUTTON3,
+            ServerTriggerType.IF_BUTTON4,
+            ServerTriggerType.IF_BUTTON5,
+            ServerTriggerType.IF_BUTTOND
         ];
         if (!allowedTriggers.includes(state.trigger)) {
             throw new Error('is not safe to use in this trigger');
@@ -865,7 +865,7 @@ const PlayerOps: CommandHandlers = {
     },
 
     [ScriptOpcode.LAST_TARGETSLOT]: state => {
-        const allowedTriggers = [ServerTriggerType.INV_BUTTOND];
+        const allowedTriggers = [ServerTriggerType.IF_BUTTOND];
         if (!allowedTriggers.includes(state.trigger)) {
             throw new Error('is not safe to use in this trigger');
         }

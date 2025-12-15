@@ -376,11 +376,11 @@ export default class Player extends PathingEntity {
     activeScript: ScriptState | null = null;
     resumeButtons: number[] = [];
 
-    lastItem: number = -1; // opheld, opheldu, opheldt, inv_button
-    lastSlot: number = -1; // opheld, opheldu, opheldt, inv_button, inv_buttond
+    lastItem: number = -1; // opheld, opheldu, opheldt, if_button
+    lastSlot: number = -1; // opheld, opheldu, opheldt, if_button, if_buttond
     lastUseItem: number = -1; // opheldu, opobju, oplocu, opnpcu, opplayeru
     lastUseSlot: number = -1; // opheldu, opobju, oplocu, opnpcu, opplayeru
-    lastTargetSlot: number = -1; // inv_buttond
+    lastTargetSlot: number = -1; // if_buttond
     lastCom: number = -1; // if_button
 
     staffModLevel: number = 0;

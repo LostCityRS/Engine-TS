@@ -40,15 +40,15 @@ export default class InvButtonHandler extends ClientGameMessageHandler<InvButton
 
         let trigger: ServerTriggerType;
         if (op === 1) {
-            trigger = ServerTriggerType.INV_BUTTON1;
+            trigger = ServerTriggerType.IF_BUTTON1;
         } else if (op === 2) {
-            trigger = ServerTriggerType.INV_BUTTON2;
+            trigger = ServerTriggerType.IF_BUTTON2;
         } else if (op === 3) {
-            trigger = ServerTriggerType.INV_BUTTON3;
+            trigger = ServerTriggerType.IF_BUTTON3;
         } else if (op === 4) {
-            trigger = ServerTriggerType.INV_BUTTON4;
+            trigger = ServerTriggerType.IF_BUTTON4;
         } else {
-            trigger = ServerTriggerType.INV_BUTTON5;
+            trigger = ServerTriggerType.IF_BUTTON5;
         }
 
         const script = ScriptProvider.getByTrigger(trigger, comId, -1);
