@@ -3,13 +3,13 @@ import ClientGameMessageHandler from "#/network/game/client/ClientGameMessageHan
 import ClanKickUser from "#/network/game/client/model/ClanKickUser.js";
 import { fromBase37 } from "#/util/JString.js";
 
-export default class ClanKickUserHanlder extends ClientGameMessageHandler<ClanKickUser> {
+export default class ClanKickUserHandler extends ClientGameMessageHandler<ClanKickUser> {
     handle(message: ClanKickUser, player: Player): boolean {
-            if (fromBase37(message.username) === 'invalid_name') {
-                return false;
-            }
+        if (fromBase37(message.username) === 'invalid_name') {
+            return false;
+        }
 
-            // TODO: remove username from players current clan, if they are priveleged enough within the clan to do so.
-            return true;
+        // TODO: remove username from players current clan, if they are priveleged enough within the clan to do so.
+        return true;
     }
 }

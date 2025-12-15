@@ -4,7 +4,7 @@ import ClanJoinLeaveChat from "#/network/game/client/model/ClanJoinLeaveChat.js"
 import { fromBase37 } from "#/util/JString.js";
 
 export default class ClanJoinLeaveChatHandler extends ClientGameMessageHandler<ClanJoinLeaveChat> {
-    handle(message: ClanJoinLeaveChat, player: Player): boolean {
+    handle(message: ClanJoinLeaveChat, _player: Player): boolean {
         // Client specifically sends 0 if wished action is to leave, do base37 after this to avoid false positives with leaving.
         if (message.clanname === 0n)
         {
