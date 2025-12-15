@@ -107,7 +107,7 @@ export default class NpcType extends ConfigType {
     turnspeed = 32;
 
     // server-side
-    regenRate = 100;
+    regenrate = 100;
     category = -1;
     wanderrange = 5;
     maxrange = 7;
@@ -245,6 +245,8 @@ export default class NpcType extends ConfigType {
             }
         } else if (code === 213) {
             this.givechase = false;
+        } else if (code === 214) {
+            this.regenrate = dat.g2();
         } else if (code === 249) {
             this.params = ParamHelper.decodeParams(dat);
         } else if (code === 250) {

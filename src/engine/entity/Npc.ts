@@ -512,11 +512,11 @@ export default class Npc extends PathingEntity {
     private processRegen() {
         const type = NpcType.get(this.type);
 
-        // Hp regen timer counts down and procs every `regenRate` ticks
+        // Hp regen timer counts down and procs every `regenrate` ticks
         // Since regenClock is initialized to 0, NPCs regen their hp on their first turn alive, and then on turn 101
         // This is accurate to OSRS behavior
-        if (type.regenRate !== 0 && --this.regenClock <= 0) {
-            this.regenClock = type.regenRate;
+        if (type.regenrate !== 0 && --this.regenClock <= 0) {
+            this.regenClock = type.regenrate;
             for (let index = 0; index < this.baseLevels.length; index++) {
                 const stat = this.levels[index];
                 const baseStat = this.baseLevels[index];
