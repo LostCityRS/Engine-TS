@@ -127,7 +127,7 @@ export default class FontType {
 
         let size = 0;
         for (let c = 0; c < str.length; c++) {
-            if (str.charAt(c) == '@' && c + 4 < str.length && str.charAt(c + 4) == '@') {
+            if (this.isTag(str.substring(c, c + 5))) {
                 c += 4;
             } else {
                 size += this.drawWidth[str.charCodeAt(c)];
@@ -154,6 +154,7 @@ export default class FontType {
 
             // we need to split on the next word boundary
             let splitIndex = str.length;
+            let isManualBreak = false;
 
             // check the width at every space to see where we can cut the line
             for (let i = 0; i < str.length; i++) {
@@ -165,13 +166,39 @@ export default class FontType {
                     splitIndex = i;
                 } else if (str[i] === '|') {
                     splitIndex = i;
+                    isManualBreak = true;
                     break;
                 }
             }
 
-            lines.push(str.substring(0, splitIndex));
-            str = str.substring(splitIndex + 1);
+            const currentLine = str.substring(0, splitIndex);
+            lines.push(currentLine);
+            const remaining = str.substring(splitIndex + 1);
+
+            // preserve tags on new line, @str@ only across automatic breaks
+            let lastTag = '';
+            let strikeThrough = false;
+            for (let c = 0; c <= splitIndex; c++) {
+                const tag = currentLine.substring(c, c + 5);
+                if (this.isTag(tag)) {
+                    if (tag == '@str@') {
+                        strikeThrough = true;
+                    } else {
+                        lastTag = tag;
+                    }
+                    c += 4;
+                }
+            }
+            if (this.isTag(remaining.trimStart().substring(0, 5))) {
+                str = remaining;
+            } else {
+                str = ((strikeThrough && !isManualBreak) ? '@str@' : lastTag) + remaining;
+            }
         }
         return lines;
+    }
+
+    isTag(str: string): boolean {
+        return str.length == 5 && str.charAt(0) == '@' && str.charAt(4) == '@';
     }
 }
