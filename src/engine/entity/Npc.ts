@@ -286,8 +286,11 @@ export default class Npc extends PathingEntity {
             this.uid = (this.type << 16) | this.nid;
             this.unfocus();
             this.playAnimation(-1, 0); // reset animation or last anim has a chance to appear on respawn
-            for (let index = 0; index < this.baseLevels.length; index++) {
-                this.levels[index] = this.baseLevels[index];
+            const npcType: NpcType = NpcType.get(this.type);
+            for (let index = 0; index < npcType.stats.length; index++) {
+                const level = npcType.stats[index];
+                this.levels[index] = level;
+                this.baseLevels[index] = level;
             }
             this.heroPoints.clear();
             this.queue.clear();
@@ -306,7 +309,6 @@ export default class Npc extends PathingEntity {
             this.varsString.fill(undefined);
             this.resetDefaults();
 
-            const npcType: NpcType = NpcType.get(this.type);
             this.huntrange = npcType.huntrange;
             this.huntMode = npcType.huntmode;
             this.huntClock = 0;
