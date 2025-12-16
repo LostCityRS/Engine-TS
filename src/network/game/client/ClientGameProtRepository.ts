@@ -24,6 +24,8 @@ import FriendSetRankDecoder from '#/network/game/client/codec/FriendSetRankDecod
 import FriendSetRankHandler from '#/network/game/client/handler/FriendSetRankHandler.js';
 import WindowStatusDecoder from '#/network/game/client/codec/WindowStatusDecoder.js';
 import WindowStatusHandler from '#/network/game/client/handler/WindowStatusHandler.js';
+import OpLocDecoder from '#/network/game/client/codec/OpLocDecoder.js';
+import OpLocHandler from '#/network/game/client/handler/OpLocHandler.js';
 
 class ClientGameProtRepository {
     decoders: Map<number, ClientGameMessageDecoder<ClientGameMessage>> = new Map();
@@ -66,6 +68,13 @@ class ClientGameProtRepository {
 
         this.bind(new ClanJoinLeaveChatDecoder(), new ClanJoinLeaveChatHandler());
         this.bind(new ClanKickUserDecoder(), new ClanKickUserHandler());
+
+        this.bind(new OpLocDecoder(ClientGameProt.OPLOC1, 1), new OpLocHandler());
+        this.bind(new OpLocDecoder(ClientGameProt.OPLOC2, 2), new OpLocHandler());
+        this.bind(new OpLocDecoder(ClientGameProt.OPLOC3, 3), new OpLocHandler());
+        this.bind(new OpLocDecoder(ClientGameProt.OPLOC4, 4), new OpLocHandler());
+        this.bind(new OpLocDecoder(ClientGameProt.OPLOC5, 5), new OpLocHandler());
+        this.bind(new OpLocDecoder(ClientGameProt.OPLOC6, 6), new OpLocHandler());
 
         this.bind(new WindowStatusDecoder(), new WindowStatusHandler());
     }

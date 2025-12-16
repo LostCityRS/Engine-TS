@@ -36,6 +36,8 @@ export default class OpLocDecoder extends ClientGameMessageDecoder<OpLoc> {
             loc = buf.g2_alt1();
             z = buf.g2_alt1();
             x = buf.g2();
+        } else if (this.op === 6) {
+            loc = buf.g2_alt3();
         }
 
         return new OpLoc(this.op, x, z, loc);
