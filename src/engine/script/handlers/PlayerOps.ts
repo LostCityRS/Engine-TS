@@ -40,6 +40,7 @@ import MinimapToggle from '#/network/game/server/model/MinimapToggle.js';
 import SynthSound from '#/network/game/server/model/SynthSound.js';
 import Environment from '#/util/Environment.js';
 import SetPlayerOp from '#/network/game/server/model/SetPlayerOp.js';
+import JavaRandom from '#/util/JavaRandom.js';
 
 const PlayerOps: CommandHandlers = {
     [ScriptOpcode.FINDUID]: state => {
@@ -511,7 +512,7 @@ const PlayerOps: CommandHandlers = {
 
         const level = state.activePlayer.levels[stat];
         const value = Math.floor((low * (99 - level)) / 98) + Math.floor((high * (level - 1)) / 98) + 1;
-        const chance = Math.floor(Math.random() * 256);
+        const chance = JavaRandom.nextInt(256);
 
         state.pushInt(value > chance ? 1 : 0);
     }),
