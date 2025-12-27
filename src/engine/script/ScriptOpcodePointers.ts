@@ -583,8 +583,9 @@ const ScriptOpcodePointers: {
     },
     [ScriptOpcode.NPC_FINDHERO]: {
         require: ['active_npc'],
+        require2: ['active_npc2'],
         set: ['active_player'],
-        set2: ['active_player'],
+        set2: ['active_player2'],
         conditional: true
     },
     [ScriptOpcode.NPC_FINDUID]: {
@@ -763,7 +764,7 @@ const ScriptOpcodePointers: {
     [ScriptOpcode.OBJ_ADD]: {
         require: ['active_player'],
         set: ['active_obj'],
-        require2: ['active_player'],
+        require2: ['active_player2'],
         set2: ['active_obj2']
     },
     [ScriptOpcode.OBJ_ADDALL]: {
@@ -792,7 +793,7 @@ const ScriptOpcodePointers: {
     },
     [ScriptOpcode.OBJ_TAKEITEM]: {
         require: ['active_obj', 'active_player'],
-        require2: ['active_obj', 'active_player2']
+        require2: ['active_obj2', 'active_player2']
     },
     [ScriptOpcode.OBJ_TYPE]: {
         require: ['active_obj'],
