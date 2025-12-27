@@ -150,7 +150,7 @@ export class PlayerLoading {
 
         // last login info
         if (version >= 6) {
-            player.lastDate = sav.g8();
+            player.lastLoginTime = sav.g8();
         }
 
         player.combatLevel = player.getCombatLevel();

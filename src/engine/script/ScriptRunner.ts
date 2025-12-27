@@ -25,7 +25,7 @@ import ScriptPointer from '#/engine/script/ScriptPointer.js';
 import ScriptState from '#/engine/script/ScriptState.js';
 import World from '#/engine/World.js';
 import Environment from '#/util/Environment.js';
-import { printWarning } from '#/util/Logger.js';
+import { printError, printWarning } from '#/util/Logger.js';
 
 export type CommandHandler = (state: ScriptState) => void;
 export type CommandHandlers = {
@@ -116,42 +116,53 @@ export default class ScriptRunner {
         return state;
     }
 
-    static execute(state: ScriptState, reset = false, benchmark = false) {
+    static execute(state: ScriptState) {
         if (!state || !state.script || !state.script.info) {
             return ScriptState.ABORTED;
         }
 
         try {
-            if (reset) {
-                state.reset();
-            }
-
             if (state.execution !== ScriptState.RUNNING) {
                 state.executionHistory.push(state.execution);
             }
             state.execution = ScriptState.RUNNING;
 
-            const start: number = performance.now() * 1000;
+            let start = 0;
+            if (Environment.NODE_DEBUG_PROFILE) {
+                start = performance.now() * 1000;
+            }
+
             while (state.execution === ScriptState.RUNNING) {
-                if (state.pc >= state.script.opcodes.length || state.pc < -1) {
-                    throw new Error('Invalid program counter: ' + state.pc + ', max expected: ' + state.script.opcodes.length);
+                const opcodes = state.script.opcodes;
+
+                if (state.pc >= opcodes.length || state.pc < -1) {
+                    throw new Error('Invalid program counter: ' + state.pc + ', max expected: ' + opcodes.length);
                 }
 
-                // if we're benchmarking we don't care about the opcount
-                if (!benchmark && state.opcount > 500_000) {
+                if (state.opcount > 500_000) {
                     throw new Error('Too many instructions');
                 }
 
                 state.opcount++;
-                ScriptRunner.executeInner(state, state.script.opcodes[++state.pc]);
+
+                const opcode = opcodes[++state.pc];
+                const handler = ScriptRunner.HANDLERS[opcode];
+                if (!handler) {
+                    throw new Error(`Unknown opcode ${opcode}`);
+                }
+
+                handler(state);
             }
-            const time: number = (performance.now() * 1000 - start) | 0;
-            if (Environment.NODE_DEBUG_PROFILE && time > 1000) {
-                const message: string = `Warning [cpu time]: Script: ${state.script.name}, time: ${time}us, opcount: ${state.opcount}`;
-                if (state.self instanceof Player) {
-                    state.self.wrappedMessageGame(message);
-                } else {
-                    printWarning(message);
+
+            if (Environment.NODE_DEBUG_PROFILE) {
+                const time: number = (performance.now() * 1000 - start) | 0;
+                if (time > 1000) {
+                    const message: string = `Warning [cpu time]: Script: ${state.script.name}, time: ${time}us, opcount: ${state.opcount}`;
+                    if (state.self instanceof Player) {
+                        state.self.wrappedMessageGame(message);
+                    } else {
+                        printWarning(message);
+                    }
                 }
             }
         } catch (err: any) {
@@ -173,27 +184,18 @@ export default class ScriptRunner {
             }
 
             if (state.self instanceof Player) {
+                printError(`Player script error - pid:${state.self.pid} name:${state.self.username}`);
+
                 state.self.wrappedMessageGame(`script error: ${err.message}`);
                 state.self.wrappedMessageGame(`file: ${state.script.fileName}`);
-                state.self.wrappedMessageGame('');
 
                 state.self.wrappedMessageGame('stack backtrace:');
                 state.self.wrappedMessageGame(`    1: ${state.script.name} - ${state.script.fileName}:${state.script.lineNumber(state.pc)}`);
 
                 let trace = 1;
-                for (let i = state.fp; i > 0; i--) {
-                    const frame = state.frames[i];
-                    if (frame) {
-                        trace++;
-                        state.self.wrappedMessageGame(`    ${trace}: ${frame.script.name} - ${frame.script.fileName}:${frame.script.lineNumber(frame.pc)}`);
-                    }
-                }
-                for (let i = state.debugFp; i >= 0; i--) {
+                for (let i = state.debugFp - 1; i > 0; i--) {
                     const frame = state.debugFrames[i];
-                    if (frame) {
-                        trace++;
-                        state.self.wrappedMessageGame(`    ${trace}: ${frame.script.name} - ${frame.script.fileName}:${frame.script.lineNumber(frame.pc)}`);
-                    }
+                    state.self.wrappedMessageGame(`    ${++trace}: ${frame.script.name} - ${frame.script.fileName}:${frame.script.lineNumber(frame.pc)}`);
                 }
 
                 if (Environment.NODE_PRODUCTION) {
@@ -201,6 +203,8 @@ export default class ScriptRunner {
                     state.self.loggingOut = true;
                 }
             } else if (state.self instanceof Npc) {
+                printError(`NPC script error - nid:${state.self.nid} type:${state.self.type}`);
+
                 if (Environment.NODE_PRODUCTION) {
                     World.removeNpc(state.self, 0);
                 }
@@ -214,33 +218,14 @@ export default class ScriptRunner {
             console.error(`    1: ${state.script.name} - ${state.script.fileName}:${state.script.lineNumber(state.pc)}`);
 
             let trace = 1;
-            for (let i = state.fp; i > 0; i--) {
-                const frame = state.frames[i];
-                if (frame) {
-                    trace++;
-                    console.error(`    ${trace}: ${frame.script.name} - ${frame.script.fileName}:${frame.script.lineNumber(frame.pc)}`);
-                }
-            }
-            for (let i = state.debugFp; i >= 0; i--) {
+            for (let i = state.debugFp - 1; i > 0; i--) {
                 const frame = state.debugFrames[i];
-                if (frame) {
-                    trace++;
-                    console.error(`    ${trace}: ${frame.script.name} - ${frame.script.fileName}:${frame.script.lineNumber(frame.pc)}`);
-                }
+                console.error(`    ${++trace}: ${frame.script.name} - ${frame.script.fileName}:${frame.script.lineNumber(frame.pc)}`);
             }
 
             state.execution = ScriptState.ABORTED;
         }
 
         return state.execution;
-    }
-
-    static executeInner(state: ScriptState, opcode: number) {
-        const handler = ScriptRunner.HANDLERS[opcode];
-        if (!handler) {
-            throw new Error(`Unknown opcode ${opcode}`);
-        }
-
-        handler(state);
     }
 }

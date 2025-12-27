@@ -43,10 +43,6 @@ export default class Jagfile {
         return new Jagfile(Packet.load(path));
     }
 
-    static async loadAsync(path: string): Promise<Jagfile> {
-        return new Jagfile(await Packet.loadAsync(path));
-    }
-
     constructor(src?: Packet) {
         if (!src) {
             return;

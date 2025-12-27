@@ -7,7 +7,6 @@ import { CoordGrid } from '#/engine/CoordGrid.js';
 import CameraInfo from '#/engine/entity/CameraInfo.js';
 import { PlayerTimerType } from '#/engine/entity/EntityTimer.js';
 import { Interaction } from '#/engine/entity/Interaction.js';
-import { isBufferFull } from '#/engine/entity/NetworkPlayer.js';
 import Player from '#/engine/entity/Player.js';
 import { PlayerQueueType, ScriptArgument } from '#/engine/entity/PlayerQueueRequest.js';
 import { PlayerStat } from '#/engine/entity/PlayerStat.js';
@@ -52,6 +51,7 @@ import SynthSound from '#/network/game/server/model/SynthSound.js';
 import TutFlash from '#/network/game/server/model/TutFlash.js';
 import ColorConversion from '#/util/ColorConversion.js';
 import Environment from '#/util/Environment.js';
+import JavaRandom from '#/util/JavaRandom.js';
 
 const PlayerOps: CommandHandlers = {
     [ScriptOpcode.FINDUID]: state => {
@@ -100,37 +100,83 @@ const PlayerOps: CommandHandlers = {
         if (!script) {
             throw new Error(`Unable to find queue script: ${scriptId}`);
         }
+
         state.activePlayer.enqueueScript(script, PlayerQueueType.STRONG, delay, args);
     }),
 
-    // https://x.com/JagexAsh/status/1698973910048403797
-    [ScriptOpcode.WEAKQUEUE]: checkedHandler(ActivePlayer, state => {
+    [ScriptOpcode.STRONGQUEUEVARARG]: checkedHandler(ActivePlayer, state => {
         const args = popScriptArgs(state);
-        const delay = check(state.popInt(), NumberNotNull);
-        const scriptId = state.popInt();
+        const [scriptId, delay] = state.popInts(2);
 
         const script = ScriptProvider.get(scriptId);
         if (!script) {
             throw new Error(`Unable to find queue script: ${scriptId}`);
         }
+
+        state.activePlayer.enqueueScript(script, PlayerQueueType.STRONG, delay, args);
+    }),
+
+    // https://x.com/JagexAsh/status/1698973910048403797
+    [ScriptOpcode.WEAKQUEUE]: checkedHandler(ActivePlayer, state => {
+        const [scriptId, delay, arg] = state.popInts(3);
+
+        const script = ScriptProvider.get(scriptId);
+        if (!script) {
+            throw new Error(`Unable to find queue script: ${scriptId}`);
+        }
+
+        state.activePlayer.enqueueScript(script, PlayerQueueType.WEAK, delay, [arg]);
+    }),
+
+    [ScriptOpcode.WEAKQUEUEVARARG]: checkedHandler(ActivePlayer, state => {
+        const args = popScriptArgs(state);
+        const [scriptId, delay] = state.popInts(2);
+
+        const script = ScriptProvider.get(scriptId);
+        if (!script) {
+            throw new Error(`Unable to find queue script: ${scriptId}`);
+        }
+
         state.activePlayer.enqueueScript(script, PlayerQueueType.WEAK, delay, args);
     }),
 
     // https://x.com/JagexAsh/status/1698973910048403797
     // https://x.com/JagexAsh/status/1821831590906859683
     [ScriptOpcode.QUEUE]: checkedHandler(ActivePlayer, state => {
-        const args = popScriptArgs(state);
-        const delay = check(state.popInt(), NumberNotNull);
-        const scriptId = state.popInt();
+        const [scriptId, delay, arg] = state.popInts(3);
 
         const script = ScriptProvider.get(scriptId);
         if (!script) {
             throw new Error(`Unable to find queue script: ${scriptId}`);
         }
+
+        state.activePlayer.enqueueScript(script, PlayerQueueType.NORMAL, delay, [arg]);
+    }),
+
+    [ScriptOpcode.QUEUEVARARG]: checkedHandler(ActivePlayer, state => {
+        const args = popScriptArgs(state);
+        const [scriptId, delay] = state.popInts(2);
+
+        const script = ScriptProvider.get(scriptId);
+        if (!script) {
+            throw new Error(`Unable to find queue script: ${scriptId}`);
+        }
+
         state.activePlayer.enqueueScript(script, PlayerQueueType.NORMAL, delay, args);
     }),
 
     [ScriptOpcode.LONGQUEUE]: checkedHandler(ActivePlayer, state => {
+        const [scriptId, delay, arg, logoutAction] = state.popInts(4);
+
+        const script = ScriptProvider.get(scriptId);
+        if (!script) {
+            throw new Error(`Unable to find queue script: ${scriptId}`);
+        }
+
+        state.activePlayer.enqueueScript(script, PlayerQueueType.LONG, delay, [logoutAction, arg]);
+    }),
+
+    [ScriptOpcode.LONGQUEUEVARARG]: checkedHandler(ActivePlayer, state => {
         const args = popScriptArgs(state);
         const [scriptId, delay, logoutAction] = state.popInts(3);
 
@@ -153,7 +199,8 @@ const PlayerOps: CommandHandlers = {
     // https://x.com/JagexAsh/status/1694990340669747261
     // soft-limit for developers to be better aware of the bandwidth used and mitigate the impact on the player experience
     [ScriptOpcode.BUFFER_FULL]: checkedHandler(ActivePlayer, state => {
-        state.pushInt(isBufferFull(state.activePlayer) ? 1 : 0);
+        // todo: should we have this yet?
+        state.pushInt(0);
     }),
 
     [ScriptOpcode.BUILDAPPEARANCE]: checkedHandler(ActivePlayer, state => {
@@ -528,7 +575,7 @@ const PlayerOps: CommandHandlers = {
 
         const level = state.activePlayer.levels[stat];
         const value = Math.floor((low * (99 - level)) / 98) + Math.floor((high * (level - 1)) / 98) + 1;
-        const chance = Math.floor(Math.random() * 256);
+        const chance = JavaRandom.nextInt(256);
 
         state.pushInt(value > chance ? 1 : 0);
     }),
@@ -886,36 +933,36 @@ const PlayerOps: CommandHandlers = {
     },
 
     [ScriptOpcode.BAS_READYANIM]: state => {
-        state.activePlayer.basReadyAnim = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.readyanim = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_TURNONSPOT]: state => {
-        state.activePlayer.basTurnOnSpot = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.turnanim = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_WALK_F]: state => {
-        state.activePlayer.basWalkForward = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.walkanim = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_WALK_B]: state => {
-        state.activePlayer.basWalkBackward = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.walkanim_b = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_WALK_L]: state => {
-        state.activePlayer.basWalkLeft = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.walkanim_l = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_WALK_R]: state => {
-        state.activePlayer.basWalkRight = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.walkanim_r = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_RUNNING]: state => {
         const seq = state.popInt();
         if (seq === -1) {
-            state.activePlayer.basRunning = -1;
+            state.activePlayer.runanim = -1;
             return;
         }
-        state.activePlayer.basRunning = check(seq, SeqTypeValid).id;
+        state.activePlayer.runanim = check(seq, SeqTypeValid).id;
     },
 
     [ScriptOpcode.GENDER]: state => {
@@ -1166,7 +1213,7 @@ const PlayerOps: CommandHandlers = {
 
     [ScriptOpcode.PLAYERMEMBER]: checkedHandler(ActivePlayer, state => {
         state.pushInt(state.activePlayer.members ? 1 : 0);
-    })
+    }),
 };
 
 /**

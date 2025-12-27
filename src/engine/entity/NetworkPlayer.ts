@@ -68,7 +68,12 @@ export class NetworkPlayer extends Player {
         this.restrictedLimit = 0;
 
         const bytesStart = this.client.in.pos;
-        while (this.userLimit < ClientGameProtCategory.USER_EVENT.limit && this.clientLimit < ClientGameProtCategory.CLIENT_EVENT.limit && this.restrictedLimit < ClientGameProtCategory.RESTRICTED_EVENT.limit && this.read()) {
+        while (
+            this.userLimit < ClientGameProtCategory.USER_EVENT.limit &&
+            this.clientLimit < ClientGameProtCategory.CLIENT_EVENT.limit &&
+            this.restrictedLimit < ClientGameProtCategory.RESTRICTED_EVENT.limit &&
+            this.read()
+        ) {
             // empty
         }
         const bytesRead = bytesStart - this.client.in.pos;
@@ -132,18 +137,21 @@ export class NetworkPlayer extends Player {
         this.client.read(NetworkPlayer.inBuf.data, 0, this.client.waiting);
 
         const packetType = ClientGameProt.byId[this.client.opcode];
-        const decoder = ClientGameProtRepository.getDecoder(packetType);
+        if (packetType) {
+            const decoder = ClientGameProtRepository.getDecoder(packetType);
 
-        if (decoder) {
-            const message = decoder.decode(NetworkPlayer.inBuf, this.client.waiting);
-            const success: boolean = ClientGameProtRepository.getHandler(packetType)?.handle(message, this) ?? false;
-            // todo: move out of model
-            if (success && message.category === ClientGameProtCategory.USER_EVENT) {
-                this.userLimit++;
-            } else if (message.category === ClientGameProtCategory.RESTRICTED_EVENT) {
-                this.restrictedLimit++;
-            } else {
-                this.clientLimit++;
+            if (decoder) {
+                const message = decoder.decode(NetworkPlayer.inBuf, this.client.waiting);
+                const success: boolean = ClientGameProtRepository.getHandler(packetType)?.handle(message, this) ?? false;
+
+                // todo: move out of model
+                if (success && message.category === ClientGameProtCategory.USER_EVENT) {
+                    this.userLimit++;
+                } else if (message.category === ClientGameProtCategory.RESTRICTED_EVENT) {
+                    this.restrictedLimit++;
+                } else {
+                    this.clientLimit++;
+                }
             }
         }
 
@@ -185,12 +193,6 @@ export class NetworkPlayer extends Player {
             this.write(new IfOpenOverlay(this.overlay));
             this.lastOverlay = this.overlay;
         }
-
-        for (const message of this.buffer) {
-            this.writeInner(message);
-        }
-
-        this.buffer = [];
     }
 
     writeInner(message: ServerGameMessage): void {
@@ -201,7 +203,7 @@ export class NetworkPlayer extends Player {
 
         const encoder: ServerGameMessageEncoder<ServerGameMessage> | undefined = ServerGameProtRepository.getEncoder(message);
         if (!encoder) {
-            printError(`No encoder for message ${message.constructor.name}`);
+            printError(`No encoder for ${message.constructor.name}`);
             return;
         }
 
@@ -235,7 +237,7 @@ export class NetworkPlayer extends Player {
             buf.psize2(buf.pos - start);
         }
 
-        this.client.send(buf.data.slice(0, buf.pos));
+        this.client.send(buf.data.subarray(0, buf.pos));
         World.cycleStats[WorldStat.BANDWIDTH_OUT] += buf.pos;
     }
 
@@ -417,24 +419,4 @@ export class NetworkPlayer extends Player {
 
 export function isClientConnected(player: Player): player is NetworkPlayer {
     return player instanceof NetworkPlayer && !(player.client instanceof NullClientSocket);
-}
-
-export function isBufferFull(player: Player): boolean {
-    if (!isClientConnected(player)) {
-        return false;
-    }
-
-    let total = 0;
-
-    for (const message of player.buffer) {
-        const encoder: ServerGameMessageEncoder<ServerGameMessage> | undefined = ServerGameProtRepository.getEncoder(message);
-        if (!encoder) {
-            return true;
-        }
-
-        const prot = encoder.prot;
-        total += 1 + (prot.length === -1 ? 1 : prot.length === -2 ? 2 : 0) + encoder.test(message);
-    }
-
-    return total >= 5000;
 }

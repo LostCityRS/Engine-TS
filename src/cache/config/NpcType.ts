@@ -24,16 +24,6 @@ export default class NpcType extends ConfigType {
         this.parse(server, jag);
     }
 
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/npc.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const [server, jag] = await Promise.all([file.arrayBuffer(), Jagfile.loadAsync(`${dir}/client/config`)]);
-        this.parse(new Packet(new Uint8Array(server)), jag);
-    }
-
     static parse(server: Packet, jag: Jagfile) {
         NpcType.configNames = new Map();
         NpcType.configs = [];
@@ -106,7 +96,7 @@ export default class NpcType extends ConfigType {
     headicon = -1;
 
     // server-side
-    regenRate = 100;
+    regenrate = 100;
     category = -1;
     wanderrange = 5;
     maxrange = 7;
@@ -242,6 +232,8 @@ export default class NpcType extends ConfigType {
             }
         } else if (code === 213) {
             this.givechase = false;
+        } else if (code === 214) {
+            this.regenrate = dat.g2();
         } else if (code === 249) {
             this.params = ParamHelper.decodeParams(dat);
         } else if (code === 250) {

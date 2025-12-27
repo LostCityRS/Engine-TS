@@ -1,3 +1,5 @@
+import v8 from 'node:v8';
+
 import { Visibility } from '@2004scape/rsbuf';
 import { LocAngle, LocShape } from '@2004scape/rsmod-pathfinder';
 
@@ -11,7 +13,9 @@ import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import SeqType from '#/cache/config/SeqType.js';
 import SpotanimType from '#/cache/config/SpotanimType.js';
 import VarPlayerType from '#/cache/config/VarPlayerType.js';
+
 import { CoordGrid } from '#/engine/CoordGrid.js';
+import World from '#/engine/World.js';
 import { EntityLifeCycle } from '#/engine/entity/EntityLifeCycle.js';
 import Loc from '#/engine/entity/Loc.js';
 import { MoveStrategy } from '#/engine/entity/MoveStrategy.js';
@@ -21,11 +25,14 @@ import Player, { getExpByLevel } from '#/engine/entity/Player.js';
 import { PlayerStat, PlayerStatEnabled, PlayerStatMap } from '#/engine/entity/PlayerStat.js';
 import ScriptProvider from '#/engine/script/ScriptProvider.js';
 import ScriptRunner from '#/engine/script/ScriptRunner.js';
-import World from '#/engine/World.js';
+
 import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import ClientCheat from '#/network/game/client/model/ClientCheat.js';
+
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
+
 import Environment from '#/util/Environment.js';
+import { printDebug } from '#/util/Logger.js';
 import { tryParseInt } from '#/util/TryParse.js';
 
 export default class ClientCheatHandler extends ClientGameMessageHandler<ClientCheat> {
@@ -467,6 +474,9 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                 }
 
                 player.openMainModal(type.id);
+            } else if (cmd === 'snapshot') {
+                const heap = v8.writeHeapSnapshot();
+                printDebug(`Heap snapshot written to: ${heap}`);
             }
         }
 

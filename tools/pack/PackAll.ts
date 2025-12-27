@@ -4,29 +4,31 @@ import { parentPort } from 'worker_threads';
 
 import * as fflate from 'fflate';
 
-import Environment from '#/util/Environment.js';
+import FileStream from '#/io/FileStream.js';
+import Packet from '#/io/Packet.js';
+
 import { ModelPack, revalidatePack } from '#tools/pack/PackFile.js';
 import { packClientWordenc } from '#tools/pack/chat/pack.js';
 import { packConfigs } from '#tools/pack/config/PackShared.js';
-import { packClientModel } from '#tools/pack/graphics/pack.js';
+import { packClientGraphics } from '#tools/pack/graphics/pack.js';
 import { packClientInterface } from '#tools/pack/interface/PackClient.js';
 import { packMaps } from '#tools/pack/map/Pack.js';
-import { packClientMusic } from '#tools/pack/midi/pack.js';
+import { packClientMidi } from '#tools/pack/midi/pack.js';
 import { packClientSound } from '#tools/pack/sound/pack.js';
 import { packClientMedia } from '#tools/pack/sprite/media.js';
 import { packClientTexture } from '#tools/pack/sprite/textures.js';
 import { packClientTitle } from '#tools/pack/sprite/title.js';
-import { generateServerSymbols } from '#tools/pack/CompilerSymbols.js';
-import FileStream from '#/io/FileStream.js';
+import { generateCompilerSymbols } from '#tools/pack/CompilerSymbols.js';
 import { packClientVersionList } from '#tools/pack/versionlist/pack.js';
 import { clearFsCache } from '#tools/pack/FsCache.js';
-import Packet from '#/io/Packet.js';
 
-export async function packClient(modelFlags: number[]) {
+import Environment from '#/util/Environment.js';
+
+export async function packAll(modelFlags: number[]) {
     if (parentPort) {
         parentPort.postMessage({
             type: 'dev_progress',
-            broadcast: 'Packing client cache (0%)'
+            broadcast: 'Packing changes'
         });
     }
 
@@ -37,20 +39,36 @@ export async function packClient(modelFlags: number[]) {
         modelFlags[i] = 0;
     }
 
+    // todo: better build conditions to do minimal rebuilds and only build a new client cache if necessary
     const cache = new FileStream('data/pack', true);
 
-    await packClientTitle(cache);
     await packConfigs(cache, modelFlags);
     packClientInterface(cache, modelFlags);
+
+    // todo: better/native compiler integration to extract npc_add/npc_changetype calls for modelFlags
+    generateCompilerSymbols(); // relies on reading configs/interfaces
+    try {
+        child_process.execSync(`"${Environment.BUILD_JAVA_PATH}" -jar RuneScriptCompiler.jar`, { stdio: 'inherit' });
+    } catch (_err) {
+        // console.error(err);
+        if (parentPort) {
+            throw new Error('Failed to compile scripts.');
+        }
+    }
+
+    await packClientTitle(cache);
     await packClientMedia(cache);
     await packClientTexture(cache);
-
     packClientWordenc(cache);
     packClientSound(cache);
-    packClientModel(cache, modelFlags);
-    packMaps(cache);
-    packClientMusic(cache);
-    packClientVersionList(cache, modelFlags);
+
+    packClientGraphics(cache, modelFlags);
+
+    packClientMidi(cache);
+
+    packMaps(cache, modelFlags);
+
+    packClientVersionList(cache, modelFlags); // relies on additional flags set during packMaps
 
     const build = Packet.alloc(0);
     build.p4(Date.now() / 1000);
@@ -74,44 +92,7 @@ export async function packClient(modelFlags: number[]) {
     if (parentPort) {
         parentPort.postMessage({
             type: 'dev_progress',
-            text: 'Packed client cache'
-        });
-    }
-}
-export async function packServer() {
-    if (!fs.existsSync('RuneScriptCompiler.jar')) {
-        throw new Error('The RuneScript compiler is missing and the build process cannot continue.');
-    }
-
-    if (parentPort) {
-        parentPort.postMessage({
-            type: 'dev_progress',
-            broadcast: 'Packing server cache (50%)'
-        });
-    }
-
-    generateServerSymbols();
-
-    if (parentPort) {
-        parentPort.postMessage({
-            type: 'dev_progress',
-            text: 'Compiling server scripts'
-        });
-    }
-
-    try {
-        child_process.execSync(`"${Environment.BUILD_JAVA_PATH}" -jar RuneScriptCompiler.jar`, { stdio: 'inherit' });
-    } catch (_err) {
-        // console.error(err);
-        if (parentPort) {
-            throw new Error('Failed to compile scripts.');
-        }
-    }
-
-    if (parentPort) {
-        parentPort.postMessage({
-            type: 'dev_progress',
-            text: 'Packed server cache'
+            text: 'Reloading with changes'
         });
     }
 }

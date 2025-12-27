@@ -1,6 +1,6 @@
 import { NetworkPlayer } from '#/engine/entity/NetworkPlayer.js';
 import Player from '#/engine/entity/Player.js';
-import InputTrackingBlob from '#/engine/entity/tracking/InputEvent.js';
+import InputTrackingBlob from '#/engine/entity/tracking/InputTrackingBlob.js';
 import World from '#/engine/World.js';
 import EnableTracking from '#/network/game/server/model/EnableTracking.js';
 import FinishTracking from '#/network/game/server/model/FinishTracking.js';

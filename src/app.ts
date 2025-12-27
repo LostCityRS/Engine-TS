@@ -2,7 +2,7 @@ import fs from 'fs';
 
 import { collectDefaultMetrics, register } from 'prom-client';
 
-import { packClient, packServer } from '#tools/pack/PackAll.js';
+import { packAll } from '#tools/pack/PackAll.js';
 import World from '#/engine/World.js';
 import TcpServer from '#/server/tcp/TcpServer.js';
 import Environment from '#/util/Environment.js';
@@ -21,8 +21,7 @@ if (!fs.existsSync('data/pack/client/config') || !fs.existsSync('data/pack/serve
     try {
         // todo: different logic so the main thread doesn't have to load pack files
         const modelFlags: number[] = [];
-        await packClient(modelFlags);
-        await packServer();
+        await packAll(modelFlags);
     } catch (err) {
         if (err instanceof Error) {
             printError(err.message);

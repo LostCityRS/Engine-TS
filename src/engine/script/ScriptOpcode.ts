@@ -206,6 +206,10 @@ export const enum ScriptOpcode {
     P_RUN, // todo: real command name?
     PLAYERMEMBER, // official
     IF_SETSCROLLPOS, // official
+    QUEUEVARARG,
+    LONGQUEUEVARARG,
+    WEAKQUEUEVARARG,
+    STRONGQUEUEVARARG,
 
     // Npc ops (2500-2999)
     NPC_ADD = 2500, // official
@@ -590,6 +594,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['LAST_USEITEM', ScriptOpcode.LAST_USEITEM],
     ['LAST_USESLOT', ScriptOpcode.LAST_USESLOT],
     ['LONGQUEUE', ScriptOpcode.LONGQUEUE],
+    ['LONGQUEUE*', ScriptOpcode.LONGQUEUEVARARG],
     ['MES', ScriptOpcode.MES],
     ['MIDI_JINGLE', ScriptOpcode.MIDI_JINGLE],
     ['MIDI_SONG', ScriptOpcode.MIDI_SONG],
@@ -618,6 +623,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['PLAYER_FINDALLZONE', ScriptOpcode.PLAYER_FINDALLZONE],
     ['PLAYER_FINDNEXT', ScriptOpcode.PLAYER_FINDNEXT],
     ['QUEUE', ScriptOpcode.QUEUE],
+    ['QUEUE*', ScriptOpcode.QUEUEVARARG],
     ['SAY', ScriptOpcode.SAY],
     ['WALKTRIGGER', ScriptOpcode.WALKTRIGGER],
     ['SETTIMER', ScriptOpcode.SETTIMER],
@@ -634,8 +640,10 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['STAT_DRAIN', ScriptOpcode.STAT_DRAIN],
     ['STAT_RANDOM', ScriptOpcode.STAT_RANDOM],
     ['STRONGQUEUE', ScriptOpcode.STRONGQUEUE],
+    ['STRONGQUEUE*', ScriptOpcode.STRONGQUEUEVARARG],
     ['UID', ScriptOpcode.UID],
     ['WEAKQUEUE', ScriptOpcode.WEAKQUEUE],
+    ['WEAKQUEUE*', ScriptOpcode.WEAKQUEUEVARARG],
     ['IF_OPENMAINOVERLAY', ScriptOpcode.IF_OPENMAINOVERLAY],
     ['AFK_EVENT', ScriptOpcode.AFK_EVENT],
     ['LOWMEMORY', ScriptOpcode.LOWMEMORY],

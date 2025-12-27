@@ -47,8 +47,8 @@ export default class Npc extends PathingEntity {
     startX: number;
     startZ: number;
     startLevel: number;
-    levels: Uint8Array = new Uint8Array(6);
-    baseLevels: Uint8Array = new Uint8Array(6);
+    levels: Uint16Array = new Uint16Array(6);
+    baseLevels: Uint16Array = new Uint16Array(6);
 
     // runtime variables
     readonly vars: Int32Array;
@@ -286,8 +286,11 @@ export default class Npc extends PathingEntity {
             this.uid = (this.type << 16) | this.nid;
             this.unfocus();
             this.playAnimation(-1, 0); // reset animation or last anim has a chance to appear on respawn
-            for (let index = 0; index < this.baseLevels.length; index++) {
-                this.levels[index] = this.baseLevels[index];
+            const npcType: NpcType = NpcType.get(this.type);
+            for (let index = 0; index < npcType.stats.length; index++) {
+                const level = npcType.stats[index];
+                this.levels[index] = level;
+                this.baseLevels[index] = level;
             }
             this.heroPoints.clear();
             this.queue.clear();
@@ -306,7 +309,6 @@ export default class Npc extends PathingEntity {
             this.varsString.fill(undefined);
             this.resetDefaults();
 
-            const npcType: NpcType = NpcType.get(this.type);
             this.huntrange = npcType.huntrange;
             this.huntMode = npcType.huntmode;
             this.huntClock = 0;
@@ -456,7 +458,7 @@ export default class Npc extends PathingEntity {
             return;
         }
 
-        if (anim == -1 || this.animId == -1 || SeqType.get(anim).priority > SeqType.get(this.animId).priority || SeqType.get(this.animId).priority === 0) {
+        if (anim == -1 || this.animId == -1 || SeqType.get(anim).priority >= SeqType.get(this.animId).priority) {
             this.animId = anim;
             this.animDelay = delay;
             this.masks |= NpcInfoProt.ANIM;
@@ -464,9 +466,9 @@ export default class Npc extends PathingEntity {
     }
 
     spotanim(spotanim: number, height: number, delay: number) {
-        this.graphicId = spotanim;
-        this.graphicHeight = height;
-        this.graphicDelay = delay;
+        this.spotanimId = spotanim;
+        this.spotanimHeight = height;
+        this.spotanimTime = delay;
         this.masks |= NpcInfoProt.SPOT_ANIM;
     }
 
@@ -479,16 +481,16 @@ export default class Npc extends PathingEntity {
             this.levels[NpcStat.HITPOINTS] = current - damage;
         }
 
-        if (this.damageSlot % 2 === 1) {
-            this.damageTaken2 = damage;
-            this.damageType2 = type;
+        if (this.hitmarkSlot % 2 === 1) {
+            this.hitmark2Damage = damage;
+            this.hitmark2Type = type;
             this.masks |= NpcInfoProt.DAMAGE2;
         } else {
-            this.damageTaken = damage;
-            this.damageType = type;
+            this.hitmarkDamage = damage;
+            this.hitmarkType = type;
             this.masks |= NpcInfoProt.DAMAGE;
         }
-        this.damageSlot++;
+        this.hitmarkSlot++;
     }
 
     say(text: string) {
@@ -496,7 +498,7 @@ export default class Npc extends PathingEntity {
             return;
         }
 
-        this.chat = text;
+        this.sayMessage = text;
         this.masks |= NpcInfoProt.SAY;
     }
 
@@ -512,11 +514,11 @@ export default class Npc extends PathingEntity {
     private processRegen() {
         const type = NpcType.get(this.type);
 
-        // Hp regen timer counts down and procs every `regenRate` ticks
+        // Hp regen timer counts down and procs every `regenrate` ticks
         // Since regenClock is initialized to 0, NPCs regen their hp on their first turn alive, and then on turn 101
         // This is accurate to OSRS behavior
-        if (type.regenRate !== 0 && --this.regenClock <= 0) {
-            this.regenClock = type.regenRate;
+        if (type.regenrate !== 0 && --this.regenClock <= 0) {
+            this.regenClock = type.regenrate;
             for (let index = 0; index < this.baseLevels.length; index++) {
                 const stat = this.levels[index];
                 const baseStat = this.baseLevels[index];
@@ -541,6 +543,10 @@ export default class Npc extends PathingEntity {
     }
 
     private processQueue() {
+        if (!this.isActive) {
+            return;
+        }
+
         for (const request of this.queue.all()) {
             // purposely only decrements the delay when the npc is not delayed
             if (!this.delayed) {
@@ -561,7 +567,7 @@ export default class Npc extends PathingEntity {
     }
 
     private processMovementInteraction() {
-        if (this.delayed) {
+        if (this.delayed || !this.isActive) {
             return;
         }
 
