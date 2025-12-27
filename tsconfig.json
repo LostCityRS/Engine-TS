@@ -6,7 +6,6 @@
     "lib": ["ESNext", "WebWorker"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "#3rdparty/*": ["src/3rdparty/*"],
