@@ -232,8 +232,8 @@ export function packInterface(modelFlags: number[]) {
     const server = Packet.alloc(5);
 
     let lastRoot = null;
-    client.p2(InterfacePack.size);
-    server.p2(InterfacePack.size);
+    client.p2(InterfacePack.max);
+    server.p2(InterfacePack.max);
     for (let i = 0; i < interfaceOrder.length; i++) {
         const id = interfaceOrder[i];
         const com = component[id];

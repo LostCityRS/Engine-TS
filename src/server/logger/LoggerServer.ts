@@ -1,7 +1,7 @@
 import { WebSocket, WebSocketServer } from 'ws';
 
 import { db, toDbDate } from '#/db/query.js';
-import InputTrackingBlob from '#/engine/entity/tracking/InputEvent.js';
+import InputTrackingBlob from '#/engine/entity/tracking/InputTrackingBlob.js';
 import { SessionLog } from '#/engine/entity/tracking/SessionLog.js';
 import { WealthTransactionEvent } from '#/engine/entity/tracking/WealthEvent.js';
 import Environment from '#/util/Environment.js';

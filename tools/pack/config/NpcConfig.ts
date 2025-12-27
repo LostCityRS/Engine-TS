@@ -23,7 +23,8 @@ export function parseNpcConfig(key: string, value: string): ConfigValue | null |
         'hitpoints', 'attack', 'strength', 'defence', 'magic', 'ranged',
         'timer', 'respawnrate',
         'ambient', 'contrast',
-        'headicon'
+        'headicon',
+        'regenrate'
     ];
     // prettier-ignore
     const booleanKeys = [
@@ -83,7 +84,7 @@ export function parseNpcConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
 
-        if (key === 'respawnrate' && (number < 0 || number > 12000)) {
+        if ((key === 'respawnrate' || key === 'regenrate') && (number < 0 || number > 12000)) {
             return null;
         }
 
@@ -292,11 +293,11 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                 } else if (key.startsWith('model')) {
                     const index = parseInt(key.substring('model'.length)) - 1;
                     models[index] = value as number;
-                    modelFlags[value as number] |= 0x4;
+                    modelFlags[value as number] |= 0x2; // todo: use context from script compiler
                 } else if (key.match(/head\d+/)) {
                     const index = parseInt(key.substring('head'.length)) - 1;
                     heads[index] = value as number;
-                    modelFlags[value as number] |= 0x4;
+                    modelFlags[value as number] |= 0x2; // todo: use context from script compiler
                 } else if (key.startsWith('recol')) {
                     const index = parseInt(key.substring('recol'.length, key.length - 1)) - 1;
                     if (key.endsWith('s')) {
@@ -429,6 +430,9 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                     if (value === false) {
                         server.p1(213);
                     }
+                } else if (key === 'regenrate') {
+                    server.p1(214);
+                    server.p2(value as number);
                 }
             }
 

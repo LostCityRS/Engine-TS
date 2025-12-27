@@ -80,6 +80,8 @@ export async function startWeb() {
                 return new Response(Buffer.from(OnDemand.cache.read(0, 8)!));
             } else if (url.pathname.startsWith('/ondemand.zip')) {
                 return new Response(Bun.file('data/pack/ondemand.zip'));
+            } else if (url.pathname.startsWith('/build')) {
+                return new Response(Bun.file('data/pack/server/build'));
             } else if (url.pathname === '/rs2.cgi') {
                 const plugin = tryParseInt(url.searchParams.get('plugin'), 0);
                 const lowmem = tryParseInt(url.searchParams.get('lowmem'), 0);

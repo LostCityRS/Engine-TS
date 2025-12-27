@@ -9,7 +9,7 @@ export default class ScriptProvider {
     /**
      * The expected version of the script compiler that the runtime should be loading scripts from.
      */
-    public static readonly COMPILER_VERSION = 24;
+    public static readonly COMPILER_VERSION = 26;
 
     /**
      * Array of loaded scripts.
@@ -35,11 +35,6 @@ export default class ScriptProvider {
     static load(dir: string): number {
         const dat = Packet.load(`${dir}/server/script.dat`);
         const idx = Packet.load(`${dir}/server/script.idx`);
-        return this.parse(dat, idx);
-    }
-
-    static async loadAsync(dir: string): Promise<number> {
-        const [dat, idx] = await Promise.all([Packet.loadAsync(`${dir}/server/script.dat`), Packet.loadAsync(`${dir}/server/script.idx`)]);
         return this.parse(dat, idx);
     }
 

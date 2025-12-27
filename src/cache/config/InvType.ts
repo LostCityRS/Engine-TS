@@ -25,16 +25,6 @@ export default class InvType extends ConfigType {
         this.parse(dat);
     }
 
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/inv.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const dat = new Packet(new Uint8Array(await file.arrayBuffer()));
-        this.parse(dat);
-    }
-
     static parse(dat: Packet) {
         InvType.configNames = new Map();
         InvType.configs = [];

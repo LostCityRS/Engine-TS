@@ -18,16 +18,6 @@ export default class EnumType extends ConfigType {
         this.parse(dat);
     }
 
-    static async loadAsync(dir: string) {
-        const file = await fetch(`${dir}/server/enum.dat`);
-        if (!file.ok) {
-            return;
-        }
-
-        const dat = new Packet(new Uint8Array(await file.arrayBuffer()));
-        this.parse(dat);
-    }
-
     static parse(dat: Packet) {
         EnumType.configNames = new Map();
         EnumType.configs = [];

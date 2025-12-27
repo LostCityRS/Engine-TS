@@ -148,6 +148,10 @@ export default class Model {
         Model.loaded++;
 
         const info = Model.meta[id];
+        if (!info.data) {
+            return new Model();
+        }
+
         const model = new Model();
         model.vertexCount = info.vertexCount;
         model.faceCount = info.faceCount;

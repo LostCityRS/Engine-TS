@@ -12,6 +12,7 @@ export default class MoveClickHandler extends ClientGameMessageHandler<MoveClick
             player.write(new UnsetMapFlag());
             return false;
         }
+
         const start = message.path[0];
         if (message.ctrlHeld < 0 || message.ctrlHeld > 1 || CoordGrid.distanceToSW(player, { x: start.x, z: start.z }) > 104) {
             player.unsetMapFlag();
@@ -34,20 +35,25 @@ export default class MoveClickHandler extends ClientGameMessageHandler<MoveClick
             const dest = message.path[message.path.length - 1];
             player.userPath = [CoordGrid.packCoord(player.level, dest.x, dest.z)];
         }
+
         if (Environment.NODE_WALKTRIGGER_SETTING === WalkTriggerSetting.PLAYERPACKET) {
             player.pathToMoveClick(player.userPath, !Environment.NODE_CLIENT_ROUTEFINDER);
         }
+
         if (!message.opClick) {
             player.clearPendingAction();
+
             if (player.runenergy < 100 && message.ctrlHeld === 1) {
                 player.tempRun = 0;
             } else {
                 player.tempRun = message.ctrlHeld;
             }
+
             if (Environment.NODE_WALKTRIGGER_SETTING === WalkTriggerSetting.PLAYERPACKET && player.hasWaypoints()) {
                 player.processWalktrigger();
             }
         }
+
         return true;
     }
 }

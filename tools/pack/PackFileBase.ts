@@ -71,9 +71,38 @@ export class PackFile {
         this.refreshNames();
     }
 
+    clear() {
+        this.pack.clear();
+        this.names.clear();
+        this.nameToId.clear();
+        this.max = 0;
+    }
+
     register(id: number, name: string) {
         this.pack.set(id, name);
         this.nameToId.set(name, id);
+    }
+
+    delete(id: number) {
+        const name = this.pack.get(id);
+
+        if (typeof name !== 'undefined') {
+            this.pack.delete(id);
+            this.nameToId.delete(name);
+
+            this.refreshNames();
+        }
+    }
+
+    deleteByName(name: string) {
+        const id = this.nameToId.get(name);
+
+        if (typeof id !== 'undefined') {
+            this.nameToId.delete(name);
+            this.pack.delete(id);
+
+            this.refreshNames();
+        }
     }
 
     refreshNames() {
