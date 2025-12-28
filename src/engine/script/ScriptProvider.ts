@@ -38,11 +38,6 @@ export default class ScriptProvider {
         return this.parse(dat, idx);
     }
 
-    static async loadAsync(dir: string): Promise<number> {
-        const [dat, idx] = await Promise.all([Packet.loadAsync(`${dir}/server/script.dat`), Packet.loadAsync(`${dir}/server/script.idx`)]);
-        return this.parse(dat, idx);
-    }
-
     static parse(dat: Packet, idx: Packet): number {
         if (!dat.data.length || !idx.data.length) {
             printFatalError('No server cache found. Please build the cache first.');

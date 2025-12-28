@@ -17,7 +17,7 @@ import ZoneGrid from '#/engine/zone/ZoneGrid.js';
 import ZoneMap from '#/engine/zone/ZoneMap.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
-import { printDebug, printWarning } from '#/util/Logger.js';
+import { printDebug, printFatalError, printWarning } from '#/util/Logger.js';
 
 export default class GameMap {
     private static readonly OPEN: number = 0x0;
@@ -46,10 +46,19 @@ export default class GameMap {
     }
 
     init(): void {
+        if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps`)) {
+            return;
+        }
+
         printDebug('Loading game map');
 
-        this.loadCsvMap(this.multimap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').replace(/\r/g, '').split('\n'));
-        this.loadCsvMap(this.freemap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').replace(/\r/g, '').split('\n'));
+        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`)) {
+            this.loadCsvMap(this.multimap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').replace(/\r/g, '').split('\n'));
+        }
+
+        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`)) {
+            this.loadCsvMap(this.freemap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').replace(/\r/g, '').split('\n'));
+        }
 
         const path: string = 'data/pack/server/maps/';
         const maps: string[] = fs.readdirSync(path).filter(x => x[0] === 'm');
@@ -65,6 +74,8 @@ export default class GameMap {
             this.loadGround(lands, Packet.load(`${path}m${mx}_${mz}`), mapsquareX, mapsquareZ);
             this.loadLocations(lands, Packet.load(`${path}l${mx}_${mz}`), mapsquareX, mapsquareZ);
         }
+
+        printDebug(`${World.getTotalNpcs()}/${Environment.NODE_MAX_NPCS} static NPCs added`);
     }
 
     isMulti(coord: number): boolean {
@@ -112,6 +123,10 @@ export default class GameMap {
                     continue;
                 }
                 const npcType: NpcType = NpcType.get(id);
+                if (!npcType) {
+                    printFatalError(`Invalid npc type ${id} in map m${mapsquareX >> 6}_${mapsquareZ >> 6}.jm2`);
+                    continue;
+                }
                 const size: number = npcType.size;
                 const npc: Npc = new Npc(level, absoluteX, absoluteZ, size, size, EntityLifeCycle.RESPAWN, World.getNextNid(), npcType.id, npcType.moverestrict, npcType.blockwalk);
                 if ((npcType.members && this.members) || !npcType.members) {
@@ -232,7 +247,7 @@ export default class GameMap {
 
                 const type: LocType = LocType.get(locId);
                 if (!type) {
-                    printWarning(`Missing loc config ${locId}`);
+                    printFatalError(`Invalid loc type ${locId} in map m${mapsquareX >> 6}_${mapsquareZ >> 6}.jm2`);
                     continue;
                 }
 

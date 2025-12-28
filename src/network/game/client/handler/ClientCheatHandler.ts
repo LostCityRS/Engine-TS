@@ -1,3 +1,5 @@
+import v8 from 'node:v8';
+
 import { Visibility } from '@2004scape/rsbuf';
 import { LocAngle, LocShape } from '@2004scape/rsmod-pathfinder';
 
@@ -11,7 +13,9 @@ import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import SeqType from '#/cache/config/SeqType.js';
 import SpotanimType from '#/cache/config/SpotanimType.js';
 import VarPlayerType from '#/cache/config/VarPlayerType.js';
+
 import { CoordGrid } from '#/engine/CoordGrid.js';
+import World from '#/engine/World.js';
 import { EntityLifeCycle } from '#/engine/entity/EntityLifeCycle.js';
 import Loc from '#/engine/entity/Loc.js';
 import { MoveStrategy } from '#/engine/entity/MoveStrategy.js';
@@ -21,15 +25,17 @@ import Player, { getExpByLevel } from '#/engine/entity/Player.js';
 import { PlayerStat, PlayerStatEnabled, PlayerStatMap } from '#/engine/entity/PlayerStat.js';
 import ScriptProvider from '#/engine/script/ScriptProvider.js';
 import ScriptRunner from '#/engine/script/ScriptRunner.js';
-import World from '#/engine/World.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import ClientCheat from '#/network/game/client/model/ClientCheat.js';
+
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
+
 import Environment from '#/util/Environment.js';
+import { printDebug } from '#/util/Logger.js';
 import { tryParseInt } from '#/util/TryParse.js';
 
-
-export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
+export default class ClientCheatHandler extends ClientGameMessageHandler<ClientCheat> {
     handle(message: ClientCheat, player: Player): boolean {
         if (message.input.length > 80) {
             return false;
@@ -323,7 +329,7 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     while (random === -1) {
                         random = Math.trunc(Math.random() * ObjType.count);
                         const obj = ObjType.get(random);
-                        if ((!Environment.NODE_MEMBERS && obj.members) || obj.dummyitem != 0) {
+                        if ((!Environment.NODE_MEMBERS && obj.members) || obj.dummyitem !== 0 || obj.certtemplate !== -1) {
                             random = -1;
                         }
                     }
@@ -455,6 +461,22 @@ export default class ClientCheatHandler extends MessageHandler<ClientCheat> {
                     return false;
                 }
                 World.addNpc(new Npc(player.level, player.x, player.z, type.size, type.size, EntityLifeCycle.DESPAWN, World.getNextNid(), type.id, type.moverestrict, type.blockwalk), 500);
+            } else if (cmd === 'openmain') {
+                if (args.length < 1) {
+                    return false;
+                }
+
+                const name: string = args[0];
+                const type: Component | null = Component.getByName(name);
+
+                if (!type || type.rootLayer !== type.id) {
+                    return false;
+                }
+
+                player.openMainModal(type.id);
+            } else if (cmd === 'snapshot') {
+                const heap = v8.writeHeapSnapshot();
+                printDebug(`Heap snapshot written to: ${heap}`);
             }
         }
 

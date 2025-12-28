@@ -1,7 +1,9 @@
 import fs from 'fs';
+import { parentPort } from 'worker_threads';
 
 import Environment from '#/util/Environment.js';
 import { loadFile } from '#tools/pack/Parse.js';
+import { printError, printFatalError } from '#/util/Logger.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PackFileValidator = (packfile: PackFile, ...args: any[]) => void;
@@ -28,10 +30,20 @@ export class PackFile {
     }
 
     reload() {
-        if (this.validator !== null) {
-            this.validator(this, ...this.validatorArgs);
-        } else {
-            this.load(`${Environment.BUILD_SRC_DIR}/pack/${this.type}.pack`);
+        try {
+            if (this.validator !== null) {
+                this.validator(this, ...this.validatorArgs);
+            } else {
+                this.load(`${Environment.BUILD_SRC_DIR}/pack/${this.type}.pack`);
+            }
+        } catch (err) {
+            if (err instanceof Error) {
+                if (parentPort) {
+                    printError(err.message);
+                } else {
+                    printFatalError(err.message);
+                }
+            }
         }
     }
 
@@ -59,9 +71,38 @@ export class PackFile {
         this.refreshNames();
     }
 
+    clear() {
+        this.pack.clear();
+        this.names.clear();
+        this.nameToId.clear();
+        this.max = 0;
+    }
+
     register(id: number, name: string) {
         this.pack.set(id, name);
         this.nameToId.set(name, id);
+    }
+
+    delete(id: number) {
+        const name = this.pack.get(id);
+
+        if (typeof name !== 'undefined') {
+            this.pack.delete(id);
+            this.nameToId.delete(name);
+
+            this.refreshNames();
+        }
+    }
+
+    deleteByName(name: string) {
+        const id = this.nameToId.get(name);
+
+        if (typeof id !== 'undefined') {
+            this.nameToId.delete(name);
+            this.pack.delete(id);
+
+            this.refreshNames();
+        }
     }
 
     refreshNames() {

@@ -1,9 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 
+import NpcType from '#/cache/config/NpcType.js';
+
 import BZip2 from '#/io/BZip2.js';
 import Packet from '#/io/Packet.js';
+
 import Environment from '#/util/Environment.js';
+import { printFatalError } from '#/util/Logger.js';
+
 import { shouldBuildFile } from '#tools/pack/PackFile.js';
 import { listFilesExt } from '#tools/pack/Parse.js';
 
@@ -57,7 +62,7 @@ function readMap(map) {
         } else if (section === 'NPC') {
             let parts = line.split(':');
             let [level, localX, localZ] = parts[0].split(' ');
-            let id = parts[1];
+            let id = parts[1].slice(1);
 
             if (!npc[level]) {
                 npc[level] = [];
@@ -124,20 +129,12 @@ export function packMaps() {
 
         const packerUpdated = shouldBuildFile(__filename, mapFile);
 
-        let data = null;
-        let map = null;
-        if (
-            packerUpdated ||
-            shouldBuildFile(file, mapFile) || shouldBuildFile(file, locFile) ||
-            shouldBuildFile(file, serverNpcFile) || shouldBuildFile(file, serverLocFile)
-        ) {
-            data = fs
-                .readFileSync(file, 'utf8')
-                .replace(/\r/g, '')
-                .split('\n')
-                .filter(x => x.length);
-            map = readMap(data);
-        }
+        const data = fs
+            .readFileSync(file, 'utf8')
+            .replace(/\r/g, '')
+            .split('\n')
+            .filter(x => x.length);
+        const map = readMap(data);
 
         // encode land data
         if (packerUpdated || shouldBuildFile(file, mapFile) || shouldBuildFile(file, serverMapFile)) {
@@ -364,6 +361,8 @@ export function packMaps() {
         if (packerUpdated || shouldBuildFile(file, serverNpcFile)) {
             let out = Packet.alloc(1);
 
+            NpcType.load('data/pack');
+
             for (let level = 0; level < 4; level++) {
                 if (!map.npc[level]) {
                     continue;
@@ -387,6 +386,11 @@ export function packMaps() {
                         out.p1(npcs.length);
                         for (let i = 0; i < npcs.length; i++) {
                             out.p2(npcs[i]);
+
+                            const type = NpcType.get(npcs[i]);
+                            if (!type) {
+                                printFatalError(`m${mapX}_${mapZ}: NPC type does not exist: ${npcs[i]}`);
+                            }
                         }
                     }
                 }

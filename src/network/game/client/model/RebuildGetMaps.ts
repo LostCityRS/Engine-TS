@@ -1,8 +1,8 @@
-import ClientProtCategory from '#/network/game/client/codec/ClientProtCategory.js';
-import IncomingMessage from '#/network/game/client/IncomingMessage.js';
+import ClientGameProtCategory from '#/network/game/client/ClientGameProtCategory.js';
+import ClientGameMessage from '#/network/game/client/ClientGameMessage.js';
 
-export default class RebuildGetMaps extends IncomingMessage {
-    category = ClientProtCategory.RESTRICTED_EVENT;
+export default class RebuildGetMaps extends ClientGameMessage {
+    category = ClientGameProtCategory.RESTRICTED_EVENT;
 
     constructor(readonly maps: Int32Array) {
         super();

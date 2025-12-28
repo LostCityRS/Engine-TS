@@ -1,9 +1,9 @@
-import ClientProtCategory from '#/network/game/client/codec/ClientProtCategory.js';
-import IncomingMessage from '#/network/game/client/IncomingMessage.js';
+import ClientGameProtCategory from '#/network/game/client/ClientGameProtCategory.js';
+import ClientGameMessage from '#/network/game/client/ClientGameMessage.js';
 import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/engine/entity/ChatModes.js';
 
-export default class ChatSetMode extends IncomingMessage {
-    category = ClientProtCategory.USER_EVENT;
+export default class ChatSetMode extends ClientGameMessage {
+    category = ClientGameProtCategory.USER_EVENT;
 
     constructor(
         readonly publicChat: ChatModePublic,

@@ -16,7 +16,7 @@ import ScriptOpcodePointers from '#/engine/script/ScriptOpcodePointers.js';
 import Environment from '#/util/Environment.js';
 import { loadDir, loadPack } from '#tools/pack/NameMap.js';
 
-export function generateServerSymbols() {
+export function generateCompilerSymbols() {
     fs.mkdirSync('data/symbols', { recursive: true });
 
     const constants: Record<string, string> = {};
@@ -191,7 +191,6 @@ export function generateServerSymbols() {
     fs.writeFileSync('data/symbols/vars.sym', varsSymbols);
 
     ParamType.load('data/pack');
-
     let paramSymbols = '';
     const params = loadPack(`${Environment.BUILD_SRC_DIR}/pack/param.pack`);
     for (let i = 0; i < params.length; i++) {
@@ -325,7 +324,6 @@ export function generateServerSymbols() {
     fs.writeFileSync('data/symbols/commands.sym', commandSymbols);
 
     DbTableType.load('data/pack');
-
     let dbTableSymbols = '';
     let dbColumnSymbols = '';
     const dbtables = loadPack(`${Environment.BUILD_SRC_DIR}/pack/dbtable.pack`);

@@ -1,18 +1,18 @@
 import { CoordGrid } from '#/engine/CoordGrid.js';
 import { NetworkPlayer } from '#/engine/entity/NetworkPlayer.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import MoveClick from '#/network/game/client/model/MoveClick.js';
 import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 import Environment from '#/util/Environment.js';
 import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 
-
-export default class MoveClickHandler extends MessageHandler<MoveClick> {
+export default class MoveClickHandler extends ClientGameMessageHandler<MoveClick> {
     handle(message: MoveClick, player: NetworkPlayer): boolean {
         if (player.delayed) {
             player.write(new UnsetMapFlag());
             return false;
         }
+
         const start = message.path[0];
         if (message.ctrlHeld < 0 || message.ctrlHeld > 1 || CoordGrid.distanceToSW(player, { x: start.x, z: start.z }) > 104) {
             player.unsetMapFlag();
@@ -35,20 +35,25 @@ export default class MoveClickHandler extends MessageHandler<MoveClick> {
             const dest = message.path[message.path.length - 1];
             player.userPath = [CoordGrid.packCoord(player.level, dest.x, dest.z)];
         }
+
         if (Environment.NODE_WALKTRIGGER_SETTING === WalkTriggerSetting.PLAYERPACKET) {
             player.pathToMoveClick(player.userPath, !Environment.NODE_CLIENT_ROUTEFINDER);
         }
+
         if (!message.opClick) {
             player.clearPendingAction();
+
             if (player.runenergy < 100 && message.ctrlHeld === 1) {
                 player.tempRun = 0;
             } else {
                 player.tempRun = message.ctrlHeld;
             }
+
             if (Environment.NODE_WALKTRIGGER_SETTING === WalkTriggerSetting.PLAYERPACKET && player.hasWaypoints()) {
                 player.processWalktrigger();
             }
         }
+
         return true;
     }
 }

@@ -47,8 +47,8 @@ export default class Npc extends PathingEntity {
     startX: number;
     startZ: number;
     startLevel: number;
-    levels: Uint8Array = new Uint8Array(6);
-    baseLevels: Uint8Array = new Uint8Array(6);
+    levels: Uint16Array = new Uint16Array(6);
+    baseLevels: Uint16Array = new Uint16Array(6);
 
     // runtime variables
     readonly vars: Int32Array;
@@ -286,8 +286,11 @@ export default class Npc extends PathingEntity {
             this.uid = (this.type << 16) | this.nid;
             this.unfocus();
             this.playAnimation(-1, 0); // reset animation or last anim has a chance to appear on respawn
-            for (let index = 0; index < this.baseLevels.length; index++) {
-                this.levels[index] = this.baseLevels[index];
+            const npcType: NpcType = NpcType.get(this.type);
+            for (let index = 0; index < npcType.stats.length; index++) {
+                const level = npcType.stats[index];
+                this.levels[index] = level;
+                this.baseLevels[index] = level;
             }
             this.heroPoints.clear();
             this.queue.clear();
@@ -306,7 +309,6 @@ export default class Npc extends PathingEntity {
             this.varsString.fill(undefined);
             this.resetDefaults();
 
-            const npcType: NpcType = NpcType.get(this.type);
             this.huntrange = npcType.huntrange;
             this.huntMode = npcType.huntmode;
             this.huntClock = 0;
@@ -464,20 +466,20 @@ export default class Npc extends PathingEntity {
     }
 
     spotanim(spotanim: number, height: number, delay: number) {
-        this.graphicId = spotanim;
-        this.graphicHeight = height;
-        this.graphicDelay = delay;
+        this.spotanimId = spotanim;
+        this.spotanimHeight = height;
+        this.spotanimTime = delay;
         this.masks |= NpcInfoProt.SPOT_ANIM;
     }
 
     applyDamage(damage: number, type: number) {
-        this.damageTaken = damage;
-        this.damageType = type;
+        this.hitmarkDamage = damage;
+        this.hitmarkType = type;
 
         const current = this.levels[NpcStat.HITPOINTS];
         if (current - damage <= 0) {
             this.levels[NpcStat.HITPOINTS] = 0;
-            this.damageTaken = current;
+            this.hitmarkDamage = current;
         } else {
             this.levels[NpcStat.HITPOINTS] = current - damage;
         }
@@ -490,7 +492,7 @@ export default class Npc extends PathingEntity {
             return;
         }
 
-        this.chat = text;
+        this.sayMessage = text;
         this.masks |= NpcInfoProt.SAY;
     }
 
@@ -506,11 +508,11 @@ export default class Npc extends PathingEntity {
     private processRegen() {
         const type = NpcType.get(this.type);
 
-        // Hp regen timer counts down and procs every `regenRate` ticks
+        // Hp regen timer counts down and procs every `regenrate` ticks
         // Since regenClock is initialized to 0, NPCs regen their hp on their first turn alive, and then on turn 101
         // This is accurate to OSRS behavior
-        if (type.regenRate !== 0 && --this.regenClock <= 0) {
-            this.regenClock = type.regenRate;
+        if (type.regenrate !== 0 && --this.regenClock <= 0) {
+            this.regenClock = type.regenrate;
             for (let index = 0; index < this.baseLevels.length; index++) {
                 const stat = this.levels[index];
                 const baseStat = this.baseLevels[index];
@@ -535,6 +537,10 @@ export default class Npc extends PathingEntity {
     }
 
     private processQueue() {
+        if (!this.isActive) {
+            return;
+        }
+
         for (const request of this.queue.all()) {
             // purposely only decrements the delay when the npc is not delayed
             if (!this.delayed) {
@@ -555,7 +561,7 @@ export default class Npc extends PathingEntity {
     }
 
     private processMovementInteraction() {
-        if (this.delayed) {
+        if (this.delayed || !this.isActive) {
             return;
         }
 

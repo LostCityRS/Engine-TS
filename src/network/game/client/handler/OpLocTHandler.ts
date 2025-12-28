@@ -3,12 +3,11 @@ import { Interaction } from '#/engine/entity/Interaction.js';
 import { NetworkPlayer } from '#/engine/entity/NetworkPlayer.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import OpLocT from '#/network/game/client/model/OpLocT.js';
 import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 
-
-export default class OpLocTHandler extends MessageHandler<OpLocT> {
+export default class OpLocTHandler extends ClientGameMessageHandler<OpLocT> {
     handle(message: OpLocT, player: NetworkPlayer): boolean {
         const { x, z, loc: locId, spellComponent: spellComId } = message;
 

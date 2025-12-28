@@ -4,7 +4,7 @@ import BZip2 from '#/io/BZip2.js';
 import Environment from '#/util/Environment.js';
 import { shouldBuild } from '#tools/pack/PackFile.js';
 
-export function packClientMusic() {
+export function packClientMidi() {
     if (!shouldBuild(`${Environment.BUILD_SRC_DIR}/jingles`, '', 'data/pack/client/jingles')) {
         return;
     }

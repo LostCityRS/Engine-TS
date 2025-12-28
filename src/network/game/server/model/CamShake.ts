@@ -1,14 +1,11 @@
-import { ServerProtPriority } from '#/network/game/server/codec/ServerProtPriority.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 
-export default class CamShake extends OutgoingMessage {
-    priority = ServerProtPriority.BUFFERED;
-
+export default class CamShake extends ServerGameMessage {
     constructor(
-        readonly type: number,
-        readonly jitter: number,
+        readonly axis: number,
+        readonly random: number,
         readonly amplitude: number,
-        readonly frequency: number
+        readonly rate: number
     ) {
         super();
     }

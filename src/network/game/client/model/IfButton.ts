@@ -1,8 +1,8 @@
-import ClientProtCategory from '#/network/game/client/codec/ClientProtCategory.js';
-import IncomingMessage from '#/network/game/client/IncomingMessage.js';
+import ClientGameProtCategory from '#/network/game/client/ClientGameProtCategory.js';
+import ClientGameMessage from '#/network/game/client/ClientGameMessage.js';
 
-export default class IfButton extends IncomingMessage {
-    category = ClientProtCategory.USER_EVENT;
+export default class IfButton extends ClientGameMessage {
+    category = ClientGameProtCategory.USER_EVENT;
 
     constructor(readonly component: number) {
         super();

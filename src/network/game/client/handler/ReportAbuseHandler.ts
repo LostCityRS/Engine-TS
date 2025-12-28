@@ -1,12 +1,11 @@
 import Player from '#/engine/entity/Player.js';
 import World from '#/engine/World.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import ReportAbuse, { ReportAbuseReason } from '#/network/game/client/model/ReportAbuse.js';
 import Environment from '#/util/Environment.js';
 import { fromBase37 } from '#/util/JString.js';
 
-
-export default class ReportAbuseHandler extends MessageHandler<ReportAbuse> {
+export default class ReportAbuseHandler extends ClientGameMessageHandler<ReportAbuse> {
     handle(message: ReportAbuse, player: Player): boolean {
         if (player.reportAbuseProtect) {
             return false;

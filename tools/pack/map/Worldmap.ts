@@ -10,7 +10,6 @@ import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
-import { shouldBuildFile, shouldBuildFileAny } from '#tools/pack/PackFile.js';
 import { convertImage } from '#tools/pack/PixPack.js';
 
 function packWater(underlay: Packet, overlay: Packet, mx: number, mz: number) {
@@ -30,10 +29,6 @@ function packWater(underlay: Packet, overlay: Packet, mx: number, mz: number) {
 
 export async function packWorldmap() {
     if (!fs.existsSync('data/pack/server/maps')) {
-        return;
-    }
-
-    if (!shouldBuildFileAny('data/pack/server/maps', 'data/pack/mapview/worldmap.jag') && !shouldBuildFile('tools/pack/map/Worldmap.ts', 'data/pack/mapview/worldmap.jag')) {
         return;
     }
 
@@ -668,3 +663,5 @@ export async function packWorldmap() {
 
     jag.save('data/pack/mapview/worldmap.jag');
 }
+
+await packWorldmap();

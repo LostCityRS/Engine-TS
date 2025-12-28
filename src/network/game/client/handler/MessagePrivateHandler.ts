@@ -1,13 +1,12 @@
 import Player from '#/engine/entity/Player.js';
 import World from '#/engine/World.js';
 import Packet from '#/io/Packet.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import MessagePrivate from '#/network/game/client/model/MessagePrivate.js';
 import { fromBase37 } from '#/util/JString.js';
 import WordPack from '#/wordenc/WordPack.js';
 
-
-export default class MessagePrivateHandler extends MessageHandler<MessagePrivate> {
+export default class MessagePrivateHandler extends ClientGameMessageHandler<MessagePrivate> {
     handle(message: MessagePrivate, player: Player): boolean {
         const { username, input } = message;
 

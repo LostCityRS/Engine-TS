@@ -1,15 +1,12 @@
-import { ServerProtPriority } from '#/network/game/server/codec/ServerProtPriority.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 
-export default class CamLookAt extends OutgoingMessage {
-    priority = ServerProtPriority.BUFFERED;
-
+export default class CamLookAt extends ServerGameMessage {
     constructor(
         readonly x: number,
         readonly z: number,
         readonly height: number,
-        readonly speed: number,
-        readonly multiplier: number
+        readonly rate: number,
+        readonly rate2: number
     ) {
         super();
     }

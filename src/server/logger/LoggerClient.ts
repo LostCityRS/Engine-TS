@@ -1,4 +1,4 @@
-import InputTrackingBlob from '#/engine/entity/tracking/InputEvent.js';
+import InputTrackingBlob from '#/engine/entity/tracking/InputTrackingBlob.js';
 import InternalClient from '#/server/InternalClient.js';
 import Environment from '#/util/Environment.js';
 

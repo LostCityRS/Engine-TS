@@ -3,16 +3,15 @@ import Player from '#/engine/entity/Player.js';
 import ScriptProvider from '#/engine/script/ScriptProvider.js';
 import ScriptRunner from '#/engine/script/ScriptRunner.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import InvButtonD from '#/network/game/client/model/InvButtonD.js';
 import UpdateInvPartial from '#/network/game/server/model/UpdateInvPartial.js';
 import Environment from '#/util/Environment.js';
 
-
-export default class InvButtonDHandler extends MessageHandler<InvButtonD> {
+export default class InvButtonDHandler extends ClientGameMessageHandler<InvButtonD> {
     handle(message: InvButtonD, player: Player): boolean {
-        // jagex has if_buttond
         const { component: comId, slot, targetSlot } = message;
+        // todo: pass message.mode to script
 
         const com = Component.get(comId);
         if (typeof com === 'undefined' || !player.isComponentVisible(com) || !com.draggable) {

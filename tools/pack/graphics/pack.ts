@@ -8,7 +8,7 @@ import { loadOrder } from '#tools/pack/NameMap.js';
 import { AnimPack, BasePack, ModelPack, shouldBuildFile, shouldBuildFileAny } from '#tools/pack/PackFile.js';
 import { listFiles } from '#tools/pack/FsCache.js';
 
-export function packClientModel() {
+export function packClientGraphics() {
     if (!shouldBuildFile('tools/pack/graphics/pack.ts', 'data/pack/client/models') && !shouldBuildFileAny(`${Environment.BUILD_SRC_DIR}/models`, 'data/pack/client/models')) {
         return;
     }

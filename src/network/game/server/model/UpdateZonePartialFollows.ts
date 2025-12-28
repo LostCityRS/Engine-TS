@@ -1,9 +1,6 @@
-import { ServerProtPriority } from '#/network/game/server/codec/ServerProtPriority.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 
-export default class UpdateZonePartialFollows extends OutgoingMessage {
-    priority = ServerProtPriority.IMMEDIATE;
-
+export default class UpdateZonePartialFollows extends ServerGameMessage {
     constructor(
         readonly zoneX: number,
         readonly zoneZ: number,

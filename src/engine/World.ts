@@ -97,7 +97,7 @@ import { printDebug, printError, printInfo } from '#/util/Logger.js';
 import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 import { createWorker } from '#/util/WorkerFactory.js';
 
-import InputTrackingBlob from './entity/tracking/InputEvent.js';
+import InputTrackingBlob from './entity/tracking/InputTrackingBlob.js';
 import { ObjDelayedRequest } from './entity/ObjDelayedRequest.js';
 import DbTableIndex from '#/cache/config/DbTableIndex.js';
 
@@ -1015,7 +1015,7 @@ class World {
             player.reorient();
             player.buildArea.rebuildNormal(); // set origin before compute player is why this is above.
 
-            const appearance = player.masks & PlayerInfoProt.APPEARANCE ? player.generateAppearance() : (player.lastAppearanceBytes ?? player.generateAppearance());
+            const appearance = player.masks & PlayerInfoProt.APPEARANCE ? player.generateAppearance() : (player.appearanceBuf ?? player.generateAppearance());
 
             rsbuf.computePlayer(
                 player.x,
@@ -1034,31 +1034,31 @@ class World {
                 appearance,
                 player.lastAppearance,
                 player.faceEntity,
-                player.faceX,
-                player.faceZ,
-                player.orientationX,
-                player.orientationZ,
-                player.damageTaken,
-                player.damageType,
+                player.faceSquareX,
+                player.faceSquareZ,
+                player.faceAngleX,
+                player.faceAngleZ,
+                player.hitmarkDamage,
+                player.hitmarkType,
                 player.levels[PlayerStat.HITPOINTS],
                 player.baseLevels[PlayerStat.HITPOINTS],
                 player.animId,
                 player.animDelay,
-                player.chat,
-                player.message,
-                player.messageColor ?? -1,
-                player.messageEffect ?? -1,
-                player.messageType ?? 0,
-                player.graphicId,
-                player.graphicHeight,
-                player.graphicDelay,
+                player.sayMessage,
+                player.chatMessage,
+                player.chatColour ?? -1,
+                player.chatEffect ?? -1,
+                player.chatRights ?? 0,
+                player.spotanimId,
+                player.spotanimHeight,
+                player.spotanimTime,
                 player.exactStartX,
                 player.exactStartZ,
                 player.exactEndX,
                 player.exactEndZ,
                 player.exactMoveStart,
                 player.exactMoveEnd,
-                player.exactMoveDirection
+                player.exactMoveFacing
             );
         }
 
@@ -1076,20 +1076,20 @@ class World {
                 npc.isActive,
                 npc.masks,
                 npc.faceEntity,
-                npc.faceX,
-                npc.faceZ,
-                npc.orientationX,
-                npc.orientationZ,
-                npc.damageTaken,
-                npc.damageType,
+                npc.faceSquareX,
+                npc.faceSquareZ,
+                npc.faceAngleX,
+                npc.faceAngleZ,
+                npc.hitmarkDamage,
+                npc.hitmarkType,
                 npc.levels[NpcStat.HITPOINTS],
                 npc.baseLevels[NpcStat.HITPOINTS],
                 npc.animId,
                 npc.animDelay,
-                npc.chat,
-                npc.graphicId,
-                npc.graphicHeight,
-                npc.graphicDelay
+                npc.sayMessage,
+                npc.spotanimId,
+                npc.spotanimHeight,
+                npc.spotanimTime
             );
         }
     }
@@ -1793,11 +1793,11 @@ class World {
                         }
                     } else if (msg.type === 'dev_progress') {
                         if (msg.broadcast) {
-                            console.log(msg.broadcast);
+                            printDebug(msg.broadcast);
 
                             this.broadcastMes(msg.broadcast);
                         } else if (msg.text) {
-                            console.log(msg.text);
+                            printInfo(msg.text);
                         }
                     }
                 } catch (err) {

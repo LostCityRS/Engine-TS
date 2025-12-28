@@ -1,4 +1,4 @@
-import { packClient, packServer } from '#tools/pack/PackAll.js';
+import { packAll } from '#tools/pack/PackAll.js';
 import Environment from '#/util/Environment.js';
 import { updateCompiler } from '#/util/RuneScriptCompiler.js';
 
@@ -8,8 +8,7 @@ if (Environment.BUILD_STARTUP_UPDATE) {
 
 try {
     console.time('pack');
-    await packClient();
-    await packServer();
+    await packAll();
     console.timeEnd('pack');
 } catch (err) {
     if (err instanceof Error) {

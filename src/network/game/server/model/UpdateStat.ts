@@ -1,9 +1,6 @@
-import { ServerProtPriority } from '#/network/game/server/codec/ServerProtPriority.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 
-export default class UpdateStat extends OutgoingMessage {
-    priority = ServerProtPriority.BUFFERED;
-
+export default class UpdateStat extends ServerGameMessage {
     constructor(
         readonly stat: number,
         readonly exp: number,

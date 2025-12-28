@@ -1,10 +1,9 @@
-import { ServerProtPriority } from '#/network/game/server/codec/ServerProtPriority.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 
-export default class UpdateRunEnergy extends OutgoingMessage {
-    priority = ServerProtPriority.BUFFERED;
-
-    constructor(readonly energy: number) {
+export default class UpdateRunEnergy extends ServerGameMessage {
+    constructor(
+        readonly energy: number
+    ) {
         super();
     }
 }

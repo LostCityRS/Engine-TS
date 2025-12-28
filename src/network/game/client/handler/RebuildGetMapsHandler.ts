@@ -1,15 +1,14 @@
 import { PRELOADED } from '#/cache/PreloadedPacks.js';
 import Player from '#/engine/entity/Player.js';
 import World from '#/engine/World.js';
-import MessageHandler from '#/network/game/client/handler/MessageHandler.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import RebuildGetMaps from '#/network/game/client/model/RebuildGetMaps.js';
 import DataLand from '#/network/game/server/model/DataLand.js';
 import DataLandDone from '#/network/game/server/model/DataLandDone.js';
 import DataLoc from '#/network/game/server/model/DataLoc.js';
 import DataLocDone from '#/network/game/server/model/DataLocDone.js';
 
-
-export default class RebuildGetMapsHandler extends MessageHandler<RebuildGetMaps> {
+export default class RebuildGetMapsHandler extends ClientGameMessageHandler<RebuildGetMaps> {
     private static readonly CHUNK_SIZE: number = 1000 - 1 - 2 - 1 - 1 - 2 - 2;
     private static readonly LAST_BUILD_TICKS: number = 10;
     private static readonly MAPS_LIMIT: number = 9 * 2; // 9 mapsquares * 2 (m & l)

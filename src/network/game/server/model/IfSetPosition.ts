@@ -1,9 +1,6 @@
-import { ServerProtPriority } from '#/network/game/server/codec/ServerProtPriority.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 
-export default class IfSetPosition extends OutgoingMessage {
-    priority = ServerProtPriority.BUFFERED;
-
+export default class IfSetPosition extends ServerGameMessage {
     constructor(
         readonly component: number,
         readonly x: number,

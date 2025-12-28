@@ -1,9 +1,6 @@
-import { ServerProtPriority } from '#/network/game/server/codec/ServerProtPriority.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 
-export default class DataLoc extends OutgoingMessage {
-    priority = ServerProtPriority.IMMEDIATE;
-
+export default class DataLoc extends ServerGameMessage {
     constructor(
         readonly x: number,
         readonly z: number,

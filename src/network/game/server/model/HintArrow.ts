@@ -1,9 +1,6 @@
-import { ServerProtPriority } from '#/network/game/server/codec/ServerProtPriority.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 
-export default class HintArrow extends OutgoingMessage {
-    priority = ServerProtPriority.BUFFERED; // todo: what should priority be?
-
+export default class HintArrow extends ServerGameMessage {
     constructor(
         readonly type: number,
         readonly nid: number,

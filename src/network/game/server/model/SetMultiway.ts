@@ -1,10 +1,9 @@
-import { ServerProtPriority } from '#/network/game/server/codec/ServerProtPriority.js';
-import OutgoingMessage from '#/network/game/server/OutgoingMessage.js';
+import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 
-export default class SetMultiway extends OutgoingMessage {
-    priority = ServerProtPriority.BUFFERED;
-
-    constructor(readonly hidden: boolean) {
+export default class SetMultiway extends ServerGameMessage {
+    constructor(
+        readonly hidden: boolean
+    ) {
         super();
     }
 }
