@@ -555,6 +555,8 @@ export default class Player extends PathingEntity {
         }
         this.write(new UpdateRunEnergy(this.runenergy));
         this.write(new ResetAnims());
+        this.masks |= this.entitymask; // resync face_entity
+        this.masks |= PlayerInfoProt.APPEARANCE; // resync appearance (todo: is it possible to do this for the local observer only?)
         this.moveSpeed = MoveSpeed.INSTANT;
         this.tele = true;
         this.jump = true;
