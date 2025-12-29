@@ -57,7 +57,7 @@ function next(bits: number) {
 
 function checkIsPositiveInt(n: number, r = Number.MAX_SAFE_INTEGER) {
     if (n < 0 || n > r) {
-        throw RangeError();
+        throw RangeError('number must be > 0');
     }
 }
 
