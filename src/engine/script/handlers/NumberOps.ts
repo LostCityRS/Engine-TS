@@ -30,12 +30,12 @@ const NumberOps: CommandHandlers = {
     },
 
     [ScriptOpcode.RANDOM]: state => {
-        const a = state.popInt();
+        const a = Math.max(0, state.popInt());
         state.pushInt(JavaRandom.nextInt(a));
     },
 
     [ScriptOpcode.RANDOMINC]: state => {
-        const a = state.popInt();
+        const a = Math.max(0, state.popInt());
         state.pushInt(JavaRandom.nextInt(a + 1));
     },
 
