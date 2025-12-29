@@ -512,7 +512,7 @@ const PlayerOps: CommandHandlers = {
 
         const level = state.activePlayer.levels[stat];
         const value = Math.floor((low * (99 - level)) / 98) + Math.floor((high * (level - 1)) / 98) + 1;
-        const chance = JavaRandom.nextInt(256);
+        const chance = JavaRandom.nextDouble() * 256;
 
         state.pushInt(value > chance ? 1 : 0);
     }),
