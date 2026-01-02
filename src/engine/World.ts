@@ -1801,7 +1801,7 @@ class World {
     broadcastMes(message: string): void {
         for (const player of this.playerLoop.all()) {
             if (message.includes('\n')) {
-                message.split('\n').forEach(wrap => player!.wrappedMessageGame(wrap));
+                message.split('\n').forEach(wrap => player.wrappedMessageGame(wrap));
             } else {
                 player.wrappedMessageGame(message);
             }
@@ -2101,6 +2101,19 @@ class World {
         client.read(World.loginBuf.data, 0, client.waiting);
 
         if (client.opcode === 16 || client.opcode === 18) {
+            if (Environment.NODE_PRODUCTION && Environment.NODE_RATELIMIT_ADDRESS_LOGIN > 0) {
+                const last = this.loginAddressAttempts.get(client.remoteAddress);
+                const attempts = last ? last + 1 : 1;
+                this.loginAddressAttempts.set(client.remoteAddress, attempts);
+
+                if (attempts >= Environment.NODE_RATELIMIT_ADDRESS_LOGIN) {
+                    // login attempts exceeded
+                    client.send(Uint8Array.from([16]));
+                    client.close();
+                    return;
+                }
+            }
+
             const rev = World.loginBuf.g1();
             if (rev !== Environment.ENGINE_REVISION) {
                 client.send(Uint8Array.from([6]));

@@ -59,8 +59,12 @@ export default class ObjType extends ConfigType {
 
             if (!Environment.NODE_MEMBERS && config.members) {
                 config.tradeable = false;
-                config.op = null;
-                config.iop = null;
+                config.op = [null, null, 'Take', null, null];
+                config.iop = [null, null, null, null, 'Drop'];
+
+                // "Yeah, turns out some of the devs didn't realise that their 'category' triggers would be auto-ignored on F2P."
+                // be warned this means category-triggered opheld5 (drop) scripts are skipped on f2p...
+                config.category = -1;
 
                 config.params.forEach((_, key): void => {
                     if (ParamType.get(key)?.autodisable) {
@@ -144,8 +148,8 @@ export default class ObjType extends ConfigType {
     stackable = false;
     cost = 1;
     members = false;
-    op: (string | null)[] | null = null;
-    iop: (string | null)[] | null = null;
+    op: (string | null)[] = [null, null, 'Take', null, null];
+    iop: (string | null)[] = [null, null, null, null, 'Drop'];
     manwear = -1;
     manwear2 = -1;
     manwearOffsetY = 0;
@@ -220,14 +224,8 @@ export default class ObjType extends ConfigType {
         } else if (code === 27) {
             this.wearpos3 = dat.g1();
         } else if (code >= 30 && code < 35) {
-            if (!this.op) {
-                this.op = new Array(5).fill(null);
-            }
             this.op[code - 30] = dat.gjstr();
         } else if (code >= 35 && code < 40) {
-            if (!this.iop) {
-                this.iop = new Array(5).fill(null);
-            }
             this.iop[code - 35] = dat.gjstr();
         } else if (code === 40) {
             const count = dat.g1();

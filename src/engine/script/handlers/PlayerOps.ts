@@ -104,11 +104,33 @@ const PlayerOps: CommandHandlers = {
         state.activePlayer.enqueueScript(script, PlayerQueueType.STRONG, delay, args);
     }),
 
+    [ScriptOpcode.STRONGQUEUEVARARG]: checkedHandler(ActivePlayer, state => {
+        const args = popScriptArgs(state);
+        const [scriptId, delay] = state.popInts(2);
+
+        const script = ScriptProvider.get(scriptId);
+        if (!script) {
+            throw new Error(`Unable to find queue script: ${scriptId}`);
+        }
+
+        state.activePlayer.enqueueScript(script, PlayerQueueType.STRONG, delay, args);
+    }),
+
     // https://x.com/JagexAsh/status/1698973910048403797
     [ScriptOpcode.WEAKQUEUE]: checkedHandler(ActivePlayer, state => {
+        const [scriptId, delay, arg] = state.popInts(3);
+
+        const script = ScriptProvider.get(scriptId);
+        if (!script) {
+            throw new Error(`Unable to find queue script: ${scriptId}`);
+        }
+
+        state.activePlayer.enqueueScript(script, PlayerQueueType.WEAK, delay, [arg]);
+    }),
+
+    [ScriptOpcode.WEAKQUEUEVARARG]: checkedHandler(ActivePlayer, state => {
         const args = popScriptArgs(state);
-        const delay = check(state.popInt(), NumberNotNull);
-        const scriptId = state.popInt();
+        const [scriptId, delay] = state.popInts(2);
 
         const script = ScriptProvider.get(scriptId);
         if (!script) {
@@ -121,9 +143,19 @@ const PlayerOps: CommandHandlers = {
     // https://x.com/JagexAsh/status/1698973910048403797
     // https://x.com/JagexAsh/status/1821831590906859683
     [ScriptOpcode.QUEUE]: checkedHandler(ActivePlayer, state => {
+        const [scriptId, delay, arg] = state.popInts(3);
+
+        const script = ScriptProvider.get(scriptId);
+        if (!script) {
+            throw new Error(`Unable to find queue script: ${scriptId}`);
+        }
+
+        state.activePlayer.enqueueScript(script, PlayerQueueType.NORMAL, delay, [arg]);
+    }),
+
+    [ScriptOpcode.QUEUEVARARG]: checkedHandler(ActivePlayer, state => {
         const args = popScriptArgs(state);
-        const delay = check(state.popInt(), NumberNotNull);
-        const scriptId = state.popInt();
+        const [scriptId, delay] = state.popInts(2);
 
         const script = ScriptProvider.get(scriptId);
         if (!script) {
@@ -134,6 +166,17 @@ const PlayerOps: CommandHandlers = {
     }),
 
     [ScriptOpcode.LONGQUEUE]: checkedHandler(ActivePlayer, state => {
+        const [scriptId, delay, arg, logoutAction] = state.popInts(4);
+
+        const script = ScriptProvider.get(scriptId);
+        if (!script) {
+            throw new Error(`Unable to find queue script: ${scriptId}`);
+        }
+
+        state.activePlayer.enqueueScript(script, PlayerQueueType.LONG, delay, [logoutAction, arg]);
+    }),
+
+    [ScriptOpcode.LONGQUEUEVARARG]: checkedHandler(ActivePlayer, state => {
         const args = popScriptArgs(state);
         const [scriptId, delay, logoutAction] = state.popInts(3);
 
@@ -945,19 +988,21 @@ const PlayerOps: CommandHandlers = {
     // https://x.com/JagexAsh/status/1791472651623370843
     // https://x.com/JagexAsh/status/1790684996480442796
     [ScriptOpcode.P_OPOBJ]: checkedHandler(ProtectedActivePlayer, state => {
-        const type = check(state.popInt(), NumberNotNull) - 1;
-        if (type < 0 || type >= 5) {
-            throw new Error(`Invalid opobj: ${type + 1}`);
+        const op = check(state.popInt(), NumberNotNull) - 1;
+        if (op < 0 || op >= 5) {
+            throw new Error(`Invalid opobj: ${op + 1}`);
         }
-        const objType: ObjType = ObjType.get(state.activeObj.type);
-        if (!objType.op || !objType.op[type]) {
+
+        const type: ObjType = ObjType.get(state.activeObj.type);
+        if (type.op[op] === null) {
             return;
         }
+
         state.activePlayer.stopAction();
 
         // Sets player destination naively to the Obj's coordinate
         state.activePlayer.queueWaypoint(state.activeObj.x, state.activeObj.z);
-        state.activePlayer.setInteraction(Interaction.SCRIPT, state.activeObj, ServerTriggerType.APOBJ1 + type);
+        state.activePlayer.setInteraction(Interaction.SCRIPT, state.activeObj, ServerTriggerType.APOBJ1 + op);
     }),
 
     // https://x.com/JagexAsh/status/1791472651623370843

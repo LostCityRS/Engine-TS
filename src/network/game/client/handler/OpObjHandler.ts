@@ -33,9 +33,8 @@ export default class OpObjHandler extends ClientGameMessageHandler<OpObj> {
             return false;
         }
 
-        const objType = ObjType.get(obj.type);
-        // todo: validate all options
-        if ((message.op === 1 && ((objType.op && !objType.op[0]) || !objType.op)) || (message.op === 4 && ((objType.op && !objType.op[3]) || !objType.op))) {
+        const type = ObjType.get(obj.type);
+        if (type.op[message.op - 1] === null) {
             player.write(new UnsetMapFlag());
             player.clearPendingAction();
             return false;

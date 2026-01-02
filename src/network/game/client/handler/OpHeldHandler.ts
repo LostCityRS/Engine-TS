@@ -20,7 +20,7 @@ export default class OpHeldHandler extends ClientGameMessageHandler<OpHeld> {
         }
 
         const type = ObjType.get(item);
-        if (message.op !== 5 && ((type.iop && !type.iop[message.op - 1]) || !type.iop)) {
+        if (type.iop[message.op - 1] === null) {
             player.clearPendingAction();
             return false;
         }
@@ -54,20 +54,20 @@ export default class OpHeldHandler extends ClientGameMessageHandler<OpHeld> {
 
         let trigger: ServerTriggerType;
         if (message.op === 1) {
-            player.addSessionLog(LoggerEventType.MODERATOR, `${type.iop![message.op - 1]} ${type.debugname}`);
             trigger = ServerTriggerType.OPHELD1;
         } else if (message.op === 2) {
-            player.addSessionLog(LoggerEventType.MODERATOR, `${type.iop![message.op - 1]} ${type.debugname}`);
             trigger = ServerTriggerType.OPHELD2;
         } else if (message.op === 3) {
-            player.addSessionLog(LoggerEventType.MODERATOR, `${type.iop![message.op - 1]} ${type.debugname}`);
             trigger = ServerTriggerType.OPHELD3;
         } else if (message.op === 4) {
-            player.addSessionLog(LoggerEventType.MODERATOR, `${type.iop![message.op - 1]} ${type.debugname}`);
             trigger = ServerTriggerType.OPHELD4;
         } else {
-            // wealth logged in content (it may not execute!)
             trigger = ServerTriggerType.OPHELD5;
+        }
+
+        // opheld5 gets wealth logged in content
+        if (message.op !== 5) {
+            player.addSessionLog(LoggerEventType.MODERATOR, `${type.iop[message.op - 1]} ${type.debugname}`);
         }
 
         const script = ScriptProvider.getByTrigger(trigger, type.id, type.category);
