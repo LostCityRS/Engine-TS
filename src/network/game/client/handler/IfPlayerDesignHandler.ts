@@ -1,5 +1,4 @@
 import IdkType from '#/cache/config/IdkType.js';
-import InvType from '#/cache/config/InvType.js';
 import Player from '#/engine/entity/Player.js';
 import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import IfPlayerDesign from '#/network/game/client/model/IfPlayerDesign.js';
@@ -53,7 +52,7 @@ export default class IfPlayerDesignHandler extends ClientGameMessageHandler<IfPl
         player.gender = gender;
         player.body = idkit;
         player.colors = color;
-        player.buildAppearance(InvType.WORN);
+        player.buildAppearance(player.appearanceInv);
         return true;
     }
 }

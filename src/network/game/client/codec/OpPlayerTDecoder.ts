@@ -7,8 +7,8 @@ export default class OpPlayerTDecoder extends ClientGameMessageDecoder<OpPlayerT
     prot = ClientGameProt.OPPLAYERT;
 
     decode(buf: Packet) {
-        const pid = buf.g2();
+        const playerSlot = buf.g2();
         const spellComponent = buf.g2();
-        return new OpPlayerT(pid, spellComponent);
+        return new OpPlayerT(playerSlot, spellComponent);
     }
 }

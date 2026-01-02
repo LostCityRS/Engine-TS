@@ -6,7 +6,7 @@ export default class OpPlayer extends ClientGameMessage {
 
     constructor(
         readonly op: number,
-        readonly pid: number
+        readonly playerSlot: number
     ) {
         super();
     }

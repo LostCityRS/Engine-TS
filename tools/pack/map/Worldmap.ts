@@ -107,12 +107,19 @@ export async function packWorldmap() {
     const free2play = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').replace(/\r/g, '').split('\n');
     const freemap = processCsv(free2play, 'free');
 
+    const ignoreraw = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/ignore.csv`, 'ascii').replace(/\r/g, '').split('\n');
+    const ignoremap = processCsv(ignoreraw, 'ignore');
+
     const maps: string[] = fs.readdirSync('data/pack/server/maps').filter((x: string): boolean => x[0] === 'm');
     for (let index: number = 0; index < maps.length; index++) {
         const [mx, mz] = maps[index]
             .substring(1)
             .split('_')
             .map((x: string) => parseInt(x));
+
+        if (ignoremap.has(CoordGrid.packCoord(0, mx << 6, mz << 6))) {
+            continue;
+        }
 
         // ----
 

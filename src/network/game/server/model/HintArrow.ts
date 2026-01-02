@@ -4,7 +4,7 @@ export default class HintArrow extends ServerGameMessage {
     constructor(
         readonly type: number,
         readonly nid: number,
-        readonly pid: number,
+        readonly playerSlot: number,
         readonly x: number,
         readonly z: number,
         readonly y: number

@@ -10,34 +10,20 @@ export interface FriendThreadMessage {
     data: any;
 }
 
-if (Environment.STANDALONE_BUNDLE) {
-    self.onmessage = async msg => {
-        try {
-            await handleRequests(self, msg.data);
-        } catch (err) {
-            console.error(err);
-        }
-    };
+if (!parentPort) throw new Error('This file must be run as a worker thread.');
 
-    client.onMessage((opcode, data) => {
-        self.postMessage({ opcode, data });
-    });
-} else {
-    if (!parentPort) throw new Error('This file must be run as a worker thread.');
+parentPort.on('message', async msg => {
+    try {
+        if (!parentPort) throw new Error('This file must be run as a worker thread.');
+        await handleRequests(parentPort, msg);
+    } catch (err) {
+        console.error(err);
+    }
+});
 
-    parentPort.on('message', async msg => {
-        try {
-            if (!parentPort) throw new Error('This file must be run as a worker thread.');
-            await handleRequests(parentPort, msg);
-        } catch (err) {
-            console.error(err);
-        }
-    });
-
-    client.onMessage((opcode, data) => {
-        parentPort!.postMessage({ opcode, data });
-    });
-}
+client.onMessage((opcode, data) => {
+    parentPort!.postMessage({ opcode, data });
+});
 
 type ParentPort = {
     postMessage: (msg: any) => void;
@@ -109,8 +95,8 @@ async function handleRequests(_parentPort: ParentPort, msg: any) {
         }
         case 'public_message': {
             if (Environment.FRIEND_SERVER) {
-                const { username, coord, chat } = msg;
-                await client.publicMessage(username, coord, chat);
+                const { session_uuid, coord, chat } = msg;
+                await client.publicMessage(session_uuid, coord, chat);
             }
             break;
         }

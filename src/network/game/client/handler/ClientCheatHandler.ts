@@ -146,9 +146,9 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                 }
 
                 player.executeScript(ScriptRunner.init(script, player, null, params), false);
-            } else if (cmd === 'reload' && !Environment.STANDALONE_BUNDLE) {
+            } else if (cmd === 'reload') {
                 World.reload();
-            } else if (cmd === 'rebuild' && !Environment.STANDALONE_BUNDLE) {
+            } else if (cmd === 'rebuild') {
                 player.messageGame('Rebuilding scripts...');
                 World.rebuild();
             } else if (cmd === 'speed') {

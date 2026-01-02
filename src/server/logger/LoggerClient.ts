@@ -1,14 +1,9 @@
-import InputTrackingBlob from '#/engine/entity/tracking/InputTrackingBlob.js';
 import InternalClient from '#/server/InternalClient.js';
 import Environment from '#/util/Environment.js';
 
 export default class LoggerClient extends InternalClient {
-    private nodeId = 0;
-
-    constructor(nodeId: number) {
+    constructor() {
         super(Environment.LOGGER_HOST, Environment.LOGGER_PORT);
-
-        this.nodeId = nodeId;
     }
 
     public async sessionLog(logs: string[]) {
@@ -66,7 +61,7 @@ export default class LoggerClient extends InternalClient {
         );
     }
 
-    public async inputTrack(username: string, session_uuid: string, timestamp: number, blobs: InputTrackingBlob[]) {
+    public async inputTrack(session_uuid: string, timestamp: number, buf: string) {
         await this.connect();
 
         if (!this.ws || !this.wsr || !this.wsr.checkIfWsLive()) {
@@ -76,12 +71,9 @@ export default class LoggerClient extends InternalClient {
         this.ws.send(
             JSON.stringify({
                 type: 'input_track',
-                world: Environment.NODE_ID,
-                profile: Environment.NODE_PROFILE,
-                username,
                 session_uuid,
                 timestamp,
-                blobs
+                buf
             })
         );
     }

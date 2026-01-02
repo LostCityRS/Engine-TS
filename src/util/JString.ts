@@ -18,6 +18,10 @@ export function toBase37(string: string): bigint {
         }
     }
 
+    while (l % 37n === 0n && l !== 0n) {
+        l /= 37n;
+    }
+
     return l;
 }
 

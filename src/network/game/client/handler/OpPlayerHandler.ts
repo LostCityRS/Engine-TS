@@ -10,21 +10,21 @@ import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 
 export default class OpPlayerHandler extends ClientGameMessageHandler<OpPlayer> {
     handle(message: OpPlayer, player: NetworkPlayer): boolean {
-        const { pid } = message;
+        const { playerSlot } = message;
 
         if (player.delayed) {
             player.write(new UnsetMapFlag());
             return false;
         }
 
-        const other = World.getPlayer(pid);
+        const other = World.getPlayer(playerSlot);
         if (!other) {
             player.write(new UnsetMapFlag());
             player.clearPendingAction();
             return false;
         }
 
-        if (!rsbuf.hasPlayer(player.pid, other.pid)) {
+        if (!rsbuf.hasPlayer(player.slot, other.slot)) {
             player.write(new UnsetMapFlag());
             player.clearPendingAction();
             return false;

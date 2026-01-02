@@ -89,7 +89,6 @@ export default abstract class PathingEntity extends Entity {
     faceSquareX: number = -1;
     faceSquareZ: number = -1;
     faceEntity: number = -1;
-    hitmarkSlot: number = 0;
     hitmarkDamage: number = -1;
     hitmarkType: number = -1;
     animId: number = -1;
@@ -529,9 +528,9 @@ export default abstract class PathingEntity extends Entity {
         this.focus(CoordGrid.fine(target.x, target.width), CoordGrid.fine(target.z, target.length), target instanceof NonPathingEntity && interaction === Interaction.ENGINE);
 
         if (target instanceof Player) {
-            const pid: number = target.pid + 32768;
-            if (this.faceEntity !== pid) {
-                this.faceEntity = pid;
+            const playerSlot: number = target.slot + 32768;
+            if (this.faceEntity !== playerSlot) {
+                this.faceEntity = playerSlot;
                 this.masks |= this.entitymask;
             }
         } else if (target instanceof Npc) {
@@ -603,7 +602,6 @@ export default abstract class PathingEntity extends Entity {
         this.sayMessage = null;
         this.hitmarkDamage = -1;
         this.hitmarkType = -1;
-        this.hitmarkSlot = 0;
         this.spotanimId = -1;
         this.spotanimHeight = -1;
         this.spotanimTime = -1;

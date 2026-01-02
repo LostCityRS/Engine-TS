@@ -10,7 +10,7 @@ export default class LocMerge extends ServerGameZoneMessage {
         readonly locId: number,
         readonly startCycle: number,
         readonly endCycle: number,
-        readonly pid: number,
+        readonly playerSlot: number,
         readonly east: number,
         readonly south: number,
         readonly west: number,

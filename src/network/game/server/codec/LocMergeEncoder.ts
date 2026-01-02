@@ -12,7 +12,7 @@ export default class LocMergeEncoder extends ServerGameZoneMessageEncoder<LocMer
         buf.p2(message.locId);
         buf.p2(message.startCycle);
         buf.p2(message.endCycle);
-        buf.p2(message.pid);
+        buf.p2(message.playerSlot);
         buf.p1(message.east - message.srcX);
         buf.p1(message.south - message.srcZ);
         buf.p1(message.west - message.srcX);

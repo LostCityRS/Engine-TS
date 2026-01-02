@@ -4,8 +4,8 @@ import zlib from 'zlib';
 
 import forge from 'node-forge';
 
-import DoublyLinkable from '#/util/DoublyLinkable.js';
-import LinkList from '#/util/LinkList.js';
+import DoublyLinkable from '#/datastruct/DoublyLinkable.js';
+import LinkList from '#/datastruct/LinkList.js';
 
 import PrivateKey = forge.pki.rsa.PrivateKey;
 import BigInteger = forge.jsbn.BigInteger;

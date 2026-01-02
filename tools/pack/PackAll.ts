@@ -36,10 +36,7 @@ export async function packAll() {
     try {
         child_process.execSync(`"${Environment.BUILD_JAVA_PATH}" -jar RuneScriptCompiler.jar`, { stdio: 'inherit' });
     } catch (_err) {
-        // console.error(err);
-        if (parentPort) {
-            throw new Error('Failed to compile scripts.');
-        }
+        throw new Error('Failed to compile scripts.');
     }
 
     await packClientTitle();

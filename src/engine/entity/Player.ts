@@ -60,7 +60,7 @@ import ResetClientVarCache from '#/network/game/server/model/ResetClientVarCache
 import TutOpen from '#/network/game/server/model/TutOpen.js';
 import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 import UpdateInvStopTransmit from '#/network/game/server/model/UpdateInvStopTransmit.js';
-import UpdateUid192 from '#/network/game/server/model/UpdatePid.js';
+import UpdatePid from '#/network/game/server/model/UpdatePid.js';
 import UpdateRebootTimer from '#/network/game/server/model/UpdateRebootTimer.js';
 import UpdateRunEnergy from '#/network/game/server/model/UpdateRunEnergy.js';
 import UpdateStat from '#/network/game/server/model/UpdateStat.js';
@@ -71,7 +71,7 @@ import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/engine/entity/ChatModes.js';
 import Environment from '#/util/Environment.js';
 import { toDisplayName } from '#/util/JString.js';
-import LinkList from '#/util/LinkList.js';
+import LinkList from '#/datastruct/LinkList.js';
 import UpdateIgnoreList from '#/network/game/server/model/UpdateIgnoreList.js';
 
 const levelExperience = new Int32Array(99);
@@ -269,7 +269,6 @@ export default class Player extends PathingEntity {
         return sav.data.subarray(0, sav.pos);
     }
 
-    // constructor properties
     username: string;
     username37: bigint;
     hash64: bigint;
@@ -302,13 +301,11 @@ export default class Player extends PathingEntity {
     privateChat: ChatModePrivate = ChatModePrivate.ON;
     tradeDuel: ChatModeTradeDuel = ChatModeTradeDuel.ON;
 
-    // input tracking
-    account_id: number = -1;
+    session: string = 'headless';
     input: InputTracking;
     submitInput: boolean = false;
 
-    // runtime variables
-    pid: number = -1;
+    slot: number = -1;
     uid: number = -1;
     reconnecting: boolean = false;
     lowMemory: boolean = false;
@@ -436,7 +433,7 @@ export default class Player extends PathingEntity {
     }
 
     cleanup(): void {
-        this.pid = -1;
+        this.slot = -1;
         this.uid = -1;
         this.activeScript = null;
         this.invListeners.length = 0;
@@ -496,7 +493,7 @@ export default class Player extends PathingEntity {
         }
 
         this.write(new IfClose());
-        this.write(new UpdateUid192(this.pid));
+        this.write(new UpdatePid(this.slot));
         this.write(new ResetClientVarCache());
         for (let varp = 0; varp < this.vars.length; varp++) {
             const type = VarPlayerType.get(varp);
@@ -555,6 +552,8 @@ export default class Player extends PathingEntity {
         }
         this.write(new UpdateRunEnergy(this.runenergy));
         this.write(new ResetAnims());
+        this.masks |= this.entitymask; // resync face_entity
+        this.masks |= PlayerInfoProt.APPEARANCE; // resync appearance (todo: is it possible to do this for the local observer only?)
         this.moveSpeed = MoveSpeed.INSTANT;
         this.tele = true;
         this.jump = true;
@@ -629,14 +628,13 @@ export default class Player extends PathingEntity {
     }
 
     addSessionLog(event_type: LoggerEventType, message: string, ...args: string[]): void {
-        World.addSessionLog(event_type, this.account_id, 'headless', CoordGrid.packCoord(this.level, this.x, this.z), message, ...args);
+        World.addSessionLog(event_type, this.session, CoordGrid.packCoord(this.level, this.x, this.z), message, ...args);
     }
 
     addWealthEvent(event: WealthEventParams) {
         World.addWealthEvent({
             coord: CoordGrid.packCoord(this.level, this.x, this.z),
-            account_id: this.account_id,
-            account_session: 'headless',
+            session_uuid: this.session,
             ...event
         });
     }
@@ -1818,7 +1816,7 @@ export default class Player extends PathingEntity {
 
         if (this.combatLevel != this.getCombatLevel()) {
             this.combatLevel = this.getCombatLevel();
-            this.buildAppearance(InvType.WORN);
+            this.buildAppearance(this.appearanceInv);
         }
     }
 
@@ -1836,9 +1834,9 @@ export default class Player extends PathingEntity {
         this.levels[stat] = level;
         this.stats[stat] = getExpByLevel(level);
 
-        if (this.getCombatLevel() != this.combatLevel) {
+        if (this.combatLevel != this.getCombatLevel()) {
             this.combatLevel = this.getCombatLevel();
-            this.buildAppearance(InvType.WORN);
+            this.buildAppearance(this.appearanceInv);
         }
     }
 
@@ -2168,8 +2166,8 @@ export default class Player extends PathingEntity {
         this.write(new HintArrow(offset, 0, 0, x, z, height));
     }
 
-    hintPlayer(pid: number) {
-        this.write(new HintArrow(10, 0, pid, 0, 0, 0));
+    hintPlayer(playerSlot: number) {
+        this.write(new HintArrow(10, 0, playerSlot, 0, 0, 0));
     }
 
     stopHint() {
@@ -2177,9 +2175,6 @@ export default class Player extends PathingEntity {
     }
 
     lastLoginInfo() {
-        // daysSinceRecoveryChange
-        // - 201 shows welcome_screen.if
-        // - any other value shows welcome_screen_warning
         const lastDate: bigint = this.lastLoginTime === 0n ? BigInt(Date.now()) : this.lastLoginTime;
         const nextDate: bigint = BigInt(Date.now());
 

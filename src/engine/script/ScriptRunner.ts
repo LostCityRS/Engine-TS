@@ -184,7 +184,7 @@ export default class ScriptRunner {
             }
 
             if (state.self instanceof Player) {
-                printError(`Player script error - pid:${state.self.pid} name:${state.self.username}`);
+                printError(`Player script error - username:${state.self.username}`);
 
                 state.self.wrappedMessageGame(`script error: ${err.message}`);
                 state.self.wrappedMessageGame(`file: ${state.script.fileName}`);

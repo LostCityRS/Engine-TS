@@ -13,7 +13,7 @@ import Environment from '#/util/Environment.js';
 
 export default class OpPlayerUHandler extends ClientGameMessageHandler<OpPlayerU> {
     handle(message: OpPlayerU, player: NetworkPlayer): boolean {
-        const { pid, useObj: item, useSlot: slot, useComponent: comId } = message;
+        const { playerSlot, useObj: item, useSlot: slot, useComponent: comId } = message;
 
         if (player.delayed) {
             player.write(new UnsetMapFlag());
@@ -41,14 +41,14 @@ export default class OpPlayerUHandler extends ClientGameMessageHandler<OpPlayerU
             return false;
         }
 
-        const other = World.getPlayer(pid);
+        const other = World.getPlayer(playerSlot);
         if (!other) {
             player.write(new UnsetMapFlag());
             player.clearPendingAction();
             return false;
         }
 
-        if (!rsbuf.hasPlayer(player.pid, other.pid)) {
+        if (!rsbuf.hasPlayer(player.slot, other.slot)) {
             player.write(new UnsetMapFlag());
             player.clearPendingAction();
             return false;

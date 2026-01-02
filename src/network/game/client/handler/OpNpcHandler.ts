@@ -25,7 +25,7 @@ export default class OpNpcHandler extends ClientGameMessageHandler<OpNpc> {
             return false;
         }
 
-        if (!rsbuf.hasNpc(player.pid, npc.nid)) {
+        if (!rsbuf.hasNpc(player.slot, npc.nid)) {
             player.write(new UnsetMapFlag());
             player.clearPendingAction();
             return false;

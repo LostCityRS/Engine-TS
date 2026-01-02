@@ -11,7 +11,7 @@ import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 
 export default class OpPlayerTHandler extends ClientGameMessageHandler<OpPlayerT> {
     handle(message: OpPlayerT, player: NetworkPlayer): boolean {
-        const { pid, spellComponent: spellComId } = message;
+        const { playerSlot, spellComponent: spellComId } = message;
 
         if (player.delayed) {
             player.write(new UnsetMapFlag());
@@ -25,14 +25,14 @@ export default class OpPlayerTHandler extends ClientGameMessageHandler<OpPlayerT
             return false;
         }
 
-        const other = World.getPlayer(pid);
+        const other = World.getPlayer(playerSlot);
         if (!other) {
             player.write(new UnsetMapFlag());
             player.clearPendingAction();
             return false;
         }
 
-        if (!rsbuf.hasPlayer(player.pid, other.pid)) {
+        if (!rsbuf.hasPlayer(player.slot, other.slot)) {
             player.write(new UnsetMapFlag());
             player.clearPendingAction();
             return false;

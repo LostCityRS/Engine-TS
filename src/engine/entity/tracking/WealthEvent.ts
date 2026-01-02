@@ -10,7 +10,6 @@ export type WealthEventParams = {
     account_items: WealthEventItem[];
     account_value: number;
 
-    recipient_id?: number;
     recipient_session?: string;
     recipient_items?: WealthEventItem[];
     recipient_value?: number;
@@ -18,8 +17,7 @@ export type WealthEventParams = {
 
 export type WealthEvent = WealthEventParams & {
     coord: number;
-    account_id: number;
-    account_session: string;
+    session_uuid: string;
 };
 
 export type WealthTransactionEvent =  WealthEvent & { 

@@ -6,9 +6,6 @@ export default {
     EASY_STARTUP: tryParseBoolean(process.env.EASY_STARTUP, false),
     WEBSITE_REGISTRATION: tryParseBoolean(process.env.WEBSITE_REGISTRATION, true),
 
-    // bundler/webrtc browser mode
-    STANDALONE_BUNDLE: tryParseBoolean(process.env.STANDALONE_BUNDLE, false),
-
     /// web server
     WEB_PORT: tryParseInt(process.env.WEB_PORT, process.platform === 'win32' || process.platform === 'darwin' ? 80 : 8888),
     WEB_ALLOWED_ORIGIN: tryParseString(process.env.WEB_ALLOWED_ORIGIN, ''),
@@ -59,6 +56,9 @@ export default {
     NODE_MAX_CONNECTED: tryParseInt(process.env.NODE_MAX_CONNECTED, 1000),
     NODE_MAX_NPCS: tryParseInt(process.env.NODE_MAX_NPCS, 8191),
     NODE_DEBUGPROC_CHAR: tryParseString(process.env.NODE_DEBUGPROC_CHAR, '~'),
+    // limit login attempts
+    NODE_RATELIMIT_ADDRESS_LOGIN: tryParseInt(process.env.NODE_RATELIMIT_ADDRESS_LOGIN, 30), // ip (60s)
+    NODE_RATELIMIT_DEVICE_LOGIN: tryParseInt(process.env.NODE_RATELIMIT_DEVICE_LOGIN, 5), // uid+ip (15s)
 
     /// login server
     LOGIN_SERVER: tryParseBoolean(process.env.LOGIN_SERVER, false),

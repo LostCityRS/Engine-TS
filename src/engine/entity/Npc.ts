@@ -35,7 +35,7 @@ import ScriptRunner from '#/engine/script/ScriptRunner.js';
 import ScriptState from '#/engine/script/ScriptState.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
-import LinkList from '#/util/LinkList.js';
+import LinkList from '#/datastruct/LinkList.js';
 import { printError } from '#/util/Logger.js';
 
 export default class Npc extends PathingEntity {
@@ -64,7 +64,6 @@ export default class Npc extends PathingEntity {
     huntMode: number = -1;
     huntTarget: Entity | null = null;
     huntrange: number = 0;
-    spawnTriggerPending: boolean = true;
 
     nextPatrolTick: number = -1;
     nextPatrolPoint: number = 0;
@@ -162,7 +161,7 @@ export default class Npc extends PathingEntity {
             if (hunt.nobodyNear !== HuntNobodyNear.PAUSEHUNT || rsbuf.getNpcObservers(this.nid) > 0 || hunt.type === HuntModeType.PLAYER) {
                 // - hunt npc/obj/loc
                 if (hunt && hunt.type !== HuntModeType.PLAYER) {
-                    this.huntAll();
+                    this.huntAll(hunt);
                 }
 
                 // Increment huntclock
@@ -246,10 +245,8 @@ export default class Npc extends PathingEntity {
 
     // https://x.com/JagexAsh/status/1821236327150710829
     // https://x.com/JagexAsh/status/1799793914595131463
-    huntAll(): void {
+    huntAll(hunt: HuntType): void {
         this.huntTarget = null;
-
-        const hunt: HuntType = HuntType.get(this.huntMode);
 
         // If a huntrate is defined, this acts as a throttle
         if (this.huntClock < hunt.rate - 1) {
@@ -274,8 +271,7 @@ export default class Npc extends PathingEntity {
 
         // Pick randomly from the hunted entities
         if (hunted.length > 0) {
-            const entity: Entity = hunted[Math.floor(Math.random() * hunted.length)];
-            this.huntTarget = entity;
+            this.huntTarget = hunted[Math.floor(Math.random() * hunted.length)];
         }
     }
 

@@ -9,34 +9,20 @@ import { trackLoginAttempts, trackLoginTime } from './LoginMetrics.js';
 
 const client = new LoginClient(Environment.NODE_ID);
 
-if (Environment.STANDALONE_BUNDLE) {
-    self.onmessage = async msg => {
-        try {
-            await handleRequests(self, msg.data);
-        } catch (err) {
-            console.error(err);
-        }
-    };
+if (!parentPort) throw new Error('This file must be run as a worker thread.');
 
-    client.onMessage((opcode, data) => {
-        self.postMessage({ opcode, data });
-    });
-} else {
-    if (!parentPort) throw new Error('This file must be run as a worker thread.');
+parentPort.on('message', async msg => {
+    try {
+        if (!parentPort) throw new Error('This file must be run as a worker thread.');
+        await handleRequests(parentPort, msg);
+    } catch (err) {
+        console.error(err);
+    }
+});
 
-    parentPort.on('message', async msg => {
-        try {
-            if (!parentPort) throw new Error('This file must be run as a worker thread.');
-            await handleRequests(parentPort, msg);
-        } catch (err) {
-            console.error(err);
-        }
-    });
-
-    client.onMessage((opcode, data) => {
-        parentPort!.postMessage({ opcode, data });
-    });
-}
+client.onMessage((opcode, data) => {
+    parentPort!.postMessage({ opcode, data });
+});
 
 type ParentPort = {
     postMessage: (msg: GenericLoginThreadResponse) => void;

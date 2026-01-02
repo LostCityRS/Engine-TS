@@ -11,6 +11,7 @@ interface LoginResponse {
     account_id: number;
     members: boolean;
     messageCount?: number;
+    remaining?: number;
 }
 
 interface LogoutResponse {

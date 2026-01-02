@@ -39,20 +39,17 @@ export class LoginClient extends InternalClient {
             nodeTime: Date.now(),
             nodeMembers: Environment.NODE_MEMBERS,
             profile: Environment.NODE_PROFILE,
-            username,
-            password,
-            uid,
-            socket,
-            remoteAddress,
-            reconnecting,
-            hasSave
+
+            socket, remoteAddress, uid,
+            username, password,
+            reconnecting, hasSave
         });
 
         if (reply.error) {
             return { reply: -1, account_id: -1, save: null, muted_until: null, members: false };
         }
 
-        const { response, account_id, staffmodlevel, save, muted_until, members, messageCount } = reply.result;
+        const { response, account_id, staffmodlevel, save, muted_until, members, messageCount, remaining } = reply.result;
         return {
             reply: response,
             account_id,
@@ -60,7 +57,8 @@ export class LoginClient extends InternalClient {
             save: save ? Buffer.from(save, 'base64') : null,
             muted_until,
             members,
-            messageCount
+            messageCount,
+            remaining
         };
     }
 

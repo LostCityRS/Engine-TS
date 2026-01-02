@@ -2,7 +2,6 @@ import path from 'path';
 
 import { ScriptOpcode } from '#/engine/script/ScriptOpcode.js';
 import Packet from '#/io/Packet.js';
-import Environment from '#/util/Environment.js';
 
 export interface ScriptInfo {
     scriptName: string;
@@ -136,11 +135,7 @@ export default class ScriptFile {
     }
 
     get fileName() {
-        if (Environment.STANDALONE_BUNDLE) {
-            return this.info.sourceFilePath.split('/').pop()?.split('\\').pop();
-        } else {
-            return path.basename(this.info.sourceFilePath);
-        }
+        return path.basename(this.info.sourceFilePath);
     }
 
     lineNumber(pc: number) {

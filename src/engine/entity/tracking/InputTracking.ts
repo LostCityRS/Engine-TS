@@ -1,12 +1,9 @@
-import { NetworkPlayer } from '#/engine/entity/NetworkPlayer.js';
 import Player from '#/engine/entity/Player.js';
-import InputTrackingBlob from '#/engine/entity/tracking/InputTrackingBlob.js';
 import World from '#/engine/World.js';
 import EnableTracking from '#/network/game/server/model/EnableTracking.js';
 import FinishTracking from '#/network/game/server/model/FinishTracking.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import Environment from '#/util/Environment.js';
-
 
 export default class InputTracking {
     // How many ticks between tracking sessions
@@ -33,7 +30,7 @@ export default class InputTracking {
     endTrackingAt: number = this.nextScheduledTrackingEnd();
 
     // List of recorded input 'blobs'
-    recordedBlobs: InputTrackingBlob[] = [];
+    recordedBlobs: Uint8Array[] = [];
     // Number of bytes in total for all recorded blobs
     recordedBlobsSizeTotal: number = 0;
 
@@ -132,7 +129,7 @@ export default class InputTracking {
 
     record(rawData: Uint8Array): void {
         this.recordedBlobsSizeTotal += rawData.length;
-        this.recordedBlobs.push(new InputTrackingBlob(rawData, this.recordedBlobs.length + 1, this.player.coord));
+        this.recordedBlobs.push(rawData);
     }
 
     /**
@@ -144,7 +141,7 @@ export default class InputTracking {
         if (this.hasSeenReport) {
             // Have events to be submitted
             if (this.shouldSubmitTrackingDetails()) {
-                World.submitInputTracking(this.player.username, this.player instanceof NetworkPlayer ? this.player.client.uuid : 'headless', this.recordedBlobs);
+                World.submitInputTracking(this.player, this.recordedBlobs[0]);
             }
         } else if (!Environment.NODE_DEBUG) {
             // this means that:

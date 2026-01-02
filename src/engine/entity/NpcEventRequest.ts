@@ -1,6 +1,6 @@
 import Npc from '#/engine/entity/Npc.js';
 import ScriptFile from '#/engine/script/ScriptFile.js';
-import Linkable from '#/util/Linkable.js';
+import Linkable from '#/datastruct/Linkable.js';
 
 export enum NpcEventType {
     SPAWN,

@@ -4,7 +4,6 @@ import ObjType from '#/cache/config/ObjType.js';
 import { CoordGrid } from '#/engine/CoordGrid.js';
 import { ObjDelayedRequest } from '#/engine/entity/ObjDelayedRequest.js';
 import { EntityLifeCycle } from '#/engine/entity/EntityLifeCycle.js';
-import { isClientConnected } from '#/engine/entity/NetworkPlayer.js';
 import Obj from '#/engine/entity/Obj.js';
 import Player from '#/engine/entity/Player.js';
 import { WealthEventItem } from '#/engine/entity/tracking/WealthEvent.js';
@@ -231,8 +230,8 @@ const InvOps: CommandHandlers = {
         if (invType.scope === InvType.SCOPE_PERM) {
             // ammo drops are temp, without checking scope this spams in ranged combat
             state.activePlayer.addWealthEvent({
-                event_type: WealthEventType.DROP, 
-                account_items: [{ id: obj.id, name: objType.debugname, count: obj.count }], 
+                event_type: WealthEventType.DROP,
+                account_items: [{ id: obj.id, name: objType.debugname, count: obj.count }],
                 account_value: (obj.count * objType.cost)
             });
         }
@@ -443,18 +442,16 @@ const InvOps: CommandHandlers = {
             fromTotal += type.cost * obj.count;
         }
 
-        const toSession = isClientConnected(toPlayer) ? toPlayer.client.uuid : 'disconnected';
         const fromItems = Array.from(fromLogs.values().map(item => (({ cost: _cost, ...event }) => event)(item)));
 
         // Log wealth events
         if (fromInvType.debugname === 'dueloffer') {
             if (fromItems.length > 0) {
                 fromPlayer.addWealthEvent({
-                    event_type: WealthEventType.STAKE, 
-                    account_items: fromItems, 
-                    account_value: fromTotal, 
-                    recipient_id: toPlayer.account_id, 
-                    recipient_session: toSession
+                    event_type: WealthEventType.STAKE,
+                    account_items: fromItems,
+                    account_value: fromTotal,
+                    recipient_session: toPlayer.session,
                 });
             }
         }
@@ -464,13 +461,13 @@ const InvOps: CommandHandlers = {
 
             // log opposite side of trade
             const tradeInv = toPlayer.getInventory(from);
-            if (tradeInv) {       
+            if (tradeInv) {
                 for (let slot = 0; slot < tradeInv.capacity; slot++) {
                     const obj = tradeInv.get(slot);
                     if (!obj) {
                         continue;
-                    }   
-                    
+                    }
+
                     const type = ObjType.get(obj.id);
                     const event = toLogs.get(type.id);
                     if (event) {
@@ -482,16 +479,15 @@ const InvOps: CommandHandlers = {
                     toTotal += type.cost * obj.count;
                 }
             }
-            
+
             if (fromItems.length > 0 || toLogs.size > 0) {
                 const toItems = Array.from(toLogs.values());
                 fromPlayer.addWealthEvent({
-                    event_type: WealthEventType.TRADE, 
-                    account_items: fromItems, 
-                    account_value: fromTotal, 
-                    recipient_id: toPlayer.account_id, 
-                    recipient_session: toSession, 
-                    recipient_items: toItems, 
+                    event_type: WealthEventType.TRADE,
+                    account_items: fromItems,
+                    account_value: fromTotal,
+                    recipient_session: toPlayer.session,
+                    recipient_items: toItems,
                     recipient_value: toTotal
                 });
             }
@@ -704,13 +700,11 @@ const InvOps: CommandHandlers = {
 
         const objType: ObjType = ObjType.get(obj.id);
         if (invType.scope === InvType.SCOPE_PERM) {
-            const p2Session = isClientConnected(toPlayer) ? toPlayer.client.uuid : 'disconnected';
             state.activePlayer.addWealthEvent({
-                event_type: WealthEventType.PVP, 
-                account_items: [{ id: obj.id, name: objType.debugname, count: obj.count }], 
-                account_value: (obj.count * objType.cost), 
-                recipient_id: toPlayer.account_id, 
-                recipient_session: p2Session
+                event_type: WealthEventType.PVP,
+                account_items: [{ id: obj.id, name: objType.debugname, count: obj.count }],
+                account_value: (obj.count * objType.cost),
+                recipient_session: toPlayer.session
             });
         }
 
@@ -764,8 +758,8 @@ const InvOps: CommandHandlers = {
                 else {
                     wealthLog.set(obj.id, { id: obj.id, name: objType.debugname, count: obj.count, cost: objType.cost });
                 }
-                
-                totalValue += obj.count * objType.cost; 
+
+                totalValue += obj.count * objType.cost;
             }
 
             inventory.delete(slot);
