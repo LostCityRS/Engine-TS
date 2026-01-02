@@ -265,10 +265,6 @@ const ScriptOpcodePointers: {
         require: ['active_player'],
         require2: ['active_player2']
     },
-    [ScriptOpcode.LONGQUEUEVARARG]: {
-        require: ['active_player'],
-        require2: ['active_player2']
-    },
     [ScriptOpcode.LOWMEMORY]: {
         require: ['active_player']
     },
@@ -414,10 +410,6 @@ const ScriptOpcodePointers: {
         require: ['active_player'],
         require2: ['active_player2']
     },
-    [ScriptOpcode.QUEUEVARARG]: {
-        require: ['active_player'],
-        require2: ['active_player2']
-    },
     [ScriptOpcode.SAY]: {
         require: ['active_player'],
         require2: ['active_player2']
@@ -493,10 +485,6 @@ const ScriptOpcodePointers: {
         require: ['active_player'],
         require2: ['active_player2']
     },
-    [ScriptOpcode.WEAKQUEUEVARARG]: {
-        require: ['active_player'],
-        require2: ['active_player2']
-    },
     [ScriptOpcode.FINDHERO]: {
         set: ['active_player2'],
         set2: ['active_player'],
@@ -533,10 +521,6 @@ const ScriptOpcodePointers: {
         require2: ['p_active_player2']
     },
     [ScriptOpcode.STRONGQUEUE]: {
-        require: ['active_player'],
-        require2: ['active_player2']
-    },
-    [ScriptOpcode.STRONGQUEUEVARARG]: {
         require: ['active_player'],
         require2: ['active_player2']
     },
