@@ -213,6 +213,7 @@ export const enum ScriptOpcode {
     MINIMAP_TOGGLE,
     IF_SETSCROLLPOS, // official, see server packets
     SET_PLAYER_OP, // todo: real name?
+    SET_SKILL_LEVEL, // todo: real name?
 
     // Npc ops (2500-2999)
     NPC_ADD = 2500, // official
@@ -656,6 +657,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['AFK_EVENT', ScriptOpcode.AFK_EVENT],
     ['LOWMEMORY', ScriptOpcode.LOWMEMORY],
     ['SETIDKIT', ScriptOpcode.SETIDKIT],
+    ['SET_SKILL_LEVEL', ScriptOpcode.SET_SKILL_LEVEL],
     ['P_CLEARPENDINGACTION', ScriptOpcode.P_CLEARPENDINGACTION],
     ['GETWALKTRIGGER', ScriptOpcode.GETWALKTRIGGER],
     ['BUSY2', ScriptOpcode.BUSY2],

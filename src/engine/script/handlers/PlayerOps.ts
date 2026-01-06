@@ -1101,6 +1101,11 @@ const PlayerOps: CommandHandlers = {
         }
     },
 
+    [ScriptOpcode.SET_SKILL_LEVEL]: checkedHandler(ActivePlayer, state => {
+        const level = check(state.popInt(), NumberNotNull);
+        state.activePlayer.skillLevel = level;
+    }),
+
     [ScriptOpcode.SETGENDER]: state => {
         const gender = check(state.popInt(), GenderValid);
         // convert idkit, have to use a mapping cause order + there's not always an equivalence
