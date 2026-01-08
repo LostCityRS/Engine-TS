@@ -316,6 +316,7 @@ export default class Player extends PathingEntity {
     lowMemory: boolean = false;
     webClient: boolean = false;
     combatLevel: number = 3;
+    skillLevel: number = 0;
     headicons: number = 0;
     appearance: number = -1;
     lastAppearance: number = 0;
@@ -1391,7 +1392,7 @@ export default class Player extends PathingEntity {
 
         stream.p8(this.username37);
         stream.p1(this.combatLevel);
-        stream.p2(0); // skill level
+        stream.p2(this.skillLevel);
 
         const appearance: Uint8Array = new Uint8Array(stream.pos);
         stream.pos = 0;
