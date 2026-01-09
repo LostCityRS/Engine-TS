@@ -214,6 +214,10 @@ export const enum ScriptOpcode {
     IF_SETSCROLLPOS, // official, see server packets
     SET_PLAYER_OP, // todo: real name?
     SET_SKILL_LEVEL, // todo: real name?
+    QUEUEVARARG,
+    LONGQUEUEVARARG,
+    WEAKQUEUEVARARG,
+    STRONGQUEUEVARARG,
 
     // Npc ops (2500-2999)
     NPC_ADD = 2500, // official
