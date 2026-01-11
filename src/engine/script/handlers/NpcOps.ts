@@ -11,6 +11,7 @@ import Loc from '#/engine/entity/Loc.js';
 import Npc from '#/engine/entity/Npc.js';
 import { NpcIteratorType } from '#/engine/entity/NpcIteratorType.js';
 import { NpcMode } from '#/engine/entity/NpcMode.js';
+import { NpcStat } from '#/engine/entity/NpcStat.js';
 import Obj from '#/engine/entity/Obj.js';
 import { NpcIterator } from '#/engine/script/ScriptIterators.js';
 import { ScriptOpcode } from '#/engine/script/ScriptOpcode.js';
@@ -249,6 +250,10 @@ const NpcOps: CommandHandlers = {
         const current = npc.levels[stat];
         const healed = current + ((constant + (base * percent) / 100) | 0);
         npc.levels[stat] = Math.min(healed, base);
+
+        if (stat === NpcStat.HITPOINTS && npc.levels[stat] >= npc.baseLevels[stat]) {
+            npc.heroPoints.clear();
+        }
     }),
 
     [ScriptOpcode.NPC_TYPE]: checkedHandler(ActiveNpc, state => {
