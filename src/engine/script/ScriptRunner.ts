@@ -181,14 +181,7 @@ export default class ScriptRunner {
                 state.self.wrappedMessageGame(`    1: ${state.script.name} - ${state.script.fileName}:${state.script.lineNumber(state.pc)}`);
 
                 let trace = 1;
-                for (let i = state.fp; i > 0; i--) {
-                    const frame = state.frames[i];
-                    if (frame) {
-                        trace++;
-                        state.self.wrappedMessageGame(`    ${trace}: ${frame.script.name} - ${frame.script.fileName}:${frame.script.lineNumber(frame.pc)}`);
-                    }
-                }
-                for (let i = state.debugFp; i >= 0; i--) {
+                for (let i = state.debugFp - 1; i >= 0; i--) {
                     const frame = state.debugFrames[i];
                     if (frame) {
                         trace++;
@@ -214,14 +207,7 @@ export default class ScriptRunner {
             console.error(`    1: ${state.script.name} - ${state.script.fileName}:${state.script.lineNumber(state.pc)}`);
 
             let trace = 1;
-            for (let i = state.fp; i > 0; i--) {
-                const frame = state.frames[i];
-                if (frame) {
-                    trace++;
-                    console.error(`    ${trace}: ${frame.script.name} - ${frame.script.fileName}:${frame.script.lineNumber(frame.pc)}`);
-                }
-            }
-            for (let i = state.debugFp; i >= 0; i--) {
+            for (let i = state.debugFp - 1; i >= 0; i--) {
                 const frame = state.debugFrames[i];
                 if (frame) {
                     trace++;
