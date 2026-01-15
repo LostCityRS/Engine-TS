@@ -435,7 +435,8 @@ const ScriptOpcodePointers: {
         require: ['p_active_player']
     },
     [ScriptOpcode.SET_SKILL_LEVEL]: {
-        require: ['active_player']
+        require: ['active_player'],
+        require2: ['active_player2']
     },
     [ScriptOpcode.WALKTRIGGER]: {
         require: ['active_player'],
