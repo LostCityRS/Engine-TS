@@ -26,6 +26,12 @@ import WindowStatusDecoder from '#/network/game/client/codec/WindowStatusDecoder
 import WindowStatusHandler from '#/network/game/client/handler/WindowStatusHandler.js';
 import OpLocDecoder from '#/network/game/client/codec/OpLocDecoder.js';
 import OpLocHandler from '#/network/game/client/handler/OpLocHandler.js';
+import OpObjDecoder from '#/network/game/client/codec/OpObjDecoder.js';
+import OpObjHandler from '#/network/game/client/handler/OpObjHandler.js';
+import OpObjEDecoder from '#/network/game/client/codec/OpObjEDecoder.js';
+import OpObjEHandler from '#/network/game/client/handler/OpObjEHandler.js';
+import OpLocEDecoder from '#/network/game/client/codec/OpLocEDecoder.js';
+import OpLocEHandler from '#/network/game/client/handler/OpLocEHandler.js';
 
 class ClientGameProtRepository {
     decoders: Map<number, ClientGameMessageDecoder<ClientGameMessage>> = new Map();
@@ -74,7 +80,15 @@ class ClientGameProtRepository {
         this.bind(new OpLocDecoder(ClientGameProt.OPLOC3, 3), new OpLocHandler());
         this.bind(new OpLocDecoder(ClientGameProt.OPLOC4, 4), new OpLocHandler());
         this.bind(new OpLocDecoder(ClientGameProt.OPLOC5, 5), new OpLocHandler());
-        this.bind(new OpLocDecoder(ClientGameProt.OPLOC6, 6), new OpLocHandler());
+        this.bind(new OpLocEDecoder(), new OpLocEHandler());
+
+        this.bind(new OpObjDecoder(ClientGameProt.OPOBJ1, 1), new OpObjHandler());
+        this.bind(new OpObjDecoder(ClientGameProt.OPOBJ2, 2), new OpObjHandler());
+        this.bind(new OpObjDecoder(ClientGameProt.OPOBJ3, 3), new OpObjHandler());
+        this.bind(new OpObjDecoder(ClientGameProt.OPOBJ4, 4), new OpObjHandler());
+        this.bind(new OpObjDecoder(ClientGameProt.OPOBJ5, 5), new OpObjHandler());
+        this.bind(new OpObjEDecoder(), new OpObjEHandler());
+
 
         this.bind(new WindowStatusDecoder(), new WindowStatusHandler());
     }

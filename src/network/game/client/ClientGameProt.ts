@@ -11,12 +11,13 @@ export default class ClientGameProt {
     static readonly EVENT_HAS_WINDOW = new ClientGameProt(9007, 4);
     static readonly EVENT_SYNTH_ERROR = new ClientGameProt(9008, 2);
 
-    static readonly OPOBJ1 = new ClientGameProt(9020, 6); // NXT naming
-    static readonly OPOBJ2 = new ClientGameProt(9021, 6); // NXT naming
-    static readonly OPOBJ3 = new ClientGameProt(9022, 6); // NXT naming
-    static readonly OPOBJ4 = new ClientGameProt(9023, 6); // NXT naming
-    static readonly OPOBJ5 = new ClientGameProt(9024, 6); // NXT naming
-    static readonly OPOBJT = new ClientGameProt(9025, 8); // NXT naming
+    static readonly OPOBJ1 = new ClientGameProt(72, 8); // NXT naming
+    static readonly OPOBJ2 = new ClientGameProt(228, 6); // NXT naming
+    static readonly OPOBJ3 = new ClientGameProt(85, 8); // NXT naming
+    static readonly OPOBJ4 = new ClientGameProt(161, 8); // NXT naming
+    static readonly OPOBJ5 = new ClientGameProt(135, 8); // NXT naming
+    static readonly OPOBJE = new ClientGameProt(92, 2); // Naming from OS1 (Blame Pazaz)
+    static readonly OPOBJT = new ClientGameProt(131, 8); // NXT naming
     static readonly OPOBJU = new ClientGameProt(9026, 12); // NXT naming
 
     static readonly OPNPC1 = new ClientGameProt(9027, 2); // NXT naming
@@ -32,7 +33,7 @@ export default class ClientGameProt {
     static readonly OPLOC3 = new ClientGameProt(84, 6); // NXT naming
     static readonly OPLOC4 = new ClientGameProt(247, 6); // NXT naming
     static readonly OPLOC5 = new ClientGameProt(170, 6); // NXT naming
-    static readonly OPLOC6 = new ClientGameProt(94, 2); // NXT naming
+    static readonly OPLOCE = new ClientGameProt(94, 2); // Naming from OS1 (Blame Pazaz)
     static readonly OPLOCT = new ClientGameProt(9039, 8); // NXT naming
     static readonly OPLOCU = new ClientGameProt(9040, 12); // NXT naming
 
@@ -66,7 +67,7 @@ export default class ClientGameProt {
     static readonly IF_BUTTON = new ClientGameProt(79, 12); // NXT naming
     static readonly RESUME_PAUSEBUTTON = new ClientGameProt(9061, 2); // NXT naming
     static readonly CLOSE_MODAL = new ClientGameProt(184, 0); // NXT naming
-    static readonly RESUME_P_COUNTDIALOG = new ClientGameProt(9063, 4); // NXT naming
+    static readonly RESUME_P_COUNTDIALOG = new ClientGameProt(23, 4); // NXT naming
     static readonly TUTORIAL_CLICKSIDE = new ClientGameProt(9064, 1); // no original name
     static readonly RESUME_P_NAMEDIALOG = new ClientGameProt(9065, 8); // NXT naming
 
