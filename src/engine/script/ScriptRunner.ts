@@ -193,11 +193,7 @@ export default class ScriptRunner {
                 state.self.wrappedMessageGame(`    1: ${state.script.name} - ${state.script.fileName}:${state.script.lineNumber(state.pc)}`);
 
                 let trace = 1;
-<<<<<<< HEAD
                 for (let i = state.debugFp - 1; i >= 0; i--) {
-=======
-                for (let i = state.debugFp - 1; i > 0; i--) {
->>>>>>> 43e02957 (fix: Complete stack backtrace if calling proc in a label)
                     const frame = state.debugFrames[i];
                     state.self.wrappedMessageGame(`    ${++trace}: ${frame.script.name} - ${frame.script.fileName}:${frame.script.lineNumber(frame.pc)}`);
                 }
@@ -222,11 +218,7 @@ export default class ScriptRunner {
             console.error(`    1: ${state.script.name} - ${state.script.fileName}:${state.script.lineNumber(state.pc)}`);
 
             let trace = 1;
-<<<<<<< HEAD
             for (let i = state.debugFp - 1; i >= 0; i--) {
-=======
-            for (let i = state.debugFp - 1; i > 0; i--) {
->>>>>>> 43e02957 (fix: Complete stack backtrace if calling proc in a label)
                 const frame = state.debugFrames[i];
                 console.error(`    ${++trace}: ${frame.script.name} - ${frame.script.fileName}:${frame.script.lineNumber(frame.pc)}`);
             }
