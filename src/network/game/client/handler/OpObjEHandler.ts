@@ -3,7 +3,7 @@ import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHan
 import OpObjE from '#/network/game/client/model/OpObjE.js';
 
 export default class OpObjEHandler extends ClientGameMessageHandler<OpObjE> {
-    handle(message: OpObjE, player: NetworkPlayer): boolean {
+    handle(_message: OpObjE, _player: NetworkPlayer): boolean {
         // TODO
         return true;
     }
