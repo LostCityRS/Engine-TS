@@ -70,7 +70,8 @@ export default class LocType extends ConfigType {
     blockwalk = true;
     blockrange = true;
     active = -1;
-    hillskew = false;
+    hillskew = 0;
+    hillskew_amount = -1;   // todo: verify name
     sharelight = false;
     occlude = false;
     anim = -1;
@@ -96,6 +97,14 @@ export default class LocType extends ConfigType {
     multivarbit = -1;
     multivarp = -1;
     multiloc: number[] = [];
+    bgsound_sound = -1;
+    bgsound_range = 0;
+    bgsound_mindelay = 0;
+    bgsound_maxdelay = 0;
+    bgsound_random: number[] = [];
+    mapsceneiconrotate = false;
+    mapsceneicon = -1;
+    members = false;
 
     // server-side
     category = -1;
@@ -128,12 +137,13 @@ export default class LocType extends ConfigType {
             this.length = dat.g1();
         } else if (code === 17) {
             this.blockwalk = false;
+            this.blockrange = false;
         } else if (code === 18) {
             this.blockrange = false;
         } else if (code === 19) {
             this.active = dat.g1();
         } else if (code === 21) {
-            this.hillskew = true;
+            this.hillskew = 1;
         } else if (code === 22) {
             this.sharelight = true;
         } else if (code === 23) {
@@ -197,7 +207,7 @@ export default class LocType extends ConfigType {
             this.breakroutefinding = true;
         } else if (code === 75) {
             this.raiseobject = dat.g1();
-        } else if (code === 77) {
+        } else if (code === 77 || code === 92) {
             this.multivarbit = dat.g2();
             if (this.multivarbit === 65535) {
                 this.multivarbit = -1;
@@ -209,13 +219,40 @@ export default class LocType extends ConfigType {
             }
 
             const count = dat.g1();
-            this.multiloc = new Array(count + 1);
+            this.multiloc = new Array(count + 2);
             for (let i = 0; i <= count; i++) {
                 this.multiloc[i] = dat.g2();
                 if (this.multiloc[i] === 65535) {
                     this.multiloc[i] = -1;
                 }
             }
+        } else if (code === 78) {
+            this.bgsound_sound = dat.g2();
+            this.bgsound_range = dat.g1();
+        } else if (code === 79) {
+            this.bgsound_mindelay = dat.g2();
+            this.bgsound_maxdelay = dat.g2();
+            this.bgsound_range = dat.g1();
+
+            const count = dat.g1();
+            this.bgsound_random = new Array(count);
+            for (let i = 0; i < count; i++) {
+                this.bgsound_random[i] = dat.g2();
+            }
+        } else if (code === 81) {
+            this.hillskew = 2;
+        } else if (code === 91) {
+            this.members = true;
+        } else if (code === 93) {
+            this.hillskew = 3;
+        } else if (code === 94) {
+            this.hillskew = 4;
+        } else if (code === 95) {
+            this.hillskew = 5;
+        } else if (code === 97) {
+            this.mapsceneiconrotate = true;
+        } else if (code === 102) {
+            this.mapsceneicon = dat.g2(); 
         } else if (code === 249) {
             this.params = ParamHelper.decodeParams(dat);
         } else if (code === 250) {
