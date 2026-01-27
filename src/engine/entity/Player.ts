@@ -1365,13 +1365,7 @@ export default class Player extends PathingEntity {
             stream.p1(this.colors[i]);
         }
 
-        stream.p2(this.readyanim);
-        stream.p2(this.turnanim);
-        stream.p2(this.walkanim);
-        stream.p2(this.walkanim_b);
-        stream.p2(this.walkanim_l);
-        stream.p2(this.walkanim_r);
-        stream.p2(this.runanim);
+        stream.p2(423);
 
         stream.p8(this.username37);
         stream.p1(this.combatLevel);
