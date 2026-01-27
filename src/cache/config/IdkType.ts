@@ -56,8 +56,10 @@ export default class IdkType extends ConfigType {
     type: number = -1;
     models: Uint16Array | null = null;
     heads: Uint16Array = new Uint16Array(5).fill(-1);
-    recol_s: Uint16Array = new Uint16Array(6).fill(0);
-    recol_d: Uint16Array = new Uint16Array(6).fill(0);
+    recol_s: Uint16Array | null = null;
+    recol_d: Uint16Array | null = null;
+    retex_s: Uint16Array | null = null;
+    retex_d: Uint16Array | null = null;
     disable: boolean = false;
 
     decode(code: number, dat: Packet): void {
@@ -72,10 +74,23 @@ export default class IdkType extends ConfigType {
             }
         } else if (code === 3) {
             this.disable = true;
-        } else if (code >= 40 && code < 50) {
-            this.recol_s[code - 40] = dat.g2();
-        } else if (code >= 50 && code < 60) {
-            this.recol_d[code - 50] = dat.g2();
+        } else if (code === 40) {
+            const count = dat.g1();
+            this.recol_s = new Uint16Array(count);
+            this.recol_d = new Uint16Array(count);
+            for (let i = 0; i < count; i++) {
+                this.recol_s[i] = dat.g2();
+                this.recol_d[i] = dat.g2();
+            }
+
+        } else if (code === 41) {
+            const count = dat.g1();
+            this.retex_s = new Uint16Array(count);
+            this.retex_d = new Uint16Array(count);
+            for (let i = 0; i < count; i++) {
+                this.retex_s[i] = dat.g2();
+                this.retex_d[i] = dat.g2();
+            }
         } else if (code >= 60 && code < 70) {
             this.heads[code - 60] = dat.g2();
         } else if (code === 250) {
