@@ -129,6 +129,10 @@ const ServerOps: CommandHandlers = {
     [ScriptOpcode.MAP_BLOCKED]: state => {
         const coord: CoordGrid = check(state.popInt(), CoordValid);
 
+        if (!Environment.NODE_MEMBERS && !World.gameMap.isFreeToPlay(coord.x, coord.z)) {
+            state.pushInt(1);
+            return;
+        }
         state.pushInt(isMapBlocked(coord.x, coord.z, coord.level) ? 1 : 0);
     },
 
