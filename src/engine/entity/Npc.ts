@@ -59,6 +59,7 @@ export default class Npc extends PathingEntity {
     queue: LinkList<NpcQueueRequest> = new LinkList();
     timerInterval: number = 0;
     timerClock: number = 0;
+    regenInterval: number = 0;
     regenClock: number = 0;
     huntClock: number = 0;
     huntMode: number = -1;
@@ -432,7 +433,7 @@ export default class Npc extends PathingEntity {
         this.uid = (type << 16) | this.nid;
         this.resetOnRevert = reset;
 
-        if(reset) {
+        if (reset) {
             const npcType = NpcType.get(type);
             for (let index = 0; index < npcType.stats.length; index++) {
                 const level = npcType.stats[index];
@@ -508,13 +509,15 @@ export default class Npc extends PathingEntity {
 
     // --- Npc turn
     private processRegen() {
-        const type = NpcType.get(this.type);
+        if (++this.regenClock >= this.regenInterval) {
+            // Every time we regen, let's reload regen interval from NPC type
+            // This seems to match NPC behavior for when they change type, the regenrate doesn't update until a regen happens
+            // See: Vorkath in OSRS
+            const type = NpcType.get(this.type);
+            this.regenInterval = type.regenrate;
+            this.regenClock = 0;
 
-        // Hp regen timer counts down and procs every `regenrate` ticks
-        // Since regenClock is initialized to 0, NPCs regen their hp on their first turn alive, and then on turn 101
-        // This is accurate to OSRS behavior
-        if (type.regenrate !== 0 && --this.regenClock <= 0) {
-            this.regenClock = type.regenrate;
+            // Regen the stats
             for (let index = 0; index < this.baseLevels.length; index++) {
                 const stat = this.levels[index];
                 const baseStat = this.baseLevels[index];
@@ -989,7 +992,7 @@ export default class Npc extends PathingEntity {
 
     // --- Other
 
-    private getTrigger(type : NpcType): ScriptFile | null {
+    private getTrigger(type: NpcType): ScriptFile | null {
         const trigger: ServerTriggerType | null = this.getTriggerForMode(this.targetOp);
         if (trigger) {
             return ScriptProvider.getByTrigger(trigger, this.type, type.category) ?? null;
