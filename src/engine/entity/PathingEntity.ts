@@ -654,7 +654,7 @@ export default abstract class PathingEntity extends Entity {
             if (canTravel(this.level, srcX, srcZ, 0, CoordGrid.deltaZ(tryDirZ), this.width, extraFlag, collisionStrategy)) {
                 return tryDirZ;
             }
-            return -1;
+            return null;
         }
 
         const dir: number = CoordGrid.face(srcX, srcZ, x, z);
