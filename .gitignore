@@ -8,12 +8,7 @@ data/src/
 data/unpack/
 
 data/players/
-data/sessions/
 data/symbols/
-
-data/config/worlds.json
-data/config/login.json
-data/config/friend.json
 
 dump/
 
