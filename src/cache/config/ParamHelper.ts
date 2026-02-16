@@ -27,9 +27,9 @@ export const ParamHelper = {
         const count = dat.g1();
         const params = new Map<number, number | string>();
         for (let i = 0; i < count; i++) {
-            const key = dat.g3();
             const isString = dat.gbool();
-
+            const key = dat.g3();
+            
             if (isString) {
                 params.set(key, dat.gjstr());
             } else {
