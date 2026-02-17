@@ -139,6 +139,8 @@ import SetPlayerOp from '#/network/game/server/model/SetPlayerOp.js';
 import SetPlayerOpEncoder from '#/network/game/server/codec/SetPlayerOpEncoder.js';
 import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 import FriendlistLoadedEncoder from '#/network/game/server/codec/FriendlistLoadedEncoder.js';
+import MinimapToggle from '#/network/game/server/model/MinimapToggle.js';
+import MinimapToggleEncoder from '#/network/game/server/codec/MinimapToggleEncoder.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type GenericOutgoingMessage<T extends ServerGameMessage> = new (...args: any[]) => T;
@@ -198,6 +200,7 @@ class ServerGameProtRepository {
         this.bind(MessagePrivate, new MessagePrivateEncoder());
         this.bind(MidiJingle, new MidiJingleEncoder());
         this.bind(MidiSong, new MidiSongEncoder());
+        this.bind(MinimapToggle, new MinimapToggleEncoder());
         this.bind(NpcInfo, new NpcInfoEncoder());
         this.bind(ObjAdd, new ObjAddEncoder());
         this.bind(ObjCount, new ObjCountEncoder());

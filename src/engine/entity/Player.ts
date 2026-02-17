@@ -312,6 +312,7 @@ export default class Player extends PathingEntity {
     lowMemory: boolean = false;
     webClient: boolean = false;
     combatLevel: number = 3;
+    skillLevel: number = 0;
     headicons: number = 0;
     baseLevels = new Uint8Array(21);
     lastStats: Int32Array = new Int32Array(21); // we track this so we know to flush stats only once a tick on changes
@@ -1383,7 +1384,7 @@ export default class Player extends PathingEntity {
 
         stream.p8(this.username37);
         stream.p1(this.combatLevel);
-        stream.p2(0); // todo: skill level
+        stream.p2(this.skillLevel);
 
         const appearance: Uint8Array = new Uint8Array(stream.pos);
         stream.pos = 0;

@@ -51,6 +51,7 @@ import IfSetPosition from '#/network/game/server/model/IfSetPosition.js';
 import IfSetScrollPos from '#/network/game/server/model/IfSetScrollPos.js';
 import IfSetTabActive from '#/network/game/server/model/IfSetTabActive.js';
 import IfSetText from '#/network/game/server/model/IfSetText.js';
+import MinimapToggle from '#/network/game/server/model/MinimapToggle.js';
 import PCountDialog from '#/network/game/server/model/PCountDialog.js';
 import SetPlayerOp from '#/network/game/server/model/SetPlayerOp.js';
 import SynthSound from '#/network/game/server/model/SynthSound.js';
@@ -822,6 +823,11 @@ const PlayerOps: CommandHandlers = {
         player.playJingle(delay, name);
     },
 
+    [ScriptOpcode.MINIMAP_TOGGLE]: checkedHandler(ActivePlayer, state => {
+        const type = check(state.popInt(), NumberNotNull);
+        state.activePlayer.write(new MinimapToggle(type));
+    }),
+    
     [ScriptOpcode.SOFTTIMER]: checkedHandler(ActivePlayer, state => {
         const args = popScriptArgs(state);
         const interval = state.popInt();
@@ -1125,6 +1131,11 @@ const PlayerOps: CommandHandlers = {
         }
         state.activePlayer.gender = gender;
     },
+
+    [ScriptOpcode.SET_SKILL_LEVEL]: checkedHandler(ActivePlayer, state => {
+        const level = check(state.popInt(), NumberNotNull);
+        state.activePlayer.skillLevel = level;
+    }),
 
     [ScriptOpcode.SETSKINCOLOUR]: state => {
         const skin = check(state.popInt(), SkinColourValid);

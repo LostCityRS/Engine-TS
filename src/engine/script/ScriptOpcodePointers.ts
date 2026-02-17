@@ -273,6 +273,10 @@ const ScriptOpcodePointers: {
     [ScriptOpcode.MIDI_SONG]: {
         require: ['active_player']
     },
+    [ScriptOpcode.MINIMAP_TOGGLE]: {
+        require: ['active_player'],
+        require2: ['active_player2']
+    },
     [ScriptOpcode.NAME]: {
         require: ['active_player'],
         require2: ['active_player2']
@@ -524,6 +528,10 @@ const ScriptOpcodePointers: {
     },
     [ScriptOpcode.SET_PLAYER_OP]: {
         require: ['active_player']
+    },
+    [ScriptOpcode.SET_SKILL_LEVEL]: {
+        require: ['active_player'],
+        require2: ['active_player2']
     },
     [ScriptOpcode.STRONGQUEUE]: {
         require: ['active_player'],

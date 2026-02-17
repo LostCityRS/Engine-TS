@@ -130,6 +130,7 @@ export const enum ScriptOpcode {
     MES, // official
     MIDI_JINGLE, // official, see cs2
     MIDI_SONG, // official, see cs2
+    MINIMAP_TOGGLE,
     NAME, // official + joke reply
     P_ANIMPROTECT,
     P_APRANGE, // official
@@ -167,6 +168,7 @@ export const enum ScriptOpcode {
     SET_PLAYER_OP,
     SETGENDER,
     SETIDKIT,
+    SET_SKILL_LEVEL,
     SETSKINCOLOUR,
     SETTIMER,
     SOFTTIMER, // official
@@ -574,6 +576,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['MES', ScriptOpcode.MES],
     ['MIDI_JINGLE', ScriptOpcode.MIDI_JINGLE],
     ['MIDI_SONG', ScriptOpcode.MIDI_SONG],
+    ['MINIMAP_TOGGLE', ScriptOpcode.MINIMAP_TOGGLE],
     ['NAME', ScriptOpcode.NAME],
     ['P_ANIMPROTECT', ScriptOpcode.P_ANIMPROTECT],
     ['P_APRANGE', ScriptOpcode.P_APRANGE],
@@ -612,6 +615,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['SET_PLAYER_OP', ScriptOpcode.SET_PLAYER_OP],
     ['SETGENDER', ScriptOpcode.SETGENDER],
     ['SETIDKIT', ScriptOpcode.SETIDKIT],
+    ['SET_SKILL_LEVEL', ScriptOpcode.SET_SKILL_LEVEL],
     ['SETSKINCOLOUR', ScriptOpcode.SETSKINCOLOUR],
     ['SETTIMER', ScriptOpcode.SETTIMER],
     ['SOFTTIMER', ScriptOpcode.SOFTTIMER],

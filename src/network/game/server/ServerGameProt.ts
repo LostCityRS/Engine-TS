@@ -62,7 +62,7 @@ export default class ServerGameProt {
     static readonly P_COUNTDIALOG = new ServerGameProt(210, 0); // named after runescript command + client resume_p_countdialog packet
     static readonly SET_MULTIWAY = new ServerGameProt(207, 1);
     static readonly SET_PLAYER_OP = new ServerGameProt(17, -1);
-    // todo: MINIMAP_TOGGLE
+    static readonly MINIMAP_TOGGLE = new ServerGameProt(194, 1);
 
     // maps
     static readonly REBUILD_NORMAL = new ServerGameProt(231, 4); // NXT naming (do we really need _normal if there's no region rebuild?)
