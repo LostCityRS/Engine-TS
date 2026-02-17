@@ -65,6 +65,9 @@ export default class LocType extends ConfigType {
     desc: string | null = null;
     recol_s: Uint16Array | null = null;
     recol_d: Uint16Array | null = null;
+    retex_s: Uint16Array | null = null;
+    retex_d: Uint16Array | null = null;
+    recol_d_palette: Int8Array | null = null;
     width = 1;
     length = 1;
     blockwalk = true;
@@ -105,6 +108,7 @@ export default class LocType extends ConfigType {
     mapsceneiconrotate = false;
     mapsceneicon = -1;
     members = false;
+    randomanimframe = true;
 
     // server-side
     category = -1;
@@ -156,12 +160,14 @@ export default class LocType extends ConfigType {
             }
         } else if (code === 25) {
             this.hasalpha = true;
+        } else if (code === 27) {
+            this.blockwalk = true;
         } else if (code === 28) {
             this.wallwidth = dat.g1();
         } else if (code === 29) {
             this.ambient = dat.g1b();
         } else if (code === 39) {
-            this.contrast = dat.g1b();
+            this.contrast = dat.g1b();  // Value multiplied by 5 client side
         } else if (code >= 30 && code < 35) {
             if (!this.op) {
                 this.op = new Array(5).fill(null);
@@ -176,6 +182,22 @@ export default class LocType extends ConfigType {
             for (let i = 0; i < count; i++) {
                 this.recol_s[i] = dat.g2();
                 this.recol_d[i] = dat.g2();
+            }
+        } else if (code === 41) {
+            const count = dat.g1();
+            this.retex_s = new Uint16Array(count);
+            this.retex_d = new Uint16Array(count);
+
+            for (let i = 0; i < count; i++) {
+                this.retex_s[i] = dat.g2();
+                this.retex_d[i] = dat.g2();
+            }
+        } else if (code === 42) {
+            const count = dat.g1();
+            this.recol_d_palette = new Int8Array(count);
+
+            for (let i = 0; i < count; i++) {
+                this.recol_d_palette[i] = dat.g1b();
             }
         } else if (code === 60) {
             this.mapfunction = dat.g2();
@@ -192,7 +214,7 @@ export default class LocType extends ConfigType {
         } else if (code === 67) {
             this.resizez = dat.g2();
         } else if (code === 68) {
-            this.mapscene = dat.g2();
+            this.mapscene = dat.g2(); // todo: not in client by 530
         } else if (code === 69) {
             this.forceapproach = dat.g1();
         } else if (code === 70) {
@@ -218,6 +240,14 @@ export default class LocType extends ConfigType {
                 this.multivarp = -1;
             }
 
+            let defaultid = -1;
+            if (code === 92) {
+                defaultid = dat.g2();
+                if (defaultid === 65535) {
+                    defaultid = -1;
+                }
+            }
+
             const count = dat.g1();
             this.multiloc = new Array(count + 2);
             for (let i = 0; i <= count; i++) {
@@ -226,6 +256,7 @@ export default class LocType extends ConfigType {
                     this.multiloc[i] = -1;
                 }
             }
+            this.multiloc[count + 1] = defaultid;
         } else if (code === 78) {
             this.bgsound_sound = dat.g2();
             this.bgsound_range = dat.g1();
@@ -241,10 +272,14 @@ export default class LocType extends ConfigType {
             }
         } else if (code === 81) {
             this.hillskew = 2;
+            this.hillskew_amount = dat.g1(); // Value multiplied by 256 client side
+        } else if (code === 88) {
+            this.randomanimframe = false;
         } else if (code === 91) {
             this.members = true;
         } else if (code === 93) {
             this.hillskew = 3;
+            this.hillskew_amount = dat.g2();
         } else if (code === 94) {
             this.hillskew = 4;
         } else if (code === 95) {

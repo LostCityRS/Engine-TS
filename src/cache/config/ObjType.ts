@@ -123,6 +123,10 @@ export default class ObjType extends ConfigType {
     desc: string | null = null;
     recol_s: Uint16Array | null = null;
     recol_d: Uint16Array | null = null;
+    retex_s: Uint16Array | null = null;
+    retex_d: Uint16Array | null = null;
+    recol_d_palette: Int8Array | null = null;
+    stockmarket = false;
     zoom2d = 2000;
     xan2d = 0;
     yan2d = 0;
@@ -138,10 +142,14 @@ export default class ObjType extends ConfigType {
     iop: (string | null)[] | null = null;
     manwear = -1;
     manwear2 = -1;
+    manwearOffsetX = 0;
     manwearOffsetY = 0;
+    manwearOffsetZ = 0;
     womanwear = -1;
     womanwear2 = -1;
+    womanwearOffsetX = 0;
     womanwearOffsetY = 0;
+    womanwearOffsetZ = 0;
     manwear3 = -1;
     womanwear3 = -1;
     manhead = -1;
@@ -158,6 +166,17 @@ export default class ObjType extends ConfigType {
     ambient = 0;
     contrast = 0;
     team = 0;
+    lentlink = -1;
+    lenttemplate = -1;
+
+    cursor1op = -1;
+    cursor1 = -1;
+    cursor2op = -1;
+    cursor2 = -1;
+    cursor1iop = -1;
+    cursor1i = -1;
+    cursor2iop = -1;
+    cursor2i = -1;
 
     // server-side
     wearpos = -1;
@@ -205,12 +224,10 @@ export default class ObjType extends ConfigType {
             this.members = true;
         } else if (code === 23) {
             this.manwear = dat.g2();
-            this.manwearOffsetY = dat.g1b();
         } else if (code === 24) {
             this.manwear2 = dat.g2();
         } else if (code === 25) {
             this.womanwear = dat.g2();
-            this.womanwearOffsetY = dat.g1b();
         } else if (code === 26) {
             this.womanwear2 = dat.g2();
         } else if (code === 27) {
@@ -234,6 +251,24 @@ export default class ObjType extends ConfigType {
                 this.recol_s[i] = dat.g2();
                 this.recol_d[i] = dat.g2();
             }
+        } else if (code === 41) {
+            const count = dat.g1();
+            this.retex_s = new Uint16Array(count);
+            this.retex_d = new Uint16Array(count);
+
+            for (let i = 0; i < count; i++) {
+                this.retex_s[i] = dat.g2();
+                this.retex_d[i] = dat.g2();
+            }
+        } else if (code === 42) {
+            const count = dat.g1();
+            this.recol_d_palette = new Int8Array(count);
+
+            for (let i = 0; i < count; i++) {
+                this.recol_d_palette[i] = dat.g1b();
+            }
+        } else if (code === 65) {
+            this.stockmarket = true;
         } else if (code === 75) {
             this.weight = dat.g2s();
         } else if (code === 78) {
@@ -274,9 +309,33 @@ export default class ObjType extends ConfigType {
         } else if (code === 113) {
             this.ambient = dat.g1b();
         } else if (code === 114) {
-            this.contrast = dat.g1b();
+            this.contrast = dat.g1b();  // Value multiplied by 5 client side
         } else if (code === 115) {
             this.team = dat.g1();
+        } else if (code === 121) {
+            this.lentlink = dat.g2();
+        } else if (code === 122) {
+            this.lenttemplate = dat.g2();
+        } else if (code === 125) {
+            this.manwearOffsetX = dat.g1b();
+            this.manwearOffsetY = dat.g1b();
+            this.manwearOffsetZ = dat.g1b();
+        } else if (code === 126) {
+            this.womanwearOffsetX = dat.g1b();
+            this.womanwearOffsetY = dat.g1b();
+            this.womanwearOffsetZ = dat.g1b();
+        } else if (code === 127) {
+            this.cursor1op = dat.g1();
+            this.cursor1 = dat.g2();
+        } else if (code === 128) {
+            this.cursor2op = dat.g1();
+            this.cursor2 = dat.g2();
+        } else if (code === 129) {
+            this.cursor1iop = dat.g1();
+            this.cursor1i = dat.g2();
+        } else if (code === 130) {
+            this.cursor2iop = dat.g1();
+            this.cursor2i = dat.g2();
         } else if (code === 201) {
             this.respawnrate = dat.g2();
         } else if (code === 249) {
@@ -299,6 +358,9 @@ export default class ObjType extends ConfigType {
         this.yof2d = template.yof2d;
         this.recol_s = template.recol_s;
         this.recol_d = template.recol_d;
+        this.recol_d_palette = template.recol_d_palette;
+        this.retex_s = template.retex_s;
+        this.retex_d = template.retex_d;
 
         const link = ObjType.get(this.certlink)!;
         this.name = link.name;
@@ -314,5 +376,24 @@ export default class ObjType extends ConfigType {
         this.desc = `Swap this note at any bank for ${article} ${link.name}.`;
 
         this.stackable = true;
+    }
+
+    toLentObj() {
+        const template = ObjType.get(this.lenttemplate)!;
+        this.model = template.model;
+        this.zoom2d = template.zoom2d;
+        this.xan2d = template.xan2d;
+        this.yan2d = template.yan2d;
+        this.zan2d = template.zan2d;
+        this.xof2d = template.xof2d;
+        this.yof2d = template.yof2d;
+        this.recol_s = template.recol_s;
+        this.recol_d = template.recol_d;
+        this.recol_d_palette = template.recol_d_palette;
+        this.retex_s = template.retex_s;
+        this.retex_d = template.retex_d;
+
+        const link = ObjType.get(this.lentlink)!;
+        this.name = link.name;
     }
 }
