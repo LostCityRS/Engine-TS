@@ -112,7 +112,7 @@ export default class SeqType extends ConfigType {
 
             this.walkmerge[count] = 9999999;
         } else if (code === 4) {
-            this.stretches = true;
+            this.stretches = true;    // TODO: reachforward
         } else if (code === 5) {
             this.priority = dat.g1();
         } else if (code === 6) {
