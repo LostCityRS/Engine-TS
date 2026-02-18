@@ -39,7 +39,7 @@ export class PlayerLoading {
         player.lastResponse = World.currentTick;
 
         if (sav.data.length < 2) {
-            for (let i = 0; i < 21; i++) {
+            for (let i = 0; i < 24; i++) {
                 player.stats[i] = 0;
                 player.baseLevels[i] = 1;
                 player.levels[i] = 1;

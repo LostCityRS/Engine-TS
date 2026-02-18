@@ -287,8 +287,8 @@ export default class Player extends PathingEntity {
     lastRunEnergy: number = -1;
     runweight: number = 0;
     playtime: number = 0;
-    stats: Int32Array = new Int32Array(21);
-    levels: Uint8Array = new Uint8Array(21);
+    stats: Int32Array = new Int32Array(24);
+    levels: Uint8Array = new Uint8Array(24);
     vars: Int32Array;
     varsString: string[];
     invs: Map<number, Inventory> = new Map<number, Inventory>();
@@ -310,9 +310,9 @@ export default class Player extends PathingEntity {
     webClient: boolean = false;
     combatLevel: number = 3;
     headicons: number = 0;
-    baseLevels = new Uint8Array(21);
-    lastStats: Int32Array = new Int32Array(21); // we track this so we know to flush stats only once a tick on changes
-    lastLevels: Uint8Array = new Uint8Array(21); // we track this so we know to flush stats only once a tick on changes
+    baseLevels = new Uint8Array(24);
+    lastStats: Int32Array = new Int32Array(24); // we track this so we know to flush stats only once a tick on changes
+    lastLevels: Uint8Array = new Uint8Array(24); // we track this so we know to flush stats only once a tick on changes
     originX: number = -1;
     originZ: number = -1;
     buildArea: BuildArea = new BuildArea(this);
