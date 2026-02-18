@@ -387,13 +387,21 @@ export default class ObjType extends ConfigType {
         this.zan2d = template.zan2d;
         this.xof2d = template.xof2d;
         this.yof2d = template.yof2d;
-        this.recol_s = template.recol_s;
-        this.recol_d = template.recol_d;
-        this.recol_d_palette = template.recol_d_palette;
-        this.retex_s = template.retex_s;
-        this.retex_d = template.retex_d;
 
         const link = ObjType.get(this.lentlink)!;
         this.name = link.name;
+        this.recol_s = link.recol_s;
+        this.recol_d = link.recol_d;
+        this.recol_d_palette = link.recol_d_palette;
+        this.retex_s = link.retex_s;
+        this.retex_d = link.retex_d;
+        this.manhead = link.manhead;
+        this.womanhead = link.womanhead;
+        this.op = link.op;
+        this.team = link.team;
+        this.members = link.members;
+        this.params = link.params;
+
+        this.cost = 0;
     }
 }
