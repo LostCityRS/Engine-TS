@@ -396,12 +396,37 @@ export default class ObjType extends ConfigType {
         this.retex_s = link.retex_s;
         this.retex_d = link.retex_d;
         this.manhead = link.manhead;
+        this.manhead2 = link.manhead2;
+        this.manwear = link.manwear;
+        this.manwear2 = link.manwear2;
+        this.manwear3 = link.manwear3;
+        this.manwearOffsetX = link.manwearOffsetX;
+        this.manwearOffsetY = link.manwearOffsetY;
+        this.manwearOffsetZ = link.manwearOffsetZ;
         this.womanhead = link.womanhead;
+        this.womanhead2 = link.womanhead2;
+        this.womanwear = link.womanwear;
+        this.womanwear2 = link.womanwear2;
+        this.womanwear3 = link.womanwear3;
+        this.womanwearOffsetX = link.womanwearOffsetX;
+        this.womanwearOffsetY = link.womanwearOffsetY;
+        this.womanwearOffsetZ = link.womanwearOffsetZ;
         this.op = link.op;
         this.team = link.team;
         this.members = link.members;
         this.params = link.params;
 
+        // Need to verify descriptions for lent items.
+        // this.desc = 
+        this.tradeable = false;
         this.cost = 0;
+
+        this.iop = new Array(5).fill(null);
+        if (link.iop != null) {
+            for (let i = 0; i < link.iop.length; i++) {
+                this.iop[i] = link.iop[i];
+            }
+        }
+        this.iop[0] = 'Discard';
     }
 }
