@@ -409,16 +409,11 @@ export default abstract class PathingEntity extends Entity {
     }
 
     pathToMoveClick(input: number[], needsfinding: boolean): void {
-        if (this.moveStrategy === MoveStrategy.SMART) {
-            if (needsfinding) {
-                const { x, z } = CoordGrid.unpackCoord(input[0]);
-                this.queueWaypoints(findPath(this.level, this.x, this.z, x, z));
-            } else {
-                this.queueWaypoints(input);
-            }
+        if (needsfinding) {
+            const { x, z } = CoordGrid.unpackCoord(input[0]);
+            this.queueWaypoints(findPath(this.level, this.x, this.z, x, z));
         } else {
-            const { x, z } = CoordGrid.unpackCoord(input[input.length - 1]);
-            this.queueWaypoint(x, z);
+            this.queueWaypoints(input);
         }
     }
 
