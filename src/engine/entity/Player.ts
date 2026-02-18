@@ -47,7 +47,7 @@ import Packet from '#/io/Packet.js';
 import { ServerGameProtPriority } from '#/network/game/server/ServerGameProtPriority.js';
 import ChatFilterSettings from '#/network/game/server/model/ChatFilterSettings.js';
 import HintArrow from '#/network/game/server/model/HintArrow.js';
-import LastLoginInfo from '#/network/game/server/model/LastLoginInfo.js';
+import _LastLoginInfo from '#/network/game/server/model/LastLoginInfo.js';
 import MessageGame from '#/network/game/server/model/MessageGame.js';
 import ResetAnims from '#/network/game/server/model/ResetAnims.js';
 import ResetClientVarCache from '#/network/game/server/model/ResetClientVarCache.js';
