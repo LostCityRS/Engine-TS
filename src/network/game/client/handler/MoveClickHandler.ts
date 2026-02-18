@@ -40,19 +40,15 @@ export default class MoveClickHandler extends ClientGameMessageHandler<MoveClick
             player.pathToMoveClick(player.userPath, !Environment.NODE_CLIENT_ROUTEFINDER);
         }
 
-        if (!message.opClick) {
-            player.clearPendingAction();
+        player.clearPendingAction();
 
-            if (player.runenergy < 100 && message.ctrlHeld === 1) {
-                player.tempRun = 0;
-            } else {
-                player.tempRun = message.ctrlHeld;
-            }
-
-            if (Environment.NODE_WALKTRIGGER_SETTING === WalkTriggerSetting.PLAYERPACKET && player.hasWaypoints()) {
-                player.processWalktrigger();
-            }
+        if (player.runenergy < 100 && message.ctrlHeld === 1) {
+            player.tempRun = 0;
+        } else {
+            player.tempRun = message.ctrlHeld;
         }
+
+        player.processWalktrigger();
 
         return true;
     }
