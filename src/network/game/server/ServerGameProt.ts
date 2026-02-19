@@ -58,8 +58,9 @@ export default class ServerGameProt {
     static readonly P_COUNTDIALOG = new ServerGameProt(58, 0); // named after runescript command + client resume_p_countdialog packet
     static readonly SET_MULTIWAY = new ServerGameProt(9000, 1);
     static readonly P_NAMEDIALOG = new ServerGameProt(9001, 0);
-    static readonly SET_PLAYER_OP = new ServerGameProt(44, -1);
-    static readonly MINIMAP_TOGGLE = new ServerGameProt(192, 1);
+    static readonly SET_PLAYER_OP = new ServerGameProt(44, -1); // NXT naming
+    static readonly MINIMAP_TOGGLE = new ServerGameProt(192, 1); // NXT naming
+    static readonly UPDATE_STOCKMARKET_SLOT = new ServerGameProt(116, -1); // NXT naming
 
     // maps
     static readonly REBUILD_NORMAL = new ServerGameProt(162, -2); // NXT naming

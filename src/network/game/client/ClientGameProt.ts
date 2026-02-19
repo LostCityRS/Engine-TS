@@ -11,20 +11,21 @@ export default class ClientGameProt {
     static readonly EVENT_HAS_WINDOW = new ClientGameProt(9007, 4);
     static readonly EVENT_SYNTH_ERROR = new ClientGameProt(9008, 2);
 
-    static readonly OPOBJ1 = new ClientGameProt(72, 8); // NXT naming
-    static readonly OPOBJ2 = new ClientGameProt(228, 6); // NXT naming
-    static readonly OPOBJ3 = new ClientGameProt(85, 8); // NXT naming
+    static readonly OPOBJ1 = new ClientGameProt(156, 8); // NXT naming
+    static readonly OPOBJ2 = new ClientGameProt(55, 6); // NXT naming
+    static readonly OPOBJ3 = new ClientGameProt(153, 8); // NXT naming
     static readonly OPOBJ4 = new ClientGameProt(161, 8); // NXT naming
     static readonly OPOBJ5 = new ClientGameProt(135, 8); // NXT naming
     static readonly OPOBJE = new ClientGameProt(92, 2); // Naming from OS1 (Blame Pazaz)
     static readonly OPOBJT = new ClientGameProt(131, 8); // NXT naming
     static readonly OPOBJU = new ClientGameProt(9026, 12); // NXT naming
 
-    static readonly OPNPC1 = new ClientGameProt(9027, 2); // NXT naming
-    static readonly OPNPC2 = new ClientGameProt(9028, 2); // NXT naming
-    static readonly OPNPC3 = new ClientGameProt(9029, 2); // NXT naming
-    static readonly OPNPC4 = new ClientGameProt(9030, 2); // NXT naming
-    static readonly OPNPC5 = new ClientGameProt(9031, 2); // NXT naming
+    static readonly OPNPC1 = new ClientGameProt(78, 2); // NXT naming
+    static readonly OPNPC2 = new ClientGameProt(3, 2); // NXT naming
+    static readonly OPNPC3 = new ClientGameProt(148, 2); // NXT naming
+    static readonly OPNPC4 = new ClientGameProt(30, 2); // NXT naming
+    static readonly OPNPC5 = new ClientGameProt(218, 2); // NXT naming
+    static readonly OPNPCE = new ClientGameProt(72, 2); // Naming from OS1 (Blame Pazaz)
     static readonly OPNPCT = new ClientGameProt(9032, 4); // NXT naming
     static readonly OPNPCU = new ClientGameProt(9033, 8); // NXT naming
 
@@ -37,11 +38,11 @@ export default class ClientGameProt {
     static readonly OPLOCT = new ClientGameProt(9039, 8); // NXT naming
     static readonly OPLOCU = new ClientGameProt(9040, 12); // NXT naming
 
-    static readonly OPPLAYER1 = new ClientGameProt(9041, 2); // NXT naming
-    static readonly OPPLAYER2 = new ClientGameProt(9042, 2); // NXT naming
-    static readonly OPPLAYER3 = new ClientGameProt(9043, 2); // NXT naming
-    static readonly OPPLAYER4 = new ClientGameProt(9044, 2); // NXT naming
-    static readonly OPPLAYER5 = new ClientGameProt(9045, 2); // NXT naming
+    static readonly OPPLAYER1 = new ClientGameProt(68, 2); // NXT naming
+    static readonly OPPLAYER2 = new ClientGameProt(71, 2); // NXT naming
+    static readonly OPPLAYER3 = new ClientGameProt(180, 2); // NXT naming
+    static readonly OPPLAYER4 = new ClientGameProt(114, 2); // NXT naming
+    static readonly OPPLAYER5 = new ClientGameProt(175, 2); // NXT naming
     static readonly OPPLAYERT = new ClientGameProt(9046, 4); // NXT naming
     static readonly OPPLAYERU = new ClientGameProt(9047, 8); // NXT naming
 
