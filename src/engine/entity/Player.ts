@@ -69,6 +69,7 @@ import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 import UpdateIgnoreList from '#/network/game/server/model/UpdateIgnoreList.js';
 import IfOpenTop from '#/network/game/server/model/IfOpenTop.js';
 import IfOpenSub from '#/network/game/server/model/IfOpenSub.js';
+import { WindowMode } from '#/network/game/client/model/WindowStatus.js';
 
 const levelExperience = new Int32Array(99);
 
@@ -327,6 +328,12 @@ export default class Player extends PathingEntity {
     loggingOut: boolean = false;
     preventLogoutMessage: string | null = null;
     preventLogoutUntil: number = -1;
+
+    // game window information
+    windowMode: WindowMode = WindowMode.SD;
+    canvasWidth: number = -1;
+    canvasHeight: number = -1;
+    antialiasingmode: number = -1;
 
     // not stored as a byte buffer so we can write and encrypt opcodes later
     buffer: ServerGameMessage[] = [];
