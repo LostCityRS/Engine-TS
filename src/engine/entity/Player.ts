@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 import { PlayerInfoProt, Visibility } from '@2004scape/rsbuf';
-import { CollisionType, CollisionFlag } from '@2004scape/rsmod-pathfinder';
+import { CollisionFlag } from '@2004scape/rsmod-pathfinder';
 
 import Component from '#/cache/config/Component.js';
 import FontType from '#/cache/config/FontType.js';
@@ -36,7 +36,7 @@ import { PlayerQueueRequest, PlayerQueueType, QueueType, ScriptArgument } from '
 import { PlayerStat, PlayerStatEnabled, PlayerStatFree, PlayerStatNameMap } from '#/engine/entity/PlayerStat.js';
 import InputTracking from '#/engine/entity/tracking/InputTracking.js';
 import { WealthEventParams } from '#/engine/entity/tracking/WealthEvent.js';
-import { changeNpcCollision, changePlayerCollision, findNaivePath, reachedEntity, reachedLoc, reachedObj } from '#/engine/GameMap.js';
+import { changeNpcCollision, changePlayerCollision, reachedEntity, reachedLoc, reachedObj, naiveDestination } from '#/engine/GameMap.js';
 import { Inventory, InventoryListener } from '#/engine/Inventory.js';
 import ScriptFile from '#/engine/script/ScriptFile.js';
 import ScriptPointer from '#/engine/script/ScriptPointer.js';
@@ -324,6 +324,7 @@ export default class Player extends PathingEntity {
     allowDesign: boolean = false;
     afkEventReady: boolean = false;
     moveClickRequest: boolean = false;
+    lastMoveClick: number = 0;
 
     requestLogout: boolean = false;
     requestIdleLogout: boolean = false;
@@ -417,7 +418,7 @@ export default class Player extends PathingEntity {
             EntityLifeCycle.FOREVER,
             MoveRestrict.NORMAL,
             BlockWalk.NPC,
-            MoveStrategy.NAIVE,
+            Environment.NODE_CLIENT_ROUTEFINDER ? MoveStrategy.NAIVE : MoveStrategy.SMART,
             PlayerInfoProt.FACE_COORD,
             PlayerInfoProt.FACE_ENTITY
         );
@@ -1046,12 +1047,29 @@ export default class Player extends PathingEntity {
         return ScriptProvider.getByTrigger(this.targetOp, typeId, categoryId) ?? null;
     }
 
+    setLastMoveClick() {
+        this.lastMoveClick = World.currentTick;
+    }
+
+    naivePathToTarget() {
+        if (!this.target) {
+            return;
+        }
+
+        let angle = 0;
+        if (this.target instanceof Loc) {
+            angle = this.target.angle;
+        }
+        const coord = naiveDestination(this.x, this.z, this.width, this.length, this.target?.x, this.target?.z, this.target?.width, this.target?.length, angle, true);
+        this.queueWaypoint(coord.x, coord.z);
+    }
+
     pathToPathingTarget(): void {
         if (!(this.target instanceof PathingEntity)) {
             return;
         }
 
-        if (this.isLastOrNoWaypoint() && (this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3)) {
+        if (this.isLastWaypoint() && (this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3)) {
             this.queueWaypoint(this.target.followX, this.target.followZ);
             return;
         }
@@ -1060,11 +1078,18 @@ export default class Player extends PathingEntity {
             return;
         }
 
-        if (Environment.NODE_CLIENT_ROUTEFINDER && CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)) {
-            this.queueWaypoints(findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, 0, CollisionType.NORMAL));
-            return;
-        }
-        if (this.isLastOrNoWaypoint()) {
+        // Different mechanics for naive and smart paths
+        if (this.moveStrategy === MoveStrategy.NAIVE) {
+            const underTarget = CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length);
+            if (underTarget) {
+                this.randomWalk();
+                return;
+            }
+
+            if (this.isLastWaypoint() && this.lastMoveClick < World.currentTick) {
+                this.pathToTarget();
+            }
+        } else if (this.isLastWaypoint()) {
             this.pathToTarget();
         }
     }
@@ -1223,6 +1248,9 @@ export default class Player extends PathingEntity {
 
         // If there is a target and p_access is available, try to interact before movement
         if (this.target && this.canAccess()) {
+            if (Environment.NODE_CLIENT_ROUTEFINDER && !followOp) {
+                this.processWalktrigger();
+            }
             // Clear the interaction if target validation does not pass
             if (!this.validateTarget()) {
                 this.clearInteraction();

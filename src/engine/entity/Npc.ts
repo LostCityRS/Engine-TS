@@ -1,6 +1,6 @@
 import { NpcInfoProt } from '@2004scape/rsbuf';
 import * as rsbuf from '@2004scape/rsbuf';
-import { CollisionFlag, CollisionType } from '@2004scape/rsmod-pathfinder';
+import { CollisionFlag } from '@2004scape/rsmod-pathfinder';
 
 import HuntType from '#/cache/config/HuntType.js';
 import NpcType from '#/cache/config/NpcType.js';
@@ -26,7 +26,7 @@ import { NpcQueueRequest } from '#/engine/entity/NpcQueueRequest.js';
 import { NpcStat } from '#/engine/entity/NpcStat.js';
 import PathingEntity from '#/engine/entity/PathingEntity.js';
 import Player from '#/engine/entity/Player.js';
-import { isFlagged, findNaivePath } from '#/engine/GameMap.js';
+import { isFlagged, naiveDestination } from '#/engine/GameMap.js';
 import ScriptFile from '#/engine/script/ScriptFile.js';
 import { HuntIterator } from '#/engine/script/ScriptIterators.js';
 import ScriptPointer from '#/engine/script/ScriptPointer.js';
@@ -326,7 +326,7 @@ export default class Npc extends PathingEntity {
         }
 
         if (CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)) {
-            this.queueWaypoints(findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, 0, CollisionType.NORMAL));
+            this.randomWalk();
             return;
         }
 
@@ -432,7 +432,7 @@ export default class Npc extends PathingEntity {
         this.uid = (type << 16) | this.nid;
         this.resetOnRevert = reset;
 
-        if(reset) {
+        if (reset) {
             const npcType = NpcType.get(type);
             for (let index = 0; index < npcType.stats.length; index++) {
                 const level = npcType.stats[index];
@@ -562,6 +562,19 @@ export default class Npc extends PathingEntity {
         }
     }
 
+    naivePathToTarget() {
+        if (!this.target) {
+            return;
+        }
+
+        let angle = 0;
+        if (this.target instanceof Loc) {
+            angle = this.target.angle;
+        }
+        const coord = naiveDestination(this.x, this.z, this.width, this.length, this.target?.x, this.target?.z, this.target?.width, this.target?.length, angle);
+        this.queueWaypoint(coord.x, coord.z);
+    }
+
     private processMovementInteraction() {
         if (this.delayed || !this.isActive) {
             return;
@@ -682,7 +695,7 @@ export default class Npc extends PathingEntity {
         return true;
     }
 
-    private randomWalk(range: number) {
+    private wander(range: number) {
         const dx = Math.round(Math.random() * (range * 2) - range);
         const dz = Math.round(Math.random() * (range * 2) - range);
         const destX = this.startX + dx;
@@ -702,7 +715,7 @@ export default class Npc extends PathingEntity {
 
         // 1/8 chance to move every tick (even if they already have a destination)
         if (type.moverestrict !== MoveRestrict.NOMOVE && Math.random() < 0.125) {
-            this.randomWalk(type.wanderrange);
+            this.wander(type.wanderrange);
         }
 
         this.updateMovement();
@@ -989,7 +1002,7 @@ export default class Npc extends PathingEntity {
 
     // --- Other
 
-    private getTrigger(type : NpcType): ScriptFile | null {
+    private getTrigger(type: NpcType): ScriptFile | null {
         const trigger: ServerTriggerType | null = this.getTriggerForMode(this.targetOp);
         if (trigger) {
             return ScriptProvider.getByTrigger(trigger, this.type, type.category) ?? null;

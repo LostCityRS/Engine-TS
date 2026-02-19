@@ -15,10 +15,9 @@ import Npc from '#/engine/entity/Npc.js';
 import { NpcMode } from '#/engine/entity/NpcMode.js';
 import Obj from '#/engine/entity/Obj.js';
 import Player from '#/engine/entity/Player.js';
-import { canTravel, changeNpcCollision, changePlayerCollision, findNaivePath, findPath, findPathToEntity, findPathToLoc, isApproached, isZoneAllocated, reachedEntity, reachedLoc, reachedObj } from '#/engine/GameMap.js';
+import { canTravel, changeNpcCollision, changePlayerCollision, findPath, findPathToEntity, findPathToLoc, isApproached, isZoneAllocated, reachedEntity, reachedLoc, reachedObj } from '#/engine/GameMap.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
-import Environment from '#/util/Environment.js';
 
 type TargetSubject = {
     type: number;
@@ -122,6 +121,7 @@ export default abstract class PathingEntity extends Entity {
     abstract updateMovement(): boolean;
     abstract blockWalkFlag(): CollisionFlag;
     abstract defaultMoveSpeed(): MoveSpeed;
+    abstract naivePathToTarget(): void;
 
     /**
      * Process movement function for a PathingEntity to use.
@@ -374,7 +374,7 @@ export default abstract class PathingEntity extends Entity {
     /*
      * Returns if this PathingEntity is at the last waypoint or has no waypoint.
      */
-    isLastOrNoWaypoint(): boolean {
+    isLastWaypoint(): boolean {
         return this.waypointIndex <= 0;
     }
 
@@ -408,13 +408,15 @@ export default abstract class PathingEntity extends Entity {
         return CoordGrid.distanceTo(this, target) <= range && isApproached(this.level, this.x, this.z, target.x, target.z, this.width, this.length, target.width, target.length);
     }
 
-    pathToMoveClick(input: number[], needsfinding: boolean): void {
-        if (needsfinding) {
-            const { x, z } = CoordGrid.unpackCoord(input[0]);
-            this.queueWaypoints(findPath(this.level, this.x, this.z, x, z));
+    randomWalk(): void {
+        let x = this.x,
+            z = this.z;
+        if (Math.random() < 0.5) {
+            x += Math.random() < 0.5 ? -1 : 1;
         } else {
-            this.queueWaypoints(input);
+            z += Math.random() < 0.5 ? -1 : 1;
         }
+        this.queueWaypoint(x, z);
     }
 
     pathToPathingTarget(): void {
@@ -427,16 +429,12 @@ export default abstract class PathingEntity extends Entity {
             return;
         }
 
-        if (
-            !(this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3) &&
-            Environment.NODE_CLIENT_ROUTEFINDER &&
-            CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)
-        ) {
-            this.queueWaypoints(findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, 0, CollisionType.NORMAL));
+        if (!(this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3) && CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)) {
+            this.randomWalk();
             return;
         }
 
-        if (!this.isLastOrNoWaypoint()) {
+        if (!this.isLastWaypoint()) {
             return;
         }
 
@@ -459,11 +457,7 @@ export default abstract class PathingEntity extends Entity {
 
         if (this.moveStrategy === MoveStrategy.SMART) {
             if (this.target instanceof PathingEntity) {
-                if (Environment.NODE_CLIENT_ROUTEFINDER && CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)) {
-                    this.queueWaypoints(findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, 0, CollisionType.NORMAL));
-                } else {
-                    this.queueWaypoints(findPathToEntity(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.target.width, this.target.length));
-                }
+                this.queueWaypoints(findPathToEntity(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.target.width, this.target.length));
             } else if (this.target instanceof Loc) {
                 const forceapproach = LocType.get(this.target.type).forceapproach;
                 this.queueWaypoints(findPathToLoc(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.target.width, this.target.length, this.target.angle, this.target.shape, forceapproach));
@@ -485,7 +479,7 @@ export default abstract class PathingEntity extends Entity {
                 return;
             }
             if (this.target instanceof PathingEntity) {
-                this.queueWaypoints(findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, extraFlag, collisionStrategy));
+                this.naivePathToTarget();
             } else {
                 this.queueWaypoint(this.target.x, this.target.z);
             }
