@@ -109,6 +109,15 @@ export default class LocType extends ConfigType {
     mapsceneicon = -1;
     members = false;
     randomanimframe = true;
+    hardshadow = true;
+    istexture = false;
+    code90 = false; // TODO: 'renderbelow'?
+    code96 = false; // TODO: 'hasanimation'?
+    code98 = false; // TODO: 'animated'?
+    cursor1op = -1;
+    cursor1 = -1;
+    cursor2op = -1;
+    cursor2 = -1;
 
     // server-side
     category = -1;
@@ -202,7 +211,7 @@ export default class LocType extends ConfigType {
         } else if (code === 60) {
             this.mapfunction = dat.g2();
         } else if (code === 61) {
-            this.category = dat.g2();
+            this.category = dat.g2(); 
         } else if (code === 62) {
             this.mirror = true;
         } else if (code === 64) {
@@ -214,7 +223,7 @@ export default class LocType extends ConfigType {
         } else if (code === 67) {
             this.resizez = dat.g2();
         } else if (code === 68) {
-            this.mapscene = dat.g2(); // todo: not in client by 530
+            this.mapscene = dat.g2(); // Removed 530 (most likely earlier).
         } else if (code === 69) {
             this.forceapproach = dat.g1();
         } else if (code === 70) {
@@ -273,8 +282,14 @@ export default class LocType extends ConfigType {
         } else if (code === 81) {
             this.hillskew = 2;
             this.hillskew_amount = dat.g1(); // Value multiplied by 256 client side
+        } else if (code === 82) {
+            this.istexture = true;
         } else if (code === 88) {
+            this.hardshadow = false;
+        } else if (code === 89) {
             this.randomanimframe = false;
+        } else if (code === 90) {
+            this.code90 = true;
         } else if (code === 91) {
             this.members = true;
         } else if (code === 93) {
@@ -284,8 +299,18 @@ export default class LocType extends ConfigType {
             this.hillskew = 4;
         } else if (code === 95) {
             this.hillskew = 5;
+        } else if (code === 96) {
+            this.code96 = true;
         } else if (code === 97) {
             this.mapsceneiconrotate = true;
+        } else if (code === 98) {
+            this.code98 = true;
+        } else if (code === 99) {
+            this.cursor1op = dat.g1();
+            this.cursor1 = dat.g2();
+        } else if (code === 100) {
+            this.cursor2op = dat.g1();
+            this.cursor2 = dat.g2();
         } else if (code === 102) {
             this.mapsceneicon = dat.g2(); 
         } else if (code === 249) {
