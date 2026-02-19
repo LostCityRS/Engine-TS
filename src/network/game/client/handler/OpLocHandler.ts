@@ -10,11 +10,6 @@ import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 export default class OpLocHandler extends ClientGameMessageHandler<OpLoc> {
     handle(message: OpLoc, player: NetworkPlayer): boolean {
         const { x, z, loc: locId } = message;
-        
-        if (message.op === 6) {
-            // Return examine from LOC.
-            return true;
-        }
 
         if (player.delayed) {
             player.write(new UnsetMapFlag());
