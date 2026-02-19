@@ -10,7 +10,10 @@ export default class WindowStatusHandler extends ClientGameMessageHandler<Window
             return false;
         }
 
-        // TODO: Handle the actual returned data from this.
+        player.windowMode = message.mode;
+        player.canvasWidth = message.canvasWidth;
+        player.canvasHeight = message.canvasHeight;
+        player.antialiasingmode = message.antialiasingmode;
 
         return true;
     }
