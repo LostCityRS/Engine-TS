@@ -202,7 +202,7 @@ export default class Player extends PathingEntity {
         sav.p2(this.runenergy);
         sav.p4(this.playtime);
 
-        for (let i = 0; i < 21; i++) {
+        for (let i = 0; i < 24; i++) {
             sav.p4(this.stats[i]);
             sav.p1(this.levels[i]);
         }
