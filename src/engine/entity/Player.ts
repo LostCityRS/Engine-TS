@@ -1248,14 +1248,15 @@ export default class Player extends PathingEntity {
 
         // If there is a target and p_access is available, try to interact before movement
         if (this.target && this.canAccess()) {
-            if (Environment.NODE_CLIENT_ROUTEFINDER && !followOp) {
-                this.processWalktrigger();
-            }
             // Clear the interaction if target validation does not pass
             if (!this.validateTarget()) {
                 this.clearInteraction();
                 this.unsetMapFlag();
                 return;
+            }
+
+            if (Environment.NODE_CLIENT_ROUTEFINDER && !followOp) {
+                this.processWalktrigger();
             }
 
             interacted = this.tryInteract(false);
