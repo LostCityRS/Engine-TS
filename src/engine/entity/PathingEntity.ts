@@ -419,37 +419,6 @@ export default abstract class PathingEntity extends Entity {
         this.queueWaypoint(x, z);
     }
 
-    pathToPathingTarget(): void {
-        if (!this.target) {
-            return;
-        }
-
-        if (!(this.target instanceof PathingEntity)) {
-            this.pathToTarget();
-            return;
-        }
-
-        if (!(this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3) && CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)) {
-            this.randomWalk();
-            return;
-        }
-
-        if (!this.isLastWaypoint()) {
-            return;
-        }
-
-        if (this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3) {
-            this.queueWaypoint(this.target.followX, this.target.followZ);
-            return;
-        }
-
-        /*if (this.targetX === this.target.x && this.targetZ === this.target.z && !Position.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)) {
-            return;
-        }*/
-
-        this.pathToTarget();
-    }
-
     pathToTarget(): void {
         if (!this.target) {
             return;
