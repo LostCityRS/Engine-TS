@@ -92,13 +92,8 @@ export default {
     /// kysely
     KYSELY_VERBOSE: tryParseBoolean(process.env.KYSELY_VERBOSE, false),
 
-    /// development
-    // some users may not be able to change their system PATH for this project
-    BUILD_JAVA_PATH: tryParseString(process.env.BUILD_JAVA_PATH, 'java'),
     // auto-build on startup
     BUILD_STARTUP: tryParseBoolean(process.env.BUILD_STARTUP, false),
-    // auto-update compiler on startup
-    BUILD_STARTUP_UPDATE: tryParseBoolean(process.env.BUILD_STARTUP_UPDATE, true),
     // used to check if we're producing the original cache without edits
     BUILD_VERIFY: tryParseBoolean(process.env.BUILD_VERIFY, true),
     // used to keep some semblance of sanity in our folder structure
