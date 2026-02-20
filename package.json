@@ -37,6 +37,7 @@
     "@inquirer/prompts": "^7.2.3",
     "@jimp/js-png": "^1.6.0",
     "@jimp/plugin-quantize": "^1.6.0",
+    "@lostcityrs/runescript": "0.9.2",
     "axios": "^1.13.1",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.7",
