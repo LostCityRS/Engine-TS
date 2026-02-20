@@ -209,6 +209,7 @@ export default abstract class PathingEntity extends Entity {
         }
         if (dir === -1) {
             this.waypointIndex--;
+
             if (this.waypointIndex != -1) {
                 return this.validateAndAdvanceStep();
             }

@@ -389,6 +389,8 @@ export function naiveDestination(
 
     if (southWestClockwise && !northWestClockwise) {
         // West
+        if (reversePriority && anti === 0) return translate(target, -sourceWidth, 0); // FIX
+
         const offZ = diagonal >= -sourceWidth ? Math.min(diagonal + sourceWidth, rotatedLength - 1) : anti > -sourceWidth ? -(sourceWidth + anti) : 0;
 
         return translate(target, -sourceWidth, offZ);
@@ -399,6 +401,8 @@ export function naiveDestination(
         return translate(target, offX, rotatedLength);
     } else if (northEastClockwise && !southEastClockwise) {
         // East
+        if (reversePriority && anti === 0) return translate(target, rotatedWidth, 0); // FIX
+
         const offZ = anti <= rotatedWidth ? rotatedLength - anti : diagonal < rotatedWidth ? Math.max(diagonal - rotatedWidth, -(sourceLength - 1)) : 0;
 
         return translate(target, rotatedWidth, offZ);

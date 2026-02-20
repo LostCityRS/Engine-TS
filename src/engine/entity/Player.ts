@@ -1278,7 +1278,6 @@ export default class Player extends PathingEntity {
             }
 
             this.updateMovement();
-
             // If there's a target and p_access is available, try to interact after moving
             if (this.target && this.canAccess() && !followOp) {
                 interacted = this.tryInteract(this.stepsTaken === 0);
