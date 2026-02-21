@@ -283,6 +283,17 @@ export default class Packet extends DoublyLinkable {
         return this.view.getUint8(this.pos) < 0x80 ? this.g1() : this.g2() - 0x8000;
     }
 
+    gSmart2or4(): number {
+        const byte1 = this.view.getUint8(this.pos);
+        if ((byte1 & 0x80) === 0) {
+            // 2-byte value
+            return this.g2();
+        } else {
+            // 4-byte value with high bit set
+            return this.g4() & 0x7fffffff;
+        }
+    }
+
     gdata(dest: Uint8Array, offset: number, length: number): void {
         dest.set(this.data.subarray(this.pos, this.pos + length), offset);
         this.pos += length;
