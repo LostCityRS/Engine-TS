@@ -3,14 +3,10 @@ import ScriptFile from '#/engine/script/ScriptFile.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import Packet from '#/io/Packet.js';
 import { printFatalError, printWarning } from '#/util/Logger.js';
+import { Js5Archive } from '#/io/Js5Archive.js';
 
 // maintains a list of scripts (id <-> name)
 export default class ScriptProvider {
-    /**
-     * The expected version of the script compiler that the runtime should be loading scripts from.
-     */
-    public static readonly COMPILER_VERSION = 26;
-
     /**
      * Array of loaded scripts.
      */
@@ -27,70 +23,77 @@ export default class ScriptProvider {
     private static scriptNames = new Map<string, number>();
 
     /**
-     * Loads all scripts from `dir`.
+     * Loads all scripts from `dir` in JS5Pack format.
      *
-     * @param dir The directory that holds the script.{dat,idx} files.
+     * @param dir The directory that holds the `server.scripts.js5` file.
      * @returns The number of scripts loaded.
      */
     static load(dir: string): number {
-        const dat = Packet.load(`${dir}/server/script.dat`);
-        const idx = Packet.load(`${dir}/server/script.idx`);
-        return this.parse(dat, idx);
+        const js5Path = `${dir}/server/server.scripts.js5`;
+        
+        if (!Js5Archive.exists(js5Path)) {
+            printFatalError(`No scripts found at ${js5Path}. Please compile scripts first.`);
+        }
+
+        const groups = Js5Archive.load(js5Path);
+        return this.parseGroups(groups);
     }
 
     static async loadAsync(dir: string): Promise<number> {
-        const [dat, idx] = await Promise.all([Packet.loadAsync(`${dir}/server/script.dat`), Packet.loadAsync(`${dir}/server/script.idx`)]);
-        return this.parse(dat, idx);
+        const js5Path = `${dir}/server/server.scripts.js5`;
+        
+        if (!Js5Archive.exists(js5Path)) {
+            printFatalError(`No scripts found at ${js5Path}. Please compile scripts first.`);
+        }
+
+        const groups = await Js5Archive.loadAsync(js5Path);
+        return this.parseGroups(groups);
     }
 
-    static parse(dat: Packet, idx: Packet): number {
-        if (!dat.data.length || !idx.data.length) {
-            printFatalError('No server cache found. Please build the cache first.');
-        }
-
-        const entries = dat.g4s();
-        idx.pos += 4;
-
-        const version = dat.g4s();
-        if (version !== ScriptProvider.COMPILER_VERSION) {
-            printFatalError('\nFatal: Scripts were compiled with an incompatible RuneScript compiler. Please update it, try `npm run build` and then restart the server.');
-        }
-
-        const scripts = new Array<ScriptFile>(entries);
-        const scriptNames = new Map<string, number>();
-        const scriptLookup = new Map<number, ScriptFile>();
-
-        let loaded = 0;
-        for (let id = 0; id < entries; id++) {
-            const size = idx.g4s();
-            if (size === 0) {
-                continue;
-            }
-
-            try {
-                const data: Uint8Array = new Uint8Array(size);
-                dat.gdata(data, 0, data.length);
-                const script = ScriptFile.decode(id, new Packet(data));
-                scripts[id] = script;
-                scriptNames.set(script.name, id);
-
-                // add the script to lookup table if the value isn't -1
-                if (script.info.lookupKey !== 0xffffffff) {
-                    scriptLookup.set(script.info.lookupKey, script);
-                }
-
-                loaded++;
-            } catch (err) {
-                console.error(err);
-                printWarning(`Warning: Failed to load script ${id}, something may have been partially written`);
+    private static parseGroups(groups: Map<number, Uint8Array>): number {
+        try {
+            if (groups.size === 0) {
+                printFatalError('No scripts found in JS5 archive.');
                 return -1;
             }
-        }
 
-        ScriptProvider.scripts = scripts;
-        ScriptProvider.scriptNames = scriptNames;
-        ScriptProvider.scriptLookup = scriptLookup;
-        return loaded;
+            const scriptArray = new Array<ScriptFile>(Math.max(...groups.keys()) + 1);
+            const scriptNames = new Map<string, number>();
+            const scriptLookup = new Map<number, ScriptFile>();
+
+            let loaded = 0;
+
+            // Sort by group ID to process in order
+            const sortedGroups = Array.from(groups.entries()).sort((a, b) => a[0] - b[0]);
+
+            for (const [groupId, scriptData] of sortedGroups) {
+                try {
+                    const script = ScriptFile.decode(groupId, new Packet(scriptData));
+                    scriptArray[groupId] = script;
+                    scriptNames.set(script.name, groupId);
+
+                    // add the script to lookup table if the value isn't -1
+                    if (script.info.lookupKey !== 0xffffffff) {
+                        scriptLookup.set(script.info.lookupKey, script);
+                    }
+
+                    loaded++;
+                } catch (err) {
+                    console.error(err);
+                    printWarning(`Warning: Failed to load script ${groupId}, something may have been partially written`);
+                    return -1;
+                }
+            }
+
+            ScriptProvider.scripts = scriptArray;
+            ScriptProvider.scriptNames = scriptNames;
+            ScriptProvider.scriptLookup = scriptLookup;
+            return loaded;
+        } catch (err) {
+            console.error(err);
+            printFatalError('Failed to parse JS5 script archive.');
+            return -1;
+        }
     }
 
     /**
