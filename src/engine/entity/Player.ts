@@ -1084,11 +1084,12 @@ export default class Player extends PathingEntity {
             }
 
             if (this.isLastWaypoint() && this.allowRepath === AllowRepath.BEFOREDEST) {
-                this.naivePathToTarget();
-
                 // If path is generated from client, force player to reach their next dest before repathing
                 if (this.moveGeneratedFrom === MoveGeneratedFrom.CLIENT) {
+                    this.naivePathToTarget();
                     this.setAllowRepath(AllowRepath.ATDEST);
+                } else {
+                    this.naivePathToTarget();
                 }
             } else if (this.waypointIndex === -1 && this.allowRepath === AllowRepath.ATDEST) {
                 this.naivePathToTarget();
