@@ -1,6 +1,6 @@
 import { NpcInfoProt } from '@2004scape/rsbuf';
 import * as rsbuf from '@2004scape/rsbuf';
-import { CollisionFlag, CollisionType } from '@2004scape/rsmod-pathfinder';
+import { CollisionFlag } from '@2004scape/rsmod-pathfinder';
 
 import HuntType from '#/cache/config/HuntType.js';
 import NpcType from '#/cache/config/NpcType.js';
@@ -26,7 +26,7 @@ import { NpcQueueRequest } from '#/engine/entity/NpcQueueRequest.js';
 import { NpcStat } from '#/engine/entity/NpcStat.js';
 import PathingEntity from '#/engine/entity/PathingEntity.js';
 import Player from '#/engine/entity/Player.js';
-import { findNaivePath, isFlagged } from '#/engine/GameMap.js';
+import { isFlagged } from '#/engine/GameMap.js';
 import ScriptFile from '#/engine/script/ScriptFile.js';
 import { HuntIterator } from '#/engine/script/ScriptIterators.js';
 import ScriptPointer from '#/engine/script/ScriptPointer.js';
@@ -37,7 +37,6 @@ import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
 import LinkList from '#/datastruct/LinkList.js';
 import { printError } from '#/util/Logger.js';
-import { AllowRepath } from './MoveGeneratedFrom.js';
 
 export default class Npc extends PathingEntity {
     // constructor properties
@@ -314,17 +313,6 @@ export default class Npc extends PathingEntity {
         } else {
             super.resetPathingEntity();
         }
-    }
-    naivePathToTarget() {
-        if (!this.target) {
-            return;
-        }
-        let angle = 0;
-        if (this.target instanceof Loc) {
-            angle = this.target.angle;
-        }
-        const waypoints = findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, angle, CollisionType.NORMAL);
-        this.queueWaypoints(waypoints, AllowRepath.BEFOREDEST);
     }
 
     pathToTarget(): void {

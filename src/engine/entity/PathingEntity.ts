@@ -16,7 +16,7 @@ import Npc from '#/engine/entity/Npc.js';
 import { NpcMode } from '#/engine/entity/NpcMode.js';
 import Obj from '#/engine/entity/Obj.js';
 import Player from '#/engine/entity/Player.js';
-import { canTravel, changeNpcCollision, changePlayerCollision, findPath, findPathToEntity, findPathToLoc, isApproached, isZoneAllocated, reachedEntity, reachedLoc, reachedObj } from '#/engine/GameMap.js';
+import { canTravel, changeNpcCollision, changePlayerCollision, findPath, findPathToEntity, findPathToLoc, isApproached, isZoneAllocated, reachedEntity, reachedLoc, reachedObj, findNaivePath } from '#/engine/GameMap.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
 
@@ -123,7 +123,6 @@ export default abstract class PathingEntity extends Entity {
     abstract updateMovement(): boolean;
     abstract blockWalkFlag(): CollisionFlag;
     abstract defaultMoveSpeed(): MoveSpeed;
-    abstract naivePathToTarget(): void;
 
     /**
      * Process movement function for a PathingEntity to use.
@@ -422,6 +421,18 @@ export default abstract class PathingEntity extends Entity {
             z += Math.random() < 0.5 ? -1 : 1;
         }
         this.queueWaypoint(x, z, AllowRepath.BEFOREDEST);
+    }
+
+    naivePathToTarget() {
+        if (!this.target) {
+            return;
+        }
+        let angle = 0;
+        if (this.target instanceof Loc) {
+            angle = this.target.angle;
+        }
+        const waypoints = findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, angle, CollisionType.NORMAL);
+        this.queueWaypoints(waypoints, AllowRepath.ATDEST);
     }
 
     pathToTarget(): void {
