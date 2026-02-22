@@ -26,6 +26,9 @@ export default class ScriptVarType {
     static readonly DBROW = 208; // Ð
     static readonly MIDI = 77; // M
     static readonly GRAPHIC = 100; // d
+    static readonly MODEL = 109; // m
+    static readonly JINGLE = 106; // j
+    static readonly CHATCAT = 107; // k
 
     static getType(type: number) {
         switch (type) {
@@ -83,6 +86,12 @@ export default class ScriptVarType {
                 return 'midi';
             case ScriptVarType.GRAPHIC:
                 return 'graphic';
+            case ScriptVarType.MODEL:
+                return 'model';
+            case ScriptVarType.JINGLE:
+                return 'jingle';
+            case ScriptVarType.CHATCAT:
+                return 'chatcat';
             default:
                 return 'unknown';
         }
@@ -167,6 +176,21 @@ export default class ScriptVarType {
                 break;
             case 'dbrow':
                 char = 'Ð';
+                break;
+            case 'midi':
+                char = 'M';
+                break;
+            case 'graphic':
+                char = 'd';
+                break;
+            case 'model':
+                char = 'm';
+                break;
+            case 'jingle':
+                char = 'j';
+                break;
+            case 'chatcat':
+                char = 'k';
                 break;
             default:
                 return null;
