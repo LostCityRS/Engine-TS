@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 import { PlayerInfoProt, Visibility } from '@2004scape/rsbuf';
-import { CollisionFlag } from '@2004scape/rsmod-pathfinder';
+import { CollisionFlag, CollisionType } from '@2004scape/rsmod-pathfinder';
 
 import Component from '#/cache/config/Component.js';
 import FontType from '#/cache/config/FontType.js';
@@ -24,6 +24,7 @@ import { EntityTimer, PlayerTimerType } from '#/engine/entity/EntityTimer.js';
 import HeroPoints from '#/engine/entity/HeroPoints.js';
 import Loc from '#/engine/entity/Loc.js';
 import { ModalState } from '#/engine/entity/ModalState.js';
+import { AllowRepath } from './MoveGeneratedFrom.js';
 import { MoveRestrict } from '#/engine/entity/MoveRestrict.js';
 import { MoveSpeed } from '#/engine/entity/MoveSpeed.js';
 import { MoveStrategy } from '#/engine/entity/MoveStrategy.js';
@@ -36,7 +37,7 @@ import { PlayerQueueRequest, PlayerQueueType, QueueType, ScriptArgument } from '
 import { PlayerStat, PlayerStatEnabled, PlayerStatFree, PlayerStatNameMap } from '#/engine/entity/PlayerStat.js';
 import InputTracking from '#/engine/entity/tracking/InputTracking.js';
 import { WealthEventParams } from '#/engine/entity/tracking/WealthEvent.js';
-import { changeNpcCollision, changePlayerCollision, reachedEntity, reachedLoc, reachedObj, naiveDestination } from '#/engine/GameMap.js';
+import { changeNpcCollision, changePlayerCollision, findNaivePath, reachedEntity, reachedLoc, reachedObj } from '#/engine/GameMap.js';
 import { Inventory, InventoryListener } from '#/engine/Inventory.js';
 import ScriptFile from '#/engine/script/ScriptFile.js';
 import ScriptPointer from '#/engine/script/ScriptPointer.js';
@@ -324,7 +325,6 @@ export default class Player extends PathingEntity {
     allowDesign: boolean = false;
     afkEventReady: boolean = false;
     moveClickRequest: boolean = false;
-    lastMoveClick: number = 0;
 
     requestLogout: boolean = false;
     requestIdleLogout: boolean = false;
@@ -1047,21 +1047,16 @@ export default class Player extends PathingEntity {
         return ScriptProvider.getByTrigger(this.targetOp, typeId, categoryId) ?? null;
     }
 
-    setLastMoveClick() {
-        this.lastMoveClick = World.currentTick;
-    }
-
     naivePathToTarget() {
         if (!this.target) {
             return;
         }
-
         let angle = 0;
         if (this.target instanceof Loc) {
             angle = this.target.angle;
         }
-        const coord = naiveDestination(this.x, this.z, this.width, this.length, this.target?.x, this.target?.z, this.target?.width, this.target?.length, angle, true);
-        this.queueWaypoint(coord.x, coord.z);
+        const waypoints = findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, angle, CollisionType.NORMAL);
+        this.queueWaypoints(waypoints, AllowRepath.ATDEST);
     }
 
     pathToPathingTarget(): void {
@@ -1070,7 +1065,7 @@ export default class Player extends PathingEntity {
         }
 
         if (this.isLastWaypoint() && (this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3)) {
-            this.queueWaypoint(this.target.followX, this.target.followZ);
+            this.queueWaypoint(this.target.followX, this.target.followZ, AllowRepath.BEFOREDEST);
             return;
         }
 
@@ -1080,14 +1075,18 @@ export default class Player extends PathingEntity {
 
         // Different mechanics for naive and smart paths
         if (this.moveStrategy === MoveStrategy.NAIVE) {
+            // This logic is redundant with some stuff in pathToTarget and findNaivePath,
+            // But for maintainability it's nice to split it out... It's pretty hard to match correct mechanics
             const underTarget = CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length);
             if (underTarget) {
                 this.randomWalk();
                 return;
             }
 
-            if (this.isLastWaypoint() && this.lastMoveClick < World.currentTick) {
-                this.pathToTarget();
+            if (this.isLastWaypoint() && this.lastMoveGeneratedFrom === AllowRepath.BEFOREDEST) {
+                this.naivePathToTarget();
+            } else if (this.waypointIndex === -1 && this.lastMoveGeneratedFrom === AllowRepath.ATDEST) {
+                this.naivePathToTarget();
             }
         } else if (this.isLastWaypoint()) {
             this.pathToTarget();
