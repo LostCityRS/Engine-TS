@@ -2,6 +2,7 @@ import Packet from '#/io/Packet.js';
 import ClientSocket from '#/server/ClientSocket.js';
 import TcpClientSocket from '#/server/tcp/TcpClientSocket.js';
 import { getGroup } from '#/util/OpenRS2.js';
+import Js5PackReader from '#/io/Js5PackReader.js';
 
 type Js5Request = {
     client: ClientSocket;
@@ -12,19 +13,23 @@ type Js5Request = {
 class Js5 {
     urgentRequests: Js5Request[] = [];
     prefetchRequests: Js5Request[] = [];
+    private clientEnumPack: Js5PackReader | null = null;
+    private clientEnumPackLoaded = false;
+    private clientMidiPack: Js5PackReader | null = null;
+    private clientMidiPackLoaded = false;
 
     async cycle() {
         // todo: limit requests per client per cycle
 
         for (let i = 0; i < this.urgentRequests.length; i++) {
             const req = this.urgentRequests[i];
-            await this.send(req.client, false, req.archive, req.group);
+            this.sendAsync(req.client, false, req.archive, req.group);
             this.urgentRequests.splice(i--, 1);
         }
 
         for (let i = 0; i < this.prefetchRequests.length; i++) {
             const req = this.prefetchRequests[i];
-            await this.send(req.client, true, req.archive, req.group);
+            this.sendAsync(req.client, true, req.archive, req.group);
             this.prefetchRequests.splice(i--, 1);
         }
 
@@ -61,7 +66,16 @@ class Js5 {
             return;
         }
 
-        const data = await getGroup(archive, group);
+        let data: Uint8Array | undefined;
+        if (archive === 17) {
+            data = this.getClientEnumGroup(group);
+        } else if (archive === 6) {
+            data = this.getClientMidiGroup(group);
+        }
+
+        if (!data) {
+            data = await getGroup(archive, group);
+        }
         if (!data || !data.length) {
             console.log('missing archive, group', archive, group);
             return;
@@ -99,6 +113,50 @@ class Js5 {
 
             client.send(response.data.subarray(0, response.pos));
         }
+    }
+
+    private sendAsync(client: ClientSocket, prefetch: boolean, archive: number, group: number): void {
+        void this.send(client, prefetch, archive, group).catch(err => {
+            console.warn('JS5 send failed', { archive, group, err });
+        });
+    }
+
+    private getClientEnumGroup(group: number): Uint8Array | undefined {
+        if (!this.clientEnumPackLoaded) {
+            this.clientEnumPackLoaded = true;
+            try {
+                this.clientEnumPack = Js5PackReader.load('data/pack/client.enum.js5');
+            } catch (err) {
+                console.warn('Unable to load client enum js5pack, falling back to cache.', err);
+                this.clientEnumPack = null;
+            }
+        }
+
+        const data = this.clientEnumPack?.getGroup(group);
+        if (!data || data.length === 0) {
+            return undefined;
+        }
+
+        return data;
+    }
+
+    private getClientMidiGroup(group: number): Uint8Array | undefined {
+        if (!this.clientMidiPackLoaded) {
+            this.clientMidiPackLoaded = true;
+            try {
+                this.clientMidiPack = Js5PackReader.load('data/pack/client.midi.js5');
+            } catch (err) {
+                console.warn('Unable to load client midi js5pack, falling back to cache.', err);
+                this.clientMidiPack = null;
+            }
+        }
+
+        const data = this.clientMidiPack?.getGroup(group);
+        if (!data || data.length === 0) {
+            return undefined;
+        }
+
+        return data;
     }
 }
 

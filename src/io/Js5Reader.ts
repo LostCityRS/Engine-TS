@@ -1,4 +1,5 @@
 import zlib from 'zlib';
+import BZip2 from '#/io/BZip2.js';
 import Packet from '#/io/Packet.js';
 import { CompressionType } from '#/io/CompressionType.js';
 
@@ -40,8 +41,8 @@ export default class Js5Reader {
     /**
      * Parse the index group to extract group IDs and metadata.
      */
-    private parseIndex(data: Buffer): { groupIds: number[] } {
-        const packet = new Packet(new Uint8Array(data));
+    private parseIndex(data: Uint8Array): { groupIds: number[] } {
+        const packet = new Packet(data);
 
         const format = packet.g1();
         if (format !== 7) {
@@ -73,7 +74,7 @@ export default class Js5Reader {
      * Read and unpack a single group from the archive.
      * Handles compression types: 0 (none), 1 (bzip2), 2 (gzip)
      */
-    private unpackGroup(): Buffer {
+    private unpackGroup(): Uint8Array {
         if (this.pos >= this.data.length) {
             throw new Error('Unexpected end of JS5 archive while reading group');
         }
@@ -83,29 +84,28 @@ export default class Js5Reader {
         if (compression === CompressionType.NONE) {
             const length = Buffer.from(this.data).readUInt32BE(this.pos);
             this.pos += 4;
-            const data = Buffer.from(this.data.slice(this.pos, this.pos + length));
+            const data = this.data.slice(this.pos, this.pos + length);
             this.pos += length;
             return data;
         } else if (compression === CompressionType.BZIP2) {
             const compressedLength = Buffer.from(this.data).readUInt32BE(this.pos);
             this.pos += 4;
-            const _uncompressedLength = Buffer.from(this.data).readUInt32BE(this.pos);
+            const uncompressedLength = Buffer.from(this.data).readUInt32BE(this.pos);
             this.pos += 4;
-            const compressedData = Buffer.from(this.data.slice(this.pos, this.pos + compressedLength));
+            const compressedData = this.data.slice(this.pos, this.pos + compressedLength);
             this.pos += compressedLength;
 
-            const decompressed = zlib.brotliDecompressSync(compressedData);
+            const decompressed = BZip2.decompress(compressedData, uncompressedLength, true);
             return decompressed;
         } else if (compression === CompressionType.GZIP) {
             const compressedLength = Buffer.from(this.data).readUInt32BE(this.pos);
             this.pos += 4;
             const _uncompressedLength = Buffer.from(this.data).readUInt32BE(this.pos);
             this.pos += 4;
-            const compressedData = Buffer.from(this.data.slice(this.pos, this.pos + compressedLength));
+            const compressedData = this.data.slice(this.pos, this.pos + compressedLength);
             this.pos += compressedLength;
 
-            const decompressed = zlib.gunzipSync(compressedData);
-            return decompressed;
+            return new Uint8Array(zlib.gunzipSync(compressedData));
         } else {
             // Try to detect and handle unknown compression types
             this.pos--;
