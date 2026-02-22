@@ -12,8 +12,6 @@ import {
     parsePackFile,
     combineGroupFiles,
     compressJs5Group,
-    parseGroupIdsFromIndexPacked as _parseGroupIdsFromIndexPacked,
-    writeInt32BE as _writeInt32BE
 } from '#tools/cache/lib/js5Tools.js';
 
 type Args = {
