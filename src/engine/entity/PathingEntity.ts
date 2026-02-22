@@ -262,6 +262,9 @@ export default abstract class PathingEntity extends Entity {
     }
 
     setAllowRepath(value: AllowRepath) {
+        if (this instanceof Player) {
+            console.log(`setting allow repath to ${value}`, World.currentTick);
+        }
         this.allowRepath = value;
     }
 
@@ -506,8 +509,10 @@ export default abstract class PathingEntity extends Entity {
             this.targetSubject.type = -1;
         }
 
-        // Allow repath
-        this.allowRepath = AllowRepath.BEFOREDEST;
+        if (interaction === Interaction.SCRIPT) {
+            // Allow repath
+            this.allowRepath = AllowRepath.BEFOREDEST;
+        }
 
         this.focus(CoordGrid.fine(target.x, target.width), CoordGrid.fine(target.z, target.length), target instanceof NonPathingEntity && interaction === Interaction.ENGINE);
 
