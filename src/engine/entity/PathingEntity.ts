@@ -54,7 +54,7 @@ export default abstract class PathingEntity extends Entity {
     lastInt: number = -1; // resume_p_countdialog, ai_queue
     lastCrawl: boolean = false;
     lastMovement: number = 0;
-    lastMoveGeneratedFrom: AllowRepath = AllowRepath.NONE;
+    allowRepath: AllowRepath = AllowRepath.NONE;
 
     walktrigger: number = -1;
     walktriggerArg: number = 0; // used for npcs
@@ -244,7 +244,7 @@ export default abstract class PathingEntity extends Entity {
     queueWaypoint(x: number, z: number, from: AllowRepath = AllowRepath.NONE): void {
         this.waypoints[0] = CoordGrid.packCoord(0, x, z); // level doesn't matter here
         this.waypointIndex = 0;
-        this.lastMoveGeneratedFrom = from;
+        this.allowRepath = from;
     }
 
     /**
@@ -257,7 +257,7 @@ export default abstract class PathingEntity extends Entity {
             this.waypoints[output] = waypoints[input];
             index++;
         }
-        this.lastMoveGeneratedFrom = from;
+        this.allowRepath = from;
         this.waypointIndex = index;
     }
 
@@ -503,7 +503,7 @@ export default abstract class PathingEntity extends Entity {
         }
 
         // Allow repath
-        this.lastMoveGeneratedFrom = AllowRepath.BEFOREDEST;
+        this.allowRepath = AllowRepath.BEFOREDEST;
 
         this.focus(CoordGrid.fine(target.x, target.width), CoordGrid.fine(target.z, target.length), target instanceof NonPathingEntity && interaction === Interaction.ENGINE);
 

@@ -1071,9 +1071,9 @@ export default class Player extends PathingEntity {
                 return;
             }
 
-            if (this.isLastWaypoint() && this.lastMoveGeneratedFrom === AllowRepath.BEFOREDEST) {
+            if (this.isLastWaypoint() && this.allowRepath === AllowRepath.BEFOREDEST) {
                 this.naivePathToTarget();
-            } else if (this.waypointIndex === -1 && this.lastMoveGeneratedFrom === AllowRepath.ATDEST) {
+            } else if (this.waypointIndex === -1 && this.allowRepath === AllowRepath.ATDEST) {
                 this.naivePathToTarget();
             }
         } else if (this.isLastWaypoint()) {
