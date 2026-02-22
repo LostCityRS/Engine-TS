@@ -130,4 +130,8 @@ export default class ColorConversion {
 
         return possible;
     }
+
+    static colourFudge(rgb: number): number {
+        return rgb === 16711935 ? -1 : ColorConversion.rgb24toHsl16(rgb);
+    }
 }
