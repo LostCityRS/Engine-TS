@@ -262,9 +262,6 @@ export default abstract class PathingEntity extends Entity {
     }
 
     setAllowRepath(value: AllowRepath) {
-        if (this instanceof Player) {
-            console.log(`setting allow repath to ${value}`, World.currentTick);
-        }
         this.allowRepath = value;
     }
 
