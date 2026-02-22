@@ -1,5 +1,4 @@
-export const enum AllowRepath {
-    BEFOREDEST,
-    ATDEST,
-    NONE
+export const enum MoveGeneratedFrom {
+    CLIENT,
+    SERVER
 }

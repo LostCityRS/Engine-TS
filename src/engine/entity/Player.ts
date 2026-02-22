@@ -24,7 +24,8 @@ import { EntityTimer, PlayerTimerType } from '#/engine/entity/EntityTimer.js';
 import HeroPoints from '#/engine/entity/HeroPoints.js';
 import Loc from '#/engine/entity/Loc.js';
 import { ModalState } from '#/engine/entity/ModalState.js';
-import { AllowRepath } from './MoveGeneratedFrom.js';
+import { AllowRepath } from './AllowRepath.js';
+import { MoveGeneratedFrom } from './MoveGeneratedFrom.js';
 import { MoveRestrict } from '#/engine/entity/MoveRestrict.js';
 import { MoveSpeed } from '#/engine/entity/MoveSpeed.js';
 import { MoveStrategy } from '#/engine/entity/MoveStrategy.js';
@@ -325,6 +326,7 @@ export default class Player extends PathingEntity {
     allowDesign: boolean = false;
     afkEventReady: boolean = false;
     moveClickRequest: boolean = false;
+    moveGeneratedFrom: MoveGeneratedFrom = MoveGeneratedFrom.SERVER;
 
     requestLogout: boolean = false;
     requestIdleLogout: boolean = false;
@@ -1047,13 +1049,23 @@ export default class Player extends PathingEntity {
         return ScriptProvider.getByTrigger(this.targetOp, typeId, categoryId) ?? null;
     }
 
+    queueWaypoint(x: number, z: number): void {
+        super.queueWaypoint(x, z);
+        this.moveGeneratedFrom = MoveGeneratedFrom.SERVER;
+    }
+
+    queueWaypoints(waypoints: ArrayLike<number>): void {
+        super.queueWaypoints(waypoints);
+        this.moveGeneratedFrom = MoveGeneratedFrom.SERVER;
+    }
+
     pathToPathingTarget(): void {
         if (!(this.target instanceof PathingEntity)) {
             return;
         }
 
         if (this.isLastWaypoint() && (this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3)) {
-            this.queueWaypoint(this.target.followX, this.target.followZ, AllowRepath.BEFOREDEST);
+            this.queueWaypoint(this.target.followX, this.target.followZ);
             return;
         }
 
@@ -1073,6 +1085,11 @@ export default class Player extends PathingEntity {
 
             if (this.isLastWaypoint() && this.allowRepath === AllowRepath.BEFOREDEST) {
                 this.naivePathToTarget();
+
+                // If path is generated from client, force player to reach their next dest before repathing
+                if (this.moveGeneratedFrom === MoveGeneratedFrom.CLIENT) {
+                    this.setAllowRepath(AllowRepath.ATDEST);
+                }
             } else if (this.waypointIndex === -1 && this.allowRepath === AllowRepath.ATDEST) {
                 this.naivePathToTarget();
             }

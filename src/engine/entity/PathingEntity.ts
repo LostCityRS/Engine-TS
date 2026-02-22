@@ -7,7 +7,7 @@ import Entity from '#/engine/entity/Entity.js';
 import { EntityLifeCycle } from '#/engine/entity/EntityLifeCycle.js';
 import { Interaction } from '#/engine/entity/Interaction.js';
 import Loc from '#/engine/entity/Loc.js';
-import { AllowRepath } from './MoveGeneratedFrom.js';
+import { AllowRepath } from './AllowRepath.js';
 import { MoveRestrict } from '#/engine/entity/MoveRestrict.js';
 import { MoveSpeed } from '#/engine/entity/MoveSpeed.js';
 import { MoveStrategy } from '#/engine/entity/MoveStrategy.js';
@@ -54,7 +54,7 @@ export default abstract class PathingEntity extends Entity {
     lastInt: number = -1; // resume_p_countdialog, ai_queue
     lastCrawl: boolean = false;
     lastMovement: number = 0;
-    allowRepath: AllowRepath = AllowRepath.NONE;
+    allowRepath: AllowRepath = AllowRepath.BEFOREDEST;
 
     walktrigger: number = -1;
     walktriggerArg: number = 0; // used for npcs
@@ -241,24 +241,28 @@ export default abstract class PathingEntity extends Entity {
      * @param x The x position of the step.
      * @param z The z position of the step.
      */
-    queueWaypoint(x: number, z: number, from: AllowRepath = AllowRepath.NONE): void {
+    queueWaypoint(x: number, z: number): void {
         this.waypoints[0] = CoordGrid.packCoord(0, x, z); // level doesn't matter here
         this.waypointIndex = 0;
-        this.allowRepath = from;
+        this.setAllowRepath(AllowRepath.BEFOREDEST);
     }
 
     /**
      * Queue waypoints to this PathingEntity.
      * @param waypoints The waypoints to queue.
      */
-    queueWaypoints(waypoints: ArrayLike<number>, from: AllowRepath = AllowRepath.NONE): void {
+    queueWaypoints(waypoints: ArrayLike<number>): void {
         let index: number = -1;
         for (let input: number = waypoints.length - 1, output: number = 0; input >= 0 && output < this.waypoints.length; input--, output++) {
             this.waypoints[output] = waypoints[input];
             index++;
         }
-        this.allowRepath = from;
         this.waypointIndex = index;
+        this.setAllowRepath(AllowRepath.BEFOREDEST);
+    }
+
+    setAllowRepath(value: AllowRepath) {
+        this.allowRepath = value;
     }
 
     clearWaypoints(): void {
@@ -420,7 +424,7 @@ export default abstract class PathingEntity extends Entity {
         } else {
             z += Math.random() < 0.5 ? -1 : 1;
         }
-        this.queueWaypoint(x, z, AllowRepath.BEFOREDEST);
+        this.queueWaypoint(x, z);
     }
 
     naivePathToTarget() {
@@ -432,7 +436,7 @@ export default abstract class PathingEntity extends Entity {
             angle = this.target.angle;
         }
         const waypoints = findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, angle, CollisionType.NORMAL);
-        this.queueWaypoints(waypoints, AllowRepath.ATDEST);
+        this.queueWaypoints(waypoints);
     }
 
     pathToTarget(): void {
@@ -442,14 +446,14 @@ export default abstract class PathingEntity extends Entity {
 
         if (this.moveStrategy === MoveStrategy.SMART) {
             if (this.target instanceof PathingEntity) {
-                this.queueWaypoints(findPathToEntity(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.target.width, this.target.length), AllowRepath.BEFOREDEST);
+                this.queueWaypoints(findPathToEntity(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.target.width, this.target.length));
             } else if (this.target instanceof Loc) {
                 const forceapproach = LocType.get(this.target.type).forceapproach;
                 this.queueWaypoints(findPathToLoc(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.target.width, this.target.length, this.target.angle, this.target.shape, forceapproach));
             } else if (this.target instanceof Obj && this.x === this.target.x && this.z === this.target.z) {
-                this.queueWaypoint(this.target.x, this.target.z, AllowRepath.BEFOREDEST); // work around because our findpath() returns 0, 0 if coord and target coord are the same
+                this.queueWaypoint(this.target.x, this.target.z); // work around because our findpath() returns 0, 0 if coord and target coord are the same
             } else {
-                this.queueWaypoints(findPath(this.level, this.x, this.z, this.target.x, this.target.z), AllowRepath.BEFOREDEST);
+                this.queueWaypoints(findPath(this.level, this.x, this.z, this.target.x, this.target.z));
             }
         } else if (this.moveStrategy === MoveStrategy.NAIVE) {
             const collisionStrategy: CollisionType | null = this.getCollisionStrategy();
@@ -466,7 +470,7 @@ export default abstract class PathingEntity extends Entity {
             if (this.target instanceof PathingEntity) {
                 this.naivePathToTarget();
             } else {
-                this.queueWaypoint(this.target.x, this.target.z, AllowRepath.ATDEST);
+                this.queueWaypoint(this.target.x, this.target.z);
             }
         } else {
             const collisionStrategy: CollisionType | null = this.getCollisionStrategy();
