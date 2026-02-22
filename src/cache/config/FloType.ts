@@ -31,25 +31,6 @@ export default class FloType extends ConfigType {
         }
     }
 
-    static loadJag(config: Jagfile) {
-        FloType.configNames = new Map();
-        FloType.configs = [];
-
-        const client = config.read('flo.dat')!;
-        const count = client.g2();
-
-        for (let id = 0; id < count; id++) {
-            const config = new FloType(id);
-            config.decodeType(client);
-
-            FloType.configs[id] = config;
-
-            if (config.debugname) {
-                FloType.configNames.set(config.debugname, id);
-            }
-        }
-    }
-
     static get(id: number): FloType {
         return FloType.configs[id];
     }
@@ -70,7 +51,7 @@ export default class FloType extends ConfigType {
     // ----
 
     colour: number = 0;
-    materials: number = -1;
+    material: number = -1;
     occlude: boolean = true;
     averagecolour: number = -1;
     materialscale: number = 512;
@@ -85,11 +66,11 @@ export default class FloType extends ConfigType {
         if (code === 1) {
             this.colour = dat.g3();
         } else if (code === 2) {
-            this.materials = dat.g1();
+            this.material = dat.g1();
         } else if (code === 3) {
-            this.materials = dat.g2();
-            if (this.materials === 65535) {
-                this.materials = -1;
+            this.material = dat.g2();
+            if (this.material === 65535) {
+                this.material = -1;
             }
         } else if (code === 5) {
             this.occlude = false;
