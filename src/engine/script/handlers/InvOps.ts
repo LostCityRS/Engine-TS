@@ -717,7 +717,7 @@ const InvOps: CommandHandlers = {
         if (!objType.tradeable) { // untradeables still drop to the primary player
             World.addObj(dropObj, fromPlayer.hash64, duration);
         } else {
-            World.addObj(dropObj, Obj.NO_RECEIVER, duration);
+            World.addObj(dropObj, toPlayer.hash64, duration);
         }
     }),
 
