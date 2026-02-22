@@ -713,8 +713,9 @@ const InvOps: CommandHandlers = {
             return;
         }
 
-        if (!objType.tradeable) {
-            return; // stop untradables after delete.
+        if (!objType.tradeable) { // untradeables still drop to the primary player
+            World.addObj(new Obj(position.level, position.x, position.z, EntityLifeCycle.DESPAWN, obj.id, completed), fromPlayer.hash64, duration);
+            return;
         }
 
         World.addObj(new Obj(position.level, position.x, position.z, EntityLifeCycle.DESPAWN, obj.id, completed), toPlayer.hash64, duration);
@@ -763,10 +764,6 @@ const InvOps: CommandHandlers = {
             }
 
             inventory.delete(slot);
-
-            if (!objType.tradeable) {
-                continue; // stop untradables after delete.
-            }
 
             World.addObj(new Obj(position.level, position.x, position.z, EntityLifeCycle.DESPAWN, obj.id, obj.count), Obj.NO_RECEIVER, duration);
         }
