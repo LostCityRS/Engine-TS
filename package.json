@@ -33,6 +33,7 @@
     "gen:chatphrase:pack": "bun run tools/pack/generators/generateChatPhrasePack.ts",
     "compare:groups": "bun run tools/cache/compare/compareGroups.ts",
     "verify:js5:compressed": "bun run tools/cache/verify/verifyJs5Compressed.ts",
+    "group:filecount": "bun run tools/cache/debug/groupFileCount.ts",
     "friend": "bun run src/friend.ts",
     "lint": "eslint --no-warn-ignored src tools",
     "lint:staged": "eslint --no-warn-ignored",
