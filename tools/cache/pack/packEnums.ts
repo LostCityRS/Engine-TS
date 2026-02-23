@@ -345,7 +345,7 @@ async function main() {
     const transmitCount = Array.from(enums.values()).filter(parsed => parsed.transmit).length;
 
     if (args.mode === 'client' && transmitCount === 0) {
-        console.warn('Client mode warning: no transmit=yes directives found; all enums will be filtered to empty.');
+        console.log('Client mode: no transmit=yes directives found; all enums will be filtered to empty');
     }
 
     // Encode enums to binary

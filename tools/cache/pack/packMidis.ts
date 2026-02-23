@@ -169,10 +169,10 @@ async function main() {
 
     console.log(`Packed ${compressedGroups.size} MIDI groups from ${midiPack.size} entries`);
     if (missingFiles > 0) {
-        console.warn(`Missing source MIDI files for ${missingFiles} pack entries`);
+        console.log(`Missing source MIDI files for ${missingFiles} pack entries`);
     }
     if (skippedIds > 0) {
-        console.warn(`Skipped ${skippedIds} pack entries not present in archive ${args.archive} index`);
+        console.log(`Skipped ${skippedIds} pack entries not present in archive ${args.archive} index`);
     }
     console.log(`Wrote ${serverOut}`);
     console.log(`Wrote ${clientOut}`);

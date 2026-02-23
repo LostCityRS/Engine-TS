@@ -280,7 +280,6 @@ async function main() {
             }
             throw new Error('Generated group does not match reference');
         }
-        console.log('Generated group matches reference exactly');
     }
 
     const compressed = await compressJs5Group(combined, CompressionType.GZIP);
@@ -293,7 +292,8 @@ async function main() {
     }
     fs.writeFileSync(filepath, compressed);
 
-    console.log(`Packed ${sourceInvs.size} inventory configs to ${filepath}`);
+    console.log(`Packed ${sourceInvs.size} inventory configs`);
+    console.log(`Wrote ${filepath}`);
 }
 
 main().catch(err => {

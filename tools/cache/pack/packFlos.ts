@@ -320,7 +320,6 @@ async function main() {
         }
 
         fs.writeFileSync(groupPath, originalContainer);
-        console.log('Packed floor overlays with exact compression match');
     } else {
         // Determine compression type from original
         let compressionType = CompressionType.GZIP;
@@ -331,8 +330,8 @@ async function main() {
 
         const compressed = await compressJs5Group(combined, compressionType);
         fs.writeFileSync(groupPath, compressed);
-        console.log(`Packed floor overlays into ${groupPath}`);
     }
+    console.log(`Wrote ${groupPath}`);
 }
 
 main().catch(err => {

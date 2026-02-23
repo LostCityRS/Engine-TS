@@ -307,7 +307,6 @@ async function main() {
         }
 
         fs.writeFileSync(groupPath, originalContainer);
-        console.log('Packed floor underlays with exact compression match');
     } else {
         let compressionType = CompressionType.GZIP;
         if (fs.existsSync(origPath)) {
@@ -317,8 +316,8 @@ async function main() {
 
         const compressed = await compressJs5Group(combined, compressionType);
         fs.writeFileSync(groupPath, compressed);
-        console.log(`Packed floor underlays into ${groupPath}`);
     }
+    console.log(`Wrote ${groupPath}`);
 }
 
 function splitGroupFiles(groupData: Uint8Array, fileIds: number[]): Map<number, Uint8Array> {
