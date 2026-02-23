@@ -1,5 +1,6 @@
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import { ParamHelper, ParamMap } from '#/cache/config/ParamHelper.js';
+import { Direction } from '#/engine/CoordGrid.js';
 import { BlockWalk } from '#/engine/entity/BlockWalk.js';
 import { MoveRestrict } from '#/engine/entity/MoveRestrict.js';
 import { NpcMode } from '#/engine/entity/NpcMode.js';
@@ -94,6 +95,16 @@ export default class NpcType extends ConfigType {
     multivarp = -1;
     multinpc: number[] = [];
     active = true;
+    walksmoothing = true;
+    spotshadow = true;
+    spotshadowcolour_1 = 0;
+    spotshadowcolour_2 = 0;
+    spotshadow_trans1 = -96;
+    spotshadow_trans2 = -16;
+    walkflags = 0;
+
+    overlayheight = -1;
+    respawndir = Direction.SOUTH_EAST;
 
     // server-side
     regenRate = 100;
@@ -122,6 +133,9 @@ export default class NpcType extends ConfigType {
 
             for (let i = 0; i < count; i++) {
                 this.models[i] = dat.g2();
+                if (this.models[i] === 65535) {
+                    this.models[i] = -1;
+                }
             }
         } else if (code === 2) {
             this.name = dat.gjstr();
@@ -142,7 +156,7 @@ export default class NpcType extends ConfigType {
             this.walkanim_l = dat.g2();
         } else if (code === 18) {
             this.category = dat.g2();
-        } else if (code >= 30 && code < 40) {
+        } else if (code >= 30 && code < 35) {
             if (!this.op) {
                 this.op = new Array(5).fill(null);
             }
@@ -246,6 +260,26 @@ export default class NpcType extends ConfigType {
             this.multinpc[count + 1] = defaultid;
         } else if (code === 107) {
             this.active = false;
+        } else if (code === 109) {
+            this.walksmoothing = false;
+        } else if (code === 111) {
+            this.spotshadow = false;
+        } else if (code === 112) {
+            this.spotshadowcolour_1 = dat.g2();
+            this.spotshadowcolour_2 = dat.g2();
+        } else if (code === 113) {
+            this.spotshadow_trans1 = dat.g1b();
+            this.spotshadow_trans2 = dat.g1b();    
+        } else if (code === 115) {
+            // TODO: Figure out what these values actually are, if they're used that is.
+            dat.g1(); 
+            dat.g1(); 
+        } else if (code === 119) {
+            this.walkflags = dat.g1b();
+        } else if (code === 123) {
+            this.overlayheight = dat.g2();
+        } else if (code === 125) {
+            this.respawndir = dat.g1b();
         } else if (code === 200) {
             this.wanderrange = dat.g2();
         } else if (code === 201) {
