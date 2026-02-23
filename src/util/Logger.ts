@@ -1,5 +1,7 @@
 import kleur from 'kleur';
 
+import Environment from '#/util/Environment.js';
+
 export function printDebug(message: string) {
     const now = new Date();
 
@@ -13,16 +15,33 @@ export function printInfo(message: string) {
     console.log(kleur.magenta(`${now.toLocaleDateString()} ${now.toLocaleTimeString()}\t`), kleur.green('INFO\t'), message);
 }
 
-export function printError(message: string) {
+export function printError(message: string | Error) {
     const now = new Date();
 
-    console.error(kleur.magenta(`${now.toLocaleDateString()} ${now.toLocaleTimeString()}\t`), kleur.red('ERROR\t'), message);
+    if (message instanceof Error) {
+        console.error(kleur.magenta(`${now.toLocaleDateString()} ${now.toLocaleTimeString()}\t`), kleur.red('ERROR\t'), message.message);
+
+        if (Environment.BUILD_VERBOSE) {
+            console.error(message.stack);
+        }
+    } else {
+        console.error(kleur.magenta(`${now.toLocaleDateString()} ${now.toLocaleTimeString()}\t`), kleur.red('ERROR\t'), message);
+    }
 }
 
-export function printFatalError(message: string) {
+export function printFatalError(message: string | Error) {
     const now = new Date();
 
-    console.error(kleur.magenta(`${now.toLocaleDateString()} ${now.toLocaleTimeString()}\t`), kleur.red('ERROR\t'), message);
+    if (message instanceof Error) {
+        console.error(kleur.magenta(`${now.toLocaleDateString()} ${now.toLocaleTimeString()}\t`), kleur.red('ERROR\t'), message.message);
+
+        if (Environment.BUILD_VERBOSE) {
+            console.error(message.stack);
+        }
+    } else {
+        console.error(kleur.magenta(`${now.toLocaleDateString()} ${now.toLocaleTimeString()}\t`), kleur.red('ERROR\t'), message);
+    }
+
     process.exit(1);
 }
 

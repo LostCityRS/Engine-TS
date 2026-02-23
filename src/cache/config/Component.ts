@@ -120,7 +120,7 @@ export default class Component {
                     break;
                 case Component.TYPE_INVENTORY: {
                     com.draggable = dat.gbool();
-                    com.interactable = dat.gbool();
+                    com.operable = dat.gbool();
                     com.usable = dat.gbool();
                     com.marginX = dat.g1();
                     com.marginY = dat.g1();
@@ -137,9 +137,9 @@ export default class Component {
                         }
                     }
 
-                    com.inventoryOptions = new Array(5).fill(null);
+                    com.iop = new Array(5).fill(null);
                     for (let i = 0; i < 5; i++) {
-                        com.inventoryOptions[i] = dat.gjstr();
+                        com.iop[i] = dat.gjstr();
                     }
 
                     com.actionVerb = dat.gjstr();
@@ -204,10 +204,10 @@ export default class Component {
                     com.colour = dat.g4s();
                     com.marginX = dat.g2s();
                     com.marginY = dat.g2s();
-                    com.interactable = dat.gbool();
-                    com.inventoryOptions = new Array(5).fill(null);
+                    com.operable = dat.gbool();
+                    com.iop = new Array(5).fill(null);
                     for (let i = 0; i < 5; i++) {
-                        com.inventoryOptions[i] = dat.gjstr();
+                        com.iop[i] = dat.gjstr();
                     }
                     break;
                 }
@@ -282,15 +282,15 @@ export default class Component {
     scripts: Array<Uint16Array> | null = null;
     scroll: number = 0;
     hide = false;
-    draggable = false;
-    interactable = false;
-    usable = false;
+    draggable = false; // INV_BUTTOND
+    operable = false; // OPHELD/INV_BUTTON
+    usable = false; // OPHELDT/OPHELDU
     marginX: number = 0;
     marginY: number = 0;
     inventorySlotOffsetX: Uint16Array | null = null;
     inventorySlotOffsetY: Uint16Array | null = null;
     inventorySlotGraphic: Array<string> | null = null;
-    inventoryOptions: Array<string | null> | null = null;
+    iop: Array<string | null> | null = null; // INV_BUTTON
     fill = false;
     center = false;
     font: number = 0;

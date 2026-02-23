@@ -8,6 +8,7 @@ export default class FriendListAddDecoder extends ClientGameMessageDecoder<Frien
 
     decode(buf: Packet) {
         const username = buf.g8();
+
         return new FriendListAdd(username);
     }
 }

@@ -231,8 +231,6 @@
                 case 'auto':
                     canvas.style.width = '100%';
                     canvas.style.height = 'auto';
-                    let maxWidth = ((window.innerHeight - 120) / 532) * 789;
-                    canvas.style.maxWidth = maxWidth + 'px';
                     break;
             }
             document.getElementById('size').value = size;
@@ -319,10 +317,6 @@
 
     <script type="module">
         import { Client } from './client/client.js';
-
-        <% if (per_deployment_token) { %>
-            document.cookie = 'per_deployment_token="<%= per_deployment_token %>"; Domain=' + window.location.hostname;
-        <% } %>
 
         (() => {
             new Client(<%= nodeid %>, <%= lowmem %>, <%= members %>);

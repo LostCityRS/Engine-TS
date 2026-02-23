@@ -10,7 +10,8 @@ export default class OpLocTDecoder extends ClientGameMessageDecoder<OpLocT> {
         const x = buf.g2();
         const z = buf.g2();
         const loc = buf.g2();
-        const spellComponent = buf.g2();
-        return new OpLocT(x, z, loc, spellComponent);
+        const spellCom = buf.g2();
+
+        return new OpLocT(x, z, loc, spellCom);
     }
 }

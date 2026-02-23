@@ -11,48 +11,41 @@ import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 
 export default class OpNpcHandler extends ClientGameMessageHandler<OpNpc> {
     handle(message: OpNpc, player: NetworkPlayer): boolean {
-        const { nid } = message;
+        const { npcSlot } = message;
 
         if (player.delayed) {
+            // normal: cannot interact while delayed
             player.write(new UnsetMapFlag());
             return false;
         }
 
-        const npc = World.getNpc(nid);
-        if (!npc || npc.delayed) {
+        const npc = World.getNpc(npcSlot);
+        if (!npc) {
+            // bad client or lag: npc does not exist
             player.write(new UnsetMapFlag());
-            player.clearPendingAction();
+            return false;
+        } else if (npc.delayed) {
+            // normal: cannot interact with delayed npcs
+            player.write(new UnsetMapFlag());
             return false;
         }
 
         if (!rsbuf.hasNpc(player.slot, npc.nid)) {
+            // bad client or lag: npc is not visible on client
             player.write(new UnsetMapFlag());
-            player.clearPendingAction();
             return false;
         }
 
         const npcType = NpcType.get(npc.type);
-        if (!npcType.op || !npcType.op[message.op - 1]) {
+        if (!npcType.op || npcType.op[message.op - 1] === null || npcType.op[message.op - 1] === 'hidden') {
+            // bad client: not a valid npc option
             player.write(new UnsetMapFlag());
-            player.clearPendingAction();
             return false;
         }
 
-        let mode: ServerTriggerType;
-        if (message.op === 1) {
-            mode = ServerTriggerType.APNPC1;
-        } else if (message.op === 2) {
-            mode = ServerTriggerType.APNPC2;
-        } else if (message.op === 3) {
-            mode = ServerTriggerType.APNPC3;
-        } else if (message.op === 4) {
-            mode = ServerTriggerType.APNPC4;
-        } else {
-            mode = ServerTriggerType.APNPC5;
-        }
-
+        const trigger: ServerTriggerType = ServerTriggerType.APNPC1 + (message.op - 1);
         player.clearPendingAction();
-        player.setInteraction(Interaction.ENGINE, npc, mode);
+        player.setInteraction(Interaction.ENGINE, npc, trigger);
         player.opcalled = true;
         return true;
     }

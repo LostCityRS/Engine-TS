@@ -9,8 +9,8 @@ export default class DataLocEncoder extends ServerGameMessageEncoder<DataLoc> {
     encode(buf: Packet, message: DataLoc): void {
         buf.p1(message.x);
         buf.p1(message.z);
-        buf.p2(message.offset);
-        buf.p2(message.length);
+        buf.p2(message.off);
+        buf.p2(message.len);
         buf.pdata(message.data, 0, message.data.length);
     }
 

@@ -9,17 +9,22 @@ import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 
 export default class OpLocTHandler extends ClientGameMessageHandler<OpLocT> {
     handle(message: OpLocT, player: NetworkPlayer): boolean {
-        const { x, z, loc: locId, spellComponent: spellComId } = message;
+        const { x, z, loc: locId, spellCom: spellComId } = message;
 
         if (player.delayed) {
+            // normal: cannot interact while delayed
             player.write(new UnsetMapFlag());
             return false;
         }
 
         const spellCom = Component.get(spellComId);
-        if (typeof spellCom === 'undefined' || !player.isComponentVisible(spellCom) || (spellCom.actionTarget & ComActionTarget.LOC) === 0) {
+        if (typeof spellCom === 'undefined' || (spellCom.actionTarget & ComActionTarget.LOC) === 0) {
+            // bad client: component is not acceptable for this packet
             player.write(new UnsetMapFlag());
-            player.clearPendingAction();
+            return false;
+        } else if (!player.isComponentVisible(spellCom)) {
+            // bad client or lag: component is not visible
+            player.write(new UnsetMapFlag());
             return false;
         }
 
@@ -28,15 +33,15 @@ export default class OpLocTHandler extends ClientGameMessageHandler<OpLocT> {
         const absTopZ = player.originZ + 52;
         const absBottomZ = player.originZ - 52;
         if (x < absLeftX || x > absRightX || z < absBottomZ || z > absTopZ) {
+            // bad client: tile is not visible on client
             player.write(new UnsetMapFlag());
-            player.clearPendingAction();
             return false;
         }
 
         const loc = World.getLoc(x, z, player.level, locId);
         if (!loc) {
-            player.moveClickRequest = false;
-            player.clearPendingAction();
+            // bad client or lag: loc does not exist
+            player.write(new UnsetMapFlag());
             return false;
         }
 

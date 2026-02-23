@@ -1,7 +1,7 @@
 import ClientGameProtCategory from '#/network/game/client/ClientGameProtCategory.js';
 import ClientGameMessage from '#/network/game/client/ClientGameMessage.js';
 
-export default class IfPlayerDesign extends ClientGameMessage {
+export default class IdkSaveDesign extends ClientGameMessage {
     category = ClientGameProtCategory.USER_EVENT;
 
     constructor(

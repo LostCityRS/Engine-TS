@@ -40,6 +40,7 @@
     "@isaacs/ttlcache": "^2.1.4",
     "@jimp/js-png": "^1.6.0",
     "@jimp/plugin-quantize": "^1.6.0",
+    "@lostcityrs/runescript": "^0.9.4",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",

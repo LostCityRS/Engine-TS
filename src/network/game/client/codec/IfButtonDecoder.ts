@@ -7,7 +7,8 @@ export default class IfButtonDecoder extends ClientGameMessageDecoder<IfButton> 
     prot = ClientGameProt.IF_BUTTON;
 
     decode(buf: Packet) {
-        const component: number = buf.g2();
-        return new IfButton(component);
+        const com: number = buf.g2();
+
+        return new IfButton(com);
     }
 }

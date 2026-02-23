@@ -13,58 +13,68 @@ import Environment from '#/util/Environment.js';
 
 export default class OpPlayerUHandler extends ClientGameMessageHandler<OpPlayerU> {
     handle(message: OpPlayerU, player: NetworkPlayer): boolean {
-        const { playerSlot, useObj: item, useSlot: slot, useComponent: comId } = message;
+        const { playerSlot, useObj, useSlot, useCom: useComId } = message;
 
         if (player.delayed) {
+            // normal: cannot interact while delayed
             player.write(new UnsetMapFlag());
             return false;
         }
 
-        const com = Component.get(comId);
-        if (typeof com === 'undefined' || !player.isComponentVisible(com) || !com.interactable) {
+        const useCom = Component.get(useComId);
+        if (typeof useCom === 'undefined' || !useCom.usable) {
+            // bad client: component is not acceptable for this packet
             player.write(new UnsetMapFlag());
-            player.clearPendingAction();
+            return false;
+        } else if (!player.isComponentVisible(useCom)) {
+            // bad client or lag: component is not visible
+            player.write(new UnsetMapFlag());
             return false;
         }
 
-        const listener = player.invListeners.find(l => l.com === comId);
-        if (!listener) {
+        const useListener = player.invListeners.find(l => l.com === useComId);
+        const useInv = player.getInventoryFromListener(useListener);
+        if (!useInv) {
+            // bad client or lag: inventory is not transmitted to client
             player.write(new UnsetMapFlag());
-            player.clearPendingAction();
             return false;
         }
 
-        const inv = player.getInventoryFromListener(listener);
-        if (!inv || !inv.validSlot(slot) || !inv.hasAt(slot, item)) {
+        if (!useInv.validSlot(useSlot)) {
+            // bad client: real inventory is smaller
             player.write(new UnsetMapFlag());
-            player.clearPendingAction();
+            return false;
+        } else if (!useInv.hasAt(useSlot, useObj)) {
+            // bad client or lag: item does not exist in inventory
+            player.write(new UnsetMapFlag());
             return false;
         }
 
         const other = World.getPlayer(playerSlot);
         if (!other) {
+            // bad client or lag: player does not exist
             player.write(new UnsetMapFlag());
-            player.clearPendingAction();
             return false;
         }
 
         if (!rsbuf.hasPlayer(player.slot, other.slot)) {
+            // bad client or lag: player is not visible on client
             player.write(new UnsetMapFlag());
-            player.clearPendingAction();
             return false;
         }
 
         player.clearPendingAction();
-        if (ObjType.get(item).members && !Environment.NODE_MEMBERS) {
+
+        if (ObjType.get(useObj).members && !Environment.NODE_MEMBERS) {
             player.messageGame("To use this item please login to a members' server.");
             player.write(new UnsetMapFlag());
             return false;
         }
 
-        player.lastUseItem = item;
-        player.lastUseSlot = slot;
+        player.lastUseItem = useObj;
+        player.lastUseSlot = useSlot;
 
-        player.setInteraction(Interaction.ENGINE, other, ServerTriggerType.APPLAYERU, item);
+        player.setInteraction(Interaction.ENGINE, other, ServerTriggerType.APPLAYERU, useObj);
         player.opcalled = true;
         return true;
     }

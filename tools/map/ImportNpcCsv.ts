@@ -22,8 +22,7 @@ if (args.length !== 1) {
 
 const npcList = fs
     .readFileSync(args[0], 'ascii')
-    .replace(/\r/g, '')
-    .split('\n')
+    .split(/\r?\n/)
     .slice(1)
     .filter(line => line.length > 0);
 npcList.forEach((line, index) => {

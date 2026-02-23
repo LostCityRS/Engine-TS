@@ -11,7 +11,7 @@ import FriendListAddDecoder from '#/network/game/client/codec/FriendListAddDecod
 import FriendListDelDecoder from '#/network/game/client/codec/FriendListDelDecoder.js';
 import IdleTimerDecoder from '#/network/game/client/codec/IdleTimerDecoder.js';
 import IfButtonDecoder from '#/network/game/client/codec/IfButtonDecoder.js';
-import IfPlayerDesignDecoder from '#/network/game/client/codec/IfPlayerDesignDecoder.js';
+import IdkSaveDesignDecoder from '#/network/game/client/codec/IdkSaveDesignDecoder.js';
 import IgnoreListAddDecoder from '#/network/game/client/codec/IgnoreListAddDecoder.js';
 import IgnoreListDelDecoder from '#/network/game/client/codec/IgnoreListDelDecoder.js';
 import InvButtonDDecoder from '#/network/game/client/codec/InvButtonDDecoder.js';
@@ -38,7 +38,7 @@ import RebuildGetMapsDecoder from '#/network/game/client/codec/RebuildGetMapsDec
 import ReportAbuseDecoder from '#/network/game/client/codec/ReportAbuseDecoder.js';
 import ResumePauseButtonDecoder from '#/network/game/client/codec/ResumePauseButtonDecoder.js';
 import ResumePCountDialogDecoder from '#/network/game/client/codec/ResumePCountDialogDecoder.js';
-import TutorialClickSideDecoder from '#/network/game/client/codec/TutorialClickSideDecoder.js';
+import TutClickSideDecoder from '#/network/game/client/codec/TutClickSideDecoder.js';
 import ChatSetModeHandler from '#/network/game/client/handler/ChatSetModeHandler.js';
 import ClientCheatHandler from '#/network/game/client/handler/ClientCheatHandler.js';
 import CloseModalHandler from '#/network/game/client/handler/CloseModalHandler.js';
@@ -47,7 +47,7 @@ import FriendListAddHandler from '#/network/game/client/handler/FriendListAddHan
 import FriendListDelHandler from '#/network/game/client/handler/FriendListDelHandler.js';
 import IdleTimerHandler from '#/network/game/client/handler/IdleTimerHandler.js';
 import IfButtonHandler from '#/network/game/client/handler/IfButtonHandler.js';
-import IfPlayerDesignHandler from '#/network/game/client/handler/IfPlayerDesignHandler.js';
+import IdkSaveDesignHandler from '#/network/game/client/handler/IdkSaveDesignHandler.js';
 import IgnoreListAddHandler from '#/network/game/client/handler/IgnoreListAddHandler.js';
 import IgnoreListDelHandler from '#/network/game/client/handler/IgnoreListDelHandler.js';
 import InvButtonDHandler from '#/network/game/client/handler/InvButtonDHandler.js';
@@ -73,7 +73,7 @@ import OpPlayerUHandler from '#/network/game/client/handler/OpPlayerUHandler.js'
 import ReportAbuseHandler from '#/network/game/client/handler/ReportAbuseHandler.js';
 import ResumePauseButtonHandler from '#/network/game/client/handler/ResumePauseButtonHandler.js';
 import ResumePCountDialogHandler from '#/network/game/client/handler/ResumePCountDialogHandler.js';
-import TutorialClickSideHandler from '#/network/game/client/handler/TutorialClickSideHandler.js';
+import TutClickSideHandler from '#/network/game/client/handler/TutClickSideHandler.js';
 import RebuildGetMapsHandler from '#/network/game/client/handler/RebuildGetMapsHandler.js';
 
 class ClientGameProtRepository {
@@ -107,7 +107,7 @@ class ClientGameProtRepository {
         this.bind(new FriendListDelDecoder(), new FriendListDelHandler());
         this.bind(new IdleTimerDecoder(), new IdleTimerHandler());
         this.bind(new IfButtonDecoder(), new IfButtonHandler());
-        this.bind(new IfPlayerDesignDecoder(), new IfPlayerDesignHandler());
+        this.bind(new IdkSaveDesignDecoder(), new IdkSaveDesignHandler());
         this.bind(new IgnoreListAddDecoder(), new IgnoreListAddHandler());
         this.bind(new IgnoreListDelDecoder(), new IgnoreListDelHandler());
         this.bind(new InvButtonDecoder(ClientGameProt.INV_BUTTON1, 1), new InvButtonHandler());
@@ -159,7 +159,7 @@ class ClientGameProtRepository {
         this.bind(new RebuildGetMapsDecoder(), new RebuildGetMapsHandler());
         this.bind(new ResumePauseButtonDecoder(), new ResumePauseButtonHandler());
         this.bind(new ResumePCountDialogDecoder(), new ResumePCountDialogHandler());
-        this.bind(new TutorialClickSideDecoder(), new TutorialClickSideHandler());
+        this.bind(new TutClickSideDecoder(), new TutClickSideHandler());
         this.bind(new ChatSetModeDecoder(), new ChatSetModeHandler());
         this.bind(new EventTrackingDecoder(), new EventTrackingHandler());
         this.bind(new ReportAbuseDecoder(), new ReportAbuseHandler());

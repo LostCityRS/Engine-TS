@@ -146,8 +146,7 @@ export async function convertImage(index: Packet, srcPath: string, safeName: str
     if (hasMeta) {
         const metadata = fs
             .readFileSync(`${srcPath}/meta/${safeName}.opt`, 'ascii')
-            .replace(/\r/g, '')
-            .split('\n')
+            .split(/\r?\n/)
             .filter(x => x.length);
 
         if (metadata[0].indexOf('x') === -1) {
@@ -182,16 +181,9 @@ export async function convertImage(index: Packet, srcPath: string, safeName: str
     index.p2(tileX);
     index.p2(tileY);
 
-    let colors: number[] = [];
-    if (fs.existsSync(`${srcPath}/meta/${safeName}.pal.png`)) {
-        // workaround to preserve CRC integrity (not required)
-        colors = generatePalette(await Jimp.read(`${srcPath}/meta/${safeName}.pal.png`));
-    } else {
-        // todo: we're not producing the color palette in the same way, so this breaks CRC checks.
-        //   however, the end result after decoding is the same
-        colors = generatePalette(img);
-    }
-
+    // todo: we're not producing the color palette in the same way, so this breaks CRC checks.
+    //   however, the end result after decoding is the same
+    let colors: number[] = generatePalette(img);
     if (colors.length > 255) {
         img.quantize({ colors: 255 });
         colors = generatePalette(img);

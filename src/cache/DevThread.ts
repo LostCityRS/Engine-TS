@@ -7,7 +7,7 @@ import Environment from '#/util/Environment.js';
 
 // todo: this file queue is so the rebuild/reload process can utilize the additional context
 let processNextQueue: Set<string> = new Set();
-let processNextTimeout: Timer | null = null;
+let processNextTimeout: NodeJS.Timeout | null = null;
 
 // prevent other file change events from building multiple times
 let active = false;

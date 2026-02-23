@@ -3,28 +3,18 @@ import fs from 'fs';
 import Environment from '#/util/Environment.js';
 import { listDir, listFiles } from '#tools/pack/FsCache.js';
 
-export function readTextNormalize(path: string): string {
-    if (!fs.existsSync(path)) {
-        return '';
-    }
-
-    return fs.readFileSync(path, 'utf8').replace(/\r/g, '');
-}
-
-// -----
-
 // simple! just reads the file as-is
 export function loadFile(path: string): string[] {
     if (!fs.existsSync(path)) {
         return [];
     }
 
-    return readTextNormalize(path).split('\n');
+    return fs.readFileSync(path, 'utf8').split(/\r?\n/);
 }
 
 // fully-featured! strips out comments
 export function loadFileFull(path: string) {
-    const text = readTextNormalize(path).split('\n');
+    const text = loadFile(path);
     const lines = [];
 
     let multiCommentStart = 0;

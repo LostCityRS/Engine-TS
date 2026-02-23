@@ -713,11 +713,12 @@ const InvOps: CommandHandlers = {
             return;
         }
 
-        if (!objType.tradeable) {
-            return; // stop untradables after delete.
+        const dropObj: Obj = new Obj(position.level, position.x, position.z, EntityLifeCycle.DESPAWN, obj.id, completed);
+        if (!objType.tradeable) { // untradeables still drop to the primary player
+            World.addObj(dropObj, fromPlayer.hash64, duration);
+        } else {
+            World.addObj(dropObj, toPlayer.hash64, duration);
         }
-
-        World.addObj(new Obj(position.level, position.x, position.z, EntityLifeCycle.DESPAWN, obj.id, completed), toPlayer.hash64, duration);
     }),
 
     // https://x.com/JagexAsh/status/1778879334167548366
@@ -764,11 +765,12 @@ const InvOps: CommandHandlers = {
 
             inventory.delete(slot);
 
-            if (!objType.tradeable) {
-                continue; // stop untradables after delete.
+            const dropObj: Obj = new Obj(position.level, position.x, position.z, EntityLifeCycle.DESPAWN, obj.id, obj.count);
+            if (!objType.tradeable) { // untradeables still drop to the primary player
+                World.addObj(dropObj, state.activePlayer.hash64, duration);
+            } else {
+                World.addObj(dropObj, Obj.NO_RECEIVER, duration);
             }
-
-            World.addObj(new Obj(position.level, position.x, position.z, EntityLifeCycle.DESPAWN, obj.id, obj.count), Obj.NO_RECEIVER, duration);
         }
 
         if (wealthLog.size > 0) {

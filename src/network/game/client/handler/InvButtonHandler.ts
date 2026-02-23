@@ -9,52 +9,49 @@ import Environment from '#/util/Environment.js';
 
 export default class InvButtonHandler extends ClientGameMessageHandler<InvButton> {
     handle(message: InvButton, player: Player): boolean {
-        // jagex has if_button1-5
-        const { op, obj: item, slot, component: comId } = message;
+        const { obj, slot, com: comId } = message;
 
-        const com = Component.get(comId);
-        if (typeof com === 'undefined' || !com.inventoryOptions || !com.inventoryOptions.length || !player.isComponentVisible(com)) {
+        if (player.delayed) {
+            // normal: cannot interact while delayed
             return false;
         }
 
-        if (!com.inventoryOptions[op - 1]) {
+        const com = Component.get(comId);
+        if (typeof com === 'undefined') {
+            // bad client: component is not acceptable for this packet
+            return false;
+        } else if (!player.isComponentVisible(com)) {
+            // bad client or lag: component is not visible
+            return false;
+        }
+
+        if (!com.iop || com.iop[message.op - 1] === null) {
+            // bad client: not a valid interface option
             return false;
         }
 
         const listener = player.invListeners.find(l => l.com === comId);
-        if (!listener) {
-            return false;
-        }
-
         const inv = player.getInventoryFromListener(listener);
-        if (!inv || !inv.validSlot(slot) || !inv.hasAt(slot, item)) {
+        if (!inv) {
+            // bad client or lag: inventory is not transmitted to client
             return false;
         }
 
-        if (player.delayed) {
+        if (!inv.validSlot(slot)) {
+            // bad client: real inventory is smaller
+            return false;
+        } else if (!inv.hasAt(slot, obj)) {
+            // bad client or lag: item does not exist in inventory
             return false;
         }
 
-        player.lastItem = item;
+        player.lastItem = obj;
         player.lastSlot = slot;
 
-        let trigger: ServerTriggerType;
-        if (op === 1) {
-            trigger = ServerTriggerType.INV_BUTTON1;
-        } else if (op === 2) {
-            trigger = ServerTriggerType.INV_BUTTON2;
-        } else if (op === 3) {
-            trigger = ServerTriggerType.INV_BUTTON3;
-        } else if (op === 4) {
-            trigger = ServerTriggerType.INV_BUTTON4;
-        } else {
-            trigger = ServerTriggerType.INV_BUTTON5;
-        }
-
+        const trigger: ServerTriggerType = ServerTriggerType.INV_BUTTON1 + (message.op - 1);
         const script = ScriptProvider.getByTrigger(trigger, comId, -1);
         if (script) {
             const root = Component.get(com.rootLayer);
-
             player.executeScript(ScriptRunner.init(script, player), root.overlay == false);
         } else if (Environment.NODE_DEBUG) {
             player.messageGame(`No trigger for [${ServerTriggerType.toString(trigger)},${com.comName}]`);

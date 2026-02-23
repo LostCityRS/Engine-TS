@@ -5,8 +5,8 @@ export default class OpNpcT extends ClientGameMessage {
     category = ClientGameProtCategory.USER_EVENT;
 
     constructor(
-        readonly nid: number,
-        readonly spellComponent: number
+        readonly npcSlot: number,
+        readonly spellCom: number
     ) {
         super();
     }

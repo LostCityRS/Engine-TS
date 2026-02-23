@@ -101,13 +101,13 @@ export async function packWorldmap() {
     }
 
     // easiest solution for the time being
-    const multiway = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').replace(/\r/g, '').split('\n');
+    const multiway = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').split(/\r?\n/);
     const multimap = processCsv(multiway, 'multiway');
 
-    const free2play = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').replace(/\r/g, '').split('\n');
+    const free2play = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').split(/\r?\n/);
     const freemap = processCsv(free2play, 'free');
 
-    const ignoreraw = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/ignore.csv`, 'ascii').replace(/\r/g, '').split('\n');
+    const ignoreraw = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/ignore.csv`, 'ascii').split(/\r?\n/);
     const ignoremap = processCsv(ignoreraw, 'ignore');
 
     const maps: string[] = fs.readdirSync('data/pack/server/maps').filter((x: string): boolean => x[0] === 'm');
@@ -119,6 +119,12 @@ export async function packWorldmap() {
 
         if (ignoremap.has(CoordGrid.packCoord(0, mx << 6, mz << 6))) {
             continue;
+        }
+
+        let level = 0;
+        if (mx == 33 && mz >= 71 && mz <= 73) {
+            // exception for underground pass
+            level = 1;
         }
 
         // ----
@@ -191,7 +197,7 @@ export async function packWorldmap() {
         for (let x: number = 0; x < 64; x++) {
             for (let z: number = 0; z < 64; z++) {
                 const bridged: boolean = (flags[1][x][z] & 0x2) === 2;
-                const actualLevel = bridged ? 1 : 0;
+                const actualLevel = (bridged ? 1 : 0) + level;
 
                 if (overlayIds[actualLevel][x][z] !== -1) {
                     overlay.p1(overlayIds[actualLevel][x][z]);
@@ -338,16 +344,16 @@ export async function packWorldmap() {
 
         for (let x = 0; x < 64; x++) {
             for (let z = 0; z < 64; z++) {
-                if (walls[0][x][z] !== -1) {
-                    loc.p1(walls[0][x][z]);
+                if (walls[level][x][z] !== -1) {
+                    loc.p1(walls[level][x][z]);
                 }
 
-                if (mapscenes[0][x][z] !== -1) {
-                    loc.p1(29 + mapscenes[0][x][z]);
+                if (mapscenes[level][x][z] !== -1) {
+                    loc.p1(29 + mapscenes[level][x][z]);
                 }
 
-                if (mapfunctions[0][x][z] !== -1) {
-                    loc.p1(160 + mapfunctions[0][x][z]);
+                if (mapfunctions[level][x][z] !== -1) {
+                    loc.p1(160 + mapfunctions[level][x][z]);
                 }
 
                 loc.p1(0);
@@ -390,7 +396,7 @@ export async function packWorldmap() {
 
             for (let x = 0; x < 64; x++) {
                 for (let z = 0; z < 64; z++) {
-                    obj.pbool(objs[0][x][z] !== -1);
+                    obj.pbool(objs[level][x][z] !== -1);
                 }
             }
         }
@@ -434,7 +440,7 @@ export async function packWorldmap() {
 
             for (let x = 0; x < 64; x++) {
                 for (let z = 0; z < 64; z++) {
-                    npc.pbool(npcs[0][x][z] !== -1);
+                    npc.pbool(npcs[level][x][z] !== -1);
                 }
             }
         }
@@ -520,20 +526,6 @@ export async function packWorldmap() {
     packWater(underlay, overlay, 47, 46);
     packWater(underlay, overlay, 48, 45);
     packWater(underlay, overlay, 48, 46);
-
-    jag.write('underlay.dat', underlay);
-
-    jag.write('overlay.dat', overlay);
-
-    jag.write('loc.dat', loc);
-
-    jag.write('obj.dat', obj);
-
-    jag.write('npc.dat', npc);
-
-    jag.write('multi.dat', multi);
-
-    jag.write('free.dat', free);
 
     const floorcol = Packet.alloc(1);
     floorcol.p2(FloType.configs.length);
@@ -625,33 +617,29 @@ export async function packWorldmap() {
         floorcol.p4(refColors[i][1]);
     }
 
-    jag.write('floorcol.dat', floorcol);
-
     // ----
 
     const index = Packet.alloc(1);
 
     const mapscene = await convertImage(index, `${Environment.BUILD_SRC_DIR}/sprites`, 'mapscene');
-    jag.write('mapscene.dat', mapscene);
-
     const mapfunction = await convertImage(index, `${Environment.BUILD_SRC_DIR}/sprites`, 'mapfunction');
-    jag.write('mapfunction.dat', mapfunction);
-
     const b12 = await convertImage(index, `${Environment.BUILD_SRC_DIR}/fonts`, 'b12');
-    jag.write('b12.dat', b12);
-
     const mapdots = await convertImage(index, `${Environment.BUILD_SRC_DIR}/sprites`, 'mapdots');
-    jag.write('mapdots.dat', mapdots);
-
-    jag.write('index.dat', index);
+    const f11 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f11.fm`, true);
+    const f12 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f12.fm`, true);
+    const f14 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f14.fm`, true);
+    const f17 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f17.fm`, true);
+    const f19 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f19.fm`, true);
+    const f22 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f22.fm`, true);
+    const f26 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f26.fm`, true);
+    const f30 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f30.fm`, true);
 
     // ----
 
     const labels = Packet.alloc(1);
     const labelsSrc = fs
         .readFileSync(`${Environment.BUILD_SRC_DIR}/maps/labels.txt`, 'ascii')
-        .replace(/\r/g, '')
-        .split('\n')
+        .split(/\r?\n/)
         .filter((x: string) => x.startsWith('='))
         .map((x: string) => x.substring(1).split(','));
 
@@ -664,10 +652,30 @@ export async function packWorldmap() {
         labels.p1(parseInt(type));
     }
 
-    jag.write('labels.dat', labels);
-
     // ----
 
+    jag.write('underlay.dat', underlay);
+    jag.write('overlay.dat', overlay);
+    jag.write('loc.dat', loc);
+    jag.write('obj.dat', obj);
+    jag.write('npc.dat', npc);
+    jag.write('multi.dat', multi);
+    jag.write('free.dat', free);
+    jag.write('floorcol.dat', floorcol);
+    jag.write('mapscene.dat', mapscene);
+    jag.write('mapfunction.dat', mapfunction);
+    jag.write('b12.dat', b12);
+    jag.write('f11.dat', f11);
+    jag.write('f12.dat', f12);
+    jag.write('f14.dat', f14);
+    jag.write('f17.dat', f17);
+    jag.write('f19.dat', f19);
+    jag.write('f22.dat', f22);
+    jag.write('f26.dat', f26);
+    jag.write('f30.dat', f30);
+    jag.write('mapdots.dat', mapdots);
+    jag.write('index.dat', index);
+    jag.write('labels.dat', labels);
     jag.save('data/pack/mapview/worldmap.jag');
 }
 

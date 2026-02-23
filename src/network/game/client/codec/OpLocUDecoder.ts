@@ -12,7 +12,8 @@ export default class OpLocUDecoder extends ClientGameMessageDecoder<OpLocU> {
         const loc = buf.g2();
         const useObj = buf.g2();
         const useSlot = buf.g2();
-        const useComponent = buf.g2();
-        return new OpLocU(x, z, loc, useObj, useSlot, useComponent);
+        const useCom = buf.g2();
+
+        return new OpLocU(x, z, loc, useObj, useSlot, useCom);
     }
 }

@@ -12,7 +12,6 @@ import NullClientSocket from '#/server/NullClientSocket.js';
 import WSClientSocket from '#/server/ws/WSClientSocket.js';
 import Environment from '#/util/Environment.js';
 import { tryParseInt } from '#/util/TryParse.js';
-import { getPublicPerDeploymentToken } from '#/io/PemUtil.js';
 
 function getIp(req: Request) {
     // todo: environment flag to respect cf-connecting-ip (NOT safe if origin is exposed publicly by IP + proxied)
@@ -51,6 +50,7 @@ export async function startWeb() {
                 const upgraded = server.upgrade(req, {
                     data: {
                         client: new WSClientSocket(),
+                        origin: req.headers.get('origin'),
                         remoteAddress: getIp(req)
                     }
                 });
@@ -104,8 +104,7 @@ export async function startWeb() {
                     return new Response(await ejs.renderFile('view/client.ejs', {
                         nodeid: Environment.NODE_ID,
                         lowmem,
-                        members: Environment.NODE_MEMBERS,
-                        per_deployment_token: Environment.WEB_SOCKET_TOKEN_PROTECTION ? getPublicPerDeploymentToken() : ''
+                        members: Environment.NODE_MEMBERS
                     }), {
                         headers: {
                             'Content-Type': 'text/html'
@@ -125,36 +124,10 @@ export async function startWeb() {
         websocket: {
             maxPayloadLength: 2000,
             open(ws) {
-                /* TODO:
-                if (Environment.WEB_SOCKET_TOKEN_PROTECTION) {
-                    // if WEB_CONNECTION_TOKEN_PROTECTION is enabled, we must
-                    // have a matching per-deployment token sent via cookie.
-                    const headers = info.req.headers;
-                    if (!headers.cookie) {
-                        // no cookie
-                        cb(false);
-                        return;
-                    }
-                    // cookie string is present at least
-                    // find exact match. NOTE: the double quotes are deliberate
-                    const search = `per_deployment_token="${getPublicPerDeploymentToken()}"`;
-                    // could do something more fancy with cookie parsing, but
-                    // this seems fine.
-                    if (headers.cookie.indexOf(search) === -1) {
-                        cb(false);
-                        return;
-                    }
-                }
-                const { origin } = info;
-
-                // todo: check more than just the origin header (important!)
-                if (Environment.WEB_ALLOWED_ORIGIN && origin !== Environment.WEB_ALLOWED_ORIGIN) {
-                    cb(false);
+                if (Environment.WEB_ALLOWED_ORIGIN && ws.data.origin !== Environment.WEB_ALLOWED_ORIGIN) {
+                    ws.terminate();
                     return;
                 }
-
-                cb(true);
-                */
 
                 ws.data.client.init(ws, ws.data.remoteAddress ?? ws.remoteAddress);
 

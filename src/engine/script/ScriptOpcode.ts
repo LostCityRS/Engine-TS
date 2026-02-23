@@ -13,12 +13,15 @@ export const enum ScriptOpcode {
     BRANCH_GREATER_THAN, // official, see cs2
     PUSH_VARS,
     POP_VARS,
+
     RETURN = 21, // official, see cs2
     GOSUB,
     JUMP,
     SWITCH,
-    // 25 = push_varbit
-    // 27 = pop_varbit
+
+    PUSH_VARBIT = 25, // official, see cs2
+    POP_VARBIT = 27, // official, see cs2
+
     BRANCH_LESS_THAN_OR_EQUALS = 31, // official, see cs2
     BRANCH_GREATER_THAN_OR_EQUALS, // official, see cs2
     PUSH_INT_LOCAL, // official, see cs2
@@ -30,8 +33,7 @@ export const enum ScriptOpcode {
     POP_STRING_DISCARD, // official, see cs2
     GOSUB_WITH_PARAMS, // official, see cs2
     JUMP_WITH_PARAMS, // official, see cs2
-    // 42 = push_varc_int
-    // 43 = pop_varc_int
+
     DEFINE_ARRAY = 44, // official, see cs2
     PUSH_ARRAY_INT, // official, see cs2
     POP_ARRAY_INT, // official, see cs2
@@ -41,51 +43,33 @@ export const enum ScriptOpcode {
     COORDY, // official, see cs2
     COORDZ, // official, see cs2
     DISTANCE,
-    HUNTALL,
-    HUNTNEXT, // official
     INZONE, // official
     LINEOFSIGHT,
     LINEOFWALK,
     MAP_BLOCKED, // official
-    MAP_INDOORS,
     MAP_CLOCK, // official
+    MAP_FINDSQUARE, // official
+    MAP_INDOORS,
+    MAP_LIVE,
     MAP_LOCADDUNSAFE, // official
     MAP_MEMBERS, // official
+    MAP_MULTIWAY, // official
     MAP_PLAYERCOUNT, // official, see giant dwarf cutscene
-    MAP_FINDSQUARE, // official
     MOVECOORD, // official
     PLAYERCOUNT,
     PROJANIM_MAP,
-    PROJANIM_NPC, // todo: take active_npc
-    PROJANIM_PL, // todo: take active_player
     SEQLENGTH, // official
-    SPLIT_GET,
-    SPLIT_GETANIM,
-    SPLIT_INIT, // official
-    SPLIT_LINECOUNT,
-    SPLIT_PAGECOUNT, // official
     SPOTANIM_MAP,
-    STRUCT_PARAM,
     WORLD_DELAY, // official
-    NPCCOUNT,
-    ZONECOUNT,
-    LOCCOUNT,
-    OBJCOUNT,
-    MAP_MULTIWAY, // official
 
     // Player ops (2000-2499)
-    ALLOWDESIGN = 2000,
+    AFK_EVENT = 2000,
+    ALLOWDESIGN,
     ANIM, // official, newspost
-    BAS_READYANIM,
-    BAS_RUNNING,
-    BAS_TURNONSPOT,
-    BAS_WALK_B,
-    BAS_WALK_F,
-    BAS_WALK_L,
-    BAS_WALK_R,
-    BUFFER_FULL, // official
+    BOTH_HEROPOINTS, // official
     BUILDAPPEARANCE, // official
     BUSY, // official
+    BUSY2, // official
     CAM_LOOKAT, // official
     CAM_MOVETO, // official
     CAM_RESET, // official
@@ -93,67 +77,68 @@ export const enum ScriptOpcode {
     CLEARQUEUE, // official
     CLEARSOFTTIMER,
     CLEARTIMER,
-    GETTIMER,
     COORD, // official
     DAMAGE,
-    DISPLAYNAME, // official, joke reply
+    DISPLAYNAME, // official + joke reply
     FACESQUARE, // official
+    FINDHERO, // official
     FINDUID, // official
     GENDER,
     GETQUEUE, // official
-    STAT_ADVANCE,
+    GETTIMER,
+    GETWALKTRIGGER, // official
     HEADICONS_GET,
     HEADICONS_SET,
     HEALENERGY, // official
     HINT_COORD,
-    HINT_NPC, // todo: take active_npc
-    HINT_PLAYER, // todo: take active_player
+    HINT_NPC,
+    HINT_PL,
     HINT_STOP,
+    HUNTALL,
+    HUNTNEXT, // official
     IF_CLOSE, // official
-    TUT_CLOSE,
-    IF_MULTIZONE, // moved to engine, remove this
     IF_OPENCHAT,
-    TUT_OPEN,
-    IF_OPENMAIN,
-    // IF_OPENOVERLAY comes later
     IF_OPENMAIN_SIDE,
+    IF_OPENMAIN,
     IF_OPENSIDE,
     IF_SETANIM, // official
     IF_SETCOLOUR, // official
     IF_SETHIDE, // official
     IF_SETMODEL, // official
-    IF_SETRECOL,
     IF_SETNPCHEAD, // official
     IF_SETOBJECT, // official
     IF_SETPLAYERHEAD, // official
     IF_SETPOSITION, // official
+    IF_SETRECOL,
     IF_SETRESUMEBUTTONS,
     IF_SETTAB,
     IF_SETTABACTIVE,
-    TUT_FLASH,
     IF_SETTEXT, // official
-    LAST_LOGIN_INFO,
     LAST_COM,
     LAST_INT, // official
     LAST_ITEM,
+    LAST_LOGIN_INFO,
     LAST_SLOT, // official
     LAST_TARGETSLOT,
     LAST_USEITEM, // official
     LAST_USESLOT, // official
     LONGQUEUE, // official
+    LONGQUEUEVARARG,
+    LOWMEM,
     MES, // official
     MIDI_JINGLE, // official, see cs2
     MIDI_SONG, // official, see cs2
-    NAME, // official, joke reply
+    NAME, // official + joke reply
+    P_ANIMPROTECT,
     P_APRANGE, // official
     P_ARRIVEDELAY, // official
+    P_CLEARPENDINGACTION, // official
     P_COUNTDIALOG, // official
     P_DELAY, // official
     P_EXACTMOVE, // official
     P_FINDUID, // official
     P_LOCMERGE, // official
     P_LOGOUT,
-    P_PREVENTLOGOUT,
     P_OPHELD, // official
     P_OPLOC, // official
     P_OPNPC, // official
@@ -162,90 +147,93 @@ export const enum ScriptOpcode {
     P_OPPLAYER,
     P_OPPLAYERT, // official
     P_PAUSEBUTTON, // official
+    P_PREVENTLOGOUT,
+    P_RUN, // todo: real command name?
     P_STOPACTION, // official
     P_TELEJUMP, // official
     P_TELEPORT,
     P_WALK, // official
-    PLAYER_FINDALLZONE, // todo: replace with huntall
-    PLAYER_FINDNEXT, // todo: replace with huntnext
+    PLAYERMEMBER, // official
+    PROJANIM_PL, // todo: take active_player
     QUEUE, // official
+    QUEUEVARARG,
+    READYANIM,
+    RUNANIM,
+    RUNENERGY,
     SAY, // official
-    WALKTRIGGER, // official
+    SESSION_LOG, // custom
+    SETGENDER,
+    SETIDKIT,
+    SETSKINCOLOUR,
     SETTIMER,
     SOFTTIMER, // official
     SOUND_SYNTH, // official, newspost
     SPOTANIM_PL,
     STAFFMODLEVEL, // official
-    STAT, // official
     STAT_ADD,
+    STAT_ADVANCE,
     STAT_BASE, // official
-    STAT_HEAL, // official
-    STAT_SUB,
     STAT_BOOST, // official
     STAT_DRAIN,
+    STAT_HEAL, // official
     STAT_RANDOM,
+    STAT_SUB,
+    STAT_TOTAL,
+    STAT, // official
     STRONGQUEUE,
-    UID, // official
-    WEAKQUEUE, // official
-    IF_OPENMAINOVERLAY,
-    AFK_EVENT,
-    LOWMEMORY,
-    SETIDKIT,
-    P_CLEARPENDINGACTION, // official
-    GETWALKTRIGGER, // official
-    BUSY2, // official
-    FINDHERO, // official
-    BOTH_HEROPOINTS, // official
-    SETGENDER,
-    SETSKINCOLOUR,
-    P_ANIMPROTECT,
-    RUNENERGY,
-    WEIGHT,
-    LAST_COORD,
-    SESSION_LOG, // custom
-    WEALTH_EVENT, // custom
-    P_RUN, // todo: real command name?
-    PLAYERMEMBER, // official
-    QUEUEVARARG,
-    LONGQUEUEVARARG,
-    WEAKQUEUEVARARG,
     STRONGQUEUEVARARG,
+    TURNANIM,
+    TUT_CLOSE,
+    TUT_FLASH,
+    TUT_OPEN,
+    UID, // official
+    WALKANIM_B,
+    WALKANIM_L,
+    WALKANIM_R,
+    WALKANIM,
+    WALKTRIGGER, // official
+    WEAKQUEUE, // official
+    WEAKQUEUEVARARG,
+    WEALTH_EVENT, // custom
+    WEIGHT,
 
     // Npc ops (2500-2999)
     NPC_ADD = 2500, // official
     NPC_ANIM, // official, newspost
+    NPC_ARRIVEDELAY,
+    NPC_ATTACKRANGE, // official
     NPC_BASESTAT, // official
     NPC_CATEGORY, // official
-    NPC_CHANGETYPE,
     NPC_CHANGETYPE_KEEPALL,
+    NPC_CHANGETYPE,
     NPC_COORD, // official
     NPC_DAMAGE,
     NPC_DEL, // official
     NPC_DELAY, // official
     NPC_FACESQUARE, // official
     NPC_FIND, // official
-    NPC_FINDCAT,
-    NPC_FINDALLANY, // official
     NPC_FINDALL,
+    NPC_FINDALLANY, // official
+    NPC_FINDALLZONE,
+    NPC_FINDCAT,
     NPC_FINDEXACT, // official
     NPC_FINDHERO, // official
-    NPC_FINDALLZONE,
-    NPC_FINDNEXT,
+    NPC_FINDNEXT, // official
     NPC_FINDUID,
     NPC_GETMODE,
+    NPC_HASOP, // official
     NPC_HEROPOINTS, // official
+    NPC_HUNT,
+    NPC_HUNTALL, // official
+    NPC_INRANGE,
     NPC_NAME,
     NPC_PARAM, // official
     NPC_QUEUE, // official
     NPC_RANGE, // official
     NPC_SAY, // official
-    NPC_HUNT,
-    NPC_HUNTALL, // official
-    NPC_HUNTNEXT,
     NPC_SETHUNT, // official
     NPC_SETHUNTMODE, // official
     NPC_SETMODE, // official
-    NPC_WALKTRIGGER, // official
     NPC_SETTIMER,
     NPC_STAT,
     NPC_STATADD,
@@ -254,12 +242,10 @@ export const enum ScriptOpcode {
     NPC_TELE,
     NPC_TYPE, // official
     NPC_UID,
-    SPOTANIM_NPC,
     NPC_WALK,
-    NPC_ATTACKRANGE, // official
-    NPC_HASOP, // official
-    NPC_ARRIVEDELAY,
-    NPC_INRANGE,
+    NPC_WALKTRIGGER, // official
+    PROJANIM_NPC, // todo: take active_npc
+    SPOTANIM_NPC,
 
     // Loc ops (3000-3499)
     LOC_ADD = 3000, // official
@@ -283,13 +269,13 @@ export const enum ScriptOpcode {
     OBJ_COORD,
     OBJ_COUNT,
     OBJ_DEL,
+    OBJ_FIND,
+    OBJ_FINDALLZONE,
+    OBJ_FINDNEXT,
     OBJ_NAME,
     OBJ_PARAM,
     OBJ_TAKEITEM,
     OBJ_TYPE,
-    OBJ_FIND,
-    OBJ_FINDALLZONE,
-    OBJ_FINDNEXT,
 
     // Npc config ops (4000-4099)
     NC_CATEGORY = 4000,
@@ -305,11 +291,11 @@ export const enum ScriptOpcode {
     LC_CATEGORY = 4100,
     LC_DEBUGNAME,
     LC_DESC,
+    LC_LENGTH,
     LC_NAME,
     LC_OP,
     LC_PARAM,
     LC_WIDTH,
-    LC_LENGTH,
 
     // Obj config ops (4200-4299)
     OC_CATEGORY = 4200, // official
@@ -325,22 +311,24 @@ export const enum ScriptOpcode {
     OC_STACKABLE, // official, see cs2
     OC_TRADEABLE,
     OC_UNCERT, // official, see cs2
+    OC_WEARPOS,
     OC_WEARPOS2,
     OC_WEARPOS3,
-    OC_WEARPOS,
     OC_WEIGHT,
 
     // Inventory ops (4300-4399)
-    INV_ALLSTOCK = 4300,
-    INV_SIZE, // official
-    INV_STOCKBASE,
+    BOTH_DROPSLOT = 4300,
+    BOTH_MOVEINV, // official
     INV_ADD, // official
+    INV_ALLSTOCK,
     INV_CHANGESLOT, // official
     INV_CLEAR,
+    INV_DEBUGNAME,
     INV_DEL, // official
     INV_DELSLOT,
-    INV_DROPITEM,
+    INV_DROPALL,
     INV_DROPITEM_DELAYED,
+    INV_DROPITEM,
     INV_DROPSLOT,
     INV_FREESPACE,
     INV_GETNUM,
@@ -348,22 +336,20 @@ export const enum ScriptOpcode {
     INV_ITEMSPACE,
     INV_ITEMSPACE2, // official
     INV_MOVEFROMSLOT,
-    INV_MOVETOSLOT, // official
-    BOTH_MOVEINV, // official
-    INV_MOVEITEM, // official
     INV_MOVEITEM_CERT, // official
     INV_MOVEITEM_UNCERT, // official
+    INV_MOVEITEM, // official
+    INV_MOVETOSLOT, // official
     INV_SETSLOT, // official
+    INV_SIZE, // official
+    INV_STOCKBASE,
+    INV_STOPTRANSMIT,
     INV_TOTAL, // official
     INV_TOTALCAT,
+    INV_TOTALPARAM_STACK, // official, see cs2
+    INV_TOTALPARAM, // official, see cs2
     INV_TRANSMIT,
     INVOTHER_TRANSMIT,
-    INV_STOPTRANSMIT,
-    BOTH_DROPSLOT,
-    INV_DROPALL,
-    INV_TOTALPARAM, // official, see cs2
-    INV_TOTALPARAM_STACK, // official, see cs2
-    INV_DEBUGNAME,
 
     // Enum ops (4400-4499)
     ENUM = 4400, // official
@@ -396,6 +382,11 @@ export const enum ScriptOpcode {
     // CHAR_TOUPPERCASE, // official, see cs2
     // TOSTRING_LOCALISED, // official, see cs2
     // STRINGWIDTH, // official, see cs2
+    SPLIT_GET,
+    SPLIT_GETANIM,
+    SPLIT_INIT, // official
+    SPLIT_LINECOUNT,
+    SPLIT_PAGECOUNT, // official
 
     // Number ops (4600-4699)
     ADD = 4600, // official, see cs2
@@ -428,6 +419,9 @@ export const enum ScriptOpcode {
     ATAN2_DEG, // custom
     ABS, // custom
 
+    // Struct ops (4700-4799)
+    STRUCT_PARAM = 4700,
+
     // DB ops (7500-7599)
     DB_FIND_WITH_COUNT = 7500,
     DB_FINDNEXT,
@@ -442,23 +436,10 @@ export const enum ScriptOpcode {
     DB_LISTALL,
 
     // Debug ops (10000-11000)
-    ERROR = 10000,
-    MAP_PRODUCTION,
-    MAP_LASTCLOCK,
-    MAP_LASTWORLD,
-    MAP_LASTCLIENTIN,
-    MAP_LASTNPC,
-    MAP_LASTPLAYER,
-    MAP_LASTLOGOUT,
-    MAP_LASTLOGIN,
-    MAP_LASTZONE,
-    MAP_LASTCLIENTOUT,
-    MAP_LASTCLEANUP,
-    MAP_LASTBANDWIDTHIN,
-    MAP_LASTBANDWIDTHOUT,
-    TIMESPENT, // custom: used to profile script execution (record start time)
+    CONSOLE = 10000,
+    ERROR,
     GETTIMESPENT, // custom: used to profile script execution (current duration)
-    CONSOLE
+    TIMESPENT, // custom: used to profile script execution (record start time)
 }
 
 export const ScriptOpcodeMap: Map<string, number> = new Map([
@@ -475,10 +456,15 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['BRANCH_GREATER_THAN', ScriptOpcode.BRANCH_GREATER_THAN],
     ['PUSH_VARS', ScriptOpcode.PUSH_VARS],
     ['POP_VARS', ScriptOpcode.POP_VARS],
+
     ['RETURN', ScriptOpcode.RETURN],
     ['GOSUB', ScriptOpcode.GOSUB],
     ['JUMP', ScriptOpcode.JUMP],
     ['SWITCH', ScriptOpcode.SWITCH],
+
+    ['PUSH_VARBIT', ScriptOpcode.PUSH_VARBIT],
+    ['POP_VARBIT', ScriptOpcode.POP_VARBIT],
+
     ['BRANCH_LESS_THAN_OR_EQUALS', ScriptOpcode.BRANCH_LESS_THAN_OR_EQUALS],
     ['BRANCH_GREATER_THAN_OR_EQUALS', ScriptOpcode.BRANCH_GREATER_THAN_OR_EQUALS],
     ['PUSH_INT_LOCAL', ScriptOpcode.PUSH_INT_LOCAL],
@@ -490,56 +476,41 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['POP_STRING_DISCARD', ScriptOpcode.POP_STRING_DISCARD],
     ['GOSUB_WITH_PARAMS', ScriptOpcode.GOSUB_WITH_PARAMS],
     ['JUMP_WITH_PARAMS', ScriptOpcode.JUMP_WITH_PARAMS],
+
     ['DEFINE_ARRAY', ScriptOpcode.DEFINE_ARRAY],
     ['PUSH_ARRAY_INT', ScriptOpcode.PUSH_ARRAY_INT],
     ['POP_ARRAY_INT', ScriptOpcode.POP_ARRAY_INT],
+
     ['COORDX', ScriptOpcode.COORDX],
     ['COORDY', ScriptOpcode.COORDY],
     ['COORDZ', ScriptOpcode.COORDZ],
     ['DISTANCE', ScriptOpcode.DISTANCE],
-    ['HUNTALL', ScriptOpcode.HUNTALL],
-    ['HUNTNEXT', ScriptOpcode.HUNTNEXT],
     ['INZONE', ScriptOpcode.INZONE],
     ['LINEOFSIGHT', ScriptOpcode.LINEOFSIGHT],
     ['LINEOFWALK', ScriptOpcode.LINEOFWALK],
     ['MAP_BLOCKED', ScriptOpcode.MAP_BLOCKED],
-    ['MAP_INDOORS', ScriptOpcode.MAP_INDOORS],
     ['MAP_CLOCK', ScriptOpcode.MAP_CLOCK],
+    ['MAP_FINDSQUARE', ScriptOpcode.MAP_FINDSQUARE],
+    ['MAP_INDOORS', ScriptOpcode.MAP_INDOORS],
+    ['MAP_LIVE', ScriptOpcode.MAP_LIVE],
     ['MAP_LOCADDUNSAFE', ScriptOpcode.MAP_LOCADDUNSAFE],
     ['MAP_MEMBERS', ScriptOpcode.MAP_MEMBERS],
+    ['MAP_MULTIWAY', ScriptOpcode.MAP_MULTIWAY],
     ['MAP_PLAYERCOUNT', ScriptOpcode.MAP_PLAYERCOUNT],
-    ['MAP_FINDSQUARE', ScriptOpcode.MAP_FINDSQUARE],
     ['MOVECOORD', ScriptOpcode.MOVECOORD],
     ['PLAYERCOUNT', ScriptOpcode.PLAYERCOUNT],
     ['PROJANIM_MAP', ScriptOpcode.PROJANIM_MAP],
-    ['PROJANIM_NPC', ScriptOpcode.PROJANIM_NPC],
-    ['PROJANIM_PL', ScriptOpcode.PROJANIM_PL],
     ['SEQLENGTH', ScriptOpcode.SEQLENGTH],
-    ['SPLIT_GET', ScriptOpcode.SPLIT_GET],
-    ['SPLIT_GETANIM', ScriptOpcode.SPLIT_GETANIM],
-    ['SPLIT_INIT', ScriptOpcode.SPLIT_INIT],
-    ['SPLIT_LINECOUNT', ScriptOpcode.SPLIT_LINECOUNT],
-    ['SPLIT_PAGECOUNT', ScriptOpcode.SPLIT_PAGECOUNT],
     ['SPOTANIM_MAP', ScriptOpcode.SPOTANIM_MAP],
-    ['STRUCT_PARAM', ScriptOpcode.STRUCT_PARAM],
     ['WORLD_DELAY', ScriptOpcode.WORLD_DELAY],
-    ['NPCCOUNT', ScriptOpcode.NPCCOUNT],
-    ['ZONECOUNT', ScriptOpcode.ZONECOUNT],
-    ['LOCCOUNT', ScriptOpcode.LOCCOUNT],
-    ['OBJCOUNT', ScriptOpcode.OBJCOUNT],
-    ['MAP_MULTIWAY', ScriptOpcode.MAP_MULTIWAY],
+
+    ['AFK_EVENT', ScriptOpcode.AFK_EVENT],
     ['ALLOWDESIGN', ScriptOpcode.ALLOWDESIGN],
     ['ANIM', ScriptOpcode.ANIM],
-    ['BAS_READYANIM', ScriptOpcode.BAS_READYANIM],
-    ['BAS_RUNNING', ScriptOpcode.BAS_RUNNING],
-    ['BAS_TURNONSPOT', ScriptOpcode.BAS_TURNONSPOT],
-    ['BAS_WALK_B', ScriptOpcode.BAS_WALK_B],
-    ['BAS_WALK_F', ScriptOpcode.BAS_WALK_F],
-    ['BAS_WALK_L', ScriptOpcode.BAS_WALK_L],
-    ['BAS_WALK_R', ScriptOpcode.BAS_WALK_R],
-    ['BUFFER_FULL', ScriptOpcode.BUFFER_FULL],
+    ['BOTH_HEROPOINTS', ScriptOpcode.BOTH_HEROPOINTS],
     ['BUILDAPPEARANCE', ScriptOpcode.BUILDAPPEARANCE],
     ['BUSY', ScriptOpcode.BUSY],
+    ['BUSY2', ScriptOpcode.BUSY2],
     ['CAM_LOOKAT', ScriptOpcode.CAM_LOOKAT],
     ['CAM_MOVETO', ScriptOpcode.CAM_MOVETO],
     ['CAM_RESET', ScriptOpcode.CAM_RESET],
@@ -547,67 +518,68 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['CLEARQUEUE', ScriptOpcode.CLEARQUEUE],
     ['CLEARSOFTTIMER', ScriptOpcode.CLEARSOFTTIMER],
     ['CLEARTIMER', ScriptOpcode.CLEARTIMER],
-    ['GETTIMER', ScriptOpcode.GETTIMER],
     ['COORD', ScriptOpcode.COORD],
     ['DAMAGE', ScriptOpcode.DAMAGE],
     ['DISPLAYNAME', ScriptOpcode.DISPLAYNAME],
     ['FACESQUARE', ScriptOpcode.FACESQUARE],
+    ['FINDHERO', ScriptOpcode.FINDHERO],
     ['FINDUID', ScriptOpcode.FINDUID],
     ['GENDER', ScriptOpcode.GENDER],
     ['GETQUEUE', ScriptOpcode.GETQUEUE],
-    ['STAT_ADVANCE', ScriptOpcode.STAT_ADVANCE],
+    ['GETTIMER', ScriptOpcode.GETTIMER],
+    ['GETWALKTRIGGER', ScriptOpcode.GETWALKTRIGGER],
     ['HEADICONS_GET', ScriptOpcode.HEADICONS_GET],
     ['HEADICONS_SET', ScriptOpcode.HEADICONS_SET],
     ['HEALENERGY', ScriptOpcode.HEALENERGY],
     ['HINT_COORD', ScriptOpcode.HINT_COORD],
     ['HINT_NPC', ScriptOpcode.HINT_NPC],
-    ['HINT_PLAYER', ScriptOpcode.HINT_PLAYER],
+    ['HINT_PL', ScriptOpcode.HINT_PL],
     ['HINT_STOP', ScriptOpcode.HINT_STOP],
+    ['HUNTALL', ScriptOpcode.HUNTALL],
+    ['HUNTNEXT', ScriptOpcode.HUNTNEXT],
     ['IF_CLOSE', ScriptOpcode.IF_CLOSE],
-    ['TUT_CLOSE', ScriptOpcode.TUT_CLOSE],
-    ['IF_MULTIZONE', ScriptOpcode.IF_MULTIZONE],
     ['IF_OPENCHAT', ScriptOpcode.IF_OPENCHAT],
-    ['TUT_OPEN', ScriptOpcode.TUT_OPEN],
-    ['IF_OPENMAIN', ScriptOpcode.IF_OPENMAIN],
     ['IF_OPENMAIN_SIDE', ScriptOpcode.IF_OPENMAIN_SIDE],
+    ['IF_OPENMAIN', ScriptOpcode.IF_OPENMAIN],
     ['IF_OPENSIDE', ScriptOpcode.IF_OPENSIDE],
     ['IF_SETANIM', ScriptOpcode.IF_SETANIM],
     ['IF_SETCOLOUR', ScriptOpcode.IF_SETCOLOUR],
     ['IF_SETHIDE', ScriptOpcode.IF_SETHIDE],
     ['IF_SETMODEL', ScriptOpcode.IF_SETMODEL],
-    ['IF_SETRECOL', ScriptOpcode.IF_SETRECOL],
     ['IF_SETNPCHEAD', ScriptOpcode.IF_SETNPCHEAD],
     ['IF_SETOBJECT', ScriptOpcode.IF_SETOBJECT],
     ['IF_SETPLAYERHEAD', ScriptOpcode.IF_SETPLAYERHEAD],
     ['IF_SETPOSITION', ScriptOpcode.IF_SETPOSITION],
+    ['IF_SETRECOL', ScriptOpcode.IF_SETRECOL],
     ['IF_SETRESUMEBUTTONS', ScriptOpcode.IF_SETRESUMEBUTTONS],
     ['IF_SETTAB', ScriptOpcode.IF_SETTAB],
     ['IF_SETTABACTIVE', ScriptOpcode.IF_SETTABACTIVE],
-    ['TUT_FLASH', ScriptOpcode.TUT_FLASH],
     ['IF_SETTEXT', ScriptOpcode.IF_SETTEXT],
-    ['LAST_LOGIN_INFO', ScriptOpcode.LAST_LOGIN_INFO],
     ['LAST_COM', ScriptOpcode.LAST_COM],
     ['LAST_INT', ScriptOpcode.LAST_INT],
     ['LAST_ITEM', ScriptOpcode.LAST_ITEM],
+    ['LAST_LOGIN_INFO', ScriptOpcode.LAST_LOGIN_INFO],
     ['LAST_SLOT', ScriptOpcode.LAST_SLOT],
     ['LAST_TARGETSLOT', ScriptOpcode.LAST_TARGETSLOT],
     ['LAST_USEITEM', ScriptOpcode.LAST_USEITEM],
     ['LAST_USESLOT', ScriptOpcode.LAST_USESLOT],
     ['LONGQUEUE', ScriptOpcode.LONGQUEUE],
     ['LONGQUEUE*', ScriptOpcode.LONGQUEUEVARARG],
+    ['LOWMEM', ScriptOpcode.LOWMEM],
     ['MES', ScriptOpcode.MES],
     ['MIDI_JINGLE', ScriptOpcode.MIDI_JINGLE],
     ['MIDI_SONG', ScriptOpcode.MIDI_SONG],
     ['NAME', ScriptOpcode.NAME],
+    ['P_ANIMPROTECT', ScriptOpcode.P_ANIMPROTECT],
     ['P_APRANGE', ScriptOpcode.P_APRANGE],
     ['P_ARRIVEDELAY', ScriptOpcode.P_ARRIVEDELAY],
+    ['P_CLEARPENDINGACTION', ScriptOpcode.P_CLEARPENDINGACTION],
     ['P_COUNTDIALOG', ScriptOpcode.P_COUNTDIALOG],
     ['P_DELAY', ScriptOpcode.P_DELAY],
     ['P_EXACTMOVE', ScriptOpcode.P_EXACTMOVE],
     ['P_FINDUID', ScriptOpcode.P_FINDUID],
     ['P_LOCMERGE', ScriptOpcode.P_LOCMERGE],
     ['P_LOGOUT', ScriptOpcode.P_LOGOUT],
-    ['P_PREVENTLOGOUT', ScriptOpcode.P_PREVENTLOGOUT],
     ['P_OPHELD', ScriptOpcode.P_OPHELD],
     ['P_OPLOC', ScriptOpcode.P_OPLOC],
     ['P_OPNPC', ScriptOpcode.P_OPNPC],
@@ -616,87 +588,98 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['P_OPPLAYER', ScriptOpcode.P_OPPLAYER],
     ['P_OPPLAYERT', ScriptOpcode.P_OPPLAYERT],
     ['P_PAUSEBUTTON', ScriptOpcode.P_PAUSEBUTTON],
+    ['P_PREVENTLOGOUT', ScriptOpcode.P_PREVENTLOGOUT],
+    ['P_RUN', ScriptOpcode.P_RUN],
     ['P_STOPACTION', ScriptOpcode.P_STOPACTION],
     ['P_TELEJUMP', ScriptOpcode.P_TELEJUMP],
     ['P_TELEPORT', ScriptOpcode.P_TELEPORT],
     ['P_WALK', ScriptOpcode.P_WALK],
-    ['PLAYER_FINDALLZONE', ScriptOpcode.PLAYER_FINDALLZONE],
-    ['PLAYER_FINDNEXT', ScriptOpcode.PLAYER_FINDNEXT],
+    ['PLAYERMEMBER', ScriptOpcode.PLAYERMEMBER],
+    ['PROJANIM_NPC', ScriptOpcode.PROJANIM_NPC],
+    ['PROJANIM_PL', ScriptOpcode.PROJANIM_PL],
     ['QUEUE', ScriptOpcode.QUEUE],
     ['QUEUE*', ScriptOpcode.QUEUEVARARG],
+    ['READYANIM', ScriptOpcode.READYANIM],
+    ['RUNANIM', ScriptOpcode.RUNANIM],
+    ['RUNENERGY', ScriptOpcode.RUNENERGY],
     ['SAY', ScriptOpcode.SAY],
-    ['WALKTRIGGER', ScriptOpcode.WALKTRIGGER],
+    ['SESSION_LOG', ScriptOpcode.SESSION_LOG],
+    ['SETGENDER', ScriptOpcode.SETGENDER],
+    ['SETIDKIT', ScriptOpcode.SETIDKIT],
+    ['SETSKINCOLOUR', ScriptOpcode.SETSKINCOLOUR],
     ['SETTIMER', ScriptOpcode.SETTIMER],
     ['SOFTTIMER', ScriptOpcode.SOFTTIMER],
     ['SOUND_SYNTH', ScriptOpcode.SOUND_SYNTH],
+    ['SPLIT_GET', ScriptOpcode.SPLIT_GET],
+    ['SPLIT_GETANIM', ScriptOpcode.SPLIT_GETANIM],
+    ['SPLIT_INIT', ScriptOpcode.SPLIT_INIT],
+    ['SPLIT_LINECOUNT', ScriptOpcode.SPLIT_LINECOUNT],
+    ['SPLIT_PAGECOUNT', ScriptOpcode.SPLIT_PAGECOUNT],
     ['SPOTANIM_PL', ScriptOpcode.SPOTANIM_PL],
     ['STAFFMODLEVEL', ScriptOpcode.STAFFMODLEVEL],
-    ['STAT', ScriptOpcode.STAT],
     ['STAT_ADD', ScriptOpcode.STAT_ADD],
+    ['STAT_ADVANCE', ScriptOpcode.STAT_ADVANCE],
     ['STAT_BASE', ScriptOpcode.STAT_BASE],
-    ['STAT_HEAL', ScriptOpcode.STAT_HEAL],
-    ['STAT_SUB', ScriptOpcode.STAT_SUB],
     ['STAT_BOOST', ScriptOpcode.STAT_BOOST],
     ['STAT_DRAIN', ScriptOpcode.STAT_DRAIN],
+    ['STAT_HEAL', ScriptOpcode.STAT_HEAL],
     ['STAT_RANDOM', ScriptOpcode.STAT_RANDOM],
+    ['STAT_SUB', ScriptOpcode.STAT_SUB],
+    ['STAT_TOTAL', ScriptOpcode.STAT_TOTAL],
+    ['STAT', ScriptOpcode.STAT],
     ['STRONGQUEUE', ScriptOpcode.STRONGQUEUE],
     ['STRONGQUEUE*', ScriptOpcode.STRONGQUEUEVARARG],
+    ['TURNANIM', ScriptOpcode.TURNANIM],
+    ['TUT_CLOSE', ScriptOpcode.TUT_CLOSE],
+    ['TUT_FLASH', ScriptOpcode.TUT_FLASH],
+    ['TUT_OPEN', ScriptOpcode.TUT_OPEN],
     ['UID', ScriptOpcode.UID],
+    ['WALKANIM_B', ScriptOpcode.WALKANIM_B],
+    ['WALKANIM_L', ScriptOpcode.WALKANIM_L],
+    ['WALKANIM_R', ScriptOpcode.WALKANIM_R],
+    ['WALKANIM', ScriptOpcode.WALKANIM],
+    ['WALKTRIGGER', ScriptOpcode.WALKTRIGGER],
     ['WEAKQUEUE', ScriptOpcode.WEAKQUEUE],
     ['WEAKQUEUE*', ScriptOpcode.WEAKQUEUEVARARG],
-    ['IF_OPENMAINOVERLAY', ScriptOpcode.IF_OPENMAINOVERLAY],
-    ['AFK_EVENT', ScriptOpcode.AFK_EVENT],
-    ['LOWMEMORY', ScriptOpcode.LOWMEMORY],
-    ['SETIDKIT', ScriptOpcode.SETIDKIT],
-    ['P_CLEARPENDINGACTION', ScriptOpcode.P_CLEARPENDINGACTION],
-    ['GETWALKTRIGGER', ScriptOpcode.GETWALKTRIGGER],
-    ['BUSY2', ScriptOpcode.BUSY2],
-    ['FINDHERO', ScriptOpcode.FINDHERO],
-    ['BOTH_HEROPOINTS', ScriptOpcode.BOTH_HEROPOINTS],
-    ['SETGENDER', ScriptOpcode.SETGENDER],
-    ['SETSKINCOLOUR', ScriptOpcode.SETSKINCOLOUR],
-    ['P_ANIMPROTECT', ScriptOpcode.P_ANIMPROTECT],
-    ['RUNENERGY', ScriptOpcode.RUNENERGY],
-    ['WEIGHT', ScriptOpcode.WEIGHT],
-    ['LAST_COORD', ScriptOpcode.LAST_COORD],
-    ['SESSION_LOG', ScriptOpcode.SESSION_LOG],
     ['WEALTH_EVENT', ScriptOpcode.WEALTH_EVENT],
-    ['P_RUN', ScriptOpcode.P_RUN],
-    ['PLAYERMEMBER', ScriptOpcode.PLAYERMEMBER],
+    ['WEIGHT', ScriptOpcode.WEIGHT],
+
     ['NPC_ADD', ScriptOpcode.NPC_ADD],
     ['NPC_ANIM', ScriptOpcode.NPC_ANIM],
+    ['NPC_ARRIVEDELAY', ScriptOpcode.NPC_ARRIVEDELAY],
+    ['NPC_ATTACKRANGE', ScriptOpcode.NPC_ATTACKRANGE],
     ['NPC_BASESTAT', ScriptOpcode.NPC_BASESTAT],
     ['NPC_CATEGORY', ScriptOpcode.NPC_CATEGORY],
-    ['NPC_CHANGETYPE', ScriptOpcode.NPC_CHANGETYPE],
     ['NPC_CHANGETYPE_KEEPALL', ScriptOpcode.NPC_CHANGETYPE_KEEPALL],
+    ['NPC_CHANGETYPE', ScriptOpcode.NPC_CHANGETYPE],
     ['NPC_COORD', ScriptOpcode.NPC_COORD],
     ['NPC_DAMAGE', ScriptOpcode.NPC_DAMAGE],
     ['NPC_DEL', ScriptOpcode.NPC_DEL],
     ['NPC_DELAY', ScriptOpcode.NPC_DELAY],
     ['NPC_FACESQUARE', ScriptOpcode.NPC_FACESQUARE],
     ['NPC_FIND', ScriptOpcode.NPC_FIND],
-    ['NPC_FINDCAT', ScriptOpcode.NPC_FINDCAT],
-    ['NPC_FINDALLANY', ScriptOpcode.NPC_FINDALLANY],
     ['NPC_FINDALL', ScriptOpcode.NPC_FINDALL],
+    ['NPC_FINDALLANY', ScriptOpcode.NPC_FINDALLANY],
+    ['NPC_FINDALLZONE', ScriptOpcode.NPC_FINDALLZONE],
+    ['NPC_FINDCAT', ScriptOpcode.NPC_FINDCAT],
     ['NPC_FINDEXACT', ScriptOpcode.NPC_FINDEXACT],
     ['NPC_FINDHERO', ScriptOpcode.NPC_FINDHERO],
-    ['NPC_FINDALLZONE', ScriptOpcode.NPC_FINDALLZONE],
     ['NPC_FINDNEXT', ScriptOpcode.NPC_FINDNEXT],
     ['NPC_FINDUID', ScriptOpcode.NPC_FINDUID],
     ['NPC_GETMODE', ScriptOpcode.NPC_GETMODE],
+    ['NPC_HASOP', ScriptOpcode.NPC_HASOP],
     ['NPC_HEROPOINTS', ScriptOpcode.NPC_HEROPOINTS],
+    ['NPC_HUNT', ScriptOpcode.NPC_HUNT],
+    ['NPC_HUNTALL', ScriptOpcode.NPC_HUNTALL],
+    ['NPC_INRANGE', ScriptOpcode.NPC_INRANGE],
     ['NPC_NAME', ScriptOpcode.NPC_NAME],
     ['NPC_PARAM', ScriptOpcode.NPC_PARAM],
     ['NPC_QUEUE', ScriptOpcode.NPC_QUEUE],
     ['NPC_RANGE', ScriptOpcode.NPC_RANGE],
     ['NPC_SAY', ScriptOpcode.NPC_SAY],
-    ['NPC_HUNT', ScriptOpcode.NPC_HUNT],
-    ['NPC_HUNTALL', ScriptOpcode.NPC_HUNTALL],
-    ['NPC_HUNTNEXT', ScriptOpcode.NPC_HUNTNEXT],
     ['NPC_SETHUNT', ScriptOpcode.NPC_SETHUNT],
     ['NPC_SETHUNTMODE', ScriptOpcode.NPC_SETHUNTMODE],
     ['NPC_SETMODE', ScriptOpcode.NPC_SETMODE],
-    ['NPC_WALKTRIGGER', ScriptOpcode.NPC_WALKTRIGGER],
     ['NPC_SETTIMER', ScriptOpcode.NPC_SETTIMER],
     ['NPC_STAT', ScriptOpcode.NPC_STAT],
     ['NPC_STATADD', ScriptOpcode.NPC_STATADD],
@@ -705,12 +688,10 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['NPC_TELE', ScriptOpcode.NPC_TELE],
     ['NPC_TYPE', ScriptOpcode.NPC_TYPE],
     ['NPC_UID', ScriptOpcode.NPC_UID],
-    ['SPOTANIM_NPC', ScriptOpcode.SPOTANIM_NPC],
     ['NPC_WALK', ScriptOpcode.NPC_WALK],
-    ['NPC_ATTACKRANGE', ScriptOpcode.NPC_ATTACKRANGE],
-    ['NPC_HASOP', ScriptOpcode.NPC_HASOP],
-    ['NPC_ARRIVEDELAY', ScriptOpcode.NPC_ARRIVEDELAY],
-    ['NPC_INRANGE', ScriptOpcode.NPC_INRANGE],
+    ['NPC_WALKTRIGGER', ScriptOpcode.NPC_WALKTRIGGER],
+    ['SPOTANIM_NPC', ScriptOpcode.SPOTANIM_NPC],
+
     ['LOC_ADD', ScriptOpcode.LOC_ADD],
     ['LOC_ANGLE', ScriptOpcode.LOC_ANGLE],
     ['LOC_ANIM', ScriptOpcode.LOC_ANIM],
@@ -725,18 +706,20 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['LOC_PARAM', ScriptOpcode.LOC_PARAM],
     ['LOC_SHAPE', ScriptOpcode.LOC_SHAPE],
     ['LOC_TYPE', ScriptOpcode.LOC_TYPE],
+
     ['OBJ_ADD', ScriptOpcode.OBJ_ADD],
     ['OBJ_ADDALL', ScriptOpcode.OBJ_ADDALL],
-    ['OBJ_FIND', ScriptOpcode.OBJ_FIND],
-    ['OBJ_FINDALLZONE', ScriptOpcode.OBJ_FINDALLZONE],
-    ['OBJ_FINDNEXT', ScriptOpcode.OBJ_FINDNEXT],
     ['OBJ_COORD', ScriptOpcode.OBJ_COORD],
     ['OBJ_COUNT', ScriptOpcode.OBJ_COUNT],
     ['OBJ_DEL', ScriptOpcode.OBJ_DEL],
+    ['OBJ_FIND', ScriptOpcode.OBJ_FIND],
+    ['OBJ_FINDALLZONE', ScriptOpcode.OBJ_FINDALLZONE],
+    ['OBJ_FINDNEXT', ScriptOpcode.OBJ_FINDNEXT],
     ['OBJ_NAME', ScriptOpcode.OBJ_NAME],
     ['OBJ_PARAM', ScriptOpcode.OBJ_PARAM],
     ['OBJ_TAKEITEM', ScriptOpcode.OBJ_TAKEITEM],
     ['OBJ_TYPE', ScriptOpcode.OBJ_TYPE],
+
     ['NC_CATEGORY', ScriptOpcode.NC_CATEGORY],
     ['NC_DEBUGNAME', ScriptOpcode.NC_DEBUGNAME],
     ['NC_DESC', ScriptOpcode.NC_DESC],
@@ -745,14 +728,16 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['NC_PARAM', ScriptOpcode.NC_PARAM],
     ['NC_SIZE', ScriptOpcode.NC_SIZE],
     ['NC_VISLEVEL', ScriptOpcode.NC_VISLEVEL],
+
     ['LC_CATEGORY', ScriptOpcode.LC_CATEGORY],
     ['LC_DEBUGNAME', ScriptOpcode.LC_DEBUGNAME],
     ['LC_DESC', ScriptOpcode.LC_DESC],
+    ['LC_LENGTH', ScriptOpcode.LC_LENGTH],
     ['LC_NAME', ScriptOpcode.LC_NAME],
     ['LC_OP', ScriptOpcode.LC_OP],
     ['LC_PARAM', ScriptOpcode.LC_PARAM],
     ['LC_WIDTH', ScriptOpcode.LC_WIDTH],
-    ['LC_LENGTH', ScriptOpcode.LC_LENGTH],
+
     ['OC_CATEGORY', ScriptOpcode.OC_CATEGORY],
     ['OC_CERT', ScriptOpcode.OC_CERT],
     ['OC_COST', ScriptOpcode.OC_COST],
@@ -766,20 +751,23 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['OC_STACKABLE', ScriptOpcode.OC_STACKABLE],
     ['OC_TRADEABLE', ScriptOpcode.OC_TRADEABLE],
     ['OC_UNCERT', ScriptOpcode.OC_UNCERT],
+    ['OC_WEARPOS', ScriptOpcode.OC_WEARPOS],
     ['OC_WEARPOS2', ScriptOpcode.OC_WEARPOS2],
     ['OC_WEARPOS3', ScriptOpcode.OC_WEARPOS3],
-    ['OC_WEARPOS', ScriptOpcode.OC_WEARPOS],
     ['OC_WEIGHT', ScriptOpcode.OC_WEIGHT],
-    ['INV_ALLSTOCK', ScriptOpcode.INV_ALLSTOCK],
-    ['INV_SIZE', ScriptOpcode.INV_SIZE],
-    ['INV_STOCKBASE', ScriptOpcode.INV_STOCKBASE],
+
+    ['BOTH_DROPSLOT', ScriptOpcode.BOTH_DROPSLOT],
+    ['BOTH_MOVEINV', ScriptOpcode.BOTH_MOVEINV],
     ['INV_ADD', ScriptOpcode.INV_ADD],
+    ['INV_ALLSTOCK', ScriptOpcode.INV_ALLSTOCK],
     ['INV_CHANGESLOT', ScriptOpcode.INV_CHANGESLOT],
     ['INV_CLEAR', ScriptOpcode.INV_CLEAR],
+    ['INV_DEBUGNAME', ScriptOpcode.INV_DEBUGNAME],
     ['INV_DEL', ScriptOpcode.INV_DEL],
     ['INV_DELSLOT', ScriptOpcode.INV_DELSLOT],
-    ['INV_DROPITEM', ScriptOpcode.INV_DROPITEM],
+    ['INV_DROPALL', ScriptOpcode.INV_DROPALL],
     ['INV_DROPITEM_DELAYED', ScriptOpcode.INV_DROPITEM_DELAYED],
+    ['INV_DROPITEM', ScriptOpcode.INV_DROPITEM],
     ['INV_DROPSLOT', ScriptOpcode.INV_DROPSLOT],
     ['INV_FREESPACE', ScriptOpcode.INV_FREESPACE],
     ['INV_GETNUM', ScriptOpcode.INV_GETNUM],
@@ -787,24 +775,24 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['INV_ITEMSPACE', ScriptOpcode.INV_ITEMSPACE],
     ['INV_ITEMSPACE2', ScriptOpcode.INV_ITEMSPACE2],
     ['INV_MOVEFROMSLOT', ScriptOpcode.INV_MOVEFROMSLOT],
-    ['INV_MOVETOSLOT', ScriptOpcode.INV_MOVETOSLOT],
-    ['BOTH_MOVEINV', ScriptOpcode.BOTH_MOVEINV],
-    ['INV_MOVEITEM', ScriptOpcode.INV_MOVEITEM],
     ['INV_MOVEITEM_CERT', ScriptOpcode.INV_MOVEITEM_CERT],
     ['INV_MOVEITEM_UNCERT', ScriptOpcode.INV_MOVEITEM_UNCERT],
+    ['INV_MOVEITEM', ScriptOpcode.INV_MOVEITEM],
+    ['INV_MOVETOSLOT', ScriptOpcode.INV_MOVETOSLOT],
     ['INV_SETSLOT', ScriptOpcode.INV_SETSLOT],
+    ['INV_SIZE', ScriptOpcode.INV_SIZE],
+    ['INV_STOCKBASE', ScriptOpcode.INV_STOCKBASE],
+    ['INV_STOPTRANSMIT', ScriptOpcode.INV_STOPTRANSMIT],
     ['INV_TOTAL', ScriptOpcode.INV_TOTAL],
     ['INV_TOTALCAT', ScriptOpcode.INV_TOTALCAT],
+    ['INV_TOTALPARAM_STACK', ScriptOpcode.INV_TOTALPARAM_STACK],
+    ['INV_TOTALPARAM', ScriptOpcode.INV_TOTALPARAM],
     ['INV_TRANSMIT', ScriptOpcode.INV_TRANSMIT],
     ['INVOTHER_TRANSMIT', ScriptOpcode.INVOTHER_TRANSMIT],
-    ['INV_STOPTRANSMIT', ScriptOpcode.INV_STOPTRANSMIT],
-    ['BOTH_DROPSLOT', ScriptOpcode.BOTH_DROPSLOT],
-    ['INV_DROPALL', ScriptOpcode.INV_DROPALL],
-    ['INV_TOTALPARAM', ScriptOpcode.INV_TOTALPARAM],
-    ['INV_TOTALPARAM_STACK', ScriptOpcode.INV_TOTALPARAM_STACK],
-    ['INV_DEBUGNAME', ScriptOpcode.INV_DEBUGNAME],
+
     ['ENUM', ScriptOpcode.ENUM],
     ['ENUM_GETOUTPUTCOUNT', ScriptOpcode.ENUM_GETOUTPUTCOUNT],
+
     ['APPEND_NUM', ScriptOpcode.APPEND_NUM],
     ['APPEND', ScriptOpcode.APPEND],
     ['APPEND_SIGNNUM', ScriptOpcode.APPEND_SIGNNUM],
@@ -847,6 +835,9 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['COS_DEG', ScriptOpcode.COS_DEG],
     ['ATAN2_DEG', ScriptOpcode.ATAN2_DEG],
     ['ABS', ScriptOpcode.ABS],
+
+    ['STRUCT_PARAM', ScriptOpcode.STRUCT_PARAM],
+
     ['DB_FIND_WITH_COUNT', ScriptOpcode.DB_FIND_WITH_COUNT],
     ['DB_FINDNEXT', ScriptOpcode.DB_FINDNEXT],
     ['DB_GETFIELD', ScriptOpcode.DB_GETFIELD],
@@ -858,23 +849,11 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['DB_FIND', ScriptOpcode.DB_FIND],
     ['DB_FIND_REFINE', ScriptOpcode.DB_FIND_REFINE],
     ['DB_LISTALL', ScriptOpcode.DB_LISTALL],
-    ['ERROR', ScriptOpcode.ERROR],
-    ['MAP_PRODUCTION', ScriptOpcode.MAP_PRODUCTION],
-    ['MAP_LASTCLOCK', ScriptOpcode.MAP_LASTCLOCK],
-    ['MAP_LASTWORLD', ScriptOpcode.MAP_LASTWORLD],
-    ['MAP_LASTCLIENTIN', ScriptOpcode.MAP_LASTCLIENTIN],
-    ['MAP_LASTNPC', ScriptOpcode.MAP_LASTNPC],
-    ['MAP_LASTPLAYER', ScriptOpcode.MAP_LASTPLAYER],
-    ['MAP_LASTLOGOUT', ScriptOpcode.MAP_LASTLOGOUT],
-    ['MAP_LASTLOGIN', ScriptOpcode.MAP_LASTLOGIN],
-    ['MAP_LASTZONE', ScriptOpcode.MAP_LASTZONE],
-    ['MAP_LASTCLIENTOUT', ScriptOpcode.MAP_LASTCLIENTOUT],
-    ['MAP_LASTCLEANUP', ScriptOpcode.MAP_LASTCLEANUP],
-    ['MAP_LASTBANDWIDTHIN', ScriptOpcode.MAP_LASTBANDWIDTHIN],
-    ['MAP_LASTBANDWIDTHOUT', ScriptOpcode.MAP_LASTBANDWIDTHOUT],
-    ['TIMESPENT', ScriptOpcode.TIMESPENT],
-    ['GETTIMESPENT', ScriptOpcode.GETTIMESPENT],
+
     ['CONSOLE', ScriptOpcode.CONSOLE],
+    ['ERROR', ScriptOpcode.ERROR],
+    ['GETTIMESPENT', ScriptOpcode.GETTIMESPENT],
+    ['TIMESPENT', ScriptOpcode.TIMESPENT],
 ]);
 
 export const ScriptOpcodeNameMap: Map<number, string> = new Map(

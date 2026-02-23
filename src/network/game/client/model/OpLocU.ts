@@ -10,7 +10,7 @@ export default class OpLocU extends ClientGameMessage {
         readonly loc: number,
         readonly useObj: number,
         readonly useSlot: number,
-        readonly useComponent: number
+        readonly useCom: number
     ) {
         super();
     }

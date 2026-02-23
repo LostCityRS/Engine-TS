@@ -121,7 +121,7 @@ export default class ScriptState {
      */
     timespent: number = 0;
 
-    huntIterator: IterableIterator<Entity> | null = null;
+    playerIterator: IterableIterator<Player> | null = null;
     npcIterator: IterableIterator<Npc> | null = null;
     locIterator: IterableIterator<Loc> | null = null;
     objIterator: IterableIterator<Obj> | null = null;
@@ -213,6 +213,15 @@ export default class ScriptState {
      */
     get activePlayer() {
         const player = this.intOperand === 0 ? this._activePlayer : this._activePlayer2;
+        if (player === null) {
+            throw new Error('Attempt to access null active_player');
+        }
+        return player;
+    }
+
+    // gets the secondary player from the perspective of the command (.command returns player1)
+    get activePlayer2() {
+        const player = this.intOperand === 0 ? this._activePlayer2 : this._activePlayer;
         if (player === null) {
             throw new Error('Attempt to access null active_player');
         }

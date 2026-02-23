@@ -3,10 +3,10 @@ import ScriptProvider from '#/engine/script/ScriptProvider.js';
 import ScriptRunner from '#/engine/script/ScriptRunner.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
-import TutorialClickSide from '#/network/game/client/model/TutorialClickSide.js';
+import TutClickSide from '#/network/game/client/model/TutClickSide.js';
 
-export default class TutorialClickSideHandler extends ClientGameMessageHandler<TutorialClickSide> {
-    handle(message: TutorialClickSide, player: Player): boolean {
+export default class TutClickSideHandler extends ClientGameMessageHandler<TutClickSide> {
+    handle(message: TutClickSide, player: Player): boolean {
         const { tab } = message;
 
         if (tab < 0 || tab > 13) {

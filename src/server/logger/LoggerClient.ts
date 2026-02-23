@@ -40,7 +40,7 @@ export default class LoggerClient extends InternalClient {
         );
     }
 
-    public async report(username: string, coord: number, offender: string, reason: number) {
+    public async report(session_uuid: string, coord: number, offender: string, reason: number) {
         await this.connect();
 
         if (!this.ws || !this.wsr || !this.wsr.checkIfWsLive()) {
@@ -52,7 +52,7 @@ export default class LoggerClient extends InternalClient {
                 type: 'report',
                 world: Environment.NODE_ID,
                 profile: Environment.NODE_PROFILE,
-                username,
+                session_uuid,
                 timestamp: Date.now(),
                 coord,
                 offender,

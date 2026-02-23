@@ -14,7 +14,7 @@ export default class Packet extends DoublyLinkable {
     private static readonly CRC32_POLYNOMIAL: number = 0xedb88320;
 
     private static readonly crctable: Int32Array = new Int32Array(256);
-    private static readonly bitmask: Uint32Array = new Uint32Array(33);
+    static readonly bitmask: Uint32Array = new Uint32Array(33);
 
     private static readonly cacheMin: LinkList<Packet> = new LinkList();
     private static readonly cacheMid: LinkList<Packet> = new LinkList();

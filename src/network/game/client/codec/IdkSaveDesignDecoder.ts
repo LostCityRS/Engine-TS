@@ -1,10 +1,10 @@
 import Packet from '#/io/Packet.js';
 import ClientGameMessageDecoder from '#/network/game/client/ClientGameMessageDecoder.js';
 import ClientGameProt from '#/network/game/client/ClientGameProt.js';
-import IfPlayerDesign from '#/network/game/client/model/IfPlayerDesign.js';
+import IdkSaveDesign from '#/network/game/client/model/IdkSaveDesign.js';
 
-export default class IfPlayerDesignDecoder extends ClientGameMessageDecoder<IfPlayerDesign> {
-    prot = ClientGameProt.IF_PLAYERDESIGN;
+export default class IdkSaveDesignDecoder extends ClientGameMessageDecoder<IdkSaveDesign> {
+    prot = ClientGameProt.IDK_SAVEDESIGN;
 
     decode(buf: Packet) {
         const gender = buf.g1();
@@ -23,6 +23,6 @@ export default class IfPlayerDesignDecoder extends ClientGameMessageDecoder<IfPl
             color[i] = buf.g1();
         }
 
-        return new IfPlayerDesign(gender, idkit, color);
+        return new IdkSaveDesign(gender, idkit, color);
     }
 }

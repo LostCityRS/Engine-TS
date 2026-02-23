@@ -14,7 +14,8 @@ export default class OpHeldDecoder extends ClientGameMessageDecoder<OpHeld> {
     decode(buf: Packet) {
         const obj = buf.g2();
         const slot = buf.g2();
-        const component = buf.g2();
-        return new OpHeld(this.op, obj, slot, component);
+        const com = buf.g2();
+
+        return new OpHeld(this.op, obj, slot, com);
     }
 }

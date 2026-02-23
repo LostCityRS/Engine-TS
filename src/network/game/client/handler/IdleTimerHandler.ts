@@ -6,6 +6,7 @@ import Environment from '#/util/Environment.js';
 export default class IdleTimerHandler extends ClientGameMessageHandler<IdleTimer> {
     handle(_message: IdleTimer, player: Player): boolean {
         if (!Environment.NODE_DEBUG) {
+            // todo: staff command to stay logged in
             player.requestIdleLogout = true;
         }
 

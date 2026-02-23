@@ -6,7 +6,7 @@ export default class OpPlayerT extends ClientGameMessage {
 
     constructor(
         readonly playerSlot: number,
-        readonly spellComponent: number
+        readonly spellCom: number
     ) {
         super();
     }

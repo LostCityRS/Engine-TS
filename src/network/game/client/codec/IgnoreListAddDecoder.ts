@@ -8,6 +8,7 @@ export default class IgnoreListAddDecoder extends ClientGameMessageDecoder<Ignor
 
     decode(buf: Packet) {
         const username = buf.g8();
+
         return new IgnoreListAdd(username);
     }
 }

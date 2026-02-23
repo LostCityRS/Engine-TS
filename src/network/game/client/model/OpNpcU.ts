@@ -5,10 +5,10 @@ export default class OpNpcU extends ClientGameMessage {
     category = ClientGameProtCategory.USER_EVENT;
 
     constructor(
-        readonly nid: number,
+        readonly npcSlot: number,
         readonly useObj: number,
         readonly useSlot: number,
-        readonly useComponent: number
+        readonly useCom: number
     ) {
         super();
     }

@@ -7,7 +7,7 @@ export default class IfSetRecolEncoder extends ServerGameMessageEncoder<IfSetRec
     prot = ServerGameProt.IF_SETRECOL;
 
     encode(buf: Packet, message: IfSetRecol): void {
-        buf.p2(message.component);
+        buf.p2(message.com);
         buf.p2(message.src);
         buf.p2(message.dst);
     }

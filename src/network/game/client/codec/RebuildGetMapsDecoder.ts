@@ -11,6 +11,7 @@ export default class RebuildGetMapsDecoder extends ClientGameMessageDecoder<Rebu
         for (let i = 0; i < maps.length; i++) {
             maps[i] = buf.g3();
         }
+
         return new RebuildGetMaps(maps);
     }
 }

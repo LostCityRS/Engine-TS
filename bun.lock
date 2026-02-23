@@ -11,6 +11,7 @@
         "@isaacs/ttlcache": "^2.1.4",
         "@jimp/js-png": "^1.6.0",
         "@jimp/plugin-quantize": "^1.6.0",
+        "@lostcityrs/runescript": "^0.9.4",
         "axios": "^1.13.2",
         "bcrypt": "^6.0.0",
         "dotenv": "^17.2.3",
@@ -173,6 +174,8 @@
     "@jimp/types": ["@jimp/types@1.6.0", "", { "dependencies": { "zod": "^3.23.8" } }, "sha512-7UfRsiKo5GZTAATxm2qQ7jqmUXP0DxTArztllTcYdyw6Xi5oT4RaoXynVtCD4UyLK5gJgkZJcwonoijrhYFKfg=="],
 
     "@jimp/utils": ["@jimp/utils@1.6.0", "", { "dependencies": { "@jimp/types": "1.6.0", "tinycolor2": "^1.6.0" } }, "sha512-gqFTGEosKbOkYF/WFj26jMHOI5OH2jeP1MmC/zbK6BF6VJBf8rIC5898dPfSzZEbSA0wbbV5slbntWVc5PKLFA=="],
+
+    "@lostcityrs/runescript": ["@lostcityrs/runescript@0.9.4", "", {}, "sha512-bBmcTHI6/oay2KUl1o9taoKolQwOMCsl+adci6hZ8J7El4HqdDOD+rRBMSZyRVRibbl39UctJMIrrrUavPyQ9Q=="],
 
     "@mrleebo/prisma-ast": ["@mrleebo/prisma-ast@0.13.1", "", { "dependencies": { "chevrotain": "^10.5.0", "lilconfig": "^2.1.0" } }, "sha512-XyroGQXcHrZdvmrGJvsA9KNeOOgGMg1Vg9OlheUsBOSKznLMDl+YChxbkboRHvtFYJEMRYmlV3uoo/njCw05iw=="],
 

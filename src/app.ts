@@ -7,12 +7,7 @@ import World from '#/engine/World.js';
 import TcpServer from '#/server/tcp/TcpServer.js';
 import Environment from '#/util/Environment.js';
 import { printError, printInfo } from '#/util/Logger.js';
-import { updateCompiler } from '#/util/RuneScriptCompiler.js';
 import { startManagementWeb, startWeb } from '#/web.js';
-
-if (Environment.BUILD_STARTUP_UPDATE) {
-    await updateCompiler();
-}
 
 if (
     !fs.existsSync('data/pack/client/config') ||
@@ -25,7 +20,7 @@ if (
         await packAll();
     } catch (err) {
         if (err instanceof Error) {
-            printError(err.message);
+            printError(err);
         }
 
         process.exit(1);

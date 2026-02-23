@@ -7,10 +7,10 @@ export default class OpHeldU extends ClientGameMessage {
     constructor(
         readonly obj: number,
         readonly slot: number,
-        readonly component: number,
+        readonly com: number,
         readonly useObj: number,
         readonly useSlot: number,
-        readonly useComponent: number
+        readonly useCom: number
     ) {
         super();
     }

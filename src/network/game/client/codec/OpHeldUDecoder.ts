@@ -9,10 +9,11 @@ export default class OpHeldUDecoder extends ClientGameMessageDecoder<OpHeldU> {
     decode(buf: Packet) {
         const obj = buf.g2();
         const slot = buf.g2();
-        const component = buf.g2();
+        const com = buf.g2();
         const useObj = buf.g2();
         const useSlot = buf.g2();
-        const useComponent = buf.g2();
-        return new OpHeldU(obj, slot, component, useObj, useSlot, useComponent);
+        const useCom = buf.g2();
+
+        return new OpHeldU(obj, slot, com, useObj, useSlot, useCom);
     }
 }

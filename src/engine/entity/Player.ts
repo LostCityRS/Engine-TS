@@ -463,7 +463,6 @@ export default class Player extends PathingEntity {
         this.chatRights = null;
         this.chatMessage = null;
         this.logMessage = null;
-        this.appearanceInv = -1;
         this.socialProtect = false;
         this.reportAbuseProtect = false;
     }
@@ -640,7 +639,7 @@ export default class Player extends PathingEntity {
     }
 
     processEngineQueue() {
-        for (let request = this.engineQueue.head(); request !== null; request = this.engineQueue.next()) {
+        for (const request of this.engineQueue.all()) {
             const delay = request.delay--;
             if (this.canAccess() && delay <= 0) {
                 const script = ScriptRunner.init(request.script, this, null, request.args);
@@ -833,18 +832,18 @@ export default class Player extends PathingEntity {
 
     unlinkQueuedScript(scriptId: number, type: QueueType = PlayerQueueType.NORMAL) {
         if (type === PlayerQueueType.ENGINE) {
-            for (let request = this.engineQueue.head(); request !== null; request = this.engineQueue.next()) {
+            for (const request of this.engineQueue.all()) {
                 if (request.script.id === scriptId) {
                     request.unlink();
                 }
             }
         } else {
-            for (let request = this.queue.head(); request !== null; request = this.queue.next()) {
+            for (const request of this.queue.all()) {
                 if (request.script.id === scriptId) {
                     request.unlink();
                 }
             }
-            for (let request = this.weakQueue.head(); request !== null; request = this.weakQueue.next()) {
+            for (const request of this.weakQueue.all()) {
                 if (request.script.id === scriptId) {
                     request.unlink();
                 }
@@ -854,7 +853,7 @@ export default class Player extends PathingEntity {
 
     processQueues() {
         // the presence of a strong script closes modals before queue runs
-        for (let request = this.queue.head(); request !== null; request = this.queue.next()) {
+        for (const request of this.queue.all()) {
             if (request.type === PlayerQueueType.STRONG) {
                 this.requestModalClose = true;
                 break;
@@ -875,7 +874,7 @@ export default class Player extends PathingEntity {
         // regardless of whether the end of the list has been reached (i.e. the previous iteration added to the end of the list)
         // - thank you De0 for the explanation
         // essentially, if a script is before the end of the list, it can be processed this tick and result in inconsistent queue timing (authentic)
-        for (let request = this.queue.head(); request !== null; request = this.queue.next()) {
+        for (const request of this.queue.all()) {
             if (this.loggingOut && request.type === PlayerQueueType.LONG && request.args[0] === 0) {
                 // ^accelerate
                 request.delay = 0;
@@ -885,31 +884,23 @@ export default class Player extends PathingEntity {
             if (this.canAccess() && delay <= 0) {
                 request.unlink();
 
-                const save = this.queue.cursor; // LinkList-specific behavior so we can getqueue/clearqueue inside of this
-
                 if (request.type === PlayerQueueType.LONG) {
                     request.args.shift();
                 }
                 const script = ScriptRunner.init(request.script, this, null, request.args);
                 this.executeScript(script, true);
-
-                this.queue.cursor = save;
             }
         }
     }
 
     processWeakQueue() {
-        for (let request = this.weakQueue.head(); request !== null; request = this.weakQueue.next()) {
+        for (const request of this.weakQueue.all()) {
             const delay = request.delay--;
             if (this.canAccess() && delay <= 0) {
                 request.unlink();
 
-                const save = this.queue.cursor; // LinkList-specific behavior so we can getqueue/clearqueue inside of this
-
                 const script = ScriptRunner.init(request.script, this, null, request.args);
                 this.executeScript(script, true);
-
-                this.queue.cursor = save;
             }
         }
     }
@@ -1406,8 +1397,10 @@ export default class Player extends PathingEntity {
         }
     }
 
-    getInventoryFromListener(listener: InventoryListener) {
-        if (listener.source === -1) {
+    getInventoryFromListener(listener: InventoryListener | undefined) {
+        if (!listener) {
+            return null;
+        } else if (listener.source === -1) {
             return World.getInventory(listener.type);
         } else {
             const player = World.getPlayerByUid(listener.source);
@@ -1950,9 +1943,14 @@ export default class Player extends PathingEntity {
         this.modalState |= ModalState.MAIN;
         this.modalMain = com;
         this.refreshModal = true;
+
+        // clear old suspended scripts
+        if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
+            this.activeScript = null;
+        }
     }
 
-    openChat(com: number) {
+    openChatModal(com: number) {
         if ((this.modalState & ModalState.MAIN) !== ModalState.NONE) {
             this.write(new IfClose());
             this.modalState &= ~ModalState.MAIN;
@@ -1968,6 +1966,11 @@ export default class Player extends PathingEntity {
         this.modalState |= ModalState.CHAT;
         this.modalChat = com;
         this.refreshModal = true;
+
+        // clear old suspended scripts
+        if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
+            this.activeScript = null;
+        }
     }
 
     openSideModal(com: number) {
@@ -1986,6 +1989,11 @@ export default class Player extends PathingEntity {
         this.modalState |= ModalState.SIDE;
         this.modalSide = com;
         this.refreshModal = true;
+
+        // clear old suspended scripts
+        if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
+            this.activeScript = null;
+        }
     }
 
     openTutorial(com: number) {
@@ -1994,7 +2002,7 @@ export default class Player extends PathingEntity {
         this.modalTutorial = com;
     }
 
-    openMainModalSide(top: number, side: number) {
+    openMainSideModal(top: number, side: number) {
         if ((this.modalState & ModalState.CHAT) !== ModalState.NONE) {
             this.write(new IfClose());
             this.modalState &= ~ModalState.CHAT;
@@ -2006,6 +2014,11 @@ export default class Player extends PathingEntity {
         this.modalState |= ModalState.SIDE;
         this.modalSide = side;
         this.refreshModal = true;
+
+        // clear old suspended scripts
+        if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
+            this.activeScript = null;
+        }
     }
 
     exactMove(startX: number, startZ: number, endX: number, endZ: number, startCycle: number, endCycle: number, direction: number) {

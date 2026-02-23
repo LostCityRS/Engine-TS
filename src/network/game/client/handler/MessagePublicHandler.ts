@@ -9,9 +9,9 @@ import WordPack from '#/wordenc/WordPack.js';
 
 export default class MessagePublicHandler extends ClientGameMessageHandler<MessagePublic> {
     handle(message: MessagePublic, player: Player): boolean {
-        const { color, effect, input } = message;
+        const { colour, effect, input } = message;
 
-        if (player.socialProtect || color < 0 || color > 11 || effect < 0 || effect > 2 || input.length > 100) {
+        if (player.socialProtect || colour < 0 || colour > 11 || effect < 0 || effect > 2 || input.length > 100) {
             return false;
         }
 
@@ -26,7 +26,7 @@ export default class MessagePublicHandler extends ClientGameMessageHandler<Messa
         const unpack: string = WordPack.unpack(buf, input.length);
         buf.release();
 
-        player.chatColour = color;
+        player.chatColour = colour;
         player.chatEffect = effect;
         player.chatRights = Math.min(player.staffModLevel, 2);
         player.logMessage = unpack;

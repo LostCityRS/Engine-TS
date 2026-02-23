@@ -9,6 +9,7 @@ export default class EventTrackingDecoder extends ClientGameMessageDecoder<Event
     decode(buf: Packet, len: number): EventTracking {
         const bytes: Uint8Array = new Uint8Array(len);
         buf.gdata(bytes, 0, len);
+
         return new EventTracking(bytes);
     }
 }

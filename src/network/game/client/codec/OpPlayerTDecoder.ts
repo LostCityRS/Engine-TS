@@ -8,7 +8,8 @@ export default class OpPlayerTDecoder extends ClientGameMessageDecoder<OpPlayerT
 
     decode(buf: Packet) {
         const playerSlot = buf.g2();
-        const spellComponent = buf.g2();
-        return new OpPlayerT(playerSlot, spellComponent);
+        const spellCom = buf.g2();
+
+        return new OpPlayerT(playerSlot, spellCom);
     }
 }

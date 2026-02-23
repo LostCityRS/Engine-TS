@@ -8,7 +8,7 @@ export default class OpPlayerU extends ClientGameMessage {
         readonly playerSlot: number,
         readonly useObj: number,
         readonly useSlot: number,
-        readonly useComponent: number
+        readonly useCom: number
     ) {
         super();
     }

@@ -6,7 +6,7 @@ export default class OpNpc extends ClientGameMessage {
 
     constructor(
         readonly op: number,
-        readonly nid: number
+        readonly npcSlot: number
     ) {
         super();
     }

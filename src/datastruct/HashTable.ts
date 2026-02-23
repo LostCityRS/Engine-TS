@@ -51,9 +51,10 @@ export default class HashTable<T extends Linkable> {
             let node = this.findnext(this.buckets[bucket]);
 
             while (node !== null) {
+                // need to store the next node early in case it's removed while iterating
+                const next = this.findnext(node);
                 yield node;
-
-                node = this.findnext(node);
+                node = next;
             }
         }
     }

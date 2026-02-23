@@ -10,7 +10,8 @@ export default class OpPlayerUDecoder extends ClientGameMessageDecoder<OpPlayerU
         const playerSlot = buf.g2();
         const useObj = buf.g2();
         const useSlot = buf.g2();
-        const useComponent = buf.g2();
-        return new OpPlayerU(playerSlot, useObj, useSlot, useComponent);
+        const useCom = buf.g2();
+
+        return new OpPlayerU(playerSlot, useObj, useSlot, useCom);
     }
 }

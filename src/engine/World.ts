@@ -117,12 +117,16 @@ class World {
     private static readonly PLAYERS: number = Environment.NODE_MAX_PLAYERS;
     private static readonly NPCS: number = Environment.NODE_MAX_NPCS;
 
-    private static readonly TICKRATE: number = 600; // 0.6s / 600ms
+    private static readonly TICKRATE: number = 600; // ms (0.6s) - DO NOT CHANGE. This is only exposed for condensing time while testing long-running operations.
 
-    private static readonly INV_STOCKRATE: number = 100; // 1m
-    private static readonly AFK_EVENTRATE: number = 500; // 5m
-    private static readonly PLAYER_SAVERATE: number = 1500; // 15m
-    private static readonly PLAYER_COORDLOGRATE: number = 50; // 30s
+    private static readonly INV_STOCKRATE: number = 100; // 1m shop restocks
+
+    private static readonly PLAYER_SAVERATE: number = 1500; // 15m autosave
+    private static readonly PLAYER_COORDLOGRATE: number = 50; // 30s server check-in
+
+    private static readonly AFK_EVENTRATE: number = 500; // 5m: 60/5 = 12 chances per hour
+    private static readonly AFK_CHANCE1: number = 1 / (120 / 5); // 1/24 - 4% chance every 5 mins: avg 1 event every 2 hrs
+    private static readonly AFK_CHANCE2: number = 1 / (60 / 5); // 1/12 - 8% chance every 5 mins: avg 1 event every 1 hr while "aggro zone" hasn't changed
 
     private static readonly TIMEOUT_NO_CONNECTION: number = Environment.NODE_DEBUG_SOCKET ? 60000 : 50; // 30s with no connection (16 ticks in osrs)
     private static readonly TIMEOUT_NO_RESPONSE: number = Environment.NODE_DEBUG_SOCKET ? 60000 : 100; // 60s without any response
@@ -527,7 +531,7 @@ class World {
         const start: number = Date.now();
 
         // - world queue
-        for (let request: EntityQueueState | null = this.queue.head(); request; request = this.queue.next()) {
+        for (const request of this.queue.all()) {
             const delay = request.delay--;
             if (delay > 0) {
                 continue;
@@ -556,7 +560,7 @@ class World {
         }
 
         // - add objs delayed
-        for (let request: ObjDelayedRequest | null = this.objDelayedQueue.head(); request; request = this.objDelayedQueue.next()) {
+        for (const request of this.objDelayedQueue.all()) {
             const delay = request.delay--;
             if (delay > 0) {
                 continue;
@@ -601,9 +605,7 @@ class World {
                 player.playtime++;
 
                 if (this.currentTick % World.AFK_EVENTRATE === 0) {
-                    // (normal) 1/12 chance every 5 minutes of setting an afk event state (even distrubution 60/5)
-                    // (afk) double the chance?
-                    player.afkEventReady = Math.random() < (player.zonesAfk() ? 0.1666 : 0.0833);
+                    player.afkEventReady = Math.random() < (player.zonesAfk() ? World.AFK_CHANCE2 : World.AFK_CHANCE1);
                 }
 
                 if (isClientConnected(player) && player.decodeIn()) {
@@ -772,7 +774,7 @@ class World {
                 player.closeModal();
 
                 let queueDiscardable = true;
-                for (let request = player.queue.head(); request !== null; request = player.queue.next()) {
+                for (const request of player.queue.all()) {
                     if (request.type === PlayerQueueType.LONG) {
                         const logoutAction = request.args[0];
                         if (logoutAction === 1) {

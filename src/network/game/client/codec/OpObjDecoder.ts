@@ -15,6 +15,7 @@ export default class OpObjDecoder extends ClientGameMessageDecoder<OpObj> {
         const x = buf.g2();
         const z = buf.g2();
         const obj = buf.g2();
+
         return new OpObj(this.op, x, z, obj);
     }
 }

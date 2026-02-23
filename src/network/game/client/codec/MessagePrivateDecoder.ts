@@ -9,7 +9,8 @@ export default class MessagePrivateDecoder extends ClientGameMessageDecoder<Mess
     decode(buf: Packet, length: number) {
         const username = buf.g8();
         const input = buf.data.slice(buf.pos, buf.pos + length - 8);
-        buf.pos += length;
+        buf.pos += length - 8;
+
         return new MessagePrivate(username, input);
     }
 }

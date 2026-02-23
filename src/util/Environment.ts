@@ -3,6 +3,8 @@ import { tryParseBoolean, tryParseInt, tryParseString } from '#/util/TryParse.js
 import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 
 export default {
+    IS_BUN: typeof process.versions.bun !== 'undefined', // not user-configurable
+
     EASY_STARTUP: tryParseBoolean(process.env.EASY_STARTUP, false),
     WEBSITE_REGISTRATION: tryParseBoolean(process.env.WEBSITE_REGISTRATION, true),
 
@@ -92,12 +94,9 @@ export default {
     KYSELY_VERBOSE: tryParseBoolean(process.env.KYSELY_VERBOSE, false),
 
     /// development
-    // some users may not be able to change their system PATH for this project
-    BUILD_JAVA_PATH: tryParseString(process.env.BUILD_JAVA_PATH, 'java'),
+    BUILD_VERBOSE: tryParseBoolean(process.env.BUILD_VERBOSE, false),
     // auto-build on startup
     BUILD_STARTUP: tryParseBoolean(process.env.BUILD_STARTUP, false),
-    // auto-update compiler on startup
-    BUILD_STARTUP_UPDATE: tryParseBoolean(process.env.BUILD_STARTUP_UPDATE, true),
     // used to check if we're producing the original cache without edits
     BUILD_VERIFY: tryParseBoolean(process.env.BUILD_VERIFY, true),
     // used to keep some semblance of sanity in our folder structure

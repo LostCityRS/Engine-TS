@@ -19,6 +19,7 @@ import ObjOps from '#/engine/script/handlers/ObjOps.js';
 import PlayerOps from '#/engine/script/handlers/PlayerOps.js';
 import ServerOps from '#/engine/script/handlers/ServerOps.js';
 import StringOps from '#/engine/script/handlers/StringOps.js';
+import StructOps from '#/engine/script/handlers/StructOps.js';
 import ScriptFile from '#/engine/script/ScriptFile.js';
 import { ScriptOpcode, ScriptOpcodeNameMap } from '#/engine/script/ScriptOpcode.js';
 import ScriptPointer from '#/engine/script/ScriptPointer.js';
@@ -49,6 +50,7 @@ export default class ScriptRunner {
         ...EnumOps,
         ...StringOps,
         ...NumberOps,
+        ...StructOps,
         ...DbOps,
         ...DebugOps
     };
@@ -148,7 +150,7 @@ export default class ScriptRunner {
                 const opcode = opcodes[++state.pc];
                 const handler = ScriptRunner.HANDLERS[opcode];
                 if (!handler) {
-                    throw new Error(`Unknown opcode ${opcode}`);
+                    throw new Error(`Unhandled command ${ScriptOpcodeNameMap.get(opcode) ?? opcode}`);
                 }
 
                 handler(state);
@@ -193,7 +195,7 @@ export default class ScriptRunner {
                 state.self.wrappedMessageGame(`    1: ${state.script.name} - ${state.script.fileName}:${state.script.lineNumber(state.pc)}`);
 
                 let trace = 1;
-                for (let i = state.debugFp - 1; i > 0; i--) {
+                for (let i = state.debugFp - 1; i >= 0; i--) {
                     const frame = state.debugFrames[i];
                     state.self.wrappedMessageGame(`    ${++trace}: ${frame.script.name} - ${frame.script.fileName}:${frame.script.lineNumber(frame.pc)}`);
                 }
@@ -218,7 +220,7 @@ export default class ScriptRunner {
             console.error(`    1: ${state.script.name} - ${state.script.fileName}:${state.script.lineNumber(state.pc)}`);
 
             let trace = 1;
-            for (let i = state.debugFp - 1; i > 0; i--) {
+            for (let i = state.debugFp - 1; i >= 0; i--) {
                 const frame = state.debugFrames[i];
                 console.error(`    ${++trace}: ${frame.script.name} - ${frame.script.fileName}:${frame.script.lineNumber(frame.pc)}`);
             }

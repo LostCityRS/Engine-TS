@@ -44,8 +44,8 @@ async function handleRequests(_parentPort: ParentPort, msg: any) {
         }
         case 'report': {
             if (Environment.LOGGER_SERVER) {
-                const { username, coord, offender, reason } = msg;
-                await client.report(username, coord, offender, reason);
+                const { session_uuid, coord, offender, reason } = msg;
+                await client.report(session_uuid, coord, offender, reason);
             }
             break;
         }

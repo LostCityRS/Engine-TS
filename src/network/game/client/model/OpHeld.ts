@@ -8,7 +8,7 @@ export default class OpHeld extends ClientGameMessage {
         readonly op: number,
         readonly obj: number,
         readonly slot: number,
-        readonly component: number
+        readonly com: number
     ) {
         super();
     }

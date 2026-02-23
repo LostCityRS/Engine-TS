@@ -9,6 +9,7 @@ import Loc from '#/engine/entity/Loc.js';
 import Npc from '#/engine/entity/Npc.js';
 import { NpcIteratorType } from '#/engine/entity/NpcIteratorType.js';
 import Obj from '#/engine/entity/Obj.js';
+import type Player from '#/engine/entity/Player.js';
 import { isLineOfSight, isLineOfWalk } from '#/engine/GameMap.js';
 import World from '#/engine/World.js';
 
@@ -164,6 +165,63 @@ export class HuntIterator extends ScriptIterator<Entity> {
                         }
                         yield loc;
                     }
+                }
+            }
+        }
+    }
+}
+
+export class PlayerHuntAllCommandIterator extends ScriptIterator<Player> {
+    private readonly x: number;
+    private readonly z: number;
+    private readonly level: number;
+    private readonly minX: number;
+    private readonly maxX: number;
+    private readonly minZ: number;
+    private readonly maxZ: number;
+    private readonly distance: number;
+    private readonly checkVis: HuntVis;
+
+    constructor(tick: number, level: number, x: number, z: number, distance: number, checkVis: HuntVis) {
+        super(tick);
+        const centerX: number = CoordGrid.zone(x);
+        const centerZ: number = CoordGrid.zone(z);
+        const radius: number = (1 + distance / 8) | 0;
+        this.x = x;
+        this.z = z;
+        this.level = level;
+        this.maxX = centerX + radius;
+        this.minX = centerX - radius;
+        this.maxZ = centerZ + radius;
+        this.minZ = centerZ - radius;
+        this.distance = distance;
+        this.checkVis = checkVis;
+    }
+
+    protected *generator(): IterableIterator<Player> {
+        for (let x: number = this.maxX; x >= this.minX; x--) {
+            const zoneX: number = x << 3;
+            for (let z: number = this.maxZ; z >= this.minZ; z--) {
+                const zoneZ: number = z << 3;
+
+                for (const player of World.gameMap.getZone(zoneX, zoneZ, this.level).getAllPlayersSafe(true)) {
+                    if (World.currentTick > this.tick) {
+                        throw new Error('[HuntIterator] tried to use an old iterator. Create a new iterator instead.');
+                    }
+
+                    if (CoordGrid.distanceToSW({ x: this.x, z: this.z }, player) > this.distance) {
+                        continue;
+                    }
+
+                    if (this.checkVis === HuntVis.LINEOFSIGHT && !isLineOfSight(this.level, player.x, player.z, this.x, this.z)) {
+                        continue;
+                    }
+
+                    if (this.checkVis === HuntVis.LINEOFWALK && !isLineOfWalk(this.level, player.x, player.z, this.x, this.z)) {
+                        continue;
+                    }
+
+                    yield player;
                 }
             }
         }

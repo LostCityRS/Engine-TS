@@ -53,11 +53,11 @@ export default class GameMap {
         printDebug('Loading game map');
 
         if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`)) {
-            this.loadCsvMap(this.multimap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').replace(/\r/g, '').split('\n'));
+            this.loadCsvMap(this.multimap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').split(/\r?\n/));
         }
 
         if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`)) {
-            this.loadCsvMap(this.freemap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').replace(/\r/g, '').split('\n'));
+            this.loadCsvMap(this.freemap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').split(/\r?\n/));
         }
 
         const path: string = 'data/pack/server/maps/';

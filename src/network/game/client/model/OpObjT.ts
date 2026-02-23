@@ -8,7 +8,7 @@ export default class OpObjT extends ClientGameMessage {
         readonly x: number,
         readonly z: number,
         readonly obj: number,
-        readonly spellComponent: number
+        readonly spellCom: number
     ) {
         super();
     }

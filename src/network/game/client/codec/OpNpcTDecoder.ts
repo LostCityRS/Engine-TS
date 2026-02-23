@@ -7,8 +7,9 @@ export default class OpNpcTDecoder extends ClientGameMessageDecoder<OpNpcT> {
     prot = ClientGameProt.OPNPCT;
 
     decode(buf: Packet) {
-        const nid = buf.g2();
-        const spellComponent = buf.g2();
-        return new OpNpcT(nid, spellComponent);
+        const npcSlot = buf.g2();
+        const spellCom = buf.g2();
+
+        return new OpNpcT(npcSlot, spellCom);
     }
 }
