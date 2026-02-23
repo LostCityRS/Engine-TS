@@ -13,10 +13,13 @@ type Js5Request = {
 class Js5 {
     urgentRequests: Js5Request[] = [];
     prefetchRequests: Js5Request[] = [];
-    private clientEnumPack: Js5PackReader | null = null;
-    private clientEnumPackLoaded = false;
-    private clientMidiPack: Js5PackReader | null = null;
-    private clientMidiPackLoaded = false;
+    private clientArchivePacks = new Map<number, Js5PackReader | null>();
+    private readonly clientPackPaths = new Map<number, string>([
+        [17, 'data/pack/client/enum.js5'],
+        [6, 'data/pack/client/midi.js5'],
+        [24, 'data/pack/client/quickchat.js5'],
+        [25, 'data/pack/client/quickchat.global.js5']
+    ]);
 
     async cycle() {
         // todo: limit requests per client per cycle
@@ -66,12 +69,7 @@ class Js5 {
             return;
         }
 
-        let data: Uint8Array | undefined;
-        if (archive === 17) {
-            data = this.getClientEnumGroup(group);
-        } else if (archive === 6) {
-            data = this.getClientMidiGroup(group);
-        }
+        let data = this.getClientPackGroup(archive, group);
 
         if (!data) {
             data = await getGroup(archive, group);
@@ -121,37 +119,22 @@ class Js5 {
         });
     }
 
-    private getClientEnumGroup(group: number): Uint8Array | undefined {
-        if (!this.clientEnumPackLoaded) {
-            this.clientEnumPackLoaded = true;
-            try {
-                this.clientEnumPack = Js5PackReader.load('data/pack/client.enum.js5');
-            } catch (err) {
-                console.warn('Unable to load client enum js5pack, falling back to cache.', err);
-                this.clientEnumPack = null;
-            }
-        }
-
-        const data = this.clientEnumPack?.getGroup(group);
-        if (!data || data.length === 0) {
+    private getClientPackGroup(archive: number, group: number): Uint8Array | undefined {
+        const packPath = this.clientPackPaths.get(archive);
+        if (!packPath) {
             return undefined;
         }
 
-        return data;
-    }
-
-    private getClientMidiGroup(group: number): Uint8Array | undefined {
-        if (!this.clientMidiPackLoaded) {
-            this.clientMidiPackLoaded = true;
+        if (!this.clientArchivePacks.has(archive)) {
             try {
-                this.clientMidiPack = Js5PackReader.load('data/pack/client.midi.js5');
+                this.clientArchivePacks.set(archive, Js5PackReader.load(packPath));
             } catch (err) {
-                console.warn('Unable to load client midi js5pack, falling back to cache.', err);
-                this.clientMidiPack = null;
+                console.warn(`Unable to load client js5pack for archive ${archive} (${packPath}), falling back to cache.`, err);
+                this.clientArchivePacks.set(archive, null);
             }
         }
 
-        const data = this.clientMidiPack?.getGroup(group);
+        const data = this.clientArchivePacks.get(archive)?.getGroup(group);
         if (!data || data.length === 0) {
             return undefined;
         }
