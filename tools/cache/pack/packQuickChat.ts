@@ -501,16 +501,12 @@ async function main() {
             throw new Error('Validation failed: generated data does not match reference cache');
         }
         
-        // Use original compressed containers for exact output
         catCompressed = refCatContainer;
         phraseCompressed = refPhraseContainer;
     } else {
-        // Compress groups
         catCompressed = await compressJs5Group(catCombined, CompressionType.GZIP);
         phraseCompressed = await compressJs5Group(phraseCombined, CompressionType.GZIP);
     }
-
-    // Build full archive
 
     // Build full archive
     const groupBuffers = new Map<number, Uint8Array>();

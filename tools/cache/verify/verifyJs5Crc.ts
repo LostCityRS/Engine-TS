@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-
 import Packet from '#/io/Packet.js';
 import { getGroup } from '#/util/OpenRS2.js';
 import { unpackJs5Group } from '#/io/Js5Group.js';
