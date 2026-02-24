@@ -9,6 +9,7 @@ import { unpackJs5Group } from '#/io/Js5Group.js';
 import Environment from '#/util/Environment.js';
 import { parseBracketedConfigSource } from '#tools/cache/lib/configSource.js';
 import { encodeEnum } from '#tools/cache/lib/enumCodec.js';
+import { getMidiId, hasMidiId } from '#tools/pack/packs/MidiPack.js';
 import {
     arraysEqual,
     ensureDir,
@@ -105,7 +106,7 @@ function parseSourceTypeName(typeName: string): number {
     return typeCode ?? ScriptVarType.INT;
 }
 
-function parseSourceScalar(value: string, type: number): number | string {
+function parseSourceScalar(value: string, type: number, sourceContext?: string): number | string {
     // Handle null
     if (value === 'null') {
         if (type === ScriptVarType.STRING) {
@@ -127,6 +128,22 @@ function parseSourceScalar(value: string, type: number): number | string {
     // Handle strings
     if (type === ScriptVarType.STRING) {
         return value;
+    }
+
+    if (type === ScriptVarType.MIDI) {
+        const trimmed = value.trim();
+
+        const namedId = getMidiId(trimmed);
+        if (namedId !== -1) {
+            return namedId;
+        }
+
+        const numeric = parseInt(trimmed, 10);
+        if (!isNaN(numeric) && String(numeric) === trimmed && hasMidiId(numeric)) {
+            return numeric;
+        }
+
+        throw new Error(`Unknown midi value '${trimmed}'${sourceContext ? ` at ${sourceContext}` : ''}. It must exist in midi.pack.`);
     }
 
     // Handle numbers (including hex)
@@ -195,7 +212,7 @@ function parseSourceEnums(content: string, nameToId: Map<string, number>): Map<n
                     }
                     currentOps.push({ code: 3, value: cleanValue });
                 } else {
-                    currentEnum.defaultInt = Number(parseSourceScalar(cleanValue, currentEnum.outputtype));
+                    currentEnum.defaultInt = Number(parseSourceScalar(cleanValue, currentEnum.outputtype, `${section.name}:${field.line}`));
                     if (isExplicit) {
                         currentEnum.hasExplicitDefaultInt = true;
                     }
@@ -216,7 +233,7 @@ function parseSourceEnums(content: string, nameToId: Map<string, number>): Map<n
                 const keyPart = value.substring(0, commaIndex).trim();
                 const valuePart = value.substring(commaIndex + 1);
 
-                const parsedKey = Number(parseSourceScalar(keyPart, currentEnum.inputtype));
+                const parsedKey = Number(parseSourceScalar(keyPart, currentEnum.inputtype, `${section.name}:${field.line}`));
                 const opCode: 5 | 6 = key === 'val@5' ? 5 : key === 'val@6' ? 6 : (currentEnum.outputtype === ScriptVarType.STRING ? 5 : 6);
 
                 if (opCode === 5) {
@@ -230,7 +247,7 @@ function parseSourceEnums(content: string, nameToId: Map<string, number>): Map<n
                         currentOps.push({ code: 5, values: [{ key: parsedKey, value: parsedValue }] });
                     }
                 } else {
-                    const parsedValue = Number(parseSourceScalar(valuePart, currentEnum.outputtype));
+                    const parsedValue = Number(parseSourceScalar(valuePart, currentEnum.outputtype, `${section.name}:${field.line}`));
                     currentEnum.values.set(parsedKey, parsedValue);
 
                     const lastOp = currentOps[currentOps.length - 1];
@@ -309,9 +326,13 @@ async function main() {
         throw new Error(`Source file not found: ${args.src}`);
     }
 
-    // Read pack file to resolve names
-    const packPath = path.join(path.dirname(args.src), 'pack', 'enum.pack');
-    const nameToId = parsePackFile(packPath);
+    // Read pack files to resolve names (prefer source-adjacent pack/, fallback to BUILD_SRC_DIR/pack)
+    const localPackDir = path.join(path.dirname(args.src), 'pack');
+    const fallbackPackDir = path.join(Environment.BUILD_SRC_DIR, 'pack');
+
+    const enumLocalPackPath = path.join(localPackDir, 'enum.pack');
+    const enumFallbackPackPath = path.join(fallbackPackDir, 'enum.pack');
+    const nameToId = fs.existsSync(enumLocalPackPath) ? parsePackFile(enumLocalPackPath) : parsePackFile(enumFallbackPackPath);
 
     // Parse source enums
     const content = fs.readFileSync(args.src, 'utf-8');
