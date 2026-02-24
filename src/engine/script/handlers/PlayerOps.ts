@@ -474,9 +474,10 @@ const PlayerOps: CommandHandlers = {
         const [synth, loops, delay] = state.popInts(3);
 
         const player = state.activePlayer;
-        if (player.lowMemory) {
+        if (player.lowMemory || synth < 0) {
             return;
         }
+
         player.write(new SynthSound(synth, loops, delay));
     }),
 
