@@ -17,6 +17,7 @@
     "dump:flus": "bun run tools/cache/dump/dumpFlus.ts",
     "dump:invs": "bun run tools/cache/dump/dumpInvs.ts",
     "dump:quickchat": "bun run tools/cache/dump/dumpQuickChat.ts --archive 24 && bun run tools/cache/dump/dumpQuickChat.ts --archive 25",
+    "decode:group": "bun run tools/cache/debug/decodeGroup.ts --archive 2 --group 21",
     "pack:quickchat": "bun run tools/cache/pack/packQuickChat.ts --archive 24 --mode server && bun run tools/cache/pack/packQuickChat.ts --archive 24 --mode client --exact && bun run tools/cache/pack/packQuickChat.ts --archive 25 --mode server && bun run tools/cache/pack/packQuickChat.ts --archive 25 --mode client --exact",
     "pack:flos": "bun run tools/cache/pack/packFlos.ts",
     "pack:flus": "bun run tools/cache/pack/packFlus.ts",
