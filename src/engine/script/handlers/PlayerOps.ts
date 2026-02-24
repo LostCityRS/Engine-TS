@@ -473,8 +473,10 @@ const PlayerOps: CommandHandlers = {
     [ScriptOpcode.SOUND_SYNTH]: checkedHandler(ActivePlayer, state => {
         const [synth, loops, delay] = state.popInts(3);
 
+        check(synth, NumberNotNull);
+
         const player = state.activePlayer;
-        if (player.lowMemory || synth < 0) {
+        if (player.lowMemory) {
             return;
         }
 
