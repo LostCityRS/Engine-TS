@@ -3,16 +3,21 @@ import path from 'path';
 
 import InvType from '#/cache/config/InvType.js';
 import { CompressionType } from '#/io/CompressionType.js';
-import { unpackJs5Group } from '#/io/Js5Group.js';
 import Environment from '#/util/Environment.js';
+import {
+    parseBracketedConfigSource,
+    parseConfigBoolean,
+    parseConfigInteger,
+    resolveSectionId
+} from '#tools/cache/lib/configSource.js';
 import { encodeInvWithOpcodes } from '#tools/cache/lib/invCodec.js';
 import {
     arraysEqual,
     ensureDir,
+    loadArchiveGroupFiles,
     combineGroupFiles,
     compressJs5Group,
 } from '#tools/cache/lib/js5Tools.js';
-import { parseJs5ArchiveIndex } from '#/io/Js5ArchiveIndex.js';
 
 type Args = {
     src: string;
@@ -72,152 +77,107 @@ type ParsedInvSource = {
 
 function parseSourceInvs(content: string, nameToId: Map<string, number>): Map<number, ParsedInvSource> {
     const invs = new Map<number, ParsedInvSource>();
-    const lines = content.split('\n');
+    const sections = parseBracketedConfigSource(content);
 
-    let currentId = -1;
-    let currentConfig: InvType | null = null;
-    let currentOpcodes: OpcodeValue[] = [];
-
-    const finalize = () => {
-        if (currentConfig && currentId >= 0) {
-            invs.set(currentId, {
-                config: currentConfig,
-                opcodes: currentOpcodes
-            });
-        }
-    };
-
-    for (const rawLine of lines) {
-        const line = rawLine.trim();
-
-        if (line.length === 0 || line.startsWith('//')) {
-            continue;
+    for (const section of sections) {
+        const id = resolveSectionId(section.name, nameToId, 'inv_');
+        if (id === null) {
+            throw new Error(`Unknown inventory name: ${section.name}`);
         }
 
-        if (line.startsWith('[') && line.endsWith(']')) {
-            finalize();
+        const config = new InvType(id);
+        config.debugname = null;
+        const opcodes: OpcodeValue[] = [];
 
-            const name = line.substring(1, line.length - 1);
-            let id = nameToId.get(name);
+        for (const field of section.fields) {
+            const { key, value } = field;
 
-            if (id === undefined) {
-                if (name.startsWith('inv_')) {
-                    const num = parseInt(name.substring(4));
-                    if (!isNaN(num)) {
-                        id = num;
-                    }
+            if (key === 'scope') {
+                const scopeValue = parseConfigInteger(value);
+                config.scope = scopeValue;
+                opcodes.push({ code: 1, value: scopeValue });
+            } else if (key === 'size') {
+                const sizeValue = parseConfigInteger(value);
+                config.size = sizeValue;
+                opcodes.push({ code: 2, value: sizeValue });
+            } else if (key === 'stackall') {
+                config.stackall = parseConfigBoolean(value);
+                if (config.stackall) {
+                    opcodes.push({ code: 3 });
                 }
-            }
+            } else if (key === 'stock_add') {
+                const parts = value.split(',');
+                const obj = parseConfigInteger(parts[0]);
+                const count = parseConfigInteger(parts[1]);
+                const rate = parseConfigInteger(parts[2]);
 
-            if (id === undefined) {
-                throw new Error(`Unknown inventory name: ${name}`);
-            }
+                if (!config.stockobj) {
+                    config.stockobj = new Uint16Array([obj]);
+                    config.stockcount = new Uint16Array([count]);
+                    config.stockrate = new Int32Array([rate]);
+                } else {
+                    const newStockobj = new Uint16Array(config.stockobj.length + 1);
+                    newStockobj.set(config.stockobj);
+                    newStockobj[config.stockobj.length] = obj;
 
-            currentId = id;
-            currentConfig = new InvType(id);
-            currentConfig.debugname = null;
-            currentOpcodes = [];
-            continue;
+                    const newStockcount = new Uint16Array(config.stockcount.length + 1);
+                    newStockcount.set(config.stockcount);
+                    newStockcount[config.stockcount.length] = count;
+
+                    const newStockrate = new Int32Array(config.stockrate.length + 1);
+                    newStockrate.set(config.stockrate);
+                    newStockrate[config.stockrate.length] = rate;
+
+                    config.stockobj = newStockobj;
+                    config.stockcount = newStockcount;
+                    config.stockrate = newStockrate;
+                }
+
+                const stockItems = Array.from({ length: config.stockobj!.length }, (_, i) => ({
+                    obj: config.stockobj![i],
+                    count: config.stockcount![i],
+                    rate: config.stockrate![i]
+                }));
+                const existingStockOpcode = opcodes.find((op) => op.code === 4);
+                if (existingStockOpcode) {
+                    existingStockOpcode.value = stockItems;
+                } else {
+                    opcodes.push({ code: 4, value: stockItems });
+                }
+            } else if (key === 'restock') {
+                config.restock = parseConfigBoolean(value);
+                if (config.restock) {
+                    opcodes.push({ code: 5 });
+                }
+            } else if (key === 'allstock') {
+                config.allstock = parseConfigBoolean(value);
+                if (config.allstock) {
+                    opcodes.push({ code: 6 });
+                }
+            } else if (key === 'protect') {
+                config.protect = parseConfigBoolean(value);
+                if (!config.protect) {
+                    opcodes.push({ code: 7 });
+                }
+            } else if (key === 'runweight') {
+                config.runweight = parseConfigBoolean(value);
+                if (config.runweight) {
+                    opcodes.push({ code: 8 });
+                }
+            } else if (key === 'dummyinv') {
+                config.dummyinv = parseConfigBoolean(value);
+                if (config.dummyinv) {
+                    opcodes.push({ code: 9 });
+                }
+            } else if (key === 'debugname') {
+                config.debugname = value;
+                opcodes.push({ code: 250, value });
+            }
         }
 
-        if (!currentConfig) {
-            continue;
-        }
-
-        const eq = line.indexOf('=');
-        if (eq === -1) {
-            continue;
-        }
-
-        const key = line.substring(0, eq).trim();
-        const value = line.substring(eq + 1).trim();
-
-        if (key === 'scope') {
-            const scopeValue = parseInt(value);
-            currentConfig.scope = scopeValue;
-            currentOpcodes.push({ code: 1, value: scopeValue });
-        } else if (key === 'size') {
-            const sizeValue = parseInt(value);
-            currentConfig.size = sizeValue;
-            currentOpcodes.push({ code: 2, value: sizeValue });
-        } else if (key === 'stackall') {
-            currentConfig.stackall = value === 'yes' || value === 'true';
-            if (currentConfig.stackall) {
-                currentOpcodes.push({ code: 3 });
-            }
-        } else if (key === 'stock_add') {
-            const parts = value.split(',');
-            if (!currentConfig) continue;
-            
-            const obj = parseInt(parts[0]);
-            const count = parseInt(parts[1]); 
-            const rate = parseInt(parts[2]);
-
-            if (!currentConfig.stockobj) {
-                currentConfig.stockobj = new Uint16Array([obj]);
-                currentConfig.stockcount = new Uint16Array([count]);
-                currentConfig.stockrate = new Int32Array([rate]);
-            } else {
-                const newStockobj = new Uint16Array(currentConfig.stockobj!.length + 1);
-                newStockobj.set(currentConfig.stockobj!);
-                newStockobj[currentConfig.stockobj!.length] = obj;
-
-                const newStockcount = new Uint16Array(currentConfig.stockcount!.length + 1);
-                newStockcount.set(currentConfig.stockcount!);
-                newStockcount[currentConfig.stockcount!.length] = count;
-
-                const newStockrate = new Int32Array(currentConfig.stockrate!.length + 1);
-                newStockrate.set(currentConfig.stockrate!);
-                newStockrate[currentConfig.stockrate!.length] = rate;
-
-                currentConfig.stockobj = newStockobj;
-                currentConfig.stockcount = newStockcount;
-                currentConfig.stockrate = newStockrate;
-            }
-
-            const stockItems = Array.from({ length: currentConfig.stockobj!.length }, (_, i) => ({
-                obj: currentConfig!.stockobj![i],
-                count: currentConfig!.stockcount![i],
-                rate: currentConfig!.stockrate![i]
-            }));
-            const existingStockOpcode = currentOpcodes.find((op) => op.code === 4);
-            if (existingStockOpcode) {
-                existingStockOpcode.value = stockItems;
-            } else {
-                currentOpcodes.push({ code: 4, value: stockItems });
-            }
-        } else if (key === 'restock') {
-            currentConfig.restock = value === 'yes' || value === 'true';
-            if (currentConfig.restock) {
-                currentOpcodes.push({ code: 5 });
-            }
-        } else if (key === 'allstock') {
-            currentConfig.allstock = value === 'yes' || value === 'true';
-            if (currentConfig.allstock) {
-                currentOpcodes.push({ code: 6 });
-            }
-        } else if (key === 'protect') {
-            currentConfig.protect = value === 'yes' || value === 'true';
-            if (!currentConfig.protect) {
-                currentOpcodes.push({ code: 7 });
-            }
-        } else if (key === 'runweight') {
-            currentConfig.runweight = value === 'yes' || value === 'true';
-            if (currentConfig.runweight) {
-                currentOpcodes.push({ code: 8 });
-            }
-        } else if (key === 'dummyinv') {
-            currentConfig.dummyinv = value === 'yes' || value === 'true';
-            if (currentConfig.dummyinv) {
-                currentOpcodes.push({ code: 9 });
-            }
-        } else if (key === 'debugname') {
-            currentConfig.debugname = value;
-            currentOpcodes.push({ code: 250, value });
-        }
+        invs.set(id, { config, opcodes });
     }
 
-    finalize();
     return invs;
 }
 
@@ -228,18 +188,10 @@ async function main() {
         throw new Error(`Source file not found: ${args.src}`);
     }
 
-    const { getGroup } = await import('#/util/OpenRS2.js');
-    const indexData = await getGroup(255, args.index);
-    const indexUnpacked = unpackJs5Group(new Uint8Array(indexData));
-    const { fileIdsByGroup } = parseJs5ArchiveIndex(indexUnpacked);
-
-    const currentGroupData = await getGroup(args.index, args.archive);
-    const currentGroupUnpacked = unpackJs5Group(new Uint8Array(currentGroupData));
-
-    const currentGroupFileIds = fileIdsByGroup.get(args.archive);
-    if (!currentGroupFileIds) {
-        throw new Error(`Group ${args.archive} not found in index ${args.index}`);
-    }
+    const {
+        fileIds: currentGroupFileIds,
+        groupUnpacked: currentGroupUnpacked
+    } = await loadArchiveGroupFiles(args.index, args.archive, 'data/cache', true);
 
     const sourceContent = fs.readFileSync(args.src, 'utf-8');
 

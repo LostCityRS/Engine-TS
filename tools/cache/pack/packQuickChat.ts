@@ -12,6 +12,7 @@ import { encodeQuickChatCat } from '#tools/cache/lib/quickchatCatCodec.js';
 import { encodeQuickChatPhrase } from '#tools/cache/lib/quickchatPhraseCodec.js';
 import {
     ensureDir,
+    parsePackFile,
     combineGroupFiles,
     compressJs5Group,
     parseGroupIdsFromIndexPacked,
@@ -46,36 +47,6 @@ type ParsedQuickChatPhrase = {
     config: QuickChatPhraseType;
     data: Uint8Array;
 };
-
-function loadPackFile(packPath: string): Map<string, number> {
-    const nameToId = new Map<string, number>();
-    if (!fs.existsSync(packPath)) {
-        return nameToId;
-    }
-
-    const content = fs.readFileSync(packPath, 'utf-8');
-    const lines = content.split('\n');
-
-    for (const line of lines) {
-        const trimmed = line.trim();
-        if (trimmed.length === 0 || trimmed.startsWith('#')) {
-            continue;
-        }
-
-        const eqIdx = trimmed.indexOf('=');
-        if (eqIdx === -1) {
-            continue;
-        }
-
-        const id = parseInt(trimmed.substring(0, eqIdx));
-        const name = trimmed.substring(eqIdx + 1);
-        if (!isNaN(id)) {
-            nameToId.set(name, id);
-        }
-    }
-
-    return nameToId;
-}
 
 function parseArgs(argv: string[]): Args {
     const args: Args = {
@@ -402,9 +373,9 @@ async function main() {
 
     ensureDir(args.out);
 
-    const catPack = loadPackFile(args.catPackInput);
-    const phrasePack = loadPackFile(args.phrasePackInput);
-    const enumPack = loadPackFile(args.enumPackInput);
+    const catPack = parsePackFile(args.catPackInput);
+    const phrasePack = parsePackFile(args.phrasePackInput);
+    const enumPack = parsePackFile(args.enumPackInput);
 
     if (!fs.existsSync(args.catInput)) {
         throw new Error(`Category config not found: ${args.catInput}`);

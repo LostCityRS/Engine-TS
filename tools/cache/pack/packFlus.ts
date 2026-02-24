@@ -3,14 +3,20 @@ import path from 'path';
 
 import FluType from '#/cache/config/FluType.js';
 import { CompressionType } from '#/io/CompressionType.js';
-import Packet from '#/io/Packet.js';
 import { unpackJs5Group } from '#/io/Js5Group.js';
 import Environment from '#/util/Environment.js';
+import {
+    parseBracketedConfigSource,
+    parseConfigBoolean,
+    parseConfigInteger,
+    resolveSectionId
+} from '#tools/cache/lib/configSource.js';
 import { encodeFlu, encodeFluWithOpcodes } from '#tools/cache/lib/fluCodec.js';
 import {
     arraysEqual,
     ensureDir,
     parsePackFile,
+    loadArchiveFileIds,
     combineGroupFiles,
     compressJs5Group,
 } from '#tools/cache/lib/js5Tools.js';
@@ -73,173 +79,56 @@ type ParsedFluSource = {
 
 function parseSourceFlus(content: string, nameToId: Map<string, number>): Map<number, ParsedFluSource> {
     const flus = new Map<number, ParsedFluSource>();
-    const lines = content.split('\n');
+    const sections = parseBracketedConfigSource(content);
 
-    let currentId = -1;
-    let currentConfig: FluType | null = null;
-    let currentOpcodes: OpcodeValue[] = [];
-
-    const finalize = () => {
-        if (currentConfig && currentId >= 0) {
-            flus.set(currentId, {
-                config: currentConfig,
-                opcodes: currentOpcodes
-            });
-        }
-    };
-
-    for (const rawLine of lines) {
-        const line = rawLine.trim();
-
-        if (line.length === 0 || line.startsWith('//')) {
-            continue;
+    for (const section of sections) {
+        const id = resolveSectionId(section.name, nameToId, 'flu_');
+        if (id === null) {
+            throw new Error(`Unknown floor underlay name: ${section.name}`);
         }
 
-        if (line.startsWith('[') && line.endsWith(']')) {
-            finalize();
+        const config = new FluType(id);
+        config.debugname = nameToId.get(section.name) !== undefined ? section.name : null;
+        const opcodes: OpcodeValue[] = [];
 
-            const name = line.substring(1, line.length - 1);
-            let id = nameToId.get(name);
+        for (const field of section.fields) {
+            const { key, value } = field;
 
-            if (id === undefined) {
-                if (name.startsWith('flu_')) {
-                    const num = parseInt(name.substring(4));
-                    if (!isNaN(num)) {
-                        id = num;
-                    }
+            if (key === 'colour') {
+                const colourValue = parseConfigInteger(value);
+                config.colour = colourValue;
+                opcodes.push({ code: 1, value: colourValue });
+            } else if (key === 'material') {
+                const matValue = parseConfigInteger(value);
+                config.material = matValue;
+                opcodes.push({ code: 2, value: matValue });
+            } else if (key === 'materialscale') {
+                const scaleValue = parseConfigInteger(value);
+                config.materialscale = scaleValue;
+                opcodes.push({ code: 3, value: scaleValue });
+            } else if (key === 'hardshadow') {
+                config.hardshadow = parseConfigBoolean(value);
+                if (!config.hardshadow) {
+                    opcodes.push({ code: 4 });
                 }
             }
-
-            if (id === undefined) {
-                throw new Error(`Unknown floor underlay name: ${name}`);
-            }
-
-            currentId = id;
-            currentConfig = new FluType(id);
-            currentConfig.debugname = nameToId.get(name) !== undefined ? name : null;
-            currentOpcodes = [];
-            continue;
         }
 
-        if (!currentConfig) {
-            continue;
-        }
-
-        const eq = line.indexOf('=');
-        if (eq === -1) {
-            continue;
-        }
-
-        const key = line.substring(0, eq).trim();
-        const value = line.substring(eq + 1).trim();
-
-        if (key === 'colour') {
-            const colourValue = value.startsWith('0x') ? parseInt(value, 16) : parseInt(value);
-            currentConfig.colour = colourValue;
-            currentOpcodes.push({ code: 1, value: colourValue });
-        } else if (key === 'material') {
-            const matValue = parseInt(value);
-            currentConfig.material = matValue;
-            currentOpcodes.push({ code: 2, value: matValue });
-        } else if (key === 'materialscale') {
-            const scaleValue = parseInt(value);
-            currentConfig.materialscale = scaleValue;
-            currentOpcodes.push({ code: 3, value: scaleValue });
-        } else if (key === 'hardshadow') {
-            currentConfig.hardshadow = value === 'yes' || value === 'true';
-            if (!currentConfig.hardshadow) {
-                currentOpcodes.push({ code: 4 });
-            }
-        }
+        flus.set(id, { config, opcodes });
     }
 
-    finalize();
     return flus;
 }
 
 async function main() {
     const args = parseArgs(process.argv.slice(2));
 
-    if (args.help) {
-        console.log('Usage: bun run tools/cache/pack/packFlus.ts [options]');
-        console.log('');
-        console.log('Options:');
-        console.log('  --src <path>      Source file path (default: <BUILD_SRC_DIR>/scripts/_unpack/530/all.flu)');
-        console.log('  --out <path>      Output directory (default: data/pack)');
-        console.log('  --index <num>     Cache index (default: 2)');
-        console.log('  --archive <num>   Archive number (default: 1)');
-        console.log('  --exact           Use original compression exactly (requires cache)');
-        console.log('  --no-exact        Recompress (default)');
-        console.log('  --debug           Print first file mismatch details');
-        console.log('  --help, -h        Show this help message');
-        return;
-    }
 
     if (!fs.existsSync(args.src)) {
         throw new Error(`Source file not found: ${args.src}`);
     }
 
-    const { getGroup } = await import('#/util/OpenRS2.js');
-    const indexData = await getGroup(255, args.index);
-    const indexUnpacked = unpackJs5Group(new Uint8Array(indexData));
-    const indexPacket = new Packet(indexUnpacked);
-
-    const format = indexPacket.g1();
-    if (format >= 6) {
-        indexPacket.g4s();
-    }
-
-    const flags = indexPacket.g1();
-
-    function readJs5Id(packet: Packet, format: number): number {
-        if (format >= 7) {
-            return packet.gSmart2or4();
-        }
-        return packet.g2();
-    }
-
-    const groupCount = readJs5Id(indexPacket, format);
-    const groupIds: number[] = new Array(groupCount);
-    let previousGroupId = 0;
-    for (let i = 0; i < groupCount; i++) {
-        previousGroupId += readJs5Id(indexPacket, format);
-        groupIds[i] = previousGroupId;
-    }
-
-    const archiveIndex = groupIds.indexOf(args.archive);
-    if (archiveIndex === -1) {
-        throw new Error(`Archive ${args.archive} not found in index ${args.index}`);
-    }
-
-    if ((flags & 0x1) !== 0) {
-        for (let i = 0; i < groupCount; i++) {
-            indexPacket.g4s();
-        }
-    }
-    for (let i = 0; i < groupCount; i++) {
-        indexPacket.g4s();
-    }
-    for (let i = 0; i < groupCount; i++) {
-        indexPacket.g4s();
-    }
-
-    const fileCounts: number[] = new Array(groupCount);
-    for (let i = 0; i < groupCount; i++) {
-        fileCounts[i] = readJs5Id(indexPacket, format);
-    }
-
-    for (let i = 0; i < archiveIndex; i++) {
-        for (let j = 0; j < fileCounts[i]; j++) {
-            readJs5Id(indexPacket, format);
-        }
-    }
-
-    const fileIds: number[] = [];
-    let previousFileId = 0;
-    for (let j = 0; j < fileCounts[archiveIndex]; j++) {
-        previousFileId += readJs5Id(indexPacket, format);
-        fileIds.push(previousFileId);
-    }
+    const fileIds = await loadArchiveFileIds(args.index, args.archive, true);
 
     const primaryPackPath = path.join(Environment.BUILD_SRC_DIR, 'pack', 'flu.pack');
     const fallbackPackPath = path.join(path.dirname(args.src), 'pack', 'flu.pack');

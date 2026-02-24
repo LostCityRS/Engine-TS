@@ -4,6 +4,7 @@ import Packet from '#/io/Packet.js';
 import { getGroup } from '#/util/OpenRS2.js';
 import { unpackJs5Group } from '#/io/Js5Group.js';
 import { CompressionType } from '#/io/CompressionType.js';
+import { parseJs5ArchiveIndex as parseJs5ArchiveIndexCore, splitGroupFiles } from '#/io/Js5ArchiveIndex.js';
 
 export function readJs5Id(packet: Packet, format: number): number {
     if (format >= 7) {
@@ -117,6 +118,14 @@ export async function readGroupBytes(
 }
 
 export function ensureDir(dirPath: string): void {
+    if (fs.existsSync(dirPath)) {
+        const stat = fs.statSync(dirPath);
+        if (stat.isDirectory()) {
+            return;
+        }
+        throw new Error(`Path exists and is not a directory: ${dirPath}`);
+    }
+
     fs.mkdirSync(dirPath, { recursive: true });
 }
 
@@ -150,10 +159,84 @@ export function parsePackFile(packPath: string): Map<string, number> {
     return nameToId;
 }
 
+export function parsePackFileById(packPath: string): Map<number, string> {
+    if (!fs.existsSync(packPath)) {
+        return new Map();
+    }
+
+    const content = fs.readFileSync(packPath, 'utf-8');
+    const idToName = new Map<number, string>();
+
+    for (const line of content.split('\n')) {
+        const trimmed = line.trim();
+        if (trimmed.length === 0 || trimmed.startsWith('#')) {
+            continue;
+        }
+
+        const eq = trimmed.indexOf('=');
+        if (eq === -1) {
+            continue;
+        }
+
+        const id = parseInt(trimmed.substring(0, eq));
+        const name = trimmed.substring(eq + 1);
+
+        if (!isNaN(id) && name.length > 0) {
+            idToName.set(id, name);
+        }
+    }
+
+    return idToName;
+}
+
 export type Js5ArchiveIndex = {
     groupIds: number[];
     fileIdsByGroup: Map<number, number[]>;
 };
+
+export async function loadArchiveFileIds(indexArchive: number, archive: number, openrs2: boolean = true): Promise<number[]> {
+    const indexPacked = await loadIndexPacked(indexArchive, `data/cache/255/${indexArchive}.dat`, openrs2);
+    const indexData = unpackJs5Group(indexPacked);
+    const { fileIdsByGroup } = parseJs5ArchiveIndexCore(indexData);
+    const fileIds = fileIdsByGroup.get(archive);
+
+    if (!fileIds) {
+        throw new Error(`Archive ${archive} not found in index ${indexArchive}`);
+    }
+
+    return fileIds;
+}
+
+export type LoadedArchiveGroup = {
+    fileIds: number[];
+    groupPacked: Uint8Array;
+    groupUnpacked: Uint8Array;
+    files: Map<number, Uint8Array>;
+};
+
+export async function loadArchiveGroupFiles(
+    indexArchive: number,
+    archive: number,
+    groupsDir: string,
+    openrs2: boolean = true
+): Promise<LoadedArchiveGroup> {
+    const fileIds = await loadArchiveFileIds(indexArchive, archive, openrs2);
+    const groupPacked = await readGroupBytes(indexArchive, archive, groupsDir, openrs2);
+
+    if (!groupPacked) {
+        throw new Error(`Missing group data for index ${indexArchive}, archive ${archive}`);
+    }
+
+    const groupUnpacked = unpackJs5Group(groupPacked);
+    const files = splitGroupFiles(groupUnpacked, fileIds);
+
+    return {
+        fileIds,
+        groupPacked,
+        groupUnpacked,
+        files
+    };
+}
 
 export function parseJs5ArchiveIndex(indexData: Uint8Array): Js5ArchiveIndex {
     const packet = new Packet(indexData);

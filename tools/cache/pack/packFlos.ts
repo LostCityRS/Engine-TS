@@ -3,13 +3,19 @@ import path from 'path';
 
 import FloType from '#/cache/config/FloType.js';
 import { CompressionType } from '#/io/CompressionType.js';
-import Packet from '#/io/Packet.js';
 import { unpackJs5Group } from '#/io/Js5Group.js';
+import {
+    parseBracketedConfigSource,
+    parseConfigBoolean,
+    parseConfigInteger,
+    resolveSectionId
+} from '#tools/cache/lib/configSource.js';
 import { encodeFlo, encodeFloWithOpcodes } from '#tools/cache/lib/floCodec.js';
 import {
     arraysEqual,
     ensureDir,
     parsePackFile,
+    loadArchiveFileIds,
     combineGroupFiles,
     compressJs5Group,
 } from '#tools/cache/lib/js5Tools.js';
@@ -68,122 +74,77 @@ type ParsedFloSource = {
 
 function parseSourceFlos(content: string, nameToId: Map<string, number>): Map<number, ParsedFloSource> {
     const flos = new Map<number, ParsedFloSource>();
-    const lines = content.split('\n');
+    const sections = parseBracketedConfigSource(content);
 
-    let currentId = -1;
-    let currentConfig: FloType | null = null;
-    let currentOpcodes: OpcodeValue[] = [];
-
-    const finalize = () => {
-        if (currentConfig && currentId >= 0) {
-            flos.set(currentId, {
-                config: currentConfig,
-                opcodes: currentOpcodes
-            });
-        }
-    };
-
-    for (const rawLine of lines) {
-        const line = rawLine.trim();
-
-        // Skip empty lines and comments
-        if (line.length === 0 || line.startsWith('//')) {
-            continue;
+    for (const section of sections) {
+        const id = resolveSectionId(section.name, nameToId, 'flo_');
+        if (id === null) {
+            throw new Error(`Unknown floor overlay name: ${section.name}`);
         }
 
-        // Section header: [flo_name] or [flo_123]
-        if (line.startsWith('[') && line.endsWith(']')) {
-            finalize();
+        const config = new FloType(id);
+        config.debugname = nameToId.get(section.name) !== undefined ? section.name : null;
+        const opcodes: OpcodeValue[] = [];
 
-            const name = line.substring(1, line.length - 1);
-            let id = nameToId.get(name);
+        for (const field of section.fields) {
+            const { key, value } = field;
 
-            if (id === undefined) {
-                // Try to parse as flo_<id>
-                if (name.startsWith('flo_')) {
-                    const num = parseInt(name.substring(4));
-                    if (!isNaN(num)) {
-                        id = num;
-                    }
+            if (key === 'overlay') {
+                continue;
+            }
+
+            if (key === 'code8') {
+                config.code8 = parseConfigBoolean(value);
+                opcodes.push({ code: 8 });
+            } else if (key === 'colour') {
+                const colourValue = parseConfigInteger(value);
+                config.colour = colourValue;
+                opcodes.push({ code: 1, value: colourValue });
+            } else if (key === 'texture') {
+                const matValue = parseConfigInteger(value);
+                config.material = matValue;
+                opcodes.push({ code: 2, value: matValue });
+            } else if (key === 'material') {
+                const matValue = parseConfigInteger(value);
+                config.material = matValue;
+                opcodes.push({ code: 3, value: matValue });
+            } else if (key === 'occlude') {
+                config.occlude = parseConfigBoolean(value);
+                opcodes.push({ code: 5 });
+            } else if (key === 'averagecolour') {
+                const avgColourValue = parseConfigInteger(value);
+                config.averagecolour = avgColourValue;
+                opcodes.push({ code: 7, value: avgColourValue });
+            } else if (key === 'materialscale') {
+                const scaleValue = parseConfigInteger(value);
+                config.materialscale = scaleValue;
+                opcodes.push({ code: 9, value: scaleValue });
+            } else if (key === 'hardshadow') {
+                config.hardshadow = parseConfigBoolean(value);
+                if (!config.hardshadow) {
+                    opcodes.push({ code: 10 });
                 }
+            } else if (key === 'priority') {
+                const priorityValue = parseConfigInteger(value);
+                config.priority = priorityValue;
+                opcodes.push({ code: 11, value: priorityValue });
+            } else if (key === 'blend') {
+                config.blend = parseConfigBoolean(value);
+                opcodes.push({ code: 12 });
+            } else if (key === 'waterfogcolour') {
+                const fogColourValue = parseConfigInteger(value);
+                config.waterfogcolour = fogColourValue;
+                opcodes.push({ code: 13, value: fogColourValue });
+            } else if (key === 'waterfogscale') {
+                const fogScaleValue = parseConfigInteger(value);
+                config.waterfogscale = fogScaleValue;
+                opcodes.push({ code: 14, value: fogScaleValue });
             }
-
-            if (id === undefined) {
-                throw new Error(`Unknown floor overlay name: ${name}`);
-            }
-
-            currentId = id;
-            currentConfig = new FloType(id);
-            currentConfig.debugname = nameToId.get(name) !== undefined ? name : null;
-            currentOpcodes = [];
-            continue;
         }
 
-        if (!currentConfig) {
-            continue;
-        }
-
-        // Property line: key=value
-        const eq = line.indexOf('=');
-        if (eq === -1) {
-            continue;
-        }
-
-        const key = line.substring(0, eq).trim();
-        const value = line.substring(eq + 1).trim();
-
-        if (key === 'overlay') {
-            // overlay is now deprecated/removed, skip
-        } else if (key === 'code8') {
-            currentConfig.code8 = value === 'yes' || value === 'true';
-            currentOpcodes.push({ code: 8 });
-        } else if (key === 'colour') {
-            const colourValue = value.startsWith('0x') ? parseInt(value, 16) : parseInt(value);
-            currentConfig.colour = colourValue;
-            currentOpcodes.push({ code: 1, value: colourValue });
-        } else if (key === 'texture') {
-            const matValue = parseInt(value);
-            currentConfig.material = matValue;
-            currentOpcodes.push({ code: 2, value: matValue });
-        } else if (key === 'material') {
-            const matValue = parseInt(value);
-            currentConfig.material = matValue;
-            currentOpcodes.push({ code: 3, value: matValue });
-        } else if (key === 'occlude') {
-            currentConfig.occlude = value === 'yes' || value === 'true';
-            currentOpcodes.push({ code: 5 });
-        } else if (key === 'averagecolour') {
-            const avgColourValue = value.startsWith('0x') ? parseInt(value, 16) : parseInt(value);
-            currentConfig.averagecolour = avgColourValue;
-            currentOpcodes.push({ code: 7, value: avgColourValue });
-        } else if (key === 'materialscale') {
-            const scaleValue = parseInt(value);
-            currentConfig.materialscale = scaleValue;
-            currentOpcodes.push({ code: 9, value: scaleValue });
-        } else if (key === 'hardshadow') {
-            currentConfig.hardshadow = value === 'yes' || value === 'true';
-            if (!currentConfig.hardshadow) {
-                currentOpcodes.push({ code: 10 });
-            }
-        } else if (key === 'priority') {
-            const priorityValue = parseInt(value);
-            currentConfig.priority = priorityValue;
-            currentOpcodes.push({ code: 11, value: priorityValue });
-        } else if (key === 'blend') {
-            currentConfig.blend = value === 'yes' || value === 'true';
-            currentOpcodes.push({ code: 12 });
-        } else if (key === 'waterfogcolour') {
-            const fogColourValue = value.startsWith('0x') ? parseInt(value, 16) : parseInt(value);
-            currentConfig.waterfogcolour = fogColourValue;
-            currentOpcodes.push({ code: 13, value: fogColourValue });
-        } else if (key === 'waterfogscale') {
-            const fogScaleValue = parseInt(value);
-            currentConfig.waterfogscale = fogScaleValue;
-            currentOpcodes.push({ code: 14, value: fogScaleValue });
-        }
+        flos.set(id, { config, opcodes });
     }
 
-    finalize();
     return flos;
 }
 
@@ -194,70 +155,7 @@ async function main() {
         throw new Error(`Source file not found: ${args.src}`);
     }
 
-    // Get file IDs from the index
-    const { getGroup } = await import('#/util/OpenRS2.js');
-    const indexData = await getGroup(255, args.index);
-    const indexUnpacked = unpackJs5Group(new Uint8Array(indexData));
-    const indexPacket = new Packet(indexUnpacked);
-
-    const format = indexPacket.g1();
-    if (format >= 6) {
-        indexPacket.g4s(); // version
-    }
-
-    const flags = indexPacket.g1();
-
-    function readJs5Id(packet: Packet, format: number): number {
-        if (format >= 7) {
-            return packet.gSmart2or4();
-        }
-        return packet.g2();
-    }
-
-    const groupCount = readJs5Id(indexPacket, format);
-    const groupIds: number[] = new Array(groupCount);
-    let previousGroupId = 0;
-    for (let i = 0; i < groupCount; i++) {
-        previousGroupId += readJs5Id(indexPacket, format);
-        groupIds[i] = previousGroupId;
-    }
-
-    const archiveIndex = groupIds.indexOf(args.archive);
-    if (archiveIndex === -1) {
-        throw new Error(`Archive ${args.archive} not found in index ${args.index}`);
-    }
-
-    // Skip to file counts
-    if ((flags & 0x1) !== 0) {
-        for (let i = 0; i < groupCount; i++) {
-            indexPacket.g4s(); // skip names
-        }
-    }
-    for (let i = 0; i < groupCount; i++) {
-        indexPacket.g4s(); // skip CRCs
-    }
-    for (let i = 0; i < groupCount; i++) {
-        indexPacket.g4s(); // skip versions
-    }
-
-    const fileCounts: number[] = new Array(groupCount);
-    for (let i = 0; i < groupCount; i++) {
-        fileCounts[i] = readJs5Id(indexPacket, format);
-    }
-
-    // Get file IDs for this archive
-    for (let i = 0; i < archiveIndex; i++) {
-        for (let j = 0; j < fileCounts[i]; j++) {
-            readJs5Id(indexPacket, format);
-        }
-    }
-
-    const fileIds: number[] = [];
-    let previousFileId = 0;
-    for (let j = 0; j < fileCounts[archiveIndex]; j++) {
-        previousFileId += readJs5Id(indexPacket, format);
-        fileIds.push(previousFileId);
-    }
+    const fileIds = await loadArchiveFileIds(args.index, args.archive, true);
 
     // Read pack file to resolve names
     const packPath = path.join(path.dirname(args.src), 'pack', 'flo.pack');

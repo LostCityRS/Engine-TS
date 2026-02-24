@@ -7,6 +7,7 @@ import { CompressionType } from '#/io/CompressionType.js';
 import Packet from '#/io/Packet.js';
 import { unpackJs5Group } from '#/io/Js5Group.js';
 import Environment from '#/util/Environment.js';
+import { parseBracketedConfigSource } from '#tools/cache/lib/configSource.js';
 import { encodeEnum } from '#tools/cache/lib/enumCodec.js';
 import {
     arraysEqual,
@@ -140,145 +141,118 @@ function parseSourceScalar(value: string, type: number): number | string {
 
 function parseSourceEnums(content: string, nameToId: Map<string, number>): Map<number, ParsedEnumSource> {
     const enums = new Map<number, ParsedEnumSource>();
-    const lines = content.split('\n');
+    const sections = parseBracketedConfigSource(content);
 
-    let currentEnum: EnumType | null = null;
-    let currentParsed: ParsedEnumSource | null = null;
-    let currentId = -1;
-    let currentOps: EnumEncodeOp[] = [];
-    let pendingValuesBlock: { code: 5 | 6; remaining: number } | null = null;
+    for (const section of sections) {
+        // Resolve enum ID from section name
+        let enumId = nameToId.get(section.name);
+        if (enumId === undefined && section.name.startsWith('enum_')) {
+            enumId = parseInt(section.name.substring(5));
+        }
 
-    for (const rawLine of lines) {
-        const line = rawLine.endsWith('\r') ? rawLine.slice(0, -1) : rawLine;
-        const trimmed = line.trim();
-
-        if (trimmed.length === 0 || trimmed.startsWith('//')) {
+        if (enumId === undefined || isNaN(enumId)) {
             continue;
         }
 
-        // [enum_name] or [debugname]
-        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-            const name = trimmed.substring(1, trimmed.length - 1);
+        const currentEnum = new EnumType(enumId);
+        const currentOps: EnumEncodeOp[] = [];
+        let transmit = false;
+        let pendingValuesBlock: { code: 5 | 6; remaining: number } | null = null;
 
-            // Extract ID from name or debugname
-            if (name.startsWith('enum_')) {
-                currentId = parseInt(name.substring(5));
-            } else {
-                currentId = nameToId.get(name) ?? -1;
-            }
+        // Store debugname if it's not the default enum_<id> format
+        if (!section.name.startsWith('enum_')) {
+            currentEnum.debugname = section.name;
+        }
 
-            if (currentId !== -1) {
-                currentEnum = new EnumType(currentId);
-                currentOps = [];
+        // Process fields
+        for (const field of section.fields) {
+            const { key, value } = field;
+
+            if (key === 'inputtype') {
+                const parsed = parseSourceTypeName(value);
+                currentEnum.inputtype = parsed;
+                currentOps.push({ code: 1, value: parsed });
+            } else if (key === 'outputtype') {
+                const parsed = parseSourceTypeName(value);
+                currentEnum.outputtype = parsed;
+                currentOps.push({ code: 2, value: parsed });
+            } else if (key === 'debugname') {
+                currentEnum.debugname = value;
+                currentOps.push({ code: 250, value });
+            } else if (key === 'transmit') {
+                const parsed = value.trim().toLowerCase();
+                transmit = parsed === 'yes' || parsed === 'true' || parsed === '1';
+            } else if (key === 'default' || key === 'default@3' || key === 'default@4') {
+                // Check for explicit flag (! suffix)
+                const isExplicit = value.endsWith('!');
+                const cleanValue = isExplicit ? value.slice(0, -1) : value;
+                const opCode = key === 'default@3' ? 3 : key === 'default@4' ? 4 : (currentEnum.outputtype === ScriptVarType.STRING ? 3 : 4);
+
+                if (opCode === 3) {
+                    currentEnum.defaultString = cleanValue;
+                    if (isExplicit) {
+                        currentEnum.hasExplicitDefaultString = true;
+                    }
+                    currentOps.push({ code: 3, value: cleanValue });
+                } else {
+                    currentEnum.defaultInt = Number(parseSourceScalar(cleanValue, currentEnum.outputtype));
+                    if (isExplicit) {
+                        currentEnum.hasExplicitDefaultInt = true;
+                    }
+                    currentOps.push({ code: 4, value: currentEnum.defaultInt });
+                }
                 pendingValuesBlock = null;
-                currentParsed = { config: currentEnum, ops: currentOps, transmit: false };
-                enums.set(currentId, currentParsed);
-
-                // Store debugname if it's not the default enum_<id> format
-                if (!name.startsWith('enum_')) {
-                    currentEnum.debugname = name;
+            } else if (key === 'values@5' || key === 'values@6') {
+                const count = Number(value);
+                const code: 5 | 6 = key === 'values@5' ? 5 : 6;
+                currentOps.push(code === 5 ? { code: 5, values: [] } : { code: 6, values: [] });
+                pendingValuesBlock = { code, remaining: Number.isFinite(count) && count > 0 ? count : 0 };
+            } else if (key === 'val' || key === 'val@5' || key === 'val@6') {
+                const commaIndex = value.indexOf(',');
+                if (commaIndex === -1) {
+                    continue;
                 }
-            } else {
-                currentEnum = null;
-                currentParsed = null;
-            }
-            continue;
-        }
 
-        if (!currentEnum || !currentParsed) {
-            continue;
-        }
+                const keyPart = value.substring(0, commaIndex).trim();
+                const valuePart = value.substring(commaIndex + 1);
 
-        const eqIndex = line.indexOf('=');
-        if (eqIndex === -1) {
-            continue;
-        }
+                const parsedKey = Number(parseSourceScalar(keyPart, currentEnum.inputtype));
+                const opCode: 5 | 6 = key === 'val@5' ? 5 : key === 'val@6' ? 6 : (currentEnum.outputtype === ScriptVarType.STRING ? 5 : 6);
 
-        const key = line.substring(0, eqIndex).trim();
-        const value = line.substring(eqIndex + 1);
+                if (opCode === 5) {
+                    const parsedValue = valuePart;
+                    currentEnum.values.set(parsedKey, parsedValue);
 
-        if (key === 'inputtype') {
-            const parsed = parseSourceTypeName(value);
-            currentEnum.inputtype = parsed;
-            currentOps.push({ code: 1, value: parsed });
-        } else if (key === 'outputtype') {
-            const parsed = parseSourceTypeName(value);
-            currentEnum.outputtype = parsed;
-            currentOps.push({ code: 2, value: parsed });
-        } else if (key === 'debugname') {
-            currentEnum.debugname = value;
-            currentOps.push({ code: 250, value });
-        } else if (key === 'transmit') {
-            const parsed = value.trim().toLowerCase();
-            currentParsed.transmit = parsed === 'yes' || parsed === 'true' || parsed === '1';
-        } else if (key === 'default' || key === 'default@3' || key === 'default@4') {
-            // Check for explicit flag (! suffix)
-            const isExplicit = value.endsWith('!');
-            const cleanValue = isExplicit ? value.slice(0, -1) : value;
-            const opCode = key === 'default@3' ? 3 : key === 'default@4' ? 4 : (currentEnum.outputtype === ScriptVarType.STRING ? 3 : 4);
-            
-            if (opCode === 3) {
-                currentEnum.defaultString = cleanValue;
-                if (isExplicit) {
-                    currentEnum.hasExplicitDefaultString = true;
-                }
-                currentOps.push({ code: 3, value: cleanValue });
-            } else {
-                currentEnum.defaultInt = Number(parseSourceScalar(cleanValue, currentEnum.outputtype));
-                if (isExplicit) {
-                    currentEnum.hasExplicitDefaultInt = true;
-                }
-                currentOps.push({ code: 4, value: currentEnum.defaultInt });
-            }
-            pendingValuesBlock = null;
-        } else if (key === 'values@5' || key === 'values@6') {
-            const count = Number(value);
-            const code: 5 | 6 = key === 'values@5' ? 5 : 6;
-            currentOps.push(code === 5 ? { code: 5, values: [] } : { code: 6, values: [] });
-            pendingValuesBlock = { code, remaining: Number.isFinite(count) && count > 0 ? count : 0 };
-        } else if (key === 'val' || key === 'val@5' || key === 'val@6') {
-            const commaIndex = value.indexOf(',');
-            if (commaIndex === -1) {
-                continue;
-            }
-
-            const keyPart = value.substring(0, commaIndex).trim();
-            const valuePart = value.substring(commaIndex + 1);
-
-            const parsedKey = Number(parseSourceScalar(keyPart, currentEnum.inputtype));
-            const opCode: 5 | 6 = key === 'val@5' ? 5 : key === 'val@6' ? 6 : (currentEnum.outputtype === ScriptVarType.STRING ? 5 : 6);
-
-            if (opCode === 5) {
-                const parsedValue = valuePart;
-                currentEnum.values.set(parsedKey, parsedValue);
-
-                const lastOp = currentOps[currentOps.length - 1];
-                if (lastOp?.code === 5 && (!pendingValuesBlock || pendingValuesBlock.code === 5)) {
-                    lastOp.values.push({ key: parsedKey, value: parsedValue });
+                    const lastOp = currentOps[currentOps.length - 1];
+                    if (lastOp?.code === 5 && (!pendingValuesBlock || pendingValuesBlock.code === 5)) {
+                        lastOp.values.push({ key: parsedKey, value: parsedValue });
+                    } else {
+                        currentOps.push({ code: 5, values: [{ key: parsedKey, value: parsedValue }] });
+                    }
                 } else {
-                    currentOps.push({ code: 5, values: [{ key: parsedKey, value: parsedValue }] });
+                    const parsedValue = Number(parseSourceScalar(valuePart, currentEnum.outputtype));
+                    currentEnum.values.set(parsedKey, parsedValue);
+
+                    const lastOp = currentOps[currentOps.length - 1];
+                    if (lastOp?.code === 6 && (!pendingValuesBlock || pendingValuesBlock.code === 6)) {
+                        lastOp.values.push({ key: parsedKey, value: parsedValue });
+                    } else {
+                        currentOps.push({ code: 6, values: [{ key: parsedKey, value: parsedValue }] });
+                    }
+                }
+
+                if (pendingValuesBlock && pendingValuesBlock.code === opCode) {
+                    pendingValuesBlock.remaining -= 1;
+                    if (pendingValuesBlock.remaining <= 0) {
+                        pendingValuesBlock = null;
+                    }
                 }
             } else {
-                const parsedValue = Number(parseSourceScalar(valuePart, currentEnum.outputtype));
-                currentEnum.values.set(parsedKey, parsedValue);
-
-                const lastOp = currentOps[currentOps.length - 1];
-                if (lastOp?.code === 6 && (!pendingValuesBlock || pendingValuesBlock.code === 6)) {
-                    lastOp.values.push({ key: parsedKey, value: parsedValue });
-                } else {
-                    currentOps.push({ code: 6, values: [{ key: parsedKey, value: parsedValue }] });
-                }
+                pendingValuesBlock = null;
             }
-
-            if (pendingValuesBlock && pendingValuesBlock.code === opCode) {
-                pendingValuesBlock.remaining -= 1;
-                if (pendingValuesBlock.remaining <= 0) {
-                    pendingValuesBlock = null;
-                }
-            }
-        } else {
-            pendingValuesBlock = null;
         }
+
+        enums.set(enumId, { config: currentEnum, ops: currentOps, transmit });
     }
 
     return enums;
