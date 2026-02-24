@@ -5,7 +5,7 @@ export default class InvButtonD extends ClientGameMessage {
     category = ClientGameProtCategory.USER_EVENT;
 
     constructor(
-        readonly component: number,
+        readonly com: number,
         readonly slot: number,
         readonly targetSlot: number,
         readonly mode: number

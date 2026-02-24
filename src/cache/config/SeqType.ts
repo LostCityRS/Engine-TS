@@ -105,7 +105,7 @@ export default class SeqType extends ConfigType {
 
                 this.delay[i] = dat.g2();
                 if (this.delay[i] === 0) {
-                    this.delay[i] = AnimFrame.instances[this.frames[i]].delay;
+                    this.delay[i] = AnimFrame.instances[this.frames[i]]?.delay ?? 0;
                 }
 
                 if (this.delay[i] === 0) {

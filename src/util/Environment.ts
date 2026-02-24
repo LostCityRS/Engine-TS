@@ -3,11 +3,10 @@ import { tryParseBoolean, tryParseInt, tryParseString } from '#/util/TryParse.js
 import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 
 export default {
+    IS_BUN: typeof process.versions.bun !== 'undefined', // not user-configurable
+
     EASY_STARTUP: tryParseBoolean(process.env.EASY_STARTUP, false),
     WEBSITE_REGISTRATION: tryParseBoolean(process.env.WEBSITE_REGISTRATION, true),
-
-    // bundler/webrtc browser mode
-    STANDALONE_BUNDLE: tryParseBoolean(process.env.STANDALONE_BUNDLE, false),
 
     /// web server
     WEB_PORT: tryParseInt(process.env.WEB_PORT, process.platform === 'win32' || process.platform === 'darwin' ? 80 : 8888),
@@ -53,6 +52,10 @@ export default {
     NODE_MAX_NPCS: tryParseInt(process.env.NODE_MAX_NPCS, 16383),
     NODE_DEBUGPROC_CHAR: tryParseString(process.env.NODE_DEBUGPROC_CHAR, '~'),
     NODE_WS_ONDEMAND: tryParseBoolean(process.env.NODE_WS_ONDEMAND, false),
+    NODE_HOP_TIME: tryParseInt(process.env.NODE_MAX_NPCS, 45000), // 45s
+    // limit login attempts
+    NODE_RATELIMIT_ADDRESS_LOGIN: tryParseInt(process.env.NODE_RATELIMIT_ADDRESS_LOGIN, 30), // ip (60s)
+    NODE_RATELIMIT_DEVICE_LOGIN: tryParseInt(process.env.NODE_RATELIMIT_DEVICE_LOGIN, 5), // uid+ip (15s)
 
     /// login server
     LOGIN_SERVER: tryParseBoolean(process.env.LOGIN_SERVER, false),
@@ -86,12 +89,9 @@ export default {
     KYSELY_VERBOSE: tryParseBoolean(process.env.KYSELY_VERBOSE, false),
 
     /// development
-    // some users may not be able to change their system PATH for this project
-    BUILD_JAVA_PATH: tryParseString(process.env.BUILD_JAVA_PATH, 'java'),
+    BUILD_VERBOSE: tryParseBoolean(process.env.BUILD_VERBOSE, false),
     // auto-build on startup
     BUILD_STARTUP: tryParseBoolean(process.env.BUILD_STARTUP, false),
-    // auto-update compiler on startup
-    BUILD_STARTUP_UPDATE: tryParseBoolean(process.env.BUILD_STARTUP_UPDATE, true),
     // used to check if we're producing the original cache without edits
     BUILD_VERIFY: tryParseBoolean(process.env.BUILD_VERIFY, true),
     // used to keep some semblance of sanity in our folder structure

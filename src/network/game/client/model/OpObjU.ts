@@ -10,7 +10,7 @@ export default class OpObjU extends ClientGameMessage {
         readonly obj: number,
         readonly useObj: number,
         readonly useSlot: number,
-        readonly useComponent: number
+        readonly useCom: number
     ) {
         super();
     }

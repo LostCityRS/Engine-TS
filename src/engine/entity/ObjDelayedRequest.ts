@@ -1,5 +1,5 @@
 import Obj from '#/engine/entity/Obj.js';
-import Linkable from '#/util/Linkable.js';
+import Linkable from '#/datastruct/Linkable.js';
 
 export class ObjDelayedRequest extends Linkable {
     // Obj to add

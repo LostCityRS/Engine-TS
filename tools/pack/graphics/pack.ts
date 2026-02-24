@@ -8,7 +8,7 @@ import { listFilesExt } from '#tools/pack/Parse.js';
 import { AnimSetPack, ModelPack } from '#tools/pack/PackFile.js';
 import { printWarning } from '#/util/Logger.js';
 
-export function packClientModel(cache: FileStream, modelFlags: number[]) {
+export function packClientGraphics(cache: FileStream, modelFlags: number[]) {
     const models = listFilesExt(`${Environment.BUILD_SRC_DIR}/models`, '.ob2');
     for (const file of models) {
         const basename = path.basename(file);

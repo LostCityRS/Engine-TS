@@ -12,6 +12,7 @@ export default class OpObjHandler extends ClientGameMessageHandler<OpObj> {
         const { x, z, obj: objId } = message;
 
         if (player.delayed) {
+            // normal: cannot interact while delayed
             player.write(new UnsetMapFlag());
             return false;
         }
@@ -21,41 +22,28 @@ export default class OpObjHandler extends ClientGameMessageHandler<OpObj> {
         const absTopZ = player.originZ + 52;
         const absBottomZ = player.originZ - 52;
         if (x < absLeftX || x > absRightX || z < absBottomZ || z > absTopZ) {
+            // bad client: tile is not visible on client
             player.write(new UnsetMapFlag());
-            player.clearPendingAction();
             return false;
         }
 
         const obj = World.getObj(x, z, player.level, objId, player.hash64);
         if (!obj) {
-            player.moveClickRequest = false;
-            player.clearPendingAction();
-            return false;
-        }
-
-        const objType = ObjType.get(obj.type);
-        // todo: validate all options
-        if ((message.op === 1 && ((objType.op && !objType.op[0]) || !objType.op)) || (message.op === 4 && ((objType.op && !objType.op[3]) || !objType.op))) {
+            // bad client or lag: obj does not exist
             player.write(new UnsetMapFlag());
-            player.clearPendingAction();
             return false;
         }
 
-        let mode: ServerTriggerType;
-        if (message.op === 1) {
-            mode = ServerTriggerType.APOBJ1;
-        } else if (message.op === 2) {
-            mode = ServerTriggerType.APOBJ2;
-        } else if (message.op === 3) {
-            mode = ServerTriggerType.APOBJ3;
-        } else if (message.op === 4) {
-            mode = ServerTriggerType.APOBJ4;
-        } else {
-            mode = ServerTriggerType.APOBJ5;
+        const type = ObjType.get(obj.type);
+        if (type.op[message.op - 1] === null || type.op[message.op - 1] === 'hidden') {
+            // bad client or lag: obj does not exist
+            player.write(new UnsetMapFlag());
+            return false;
         }
 
+        const trigger: ServerTriggerType = ServerTriggerType.APOBJ1 + (message.op - 1);
         player.clearPendingAction();
-        player.setInteraction(Interaction.ENGINE, obj, mode);
+        player.setInteraction(Interaction.ENGINE, obj, trigger);
         player.opcalled = true;
         return true;
     }

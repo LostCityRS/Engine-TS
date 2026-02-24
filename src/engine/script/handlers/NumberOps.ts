@@ -1,5 +1,6 @@
 import { ScriptOpcode } from '#/engine/script/ScriptOpcode.js';
 import { CommandHandlers } from '#/engine/script/ScriptRunner.js';
+import JavaRandom from '#/util/JavaRandom.js';
 import { bitcount, clearBitRange, MASK, setBitRange } from '#/util/Numbers.js';
 import Trig from 'src/util/Trig.js';
 
@@ -29,13 +30,13 @@ const NumberOps: CommandHandlers = {
     },
 
     [ScriptOpcode.RANDOM]: state => {
-        const a = state.popInt();
-        state.pushInt(Math.random() * a);
+        const n = state.popInt();
+        state.pushInt(JavaRandom.nextDouble() * n);
     },
 
     [ScriptOpcode.RANDOMINC]: state => {
-        const a = state.popInt();
-        state.pushInt(Math.random() * (a + 1));
+        const n = state.popInt();
+        state.pushInt(JavaRandom.nextDouble() * (n + 1));
     },
 
     [ScriptOpcode.INTERPOLATE]: state => {

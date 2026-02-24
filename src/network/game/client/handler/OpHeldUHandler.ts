@@ -11,56 +11,73 @@ import Environment from '#/util/Environment.js';
 
 export default class OpHeldUHandler extends ClientGameMessageHandler<OpHeldU> {
     handle(message: OpHeldU, player: Player): boolean {
-        const { obj: item, slot, component: comId, useObj: useItem, useSlot, useComponent: useComId } = message;
+        const { obj, slot, com: comId, useObj, useSlot, useCom: useComId } = message;
+
         if (player.delayed) {
+            // normal: cannot interact while delayed
+            return false;
+        }
+
+        if (comId !== useComId) {
+            // bad client: opheldu cannot target different components
             return false;
         }
 
         const com = Component.get(comId);
-        if (typeof com === 'undefined' || !player.isComponentVisible(com) || !com.interactable) {
-            player.clearPendingAction();
+        if (typeof com === 'undefined' || !com.usable) {
+            // bad client: component is not acceptable for this packet
+            return false;
+        } else if (!player.isComponentVisible(com)) {
+            // bad client or lag: component is not visible
             return false;
         }
 
         const useCom = Component.get(useComId);
-        if (typeof useCom === 'undefined' || !player.isComponentVisible(useCom) || !useCom.interactable) {
+        if (typeof useCom === 'undefined' || !useCom.usable) {
+            // bad client: component is not acceptable for this packet
+            return false;
+        } else if (!player.isComponentVisible(useCom)) {
+            // bad client or lag: component is not visible
+            return false;
+        }
+
+        const listener = player.invListeners.find(l => l.com === comId);
+        const inv = player.getInventoryFromListener(listener);
+        if (!inv) {
+            // bad client or lag: inventory is not transmitted to client
+            return false;
+        }
+
+        if (!inv.validSlot(slot)) {
+            // bad client: real inventory is smaller
+            return false;
+        } else if (!inv.hasAt(slot, obj)) {
+            // bad client or lag: item does not exist in inventory
+            player.moveClickRequest = false; // removed early osrs
             player.clearPendingAction();
             return false;
         }
 
-        {
-            const listener = player.invListeners.find(l => l.com === comId);
-            if (!listener) {
-                player.clearPendingAction();
-                return false;
-            }
-
-            const inv = player.getInventoryFromListener(listener);
-            if (!inv || !inv.validSlot(slot) || !inv.hasAt(slot, item)) {
-                player.moveClickRequest = false; // removed early osrs
-                player.clearPendingAction();
-                return false;
-            }
+        const useListener = player.invListeners.find(l => l.com === useComId);
+        const useInv = player.getInventoryFromListener(useListener);
+        if (!useInv) {
+            // bad client or lag: inventory is not transmitted to client
+            return false;
         }
 
-        {
-            const listener = player.invListeners.find(l => l.com === useComId);
-            if (!listener) {
-                player.clearPendingAction();
-                return false;
-            }
-
-            const inv = player.getInventoryFromListener(listener);
-            if (!inv || !inv.validSlot(useSlot) || !inv.hasAt(useSlot, useItem)) {
-                player.moveClickRequest = false; // removed early osrs
-                player.clearPendingAction();
-                return false;
-            }
+        if (!useInv.validSlot(useSlot)) {
+            // bad client: real inventory is smaller
+            return false;
+        } else if (!useInv.hasAt(useSlot, useObj)) {
+            // bad client or lag: item does not exist in inventory
+            player.moveClickRequest = false; // removed early osrs
+            player.clearPendingAction();
+            return false;
         }
 
-        player.lastItem = item;
+        player.lastItem = obj;
         player.lastSlot = slot;
-        player.lastUseItem = useItem;
+        player.lastUseItem = useObj;
         player.lastUseSlot = useSlot;
 
         const objType = ObjType.get(player.lastItem);

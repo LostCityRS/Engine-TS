@@ -173,7 +173,7 @@ for (let i = 0; i < mapIndex.length / 7; i++) {
     // todo: preserve npc and obj sections
     const saved = [];
     if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/m${mapX}_${mapZ}.jm2`)) {
-        const existing = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/m${mapX}_${mapZ}.jm2`, 'utf8').replace(/\r/g, '').split('\n');
+        const existing = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/m${mapX}_${mapZ}.jm2`, 'utf8').split(/\r?\n/);
 
         let hasNpcObj = false;
         for (let i = 0; i < existing.length; i++) {

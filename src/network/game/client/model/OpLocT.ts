@@ -8,7 +8,7 @@ export default class OpLocT extends ClientGameMessage {
         readonly x: number,
         readonly z: number,
         readonly loc: number,
-        readonly spellComponent: number
+        readonly spellCom: number
     ) {
         super();
     }

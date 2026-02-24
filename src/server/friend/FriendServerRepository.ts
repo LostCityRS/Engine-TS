@@ -80,7 +80,7 @@ export class FriendServerRepository {
             return false;
         }
 
-        if (!this.playerStaff.has(username37) && staffLvl > 0) {
+        if (staffLvl > 1 && !this.playerStaff.has(username37)) {
             this.playerStaff.add(username37);
         }
 
@@ -196,11 +196,11 @@ export class FriendServerRepository {
 
         await db.deleteFrom('friendlist')
             .where('profile', '=', this.profile)
-            .where('account_id', 'in', 
+            .where('account_id', 'in',
                 db.selectFrom('account')
                     .select('id')
                     .where('username', '=', username))
-            .where('friend_account_id', 'in', 
+            .where('friend_account_id', 'in',
                 db.selectFrom('account')
                     .select('id')
                     .where('username', '=', targetUsername))
@@ -219,18 +219,18 @@ export class FriendServerRepository {
         }
 
         // I tried to do all this in 1 query but Kyesly wasn't happy
-        const accountId = await db.selectFrom('account').select('id').where('username', '=', username).limit(1).executeTakeFirst();
+        const account = await db.selectFrom('account').select(['id', 'members']).where('username', '=', username).limit(1).executeTakeFirst();
+        const friendAccount = await db.selectFrom('account').select('id').where('username', '=', targetUsername).limit(1).executeTakeFirst();
 
-        const friendAccountId = await db.selectFrom('account').select('id').where('username', '=', targetUsername).limit(1).executeTakeFirst();
-
-        if (!accountId || !friendAccountId) {
-            // console.error(`[Friends]: ${username} tried to add ${targetUsername} to their friend list, but one of the accounts does not exist`);
+        if (!account || !friendAccount) {
+            // todo: respond to the client to delete their entry visually
             return;
         }
 
-        const list = await db.selectFrom('friendlist').where('account_id', '=', accountId.id).select(({ fn }) => fn.countAll().as('count')).executeTakeFirst();
+        const list = await db.selectFrom('friendlist').where('account_id', '=', account.id).select(({ fn }) => fn.countAll().as('count')).executeTakeFirst();
+        const limit = account.members ? 200 : 100;
 
-        if (list && list.count as number >= 100) {
+        if (list && list.count as number >= limit) {
             return;
         }
 
@@ -239,9 +239,9 @@ export class FriendServerRepository {
         await db
             .insertInto('friendlist')
             .values({
-                account_id: accountId.id,
+                account_id: account.id,
                 profile: this.profile,
-                friend_account_id: friendAccountId.id
+                friend_account_id: friendAccount.id
             })
             .execute();
     }
@@ -363,7 +363,7 @@ export class FriendServerRepository {
             .select('a.username')
             .where('local.username', '=', username)
             .where('f.profile', '=', this.profile)
-            .orderBy('f.created asc')
+            .orderBy('f.created', 'asc')
             .execute();
         const friendUsername37s = friendUsernames.map(f => toBase37(f.username));
 
@@ -377,7 +377,7 @@ export class FriendServerRepository {
             .select('i.value')
             .where('local.username', '=', username)
             .where('i.profile', '=', this.profile)
-            .orderBy('i.created asc')
+            .orderBy('i.created', 'asc')
             .execute();
 
         const ignoreUsername37s = ignores.map(f => toBase37(f.value));

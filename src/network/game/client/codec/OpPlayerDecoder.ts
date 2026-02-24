@@ -12,20 +12,20 @@ export default class OpPlayerDecoder extends ClientGameMessageDecoder<OpPlayer> 
     }
 
     decode(buf: Packet) {
-        let pid = -1;
+        let playerSlot = -1;
 
         if (this.op === 1) {
-            pid = buf.g2_alt3();
+            playerSlot = buf.g2_alt3();
         } else if (this.op === 2) {
-            pid = buf.g2_alt2();
+            playerSlot = buf.g2_alt2();
         } else if (this.op === 3) {
-            pid = buf.g2_alt1();
+            playerSlot = buf.g2_alt1();
         } else if (this.op === 4) {
-            pid = buf.g2_alt1();
+            playerSlot = buf.g2_alt1();
         } else if (this.op === 5) {
-            pid = buf.g2_alt2();
+            playerSlot = buf.g2_alt2();
         }
 
-        return new OpPlayer(this.op, pid);
+        return new OpPlayer(this.op, playerSlot);
     }
 }

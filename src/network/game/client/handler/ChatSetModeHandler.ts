@@ -10,7 +10,6 @@ export default class ChatSetModeHandler extends ClientGameMessageHandler<ChatSet
         player.tradeDuel = _message.tradeDuel;
 
         World.sendPrivateChatModeToFriendsServer(player);
-
         return true;
     }
 }

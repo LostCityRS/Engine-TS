@@ -7,7 +7,7 @@ export default class HintArrowEncoder extends ServerGameMessageEncoder<HintArrow
     prot = ServerGameProt.HINT_ARROW;
 
     encode(buf: Packet, message: HintArrow): void {
-        const { type, nid, pid, x, z, y } = message;
+        const { type, nid, playerSlot, x, z, y } = message;
 
         if (type === 1) {
             buf.p1(type);
@@ -27,7 +27,7 @@ export default class HintArrowEncoder extends ServerGameMessageEncoder<HintArrow
             buf.p1(y);
         } else if (type === 10) {
             buf.p1(type);
-            buf.p2(pid);
+            buf.p2(playerSlot);
             buf.p2(0);
             buf.p1(0);
         } else if (type === -1) {

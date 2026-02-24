@@ -11,9 +11,9 @@ export default class OpObjUDecoder extends ClientGameMessageDecoder<OpObjU> {
         const useObj = buf.g2_alt2();
         const z = buf.g2_alt3();
         const x = buf.g2_alt3();
-        const useComponent = buf.g2_alt1();
+        const useCom = buf.g2_alt1();
         const obj = buf.g2_alt1();
 
-        return new OpObjU(x, z, obj, useObj, useSlot, useComponent);
+        return new OpObjU(x, z, obj, useObj, useSlot, useCom);
     }
 }

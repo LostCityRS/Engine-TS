@@ -239,7 +239,7 @@ export default class LocType extends ConfigType {
         if (this.active === -1) {
             this.active = 0;
 
-            if (this.shapes && this.shapes.length === 1 && this.shapes[0] === 10) {
+            if (this.models && (!this.shapes || (this.shapes && this.shapes[0] === 10))) {
                 this.active = 1;
             }
 

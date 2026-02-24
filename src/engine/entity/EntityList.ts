@@ -1,6 +1,5 @@
 import Entity from '#/engine/entity/Entity.js';
 import Npc from '#/engine/entity/Npc.js';
-import Player from '#/engine/entity/Player.js';
 
 // inspired by https://github.com/rsmod/rsmod/blob/master/game/src/main/kotlin/org/rsmod/game/model/mob/list/MobList.kt
 abstract class EntityList<T extends Entity> extends Array<T | undefined> {
@@ -89,27 +88,5 @@ abstract class EntityList<T extends Entity> extends Array<T | undefined> {
 export class NpcList extends EntityList<Npc> {
     constructor(size: number) {
         super(size, 0);
-    }
-}
-
-export class PlayerList extends EntityList<Player> {
-    constructor(size: number) {
-        super(size, 1);
-    }
-
-    next(priority: boolean = false, start: number = this.lastUsedIndex + 1): number {
-        // the priority does not round-robin idk if this is an issue
-        if (priority) {
-            // start searching at 1 if the calculated start is 0
-            const init: number = start === 0 ? 1 : 0;
-            for (let i: number = init; i < 100; i++) {
-                const index: number = start + i;
-                const id: number = this.ids[index];
-                if (id === -1) {
-                    return index;
-                }
-            }
-        }
-        return super.next();
     }
 }

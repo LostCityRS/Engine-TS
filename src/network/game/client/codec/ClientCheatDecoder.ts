@@ -8,6 +8,7 @@ export default class ClientCheatDecoder extends ClientGameMessageDecoder<ClientC
 
     decode(buf: Packet) {
         const input = buf.gjstr();
+
         return new ClientCheat(input);
     }
 }

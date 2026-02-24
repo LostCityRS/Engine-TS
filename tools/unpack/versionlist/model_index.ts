@@ -4,6 +4,8 @@ import FileStream from '#/io/FileStream.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
 
+import { ModelPack } from '#tools/pack/PackFile.js';
+
 const cache = new FileStream('data/unpack');
 const versionlist = new Jagfile(new Packet(cache.read(0, 5)!));
 const modelIndex = versionlist.read('model_index')!;
@@ -14,44 +16,47 @@ fs.writeFileSync('data/unpack/model_index.txt', '');
 for (let i = 0; i < modelIndex.length; i++) {
     modelFlags[i] = modelIndex.g1();
 
-    let explicit = 'none';
+    let readable = 'none';
     if (modelFlags[i] !== 0) {
-        explicit = '';
+        readable = '';
 
         if ((modelFlags[i] & 0x1) !== 0) {
-            explicit += 'tut ';
+            readable += 'tutorial ';
         }
 
         if ((modelFlags[i] & 0x2) !== 0) {
-            explicit += 'dynamic ';
+            // runescript (npc_add, npc_changetype)
+            // interfaces
+            readable += 'dynamic ';
         }
 
         if ((modelFlags[i] & 0x4) !== 0) {
-            explicit += 'npc+static ';
+            // 
+            readable += 'static ';
         }
 
         if ((modelFlags[i] & 0x8) !== 0) {
-            explicit += 'wornf2p ';
+            readable += 'wornf2p ';
         }
-
         if ((modelFlags[i] & 0x10) !== 0) {
-            explicit += 'worn ';
+            readable += 'worn ';
         }
 
         if ((modelFlags[i] & 0x20) !== 0) {
-            explicit += 'invf2p ';
+            readable += 'invf2p ';
         }
-
         if ((modelFlags[i] & 0x40) !== 0) {
-            explicit += 'inv ';
+            readable += 'inv ';
         }
 
         if ((modelFlags[i] & 0x80) !== 0) {
-            explicit += 'player ';
+            readable += 'player ';
         }
 
-        explicit = explicit.trimEnd();
+        readable = readable.trimEnd();
     }
 
-    fs.appendFileSync('data/unpack/model_index.txt', `${i}=${explicit} (${modelFlags[i].toString(16)})\n`);
+    const id = ModelPack.getById(i) || i;
+    fs.appendFileSync('data/unpack/model_index.txt', `${id}=${readable}, 0x${modelFlags[i].toString(16).padStart(2, '0')} (0b${modelFlags[i].toString(2).padStart(8, '0')})\n`);
+    // fs.appendFileSync('data/unpack/model_index.txt', `${id}=0x${modelFlags[i].toString(16).padStart(2, '0')} (0b${modelFlags[i].toString(2).padStart(8, '0')})\n`);
 }

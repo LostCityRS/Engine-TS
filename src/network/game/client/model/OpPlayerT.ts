@@ -5,8 +5,8 @@ export default class OpPlayerT extends ClientGameMessage {
     category = ClientGameProtCategory.USER_EVENT;
 
     constructor(
-        readonly pid: number,
-        readonly spellComponent: number
+        readonly playerSlot: number,
+        readonly spellCom: number
     ) {
         super();
     }

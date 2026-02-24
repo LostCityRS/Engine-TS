@@ -1,8 +1,8 @@
 import { EntityLifeCycle } from '#/engine/entity/EntityLifeCycle.js';
 import World from '#/engine/World.js';
-import Linkable from '#/util/Linkable.js';
+import DoublyLinkable from '#/datastruct/DoublyLinkable.js';
 
-export default abstract class Entity extends Linkable {
+export default abstract class Entity extends DoublyLinkable {
     // constructor
     level: number;
     x: number;

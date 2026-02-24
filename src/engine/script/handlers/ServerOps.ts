@@ -1,23 +1,13 @@
 import { LocLayer, LocAngle } from '@2004scape/rsmod-pathfinder';
 
-import MesanimType from '#/cache/config/MesanimType.js';
-import { ParamHelper } from '#/cache/config/ParamHelper.js';
-import ParamType from '#/cache/config/ParamType.js';
 import SpotanimType from '#/cache/config/SpotanimType.js';
-import StructType from '#/cache/config/StructType.js';
 import { CoordGrid } from '#/engine/CoordGrid.js';
-import { HuntModeType } from '#/engine/entity/hunt/HuntModeType.js';
-import { HuntVis } from '#/engine/entity/hunt/HuntVis.js';
 import { MapFindSquareType } from '#/engine/entity/MapFindSquareType.js';
-import Npc from '#/engine/entity/Npc.js';
-import Player from '#/engine/entity/Player.js';
 import { isIndoors, isLineOfSight, isLineOfWalk, isMapBlocked } from '#/engine/GameMap.js';
-import { HuntIterator, NpcHuntAllCommandIterator } from '#/engine/script/ScriptIterators.js';
 import { ScriptOpcode } from '#/engine/script/ScriptOpcode.js';
-import { ActiveNpc, ActivePlayer } from '#/engine/script/ScriptPointer.js';
 import { CommandHandlers } from '#/engine/script/ScriptRunner.js';
 import ScriptState from '#/engine/script/ScriptState.js';
-import { check, CoordValid, FontTypeValid, HuntVisValid, LocTypeValid, MesanimValid, NumberNotNull, NumberPositive, ParamTypeValid, SeqTypeValid, SpotAnimTypeValid, StructTypeValid, FindSquareValid } from '#/engine/script/ScriptValidators.js';
+import { check, CoordValid, LocTypeValid, NumberPositive, SeqTypeValid, SpotAnimTypeValid, FindSquareValid } from '#/engine/script/ScriptValidators.js';
 import World from '#/engine/World.js';
 import Environment from '#/util/Environment.js';
 
@@ -28,6 +18,10 @@ const ServerOps: CommandHandlers = {
 
     [ScriptOpcode.MAP_MEMBERS]: state => {
         state.pushInt(Environment.NODE_MEMBERS ? 1 : 0);
+    },
+
+    [ScriptOpcode.MAP_LIVE]: state => {
+        state.pushInt(Environment.NODE_PRODUCTION ? 1 : 0);
     },
 
     [ScriptOpcode.MAP_PLAYERCOUNT]: state => {
@@ -48,93 +42,6 @@ const ServerOps: CommandHandlers = {
         }
 
         state.pushInt(count);
-    },
-
-    [ScriptOpcode.HUNTALL]: state => {
-        const [coord, distance, checkVis] = state.popInts(3);
-
-        const position: CoordGrid = check(coord, CoordValid);
-        check(distance, NumberNotNull);
-        const huntvis: HuntVis = check(checkVis, HuntVisValid);
-
-        state.huntIterator = new HuntIterator(World.currentTick, position.level, position.x, position.z, distance, huntvis, -1, -1, HuntModeType.PLAYER);
-    },
-
-    [ScriptOpcode.HUNTNEXT]: state => {
-        const result = state.huntIterator?.next();
-        if (!result || result.done) {
-            state.pushInt(0);
-            return;
-        }
-
-        if (!(result.value instanceof Player)) {
-            throw new Error('[ServerOps] huntnext command must result instance of Player.');
-        }
-
-        state.activePlayer = result.value;
-        state.pointerAdd(ActivePlayer[state.intOperand]);
-        state.pushInt(1);
-    },
-
-    [ScriptOpcode.NPC_HUNT]: state => {
-        const [coord, distance, checkVis] = state.popInts(3);
-
-        const position: CoordGrid = check(coord, CoordValid);
-        // const npcType: NpcType = check(npc, NpcTypeValid);
-        check(distance, NumberNotNull);
-        const huntvis: HuntVis = check(checkVis, HuntVisValid);
-
-        let closestNpc: Npc | null = null;
-        let closestDistance = Number.MAX_SAFE_INTEGER;
-
-        const npcs = new NpcHuntAllCommandIterator(World.currentTick, position.level, position.x, position.z, distance, huntvis);
-
-        for (const npc of npcs) {
-            if (npc) {
-                // Picks the smallest euclidean distance
-                const npcDistance = CoordGrid.euclideanSquaredDistance(position, npc);
-                if (npcDistance <= closestDistance) {
-                    closestNpc = npc;
-                    closestDistance = npcDistance;
-                }
-            }
-        }
-        if (!closestNpc) {
-            state.pushInt(0);
-            return;
-        }
-
-        state.activeNpc = closestNpc;
-        state.pointerAdd(ActiveNpc[state.intOperand]);
-        state.pushInt(1);
-    },
-
-    // https://x.com/JagexAsh/status/1796460129430433930
-    // https://x.com/JagexAsh/status/1821236327150710829
-    [ScriptOpcode.NPC_HUNTALL]: state => {
-        const [coord, distance, checkVis] = state.popInts(3);
-
-        const position: CoordGrid = check(coord, CoordValid);
-        check(distance, NumberNotNull);
-        const huntvis: HuntVis = check(checkVis, HuntVisValid);
-
-        state.huntIterator = new NpcHuntAllCommandIterator(World.currentTick, position.level, position.x, position.z, distance, huntvis);
-    },
-
-    [ScriptOpcode.NPC_HUNTNEXT]: state => {
-        const result = state.huntIterator?.next();
-        if (!result || result.done) {
-            state.pushInt(0);
-            return;
-        }
-
-        if (!(result.value instanceof Npc)) {
-            throw new Error('[ServerOps] npc_huntnext command must result instance of Npc.');
-        }
-
-        state.activeNpc = result.value;
-        state.pointerAdd(ActiveNpc[state.intOperand]);
-        state.pushInt(1);
     },
 
     [ScriptOpcode.INZONE]: state => {
@@ -203,66 +110,6 @@ const ServerOps: CommandHandlers = {
         state.pushInt(check(state.popInt(), SeqTypeValid).duration);
     },
 
-    [ScriptOpcode.SPLIT_INIT]: state => {
-        const [maxWidth, linesPerPage, fontId] = state.popInts(3);
-        let text = state.popString();
-
-        const font = check(fontId, FontTypeValid);
-
-        // todo: later this needs to lookup by <p=id> instead of <p,name>
-        if (text.startsWith('<p,') && text.indexOf('>') !== -1) {
-            const mesanim = text.substring(3, text.indexOf('>'));
-            state.splitMesanim = MesanimType.getId(mesanim);
-            text = text.substring(text.indexOf('>') + 1);
-        } else {
-            state.splitMesanim = -1;
-        }
-
-        state.splitPages = [];
-        const lines = font.split(text, maxWidth);
-        while (lines.length > 0) {
-            state.splitPages.push(lines.splice(0, linesPerPage));
-        }
-    },
-
-    [ScriptOpcode.SPLIT_GET]: state => {
-        const [page, line] = state.popInts(2);
-
-        state.pushString(state.splitPages[page][line]);
-    },
-
-    [ScriptOpcode.SPLIT_PAGECOUNT]: state => {
-        state.pushInt(state.splitPages.length);
-    },
-
-    [ScriptOpcode.SPLIT_LINECOUNT]: state => {
-        const page = state.popInt();
-
-        state.pushInt(state.splitPages[page].length);
-    },
-
-    [ScriptOpcode.SPLIT_GETANIM]: state => {
-        const page = state.popInt();
-        if (state.splitMesanim === -1) {
-            state.pushInt(-1);
-            return;
-        }
-
-        state.pushInt(check(state.splitMesanim, MesanimValid).len[state.splitPages[page].length - 1]);
-    },
-
-    [ScriptOpcode.STRUCT_PARAM]: state => {
-        const [structId, paramId] = state.popInts(2);
-
-        const paramType: ParamType = check(paramId, ParamTypeValid);
-        const structType: StructType = check(structId, StructTypeValid);
-        if (paramType.isString()) {
-            state.pushString(ParamHelper.getStringParam(paramType.id, structType, paramType.defaultString));
-        } else {
-            state.pushInt(ParamHelper.getIntParam(paramType.id, structType, paramType.defaultInt));
-        }
-    },
-
     [ScriptOpcode.COORDX]: state => {
         state.pushInt(check(state.popInt(), CoordValid).x);
     },
@@ -282,6 +129,10 @@ const ServerOps: CommandHandlers = {
     [ScriptOpcode.MAP_BLOCKED]: state => {
         const coord: CoordGrid = check(state.popInt(), CoordValid);
 
+        if (!Environment.NODE_MEMBERS && !World.gameMap.isFreeToPlay(coord.x, coord.z)) {
+            state.pushInt(1);
+            return;
+        }
         state.pushInt(isMapBlocked(coord.x, coord.z, coord.level) ? 1 : 0);
     },
 
@@ -328,7 +179,7 @@ const ServerOps: CommandHandlers = {
             throw new Error(`attempted to use invalid player uid: ${uid}`);
         }
 
-        World.mapProjAnim(srcPos.level, srcPos.x, srcPos.z, player.x, player.z, -player.pid - 1, spotanimType.id, srcHeight, dstHeight, delay, duration, peak, arc);
+        World.mapProjAnim(srcPos.level, srcPos.x, srcPos.z, player.x, player.z, -player.slot - 1, spotanimType.id, srcHeight, dstHeight, delay, duration, peak, arc);
     },
 
     [ScriptOpcode.PROJANIM_NPC]: state => {
@@ -398,22 +249,6 @@ const ServerOps: CommandHandlers = {
             }
         }
         state.pushInt(0);
-    },
-
-    [ScriptOpcode.NPCCOUNT]: state => {
-        state.pushInt(World.getTotalNpcs());
-    },
-
-    [ScriptOpcode.ZONECOUNT]: state => {
-        state.pushInt(World.gameMap.getTotalZones());
-    },
-
-    [ScriptOpcode.LOCCOUNT]: state => {
-        state.pushInt(World.gameMap.getTotalLocs());
-    },
-
-    [ScriptOpcode.OBJCOUNT]: state => {
-        state.pushInt(World.gameMap.getTotalObjs());
     },
 
     [ScriptOpcode.MAP_FINDSQUARE]: state => {

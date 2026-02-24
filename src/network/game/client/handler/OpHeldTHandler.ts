@@ -11,44 +11,54 @@ import Environment from '#/util/Environment.js';
 
 export default class OpHeldTHandler extends ClientGameMessageHandler<OpHeldT> {
     handle(message: OpHeldT, player: Player): boolean {
-        const { obj: item, slot, component: comId, spellComponent: spellComId } = message;
+        const { obj, slot, com: comId, spellCom: spellComId } = message;
 
-        const com = Component.get(comId);
-        if (typeof com === 'undefined' || !player.isComponentVisible(com) || !com.interactable) {
-            player.clearPendingAction();
+        if (player.delayed) {
+            // normal: cannot interact while delayed
             return false;
         }
 
         const spellCom = Component.get(spellComId);
-        if (typeof spellCom === 'undefined' || !player.isComponentVisible(spellCom) || (spellCom.actionTarget & ComActionTarget.HELD) === 0) {
-            player.clearPendingAction();
+        if (typeof spellCom === 'undefined' || (spellCom.actionTarget & ComActionTarget.HELD) === 0) {
+            // bad client: component is not acceptable for this packet
+            return false;
+        } else if (!player.isComponentVisible(spellCom)) {
+            // bad client or lag: component is not visible
+            return false;
+        }
+
+        const com = Component.get(comId);
+        if (typeof com === 'undefined' || !com.usable) {
+            // bad client: component is not acceptable for this packet
+            return false;
+        } else if (!player.isComponentVisible(com)) {
+            // bad client or lag: component is not visible
             return false;
         }
 
         const listener = player.invListeners.find(l => l.com === comId);
-        if (!listener) {
-            player.clearPendingAction();
-            return false;
-        }
-
         const inv = player.getInventoryFromListener(listener);
-        if (!inv || !inv.validSlot(slot) || !inv.hasAt(slot, item)) {
-            player.clearPendingAction();
+        if (!inv) {
+            // bad client or lag: inventory is not transmitted to client
             return false;
         }
 
-        if (player.delayed) {
+        if (!inv.validSlot(slot)) {
+            // bad client: real inventory is smaller
+            return false;
+        } else if (!inv.hasAt(slot, obj)) {
+            // bad client or lag: item does not exist in inventory
             return false;
         }
 
-        player.lastItem = item;
+        player.lastItem = obj;
         player.lastSlot = slot;
 
         player.clearPendingAction();
         player.faceEntity = -1;
         player.masks |= player.entitymask;
 
-        player.addSessionLog(LoggerEventType.MODERATOR, `Cast ${spellCom.comName} on ${ObjType.get(item).debugname}`);
+        player.addSessionLog(LoggerEventType.MODERATOR, `Cast ${spellCom.comName} on ${ObjType.get(obj).debugname}`);
 
         const script = ScriptProvider.getByTrigger(ServerTriggerType.OPHELDT, spellComId, -1);
         if (script) {

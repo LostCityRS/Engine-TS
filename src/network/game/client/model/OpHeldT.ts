@@ -7,8 +7,8 @@ export default class OpHeldT extends ClientGameMessage {
     constructor(
         readonly obj: number,
         readonly slot: number,
-        readonly component: number,
-        readonly spellComponent: number
+        readonly com: number,
+        readonly spellCom: number
     ) {
         super();
     }

@@ -2,12 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import { parentPort } from 'worker_threads';
 
-import { packClient, packServer } from '#tools/pack/PackAll.js';
+import { packAll } from '#tools/pack/PackAll.js';
 import Environment from '#/util/Environment.js';
 
 // todo: this file queue is so the rebuild/reload process can utilize the additional context
 let processNextQueue: Set<string> = new Set();
-let processNextTimeout: Timer | null = null;
+let processNextTimeout: NodeJS.Timeout | null = null;
 
 // prevent other file change events from building multiple times
 let active = false;
@@ -22,8 +22,7 @@ async function processChangedFiles() {
 
     try {
         const modelFlags: number[] = [];
-        await packClient(modelFlags);
-        await packServer();
+        await packAll(modelFlags);
 
         if (parentPort) {
             parentPort.postMessage({

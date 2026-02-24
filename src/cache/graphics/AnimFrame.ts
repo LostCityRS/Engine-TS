@@ -1,6 +1,7 @@
 import AnimBase from '#/cache/graphics/AnimBase.js';
 import OnDemand from '#/engine/OnDemand.js';
 import Packet from '#/io/Packet.js';
+import { printFatalError } from '#/util/Logger.js';
 
 export default class AnimFrame {
     static instances: AnimFrame[] = [];
@@ -16,6 +17,10 @@ export default class AnimFrame {
 
     static load() {
         const count = OnDemand.cache.count(2);
+        if (!count) {
+            printFatalError('Cache not packed');
+        }
+
         for (let i = 0; i < count; i++) {
             const data = OnDemand.cache.read(2, i, true);
             if (data) {

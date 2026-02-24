@@ -1,4 +1,4 @@
-import Linkable from '#/util/Linkable.js';
+import Linkable from '#/datastruct/Linkable.js';
 
 export default class CameraInfo extends Linkable {
     readonly type: number;

@@ -1,6 +1,6 @@
 import ScriptFile from '#/engine/script/ScriptFile.js';
 import ScriptState from '#/engine/script/ScriptState.js';
-import Linkable from '#/util/Linkable.js';
+import Linkable from '#/datastruct/Linkable.js';
 
 export enum PlayerQueueType {
     NORMAL,

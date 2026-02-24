@@ -11,40 +11,47 @@ import Environment from '#/util/Environment.js';
 
 export default class OpHeldHandler extends ClientGameMessageHandler<OpHeld> {
     handle(message: OpHeld, player: Player): boolean {
-        const { obj: item, slot, component: comId } = message;
+        const { obj: objId, slot, com: comId } = message;
 
-        const com = Component.get(comId);
-        if (typeof com === 'undefined' || !player.isComponentVisible(com) || !com.interactable) {
-            player.clearPendingAction();
+        if (player.delayed) {
+            // normal: cannot interact while delayed
             return false;
         }
 
-        const type = ObjType.get(item);
-        if (message.op !== 5 && ((type.iop && !type.iop[message.op - 1]) || !type.iop)) {
-            player.clearPendingAction();
+        const com = Component.get(comId);
+        if (typeof com === 'undefined' || !com.operable) {
+            // bad client: component is not acceptable for this packet
+            return false;
+        } else if (!player.isComponentVisible(com)) {
+            // bad client or lag: component is not visible
             return false;
         }
 
         const listener = player.invListeners.find(l => l.com === comId);
-        if (!listener) {
-            player.clearPendingAction();
-            return false;
-        }
-
         const inv = player.getInventoryFromListener(listener);
-        if (!inv || !inv.validSlot(slot) || !inv.hasAt(slot, item)) {
-            player.clearPendingAction();
+        if (!inv) {
+            // bad client or lag: inventory is not transmitted to client
             return false;
         }
 
-        if (player.delayed) {
+        if (!inv.validSlot(slot)) {
+            // bad client: real inventory is smaller
+            return false;
+        } else if (!inv.hasAt(slot, objId)) {
+            // bad client or lag: item does not exist in inventory
             return false;
         }
 
-        player.lastItem = item;
+        const obj = ObjType.get(objId);
+        if (obj.iop[message.op - 1] === null) {
+            // bad client: not a valid item option
+            return false;
+        }
+
+        player.lastItem = objId;
         player.lastSlot = slot;
 
-        if(com.rootLayer != player.modalMain) {
+        if (com.rootLayer != player.modalMain) {
             player.clearPendingAction();
         }
 
@@ -52,29 +59,17 @@ export default class OpHeldHandler extends ClientGameMessageHandler<OpHeld> {
         player.faceEntity = -1;
         player.masks |= player.entitymask;
 
-        let trigger: ServerTriggerType;
-        if (message.op === 1) {
-            player.addSessionLog(LoggerEventType.MODERATOR, `${type.iop![message.op - 1]} ${type.debugname}`);
-            trigger = ServerTriggerType.OPHELD1;
-        } else if (message.op === 2) {
-            player.addSessionLog(LoggerEventType.MODERATOR, `${type.iop![message.op - 1]} ${type.debugname}`);
-            trigger = ServerTriggerType.OPHELD2;
-        } else if (message.op === 3) {
-            player.addSessionLog(LoggerEventType.MODERATOR, `${type.iop![message.op - 1]} ${type.debugname}`);
-            trigger = ServerTriggerType.OPHELD3;
-        } else if (message.op === 4) {
-            player.addSessionLog(LoggerEventType.MODERATOR, `${type.iop![message.op - 1]} ${type.debugname}`);
-            trigger = ServerTriggerType.OPHELD4;
-        } else {
-            // wealth logged in content (it may not execute!)
-            trigger = ServerTriggerType.OPHELD5;
+        // opheld5 gets wealth logged in content
+        if (message.op !== 5) {
+            player.addSessionLog(LoggerEventType.MODERATOR, `${obj.iop[message.op - 1]} ${obj.debugname}`);
         }
 
-        const script = ScriptProvider.getByTrigger(trigger, type.id, type.category);
+        const trigger: ServerTriggerType = ServerTriggerType.OPHELD1 + (message.op - 1);
+        const script = ScriptProvider.getByTrigger(trigger, obj.id, obj.category);
         if (script) {
             player.executeScript(ScriptRunner.init(script, player), true);
         } else if (Environment.NODE_DEBUG) {
-            player.messageGame(`No trigger for [${ServerTriggerType.toString(trigger)},${type.debugname}]`);
+            player.messageGame(`No trigger for [${ServerTriggerType.toString(trigger)},${obj.debugname}]`);
         }
 
         return true;

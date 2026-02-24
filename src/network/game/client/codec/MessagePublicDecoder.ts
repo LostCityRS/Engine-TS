@@ -9,8 +9,9 @@ export default class MessagePublicDecoder extends ClientGameMessageDecoder<Messa
     decode(buf: Packet, length: number) {
         const color = buf.g1();
         const effect = buf.g1();
-        const input = buf.data.slice(buf.pos, buf.pos + length - 2);
-        buf.pos += length;
+        const input = buf.data.subarray(buf.pos, buf.pos + length - 2);
+        buf.pos += length - 2;
+
         return new MessagePublic(input, color, effect);
     }
 }

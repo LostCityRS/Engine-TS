@@ -1,12 +1,13 @@
 // stdlib
 import fs from 'fs';
-import { Worker as NodeWorker } from 'worker_threads';
+import { Worker } from 'worker_threads';
 
 // deps
 import * as rsbuf from '@2004scape/rsbuf';
 import { PlayerInfoProt } from '@2004scape/rsbuf';
 import kleur from 'kleur';
 import forge from 'node-forge';
+import { TTLCache } from '@isaacs/ttlcache';
 
 // lostcity
 import CategoryType from '#/cache/config/CategoryType.js';
@@ -30,11 +31,11 @@ import StructType from '#/cache/config/StructType.js';
 import VarNpcType from '#/cache/config/VarNpcType.js';
 import VarPlayerType from '#/cache/config/VarPlayerType.js';
 import VarSharedType from '#/cache/config/VarSharedType.js';
-import { CrcTable, makeCrcs } from '#/cache/CrcTable.js';
+import { CrcBuffer32, makeCrcs } from '#/cache/CrcTable.js';
 import WordEnc from '#/cache/wordenc/WordEnc.js';
 import { BlockWalk } from '#/engine/entity/BlockWalk.js';
 import { EntityLifeCycle } from '#/engine/entity/EntityLifeCycle.js';
-import { NpcList, PlayerList } from '#/engine/entity/EntityList.js';
+import { NpcList } from '#/engine/entity/EntityList.js';
 import { PlayerTimerType } from '#/engine/entity/EntityTimer.js';
 import { HuntModeType } from '#/engine/entity/hunt/HuntModeType.js';
 import Loc from '#/engine/entity/Loc.js';
@@ -90,19 +91,18 @@ import {
 } from '#/server/Metrics.js';
 import Environment from '#/util/Environment.js';
 import { fromBase37, toBase37, toSafeName } from '#/util/JString.js';
-import LinkList from '#/util/LinkList.js';
+import LinkList from '#/datastruct/LinkList.js';
 import { printDebug, printError, printInfo } from '#/util/Logger.js';
 import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
-import { createWorker } from '#/util/WorkerFactory.js';
 
-import InputTrackingBlob from './entity/tracking/InputTrackingBlob.js';
 import OnDemand from './OnDemand.js';
 import { ObjDelayedRequest } from './entity/ObjDelayedRequest.js';
 import DbTableIndex from '#/cache/config/DbTableIndex.js';
 import VarBitType from '#/cache/config/VarBitType.js';
 import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
+import HashTable from '#/datastruct/HashTable.js';
 
-const priv = forge.pki.privateKeyFromPem(Environment.STANDALONE_BUNDLE ? await (await fetch('data/config/private.pem')).text() : fs.readFileSync('data/config/private.pem', 'ascii'));
+const priv = forge.pki.privateKeyFromPem(fs.readFileSync('data/config/private.pem', 'ascii'));
 
 type LogoutRequest = {
     save: Uint8Array;
@@ -110,47 +110,56 @@ type LogoutRequest = {
 };
 
 class World {
-    private loginThread = createWorker(Environment.STANDALONE_BUNDLE ? 'LoginThread.js' : './src/server/login/LoginThread.ts');
-    private friendThread = createWorker(Environment.STANDALONE_BUNDLE ? 'FriendThread.js' : './src/server/friend/FriendThread.ts');
-    private loggerThread = createWorker(Environment.STANDALONE_BUNDLE ? 'LoggerThread.js' : './src/server/logger/LoggerThread.ts');
-    private devThread: Worker | NodeWorker | null = null;
+    private loginThread = new Worker('./src/server/login/LoginThread.ts');
+    private friendThread = new Worker('./src/server/friend/FriendThread.ts');
+    private loggerThread = new Worker('./src/server/logger/LoggerThread.ts');
+    private devThread: Worker | null = null;
 
     private static readonly PLAYERS: number = Environment.NODE_MAX_PLAYERS;
     private static readonly NPCS: number = Environment.NODE_MAX_NPCS;
 
-    private static readonly TICKRATE: number = 600; // 0.6s / 600ms
+    private static readonly TICKRATE: number = 600; // ms (0.6s) - DO NOT CHANGE. This is only exposed for condensing time while testing long-running operations.
 
-    private static readonly INV_STOCKRATE: number = 100; // 1m
-    private static readonly AFK_EVENTRATE: number = 500; // 5m
-    private static readonly PLAYER_SAVERATE: number = 1500; // 15m
-    private static readonly PLAYER_COORDLOGRATE: number = 50; // 30s
+    private static readonly INV_STOCKRATE: number = 100; // 1m shop restocks
+
+    private static readonly PLAYER_SAVERATE: number = 1500; // 15m autosave
+    private static readonly PLAYER_COORDLOGRATE: number = 50; // 30s server check-in
+
+    private static readonly AFK_EVENTRATE: number = 500; // 5m: 60/5 = 12 chances per hour
+    private static readonly AFK_CHANCE1: number = 1 / (120 / 5); // 1/24 - 4% chance every 5 mins: avg 1 event every 2 hrs
+    private static readonly AFK_CHANCE2: number = 1 / (60 / 5); // 1/12 - 8% chance every 5 mins: avg 1 event every 1 hr while "aggro zone" hasn't changed
 
     private static readonly TIMEOUT_NO_CONNECTION: number = Environment.NODE_DEBUG_SOCKET ? 60000 : 50; // 30s with no connection (16 ticks in osrs)
     private static readonly TIMEOUT_NO_RESPONSE: number = Environment.NODE_DEBUG_SOCKET ? 60000 : 100; // 60s without any response
 
     // the game/zones map
-    readonly gameMap: GameMap;
+    readonly gameMap: GameMap = new GameMap(Environment.NODE_MEMBERS);
 
     // shared inventories (shops)
-    readonly invs: Set<Inventory>;
+    readonly invs: Set<Inventory> = new Set();
 
     // entities
     readonly loginRequests: Map<string, ClientSocket> = new Map(); // waiting for response from login server
     readonly logoutRequests: Map<string, LogoutRequest> = new Map(); // waiting for confirmation from login server
-    readonly newPlayers: Set<Player>; // players joining at the end of this tick
-    readonly players: PlayerList;
-    readonly npcs: NpcList;
+    readonly newPlayers: Set<Player> = new Set(); // players joining at the end of this tick
+
+    // the server processes players in the underlying bucket-order (key fragment + insertion order)
+    readonly playerLoop: HashTable<Player> = new HashTable(8);
+    // the client and server communicate via player "slots," separate from processing
+    readonly players: Player[] = new Array(2048);
+
+    readonly npcs: NpcList = new NpcList(World.NPCS);
 
     // zones
-    readonly zonesTracking: Set<Zone>;
-    readonly locObjTracker: LinkList<LocObjEvent>;
-    readonly queue: LinkList<EntityQueueState>;
-    readonly npcEventQueue: LinkList<NpcEventRequest>;
-    readonly objDelayedQueue: LinkList<ObjDelayedRequest>;
+    readonly zonesTracking: Set<Zone> = new Set();
+    readonly locObjTracker: LinkList<LocObjEvent> = new LinkList();
+    readonly queue: LinkList<EntityQueueState> = new LinkList();
+    readonly npcEventQueue: LinkList<NpcEventRequest> = new LinkList();
+    readonly objDelayedQueue: LinkList<ObjDelayedRequest> = new LinkList();
 
     // debug data
-    readonly lastCycleStats: number[];
-    readonly cycleStats: number[];
+    readonly lastCycleStats: Uint16Array = new Uint16Array(12);
+    readonly cycleStats: Uint16Array = new Uint16Array(12);
 
     tickRate: number = World.TICKRATE; // speeds up when we're processing server shutdown
     currentTick: number = 0; // the current tick of the game world.
@@ -165,61 +174,25 @@ class World {
     wealthTransactionGroup: Map<string, WealthTransactionEvent> = new Map();
     wealthTransactions: WealthTransactionEvent[] = [];
 
+    loginAddressAttempts: TTLCache<string, number> = new TTLCache({ ttl: 60000 });
+    loginDeviceAttempts: TTLCache<string, number> = new TTLCache({ ttl: 15000 });
+
     constructor() {
-        this.gameMap = new GameMap(Environment.NODE_MEMBERS);
-        this.invs = new Set();
-        this.newPlayers = new Set();
-        this.players = new PlayerList(World.PLAYERS);
-        this.npcs = new NpcList(World.NPCS);
-        this.zonesTracking = new Set();
-        this.locObjTracker = new LinkList();
-        this.queue = new LinkList();
-        this.npcEventQueue = new LinkList();
-        this.objDelayedQueue = new LinkList();
-        this.lastCycleStats = new Array(12).fill(0);
-        this.cycleStats = new Array(12).fill(0);
+        this.loginThread.on('message', msg => {
+            try {
+                this.onLoginMessage(msg);
+            } catch (err) {
+                console.error(err);
+            }
+        });
 
-        if (Environment.STANDALONE_BUNDLE) {
-            if (this.loginThread instanceof Worker) {
-                this.loginThread.onmessage = msg => {
-                    try {
-                        this.onLoginMessage(msg.data);
-                    } catch (err) {
-                        console.error(err);
-                    }
-                };
+        this.friendThread.on('message', msg => {
+            try {
+                this.onFriendMessage(msg);
+            } catch (err) {
+                console.error(err);
             }
-
-            if (this.friendThread instanceof Worker) {
-                this.friendThread.onmessage = msg => {
-                    try {
-                        this.onFriendMessage(msg.data);
-                    } catch (err) {
-                        console.error(err);
-                    }
-                };
-            }
-        } else {
-            if (this.loginThread instanceof NodeWorker) {
-                this.loginThread.on('message', msg => {
-                    try {
-                        this.onLoginMessage(msg);
-                    } catch (err) {
-                        console.error(err);
-                    }
-                });
-            }
-
-            if (this.friendThread instanceof NodeWorker) {
-                this.friendThread.on('message', msg => {
-                    try {
-                        this.onFriendMessage(msg);
-                    } catch (err) {
-                        console.error(err);
-                    }
-                });
-            }
-        }
+        });
     }
 
     get shutdown() {
@@ -254,7 +227,7 @@ class World {
                 if (inv.scope === InvType.SCOPE_SHARED) {
                     this.invs.add(Inventory.fromType(id));
                 } else if (inv.scope === InvType.SCOPE_TEMP) {
-                    for (const player of this.players) {
+                    for (const player of this.playerLoop.all()) {
                         if (player.invs.has(id)) {
                             player.invs.delete(id);
                         }
@@ -319,15 +292,13 @@ class World {
     async start(skipMaps = false, startCycle = true): Promise<void> {
         printInfo('Starting world');
 
-        if (!Environment.STANDALONE_BUNDLE) {
-            FontType.load('data/pack');
-            WordEnc.load('data/pack');
+        FontType.load('data/pack');
+        WordEnc.load('data/pack');
 
-            this.reload();
+        this.reload();
 
-            if (!skipMaps) {
-                this.gameMap.init();
-            }
+        if (!skipMaps) {
+            this.gameMap.init();
         }
 
         setTimeout(() => {
@@ -340,16 +311,18 @@ class World {
             });
         }, 2000);
 
-        if (!Environment.STANDALONE_BUNDLE) {
-            if (!Environment.NODE_PRODUCTION) {
-                this.createDevThread();
+        if (!Environment.NODE_PRODUCTION) {
+            this.createDevThread();
 
-                if (Environment.BUILD_STARTUP) {
-                    this.rebuild();
-                }
+            if (Environment.BUILD_STARTUP) {
+                this.rebuild();
             }
+        }
 
-            printInfo(kleur.green().bold('World ready') + kleur.white().bold(' (use the Java client)'));
+        if (Environment.WEB_PORT === 80) {
+            printInfo(kleur.green().bold('World ready') + kleur.white().bold(': Visit http://localhost/rs2.cgi'));
+        } else {
+            printInfo(kleur.green().bold('World ready') + kleur.white().bold(': Visit http://localhost:' + Environment.WEB_PORT + '/rs2.cgi'));
         }
 
         if (startCycle) {
@@ -453,7 +426,7 @@ class World {
             }
 
             if (tick % World.PLAYER_COORDLOGRATE === 0 && tick > 0) {
-                for (const player of this.players) {
+                for (const player of this.playerLoop.all()) {
                     player.addSessionLog(LoggerEventType.MODERATOR, 'Server check in');
                 }
             }
@@ -539,7 +512,7 @@ class World {
 
             printError('Removing all players...');
 
-            for (const player of this.players) {
+            for (const player of this.playerLoop.all()) {
                 this.removePlayer(player);
             }
 
@@ -558,7 +531,7 @@ class World {
         const start: number = Date.now();
 
         // - world queue
-        for (let request: EntityQueueState | null = this.queue.head(); request; request = this.queue.next()) {
+        for (const request of this.queue.all()) {
             const delay = request.delay--;
             if (delay > 0) {
                 continue;
@@ -587,7 +560,7 @@ class World {
         }
 
         // - add objs delayed
-        for (let request: ObjDelayedRequest | null = this.objDelayedQueue.head(); request; request = this.objDelayedQueue.next()) {
+        for (const request of this.objDelayedQueue.all()) {
             const delay = request.delay--;
             if (delay > 0) {
                 continue;
@@ -609,7 +582,7 @@ class World {
                     const hunt = HuntType.get(npc.huntMode);
 
                     if (hunt && hunt.type === HuntModeType.PLAYER) {
-                        npc.huntAll();
+                        npc.huntAll(hunt);
                     }
                 }
             }
@@ -627,15 +600,16 @@ class World {
 
         this.cycleStats[WorldStat.BANDWIDTH_IN] = 0;
 
-        for (const player of this.players) {
+        for (const player of this.playerLoop.all()) {
             try {
                 player.playtime++;
 
                 if (this.currentTick % World.AFK_EVENTRATE === 0) {
-                    // (normal) 1/12 chance every 5 minutes of setting an afk event state (even distrubution 60/5)
-                    // (afk) double the chance?
-                    player.afkEventReady = Math.random() < (player.zonesAfk() ? 0.1666 : 0.0833);
+                    player.afkEventReady = Math.random() < (player.zonesAfk() ? World.AFK_CHANCE2 : World.AFK_CHANCE1);
                 }
+
+                // - client input tracking
+                player.processInputTracking();
 
                 if (isClientConnected(player) && player.decodeIn()) {
                     const followingPlayer = player.targetOp === ServerTriggerType.APPLAYER3 || player.targetOp === ServerTriggerType.OPPLAYER3;
@@ -670,9 +644,6 @@ class World {
                         }
                     }
                 }
-
-                // - client input tracking
-                player.processInputTracking();
 
                 if (player.logMessage !== null) {
                     this.logPublicChat(player, player.logMessage);
@@ -732,7 +703,7 @@ class World {
     private processPlayers(): void {
         const start: number = Date.now();
 
-        for (const player of this.players) {
+        for (const player of this.playerLoop.all()) {
             try {
                 if (player.delayed && this.currentTick >= player.delayedUntil) player.delayed = false;
 
@@ -777,7 +748,7 @@ class World {
     private processLogouts(): void {
         const start: number = Date.now();
 
-        for (const player of this.players) {
+        for (const player of this.playerLoop.all()) {
             let force = false;
             if (this.shutdown || this.currentTick - player.lastResponse >= World.TIMEOUT_NO_RESPONSE) {
                 // world shutdown or x-logged / timed out for 60s: force logout
@@ -803,7 +774,7 @@ class World {
                 player.closeModal();
 
                 let queueDiscardable = true;
-                for (let request = player.queue.head(); request !== null; request = player.queue.next()) {
+                for (const request of player.queue.all()) {
                     if (request.type === PlayerQueueType.LONG) {
                         const logoutAction = request.args[0];
                         if (logoutAction === 1) {
@@ -861,7 +832,7 @@ class World {
 
             // reconnect a new socket with player in the world
             if (player.reconnecting) {
-                for (const other of this.players) {
+                for (const other of this.playerLoop.all()) {
                     if (player.username !== other.username) {
                         continue;
                     }
@@ -873,10 +844,11 @@ class World {
 
                     if (other instanceof NetworkPlayer && player instanceof NetworkPlayer) {
                         other.client = player.client;
+                        other.session = other.client.uuid;
                         other.client.send(Uint8Array.from([15]));
                     }
 
-                    rsbuf.cleanupPlayerBuildArea(other.pid);
+                    rsbuf.cleanupPlayerBuildArea(other.slot);
 
                     other.onReconnect();
 
@@ -892,7 +864,7 @@ class World {
             }
 
             // player already logged in
-            for (const other of this.players) {
+            for (const other of this.playerLoop.all()) {
                 if (player.username !== other.username) {
                     continue;
                 }
@@ -917,11 +889,8 @@ class World {
             }
 
             // normal login process
-            let pid: number;
-            try {
-                // if it throws then there was no available pid. otherwise guaranteed to not be -1.
-                pid = this.getNextPid(isClientConnected(player) ? player.client : null);
-            } catch (_) {
+            const slot: number = this.getNextPlayerSlot();
+            if (slot === -1) {
                 // world full
                 if (isClientConnected(player)) {
                     player.addSessionLog(LoggerEventType.ENGINE, 'Tried to log in - world full');
@@ -944,13 +913,28 @@ class World {
                     Math.min(player.staffModLevel, 2),
                     1 // mouse tracking can only be enabled on login
                 ]));
+
+                const remote = player.client.remoteAddress;
+                if (remote.indexOf('.') !== -1) {
+                    // IPv4 - last octet determines the bucket
+                    const octets = remote.split('.');
+                    const bucket = (parseInt(octets[0]) << 24) | (parseInt(octets[1]) << 16) | (parseInt(octets[2]) << 8) | parseInt(octets[3]);
+                    this.playerLoop.add(BigInt(bucket), player);
+                } else if (remote.indexOf(':') !== -1) {
+                    // IPv6 - site prefix determines the bucket
+                    const hextets = remote.split(':');
+                    const bucket = parseInt(hextets[2], 16) % 256;
+                    this.playerLoop.add(BigInt(bucket), player);
+                }
+            } else {
+                // 127.0.0.1
+                this.playerLoop.add(2130706433n, player);
             }
 
-            // insert player into first available slot
-            this.players.set(pid, player);
-            rsbuf.addPlayer(pid);
-            player.pid = pid;
-            player.uid = ((Number(player.username37 & 0x1fffffn) << 11) | player.pid) >>> 0;
+            this.players[slot] = player;
+            rsbuf.addPlayer(slot);
+            player.slot = slot;
+            player.uid = ((Number(player.username37 & 0x1fffffn) << 11) | player.slot) >>> 0;
             player.tele = true;
             player.moveClickRequest = false;
 
@@ -1007,11 +991,11 @@ class World {
     // - compute npc info
     private processInfo(): void {
         // TODO: benchmark this?
-        for (const player of this.players) {
+        for (const player of this.playerLoop.all()) {
             player.reorient();
             player.buildArea.rebuildNormal(); // set origin before compute player is why this is above.
 
-            const appearance = player.masks & PlayerInfoProt.APPEARANCE ? player.generateAppearance() : (player.lastAppearanceBytes ?? player.generateAppearance());
+            const appearance = player.masks & PlayerInfoProt.APPEARANCE ? player.generateAppearance() : (player.appearanceBuf ?? player.generateAppearance());
 
             rsbuf.computePlayer(
                 player.x,
@@ -1019,7 +1003,7 @@ class World {
                 player.z,
                 player.originX,
                 player.originZ,
-                player.pid,
+                player.slot,
                 player.tele,
                 player.jump,
                 player.runDir,
@@ -1030,33 +1014,33 @@ class World {
                 appearance,
                 player.lastAppearance,
                 player.faceEntity,
-                player.faceX,
-                player.faceZ,
-                player.orientationX,
-                player.orientationZ,
-                player.damageTaken,
-                player.damageType,
-                player.damageTaken2,
-                player.damageType2,
+                player.faceSquareX,
+                player.faceSquareZ,
+                player.faceAngleX,
+                player.faceAngleZ,
+                player.hitmarkDamage,
+                player.hitmarkType,
+                player.hitmark2Damage,
+                player.hitmark2Type,
                 player.levels[PlayerStat.HITPOINTS],
                 player.baseLevels[PlayerStat.HITPOINTS],
                 player.animId,
                 player.animDelay,
-                player.chat,
-                player.message,
-                player.messageColor ?? -1,
-                player.messageEffect ?? -1,
-                player.messageType ?? 0,
-                player.graphicId,
-                player.graphicHeight,
-                player.graphicDelay,
+                player.sayMessage,
+                player.chatMessage,
+                player.chatColour ?? -1,
+                player.chatEffect ?? -1,
+                player.chatRights ?? 0,
+                player.spotanimId,
+                player.spotanimHeight,
+                player.spotanimTime,
                 player.exactStartX,
                 player.exactStartZ,
                 player.exactEndX,
                 player.exactEndZ,
                 player.exactMoveStart,
                 player.exactMoveEnd,
-                player.exactMoveDirection
+                player.exactMoveFacing
             );
         }
 
@@ -1075,22 +1059,22 @@ class World {
                 npc.isActive,
                 npc.masks,
                 npc.faceEntity,
-                npc.faceX,
-                npc.faceZ,
-                npc.orientationX,
-                npc.orientationZ,
-                npc.damageTaken,
-                npc.damageType,
-                npc.damageTaken2,
-                npc.damageType2,
+                npc.faceSquareX,
+                npc.faceSquareZ,
+                npc.faceAngleX,
+                npc.faceAngleZ,
+                npc.hitmarkDamage,
+                npc.hitmarkType,
+                npc.hitmark2Damage,
+                npc.hitmark2Type,
                 npc.levels[NpcStat.HITPOINTS],
                 npc.baseLevels[NpcStat.HITPOINTS],
                 npc.animId,
                 npc.animDelay,
-                npc.chat,
-                npc.graphicId,
-                npc.graphicHeight,
-                npc.graphicDelay
+                npc.sayMessage,
+                npc.spotanimId,
+                npc.spotanimHeight,
+                npc.spotanimTime
             );
         }
     }
@@ -1108,7 +1092,7 @@ class World {
 
         this.cycleStats[WorldStat.BANDWIDTH_OUT] = 0; // reset bandwidth counter
 
-        for (const player of this.players) {
+        for (const player of this.playerLoop.all()) {
             if (!isClientConnected(player)) {
                 continue;
             }
@@ -1155,7 +1139,7 @@ class World {
         this.zonesTracking.clear();
 
         // - reset players
-        for (const player of this.players) {
+        for (const player of this.playerLoop.all()) {
             player.resetEntity(false);
 
             // - reset invs (players)
@@ -1191,13 +1175,13 @@ class World {
                 }
                 // Item stock is under min
                 if (item.count < invType.stockcount[index] && tick % invType.stockrate[index] === 0) {
-                    inv.add(item?.id, 1, index, true, false, false);
+                    inv.add(item.id, 1, index, true, false, false);
                     inv.update = true;
                     continue;
                 }
                 // Item stock is over min
                 if (item.count > invType.stockcount[index] && tick % invType.stockrate[index] === 0) {
-                    inv.remove(item?.id, 1, index, true);
+                    inv.remove(item.id, 1, index, true);
                     inv.update = true;
                     continue;
                 }
@@ -1205,7 +1189,7 @@ class World {
                 // Item stock is not listed, such as general stores
                 // Tested on low and high player count worlds, ever 1 minute stock decreases.
                 if (invType.allstock && !invType.stockcount[index] && tick % World.INV_STOCKRATE === 0) {
-                    inv.remove(item?.id, 1, index, true);
+                    inv.remove(item.id, 1, index, true);
                     inv.update = true;
                 }
             }
@@ -1217,7 +1201,7 @@ class World {
     }
 
     private processShutdown(): void {
-        for (const player of this.players) {
+        for (const player of this.playerLoop.all()) {
             if (isClientConnected(player)) {
                 player.logout();
                 player.client.close();
@@ -1227,7 +1211,7 @@ class World {
         const duration = this.currentTick - this.shutdownTick;
         if (duration >= 1024) {
             // force remove all players, they had their chances to finish processing
-            for (const player of this.players) {
+            for (const player of this.playerLoop.all()) {
                 player.addSessionLog(LoggerEventType.ENGINE, 'Player force removed!');
                 printError(`Player '${player.username}' force removed!`);
                 this.removePlayer(player);
@@ -1247,27 +1231,13 @@ class World {
     }
 
     private savePlayers(): void {
-        // would cause excessive save dialogs on webworker
-        if (typeof self !== 'undefined') {
-            return;
-        }
-
-        const names = [];
-
-        for (const player of this.players) {
-            names.push(player.username);
-
+        for (const player of this.playerLoop.all()) {
             this.loginThread.postMessage({
                 type: 'player_autosave',
                 username: player.username,
                 save: player.save()
             });
         }
-
-        this.loginThread.postMessage({
-            type: 'world_heartbeat',
-            names
-        });
     }
 
     enqueueScript(script: ScriptState, delay: number = 0): void {
@@ -1602,11 +1572,6 @@ class World {
         });
     }
 
-    addPlayer(player: Player): void {
-        this.newPlayers.add(player);
-        player.isActive = true;
-    }
-
     sendPrivateChatModeToFriendsServer(player: Player): void {
         this.friendThread.postMessage({
             type: 'player_chat_setmode',
@@ -1618,14 +1583,14 @@ class World {
     logPublicChat(player: Player, chat: string) {
         this.friendThread.postMessage({
             type: 'public_message',
-            username: player.username,
+            session_uuid: player.session,
             coord: player.coord,
             chat
         });
     }
 
     removePlayer(player: Player): void {
-        if (player.pid === -1) {
+        if (player.slot === -1) {
             return;
         }
 
@@ -1634,9 +1599,10 @@ class World {
             player.client.close();
         }
 
-        rsbuf.removePlayer(player.pid);
+        rsbuf.removePlayer(player.slot);
         this.gameMap.getZone(player.x, player.z, player.level).leave(player);
-        this.players.remove(player.pid);
+        delete this.players[player.slot];
+        player.unlink();
         changeNpcCollision(player.width, player.x, player.z, player.level, false);
         player.cleanup();
 
@@ -1681,20 +1647,30 @@ class World {
         });
     }
 
-    getPlayer(pid: number): Player | undefined {
-        return this.players.get(pid);
+    getNextPlayerSlot(): number {
+        for (let i = 1; i < 2047; i++) {
+            if (typeof this.players[i] === 'undefined') {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    getPlayer(slot: number): Player | undefined {
+        return this.players[slot];
     }
 
     getPlayerByUid(uid: number): Player | null {
-        const pid = uid & 0x7ff;
-        const name37 = (uid >> 11) & 0x1fffff;
+        const slot = uid & 0x7ff;
+        const hash = (uid >> 11) & 0x1fffff;
 
-        const player = this.getPlayer(pid);
+        const player = this.getPlayer(slot);
         if (!player) {
             return null;
         }
 
-        if (Number(player.username37 & 0x1fffffn) !== name37) {
+        if (Number(player.username37 & 0x1fffffn) !== hash) {
             return null;
         }
 
@@ -1703,30 +1679,48 @@ class World {
 
     getPlayerByUsername(username: string): Player | undefined {
         const username37: bigint = toBase37(username);
-        for (const player of this.players) {
+        for (const player of this.playerLoop.all()) {
             if (player.username37 === username37) {
                 return player;
             }
         }
+
         for (const player of this.newPlayers) {
             if (player.username37 === username37) {
                 return player;
             }
         }
+
         return undefined;
     }
 
     getPlayerByHash64(hash64: bigint): Player | undefined {
-        for (const player of this.players) {
+        for (const player of this.playerLoop.all()) {
             if (player.hash64 === hash64) {
                 return player;
             }
         }
+
         return undefined;
     }
 
+    // todo: could cache this, or increment/decrement on add/remove
     getTotalPlayers(): number {
-        return this.players.count;
+        let count = 0;
+
+        for (let i = 1; i < 2047; i++) {
+            if (typeof this.players[i] !== 'undefined') {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    scaleByPlayerCount(rate: number): number {
+        // not sure if it caps at 2k player count or not
+        const playerCount = Math.min(this.getTotalPlayers(), 2000);
+        return (((4000 - playerCount) * rate) / 4000) | 0; // assuming scale works the same way as the runescript one
     }
 
     getTotalNpcs(): number {
@@ -1753,78 +1747,52 @@ class World {
         return this.npcs.next();
     }
 
-    getNextPid(client: ClientSocket | null = null): number {
-        // valid pid range is 1-2046
-        if (client) {
-            const ip = client.remoteAddress;
-            if (ip.indexOf('.') !== -1) {
-                // IPv4 - first available index starting from (low ip octet % 20) * 100
-                const octets = ip.split('.');
-                const start = (parseInt(octets[3]) % 20) * 100;
-                return this.players.next(true, start);
-            } else if (ip.indexOf(':') !== -1) {
-                // IPv6 - first available index starting from (low site prefix % 20) * 100
-                const start = (parseInt(ip.split(':')[2], 16) % 20) * 100;
-                return this.players.next(true, start);
-            }
-        }
-        return this.players.next();
-    }
-
-    scaleByPlayerCount(rate: number): number {
-        // not sure if it caps at 2k player count or not
-        const playerCount = Math.min(this.getTotalPlayers(), 2000);
-        return (((4000 - playerCount) * rate) / 4000) | 0; // assuming scale works the same way as the runescript one
-    }
-
     private createDevThread() {
-        this.devThread = createWorker('./src/cache/DevThread.ts');
+        this.devThread = new Worker('./src/cache/DevThread.ts');
 
-        if (this.devThread instanceof NodeWorker) {
-            this.devThread.on('message', msg => {
-                try {
-                    if (msg.type === 'dev_reload') {
-                        this.reload();
-                    } else if (msg.type === 'dev_failure') {
-                        if (msg.error) {
-                            console.error(msg.error);
+        this.devThread.on('message', msg => {
+            try {
+                if (msg.type === 'dev_reload') {
+                    this.reload();
+                } else if (msg.type === 'dev_failure') {
+                    if (msg.error) {
+                        console.error(msg.error);
 
-                            this.broadcastMes(msg.error.replaceAll(`${Environment.BUILD_SRC_DIR}/scripts/`, ''));
-                            this.broadcastMes('Check the console for more information.');
-                        }
-                    } else if (msg.type === 'dev_progress') {
-                        if (msg.broadcast) {
-                            console.log(msg.broadcast);
-
-                            this.broadcastMes(msg.broadcast);
-                        } else if (msg.text) {
-                            console.log(msg.text);
-                        }
+                        this.broadcastMes(msg.error.replaceAll(`${Environment.BUILD_SRC_DIR}/scripts/`, ''));
+                        this.broadcastMes('Check the console for more information.');
                     }
-                } catch (err) {
-                    console.error(err);
-                }
-            });
+                } else if (msg.type === 'dev_progress') {
+                    if (msg.broadcast) {
+                        printDebug(msg.broadcast);
 
-            // todo: catch all cases where it might exit instead of throwing an error, so we aren't
-            // re-initializing the file watchers after errors
-            this.devThread.on('exit', () => {
-                try {
-                    // todo: remove this mes after above the todo above is addressed
-                    this.broadcastMes('Error while rebuilding - see console for more info.');
-
-                    this.createDevThread();
-                } catch (err) {
-                    console.error(err);
+                        this.broadcastMes(msg.broadcast);
+                    } else if (msg.text) {
+                        printInfo(msg.text);
+                    }
                 }
-            });
-        }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        // todo: catch all cases where it might exit instead of throwing an error, so we aren't
+        // re-initializing the file watchers after errors
+        this.devThread.on('exit', () => {
+            try {
+                // todo: remove this mes after above the todo above is addressed
+                this.broadcastMes('Error while rebuilding - see console for more info.');
+
+                this.createDevThread();
+            } catch (err) {
+                console.error(err);
+            }
+        });
     }
 
     rebootTimer(duration: number): void {
         this.shutdownTick = this.currentTick + duration;
 
-        for (const player of this.players) {
+        for (const player of this.playerLoop.all()) {
             player.write(new UpdateRebootTimer(this.shutdownTick - this.currentTick));
         }
     }
@@ -1838,7 +1806,7 @@ class World {
     }
 
     broadcastMes(message: string): void {
-        for (const player of this.players) {
+        for (const player of this.playerLoop.all()) {
             if (message.includes('\n')) {
                 message.split('\n').forEach(wrap => player.wrappedMessageGame(wrap));
             } else {
@@ -1906,9 +1874,18 @@ class World {
                 client.send(Uint8Array.from([12]));
                 client.close();
                 return;
+            } else if (reply === 10) {
+                // hop timer
+                const { remaining } = msg;
+                client.send(Uint8Array.from([
+                    21,
+                    Math.min(255, remaining! / 1000)
+                ]));
+                client.close();
+                return;
             }
 
-            const { account_id, username, lowMemory, reconnecting, staffmodlevel, muted_until, members, messageCount } = msg;
+            const { username, lowMemory, reconnecting, staffmodlevel, muted_until, members, messageCount } = msg;
             const save = msg.save ?? new Uint8Array();
 
             // if (reconnecting && !this.getPlayerByUsername(username)) {
@@ -1927,7 +1904,7 @@ class World {
             try {
                 const player = PlayerLoading.load(username, new Packet(save), client);
 
-                player.account_id = account_id;
+                player.session = client.uuid;
                 player.reconnecting = reconnecting;
                 player.staffModLevel = staffmodlevel ?? 0;
                 player.lowMemory = lowMemory;
@@ -2146,7 +2123,20 @@ class World {
         if (client.opcode === 14) {
             client.send(Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]));
 
-            const _loginServer = World.loginBuf.g1();
+            if (Environment.NODE_PRODUCTION && Environment.NODE_RATELIMIT_ADDRESS_LOGIN > 0) {
+                const last = this.loginAddressAttempts.get(client.remoteAddress);
+                const attempts = last ? last + 1 : 1;
+                this.loginAddressAttempts.set(client.remoteAddress, attempts);
+
+                if (attempts >= Environment.NODE_RATELIMIT_ADDRESS_LOGIN) {
+                    // login attempts exceeded
+                    client.send(Uint8Array.from([16]));
+                    client.close();
+                    return;
+                }
+            }
+
+            const _loginServer = World.loginBuf.g1(); // jagex stores player saves on different servers
             client.send(Uint8Array.from([0]));
 
             const seed = new Packet(new Uint8Array(8));
@@ -2155,7 +2145,7 @@ class World {
             client.send(seed.data);
         } else if (client.opcode === 16 || client.opcode === 18) {
             let rev = World.loginBuf.g1();
-            if (rev === 255) {
+            if (rev === 0xFF) {
                 rev = World.loginBuf.g2();
             }
             if (rev !== Environment.ENGINE_REVISION) {
@@ -2167,15 +2157,13 @@ class World {
             const info = World.loginBuf.g1();
             const lowMemory = (info & 0x1) !== 0;
 
-            const crcs = new Array(9 * 4);
-            for (let i = 0; i < 9; i++) {
-                crcs[i] = World.loginBuf.g4s();
+            const crcs = new Uint8Array(9 * 4);
+            World.loginBuf.gdata(crcs, 0, crcs.length);
 
-                if (crcs[i] !== CrcTable[i]) {
-                    client.send(Uint8Array.from([6]));
-                    client.close();
-                    return;
-                }
+            if (CrcBuffer32 !== Packet.getcrc(crcs, 0, crcs.length)) {
+                client.send(Uint8Array.from([6]));
+                client.close();
+                return;
             }
 
             World.loginBuf.rsadec(priv);
@@ -2202,6 +2190,19 @@ class World {
             const uid = World.loginBuf.g4s();
             const username = World.loginBuf.gjstr();
             const password = World.loginBuf.gjstr();
+
+            if (Environment.NODE_PRODUCTION && Environment.NODE_RATELIMIT_DEVICE_LOGIN > 0) {
+                const last = this.loginDeviceAttempts.get(`${uid}@${client.remoteAddress}`);
+                const attempts = last ? last + 1 : 1;
+                this.loginDeviceAttempts.set(`${uid}@${client.remoteAddress}`, attempts);
+
+                if (attempts >= Environment.NODE_RATELIMIT_DEVICE_LOGIN) {
+                    // login attempts exceeded
+                    client.send(Uint8Array.from([16]));
+                    client.close();
+                    return;
+                }
+            }
 
             if (username.length < 1 || username.length > 12) {
                 client.send(Uint8Array.from([3]));
@@ -2252,9 +2253,8 @@ class World {
         client.opcode = -1;
     }
 
-    addSessionLog(event_type: LoggerEventType, account_id: number, session_uuid: string, coord: number, message: string, ...args: string[]) {
+    addSessionLog(event_type: LoggerEventType, session_uuid: string, coord: number, message: string, ...args: string[]) {
         this.sessionLogs.push({
-            account_id,
             session_uuid,
             timestamp: Date.now(),
             coord,
@@ -2281,8 +2281,8 @@ class World {
 
         const key = JSON.stringify({
             type: event.event_type,
-            id: event.account_id,
-            recipient: event.recipient_id,
+            session: event.session_uuid,
+            recipient: event.recipient_session,
             coord: event.coord,
             tick: this.currentTick
         });
@@ -2338,20 +2338,19 @@ class World {
         }
         this.loggerThread.postMessage({
             type: 'report',
-            username: player.username,
+            session_uuid: player.session,
             coord: player.coord,
             offender,
             reason
         });
     }
 
-    submitInputTracking(username: string, session_uuid: string, blobs: InputTrackingBlob[]) {
+    submitInputTracking(player: Player, buf: Uint8Array) {
         this.loggerThread.postMessage({
             type: 'input_track',
-            username,
-            session_uuid,
+            session_uuid: player.session,
             timestamp: Date.now(),
-            blobs
+            buf: Buffer.from(buf).toString('base64')
         });
     }
 

@@ -1,5 +1,7 @@
+import MesanimType from '#/cache/config/MesanimType.js';
 import { ScriptOpcode } from '#/engine/script/ScriptOpcode.js';
 import { CommandHandlers } from '#/engine/script/ScriptRunner.js';
+import { check, FontTypeValid, MesanimValid } from '#/engine/script/ScriptValidators.js';
 
 const StringOps: CommandHandlers = {
     [ScriptOpcode.APPEND_NUM]: state => {
@@ -69,7 +71,55 @@ const StringOps: CommandHandlers = {
         const text = state.popString();
         const find = state.popString();
         state.pushInt(text.indexOf(find));
-    }
+    },
+
+    [ScriptOpcode.SPLIT_INIT]: state => {
+        const [maxWidth, linesPerPage, fontId] = state.popInts(3);
+        let text = state.popString();
+
+        const font = check(fontId, FontTypeValid);
+
+        // todo: later this needs to lookup by <p=id> instead of <p,name>
+        if (text.startsWith('<p,') && text.indexOf('>') !== -1) {
+            const mesanim = text.substring(3, text.indexOf('>'));
+            state.splitMesanim = MesanimType.getId(mesanim);
+            text = text.substring(text.indexOf('>') + 1);
+        } else {
+            state.splitMesanim = -1;
+        }
+
+        state.splitPages = [];
+        const lines = font.split(text, maxWidth);
+        while (lines.length > 0) {
+            state.splitPages.push(lines.splice(0, linesPerPage));
+        }
+    },
+
+    [ScriptOpcode.SPLIT_GET]: state => {
+        const [page, line] = state.popInts(2);
+
+        state.pushString(state.splitPages[page][line]);
+    },
+
+    [ScriptOpcode.SPLIT_PAGECOUNT]: state => {
+        state.pushInt(state.splitPages.length);
+    },
+
+    [ScriptOpcode.SPLIT_LINECOUNT]: state => {
+        const page = state.popInt();
+
+        state.pushInt(state.splitPages[page].length);
+    },
+
+    [ScriptOpcode.SPLIT_GETANIM]: state => {
+        const page = state.popInt();
+        if (state.splitMesanim === -1) {
+            state.pushInt(-1);
+            return;
+        }
+
+        state.pushInt(check(state.splitMesanim, MesanimValid).len[state.splitPages[page].length - 1]);
+    },
 };
 
 function javaStringCompare(a: string, b: string): number {

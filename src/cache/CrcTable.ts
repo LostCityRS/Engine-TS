@@ -1,7 +1,4 @@
-import fs from 'fs';
-
 import Packet from '#/io/Packet.js';
-import Environment from '#/util/Environment.js';
 import OnDemand from '#/engine/OnDemand.js';
 
 export const CrcBuffer: Packet = new Packet(new Uint8Array(4 * 9 + 4));
@@ -31,11 +28,5 @@ export function makeCrcs() {
     }
     CrcBuffer.p4(hash);
 
-    CrcBuffer32 = Packet.getcrc(CrcBuffer.data, 0, CrcBuffer.data.length);
-}
-
-if (!Environment.STANDALONE_BUNDLE) {
-    if (fs.existsSync('data/pack/client/')) {
-        makeCrcs();
-    }
+    CrcBuffer32 = Packet.getcrc(CrcBuffer.data, 0, CrcBuffer.data.length - 4);
 }

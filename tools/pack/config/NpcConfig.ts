@@ -86,7 +86,7 @@ export function parseNpcConfig(key: string, value: string): ConfigValue | null |
             return null;
         }
 
-        if (key === 'respawnrate' && (number < 0 || number > 12000)) {
+        if ((key === 'respawnrate' || key === 'regenrate') && (number < 0 || number > 12000)) {
             return null;
         }
 
@@ -463,6 +463,9 @@ export function packNpcConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
                     if (value === false) {
                         server.p1(213);
                     }
+                } else if (key === 'regenrate') {
+                    server.p1(214);
+                    server.p2(value as number);
                 }
             }
 

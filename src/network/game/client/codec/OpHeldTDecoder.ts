@@ -7,11 +7,11 @@ export default class OpHeldTDecoder extends ClientGameMessageDecoder<OpHeldT> {
     prot = ClientGameProt.OPHELDT;
 
     decode(buf: Packet) {
-        const spellComponent = buf.g2();
-        const component = buf.g2_alt2();
+        const spellCom = buf.g2();
+        const com = buf.g2_alt2();
         const slot = buf.g2_alt2();
         const obj = buf.g2_alt2();
 
-        return new OpHeldT(obj, slot, component, spellComponent);
+        return new OpHeldT(obj, slot, com, spellCom);
     }
 }

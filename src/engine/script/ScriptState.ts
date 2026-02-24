@@ -17,8 +17,7 @@ export interface GosubStackFrame {
     stringLocals: string[];
 }
 
-// for debugging stack traces
-export interface JumpStackFrame {
+export interface DebugStackFrame {
     script: ScriptFile;
     pc: number;
 }
@@ -45,7 +44,7 @@ export default class ScriptState {
     frames: GosubStackFrame[] = [];
     fp = 0; // frame pointer
 
-    debugFrames: JumpStackFrame[] = [];
+    debugFrames: DebugStackFrame[] = [];
     debugFp = 0;
 
     intStack: (number | null)[] = [];
@@ -122,7 +121,7 @@ export default class ScriptState {
      */
     timespent: number = 0;
 
-    huntIterator: IterableIterator<Entity> | null = null;
+    playerIterator: IterableIterator<Player> | null = null;
     npcIterator: IterableIterator<Npc> | null = null;
     locIterator: IterableIterator<Loc> | null = null;
     objIterator: IterableIterator<Obj> | null = null;
@@ -214,6 +213,15 @@ export default class ScriptState {
      */
     get activePlayer() {
         const player = this.intOperand === 0 ? this._activePlayer : this._activePlayer2;
+        if (player === null) {
+            throw new Error('Attempt to access null active_player');
+        }
+        return player;
+    }
+
+    // gets the secondary player from the perspective of the command (.command returns player1)
+    get activePlayer2() {
+        const player = this.intOperand === 0 ? this._activePlayer2 : this._activePlayer;
         if (player === null) {
             throw new Error('Attempt to access null active_player');
         }
@@ -343,6 +351,8 @@ export default class ScriptState {
     }
 
     popFrame(): void {
+        this.debugFp--;
+
         const frame = this.frames[--this.fp];
         this.pc = frame.pc;
         this.script = frame.script;
@@ -351,6 +361,11 @@ export default class ScriptState {
     }
 
     gosubFrame(proc: ScriptFile): void {
+        this.debugFrames[this.debugFp++] = {
+            script: this.script,
+            pc: this.pc
+        };
+
         this.frames[this.fp++] = {
             script: this.script,
             pc: this.pc,
@@ -387,18 +402,5 @@ export default class ScriptState {
         this.script = script;
         this.intLocals = intLocals;
         this.stringLocals = stringLocals;
-    }
-
-    reset(): void {
-        this.pc = -1;
-        this.frames = [];
-        this.fp = 0;
-        this.intStack = [];
-        this.isp = 0;
-        this.stringStack = [];
-        this.ssp = 0;
-        this.intLocals = [];
-        this.stringLocals = [];
-        this.pointers = 0;
     }
 }

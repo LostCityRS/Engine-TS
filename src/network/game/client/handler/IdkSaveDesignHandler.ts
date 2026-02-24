@@ -1,0 +1,58 @@
+import IdkType from '#/cache/config/IdkType.js';
+import Player from '#/engine/entity/Player.js';
+import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
+import IdkSaveDesign from '#/network/game/client/model/IdkSaveDesign.js';
+
+export default class IdkSaveDesignHandler extends ClientGameMessageHandler<IdkSaveDesign> {
+    handle(message: IdkSaveDesign, player: Player): boolean {
+        const { gender, idkit, color } = message;
+
+        if (!player.allowDesign) {
+            return false;
+        }
+
+        if (gender > 1) {
+            return false;
+        }
+
+        let pass = true;
+        for (let i = 0; i < 7; i++) {
+            let type = i;
+            if (gender === 1) {
+                type += 7;
+            }
+
+            if (type == 8 && idkit[i] === -1) {
+                // female jaw is an exception
+                continue;
+            }
+
+            const idk = IdkType.get(idkit[i]);
+            if (!idk || idk.disable || idk.type != type) {
+                pass = false;
+                break;
+            }
+        }
+
+        if (!pass) {
+            return false;
+        }
+
+        for (let i = 0; i < 5; i++) {
+            if (color[i] >= Player.DESIGN_BODY_COLORS[i].length) {
+                pass = false;
+                break;
+            }
+        }
+
+        if (!pass) {
+            return false;
+        }
+
+        player.gender = gender;
+        player.body = idkit;
+        player.colors = color;
+        player.buildAppearance(player.appearanceInv);
+        return true;
+    }
+}

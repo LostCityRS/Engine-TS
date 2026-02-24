@@ -7,7 +7,7 @@ import FileStream from '#/io/FileStream.js';
 import { MidiPack } from '#tools/pack/PackFile.js';
 import { listFilesExt } from '#tools/pack/Parse.js';
 
-export function packClientMusic(cache: FileStream) {
+export function packClientMidi(cache: FileStream) {
     const midis = [...listFilesExt(`${Environment.BUILD_SRC_DIR}/jingles`, '.mid'), ...listFilesExt(`${Environment.BUILD_SRC_DIR}/songs`, '.mid')];
     for (const file of midis) {
         const basename = path.basename(file);

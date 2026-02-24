@@ -1,7 +1,8 @@
 import Packet from '#/io/Packet.js';
+
 import ServerGameMessageEncoder from '#/network/game/server/ServerGameMessageEncoder.js';
 import ServerGameProt from '#/network/game/server/ServerGameProt.js';
-import SetPlayerOp from '../model/SetPlayerOp.js';
+import SetPlayerOp from '#/network/game/server/model/SetPlayerOp.js';
 
 export default class SetPlayerOpEncoder extends ServerGameMessageEncoder<SetPlayerOp> {
     prot = ServerGameProt.SET_PLAYER_OP;

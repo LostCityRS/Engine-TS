@@ -9,9 +9,9 @@ export default class OpObjTDecoder extends ClientGameMessageDecoder<OpObjT> {
     decode(buf: Packet) {
         const obj = buf.g2_alt1();
         const z = buf.g2();
-        const spellComponent = buf.g2_alt1();
+        const spellCom = buf.g2_alt1();
         const x = buf.g2_alt3();
 
-        return new OpObjT(x, z, obj, spellComponent);
+        return new OpObjT(x, z, obj, spellCom);
     }
 }

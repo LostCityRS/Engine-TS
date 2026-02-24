@@ -2,30 +2,28 @@ import fs from 'fs';
 
 import { collectDefaultMetrics, register } from 'prom-client';
 
-import { packClient, packServer } from '#tools/pack/PackAll.js';
+import { packAll } from '#tools/pack/PackAll.js';
 import World from '#/engine/World.js';
 import TcpServer from '#/server/tcp/TcpServer.js';
 import Environment from '#/util/Environment.js';
 import { printError, printInfo } from '#/util/Logger.js';
-import { updateCompiler } from '#/util/RuneScriptCompiler.js';
-import { createWorker } from '#/util/WorkerFactory.js';
 import { startManagementWeb, startWeb } from '#/web.js';
+import OnDemand from '#/engine/OnDemand.js';
 
-if (Environment.BUILD_STARTUP_UPDATE) {
-    await updateCompiler();
-}
-
-if (!fs.existsSync('data/pack/client/config') || !fs.existsSync('data/pack/server/script.dat')) {
-    printInfo('Packing cache for the first time, please wait until you see the world is ready.');
+if (
+    OnDemand.cache.count(0) !== 9 ||
+    OnDemand.cache.count(2) === 0 ||
+    !fs.existsSync('data/pack/server/script.dat')
+) {
+    printInfo('Packing cache, please wait until you see the world is ready.');
 
     try {
         // todo: different logic so the main thread doesn't have to load pack files
         const modelFlags: number[] = [];
-        await packClient(modelFlags);
-        await packServer();
+        await packAll(modelFlags);
     } catch (err) {
         if (err instanceof Error) {
-            printError(err.message);
+            printError(err);
         }
 
         process.exit(1);
@@ -33,9 +31,9 @@ if (!fs.existsSync('data/pack/client/config') || !fs.existsSync('data/pack/serve
 }
 
 if (Environment.EASY_STARTUP) {
-    createWorker('./src/login.ts');
-    createWorker('./src/friend.ts');
-    createWorker('./src/logger.ts');
+    new Worker('./src/login.ts');
+    new Worker('./src/friend.ts');
+    new Worker('./src/logger.ts');
 }
 
 await World.start();
@@ -49,8 +47,7 @@ await startManagementWeb();
 register.setDefaultLabels({ nodeId: Environment.NODE_ID });
 collectDefaultMetrics({ register });
 
-// unfortunately, tsx watch is not giving us a way to gracefully shut down in our dev mode:
-// https://github.com/privatenumber/tsx/issues/494
+// bun does not give us a signal to gracefully shut down in our dev mode...
 let exiting = false;
 function safeExit() {
     if (exiting) {
@@ -63,3 +60,11 @@ function safeExit() {
 
 process.on('SIGINT', safeExit);
 process.on('SIGTERM', safeExit);
+
+process.on('uncaughtException', function (err) {
+    console.error(err, 'Uncaught exception');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error({ promise, reason }, 'Unhandled Rejection at: Promise');
+});

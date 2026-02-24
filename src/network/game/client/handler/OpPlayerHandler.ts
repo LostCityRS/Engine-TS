@@ -10,43 +10,32 @@ import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 
 export default class OpPlayerHandler extends ClientGameMessageHandler<OpPlayer> {
     handle(message: OpPlayer, player: NetworkPlayer): boolean {
-        const { pid } = message;
+        const { playerSlot } = message;
 
         if (player.delayed) {
+            // normal: cannot interact while delayed
             player.write(new UnsetMapFlag());
             return false;
         }
 
-        const other = World.getPlayer(pid);
+        const other = World.getPlayer(playerSlot);
         if (!other) {
+            // bad client or lag: player does not exist
             player.write(new UnsetMapFlag());
-            player.clearPendingAction();
             return false;
         }
 
-        if (!rsbuf.hasPlayer(player.pid, other.pid)) {
+        if (!rsbuf.hasPlayer(player.slot, other.slot)) {
+            // bad client or lag: player is not visible on client
             player.write(new UnsetMapFlag());
-            player.clearPendingAction();
             return false;
         }
 
-        // todo: validate set_player_op?
+        // todo: validate set_player_op is set?
 
-        let mode: ServerTriggerType;
-        if (message.op === 1) {
-            mode = ServerTriggerType.APPLAYER1;
-        } else if (message.op === 2) {
-            mode = ServerTriggerType.APPLAYER2;
-        } else if (message.op === 3) {
-            mode = ServerTriggerType.APPLAYER3;
-        } else if (message.op === 4) {
-            mode = ServerTriggerType.APPLAYER4;
-        } else {
-            mode = ServerTriggerType.APPLAYER5;
-        }
-
+        const trigger: ServerTriggerType = ServerTriggerType.APPLAYER1 + (message.op - 1);
         player.clearPendingAction();
-        player.setInteraction(Interaction.ENGINE, other, mode);
+        player.setInteraction(Interaction.ENGINE, other, trigger);
         player.opcalled = true;
         return true;
     }

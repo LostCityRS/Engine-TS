@@ -10,10 +10,14 @@ import Environment from '#/util/Environment.js';
 
 export default class IfButtonHandler extends ClientGameMessageHandler<IfButton> {
     handle(message: IfButton, player: Player): boolean {
-        const { component: comId } = message;
+        const { com: comId } = message;
 
         const com = Component.get(comId);
-        if (typeof com === 'undefined' || !player.isComponentVisible(com)) {
+        if (typeof com === 'undefined' || com.buttonType === Component.NO_BUTTON) {
+            // bad client: component is not acceptable for this packet
+            return false;
+        } else if (!player.isComponentVisible(com)) {
+            // bad client or lag: component is not visible
             return false;
         }
 
@@ -24,10 +28,9 @@ export default class IfButtonHandler extends ClientGameMessageHandler<IfButton> 
                 player.executeScript(player.activeScript, true, true);
             }
         } else {
-            const root = Component.get(com.rootLayer);
-
             const script = ScriptProvider.getByTriggerSpecific(ServerTriggerType.IF_BUTTON, comId, -1);
             if (script) {
+                const root = Component.get(com.rootLayer);
                 player.executeScript(ScriptRunner.init(script, player), root.overlay == false);
             } else if (Environment.NODE_DEBUG) {
                 player.messageGame(`No trigger for [if_button,${com.comName}]`);

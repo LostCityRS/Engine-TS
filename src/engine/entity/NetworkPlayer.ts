@@ -6,7 +6,6 @@ import InvType from '#/cache/config/InvType.js';
 import { CoordGrid } from '#/engine/CoordGrid.js';
 import { ModalState } from '#/engine/entity/ModalState.js';
 import Player from '#/engine/entity/Player.js';
-import { WealthEventParams } from '#/engine/entity/tracking/WealthEvent.js';
 import World from '#/engine/World.js';
 import { WorldStat } from '#/engine/WorldStat.js';
 import Zone from '#/engine/zone/Zone.js';
@@ -31,7 +30,6 @@ import UpdateRunWeight from '#/network/game/server/model/UpdateRunWeight.js';
 import UpdateStat from '#/network/game/server/model/UpdateStat.js';
 import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 import ClientSocket from '#/server/ClientSocket.js';
-import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import NullClientSocket from '#/server/NullClientSocket.js';
 import { printError } from '#/util/Logger.js';
 import ClientGameProt from '#/network/game/client/ClientGameProt.js';
@@ -51,6 +49,7 @@ export class NetworkPlayer extends Player {
         super(username, username37, hash64);
 
         this.client = client;
+        this.session = client.uuid;
         this.client.player = this;
     }
 
@@ -193,19 +192,10 @@ export class NetworkPlayer extends Player {
             this.write(new IfOpenOverlay(this.overlay));
             this.lastOverlay = this.overlay;
         }
-
-        for (const message of this.buffer) {
-            this.writeInner(message);
-        }
-
-        this.buffer = [];
     }
 
     writeInner(message: ServerGameMessage): void {
         const client = this.client;
-        if (!client) {
-            return;
-        }
 
         const encoder: ServerGameMessageEncoder<ServerGameMessage> | undefined = ServerGameProtRepository.getEncoder(message);
         if (!encoder) {
@@ -229,9 +219,9 @@ export class NetworkPlayer extends Player {
         }
 
         if (prot.length === -1) {
-            buf.p1(0);
+            buf.pos += 1;
         } else if (prot.length === -2) {
-            buf.p2(0);
+            buf.pos += 2;
         }
 
         const start: number = buf.pos;
@@ -255,22 +245,9 @@ export class NetworkPlayer extends Player {
         this.client.terminate();
     }
 
-    override addSessionLog(event_type: LoggerEventType, message: string, ...args: string[]): void {
-        World.addSessionLog(event_type, this.account_id, isClientConnected(this) ? this.client.uuid : 'disconnected', CoordGrid.packCoord(this.level, this.x, this.z), message, ...args);
-    }
-
-    override addWealthEvent(event: WealthEventParams) {
-        World.addWealthEvent({
-            coord: CoordGrid.packCoord(this.level, this.x, this.z),
-            account_id: this.account_id,
-            account_session: isClientConnected(this) ? this.client.uuid : 'disconnected',
-            ...event
-        });
-    }
-
     updateMap() {
         // update the camera after rebuild.
-        for (let info = this.cameraPackets.head(); info !== null; info = this.cameraPackets.next()) {
+        for (const info of this.cameraPackets.all()) {
             const localX = info.camX - CoordGrid.zoneOrigin(this.originX);
             const localZ = info.camZ - CoordGrid.zoneOrigin(this.originZ);
             if (info.type === 0) {
@@ -317,11 +294,11 @@ export class NetworkPlayer extends Player {
     }
 
     updatePlayers() {
-        this.write(new PlayerInfo(rsbuf.playerInfo(this.client.out.pos, this.pid, Math.abs(this.lastTickX - this.x), Math.abs(this.lastTickZ - this.z), this.lastLevel !== this.level)));
+        this.write(new PlayerInfo(rsbuf.playerInfo(this.client.out.pos, this.slot, Math.abs(this.lastTickX - this.x), Math.abs(this.lastTickZ - this.z), this.lastLevel !== this.level)));
     }
 
     updateNpcs() {
-        this.write(new NpcInfo(rsbuf.npcInfo(this.client.out.pos, this.pid, Math.abs(this.lastTickX - this.x), Math.abs(this.lastTickZ - this.z), this.lastLevel !== this.level)));
+        this.write(new NpcInfo(rsbuf.npcInfo(this.client.out.pos, this.slot, Math.abs(this.lastTickX - this.x), Math.abs(this.lastTickZ - this.z), this.lastLevel !== this.level)));
     }
 
     updateZones() {
@@ -425,24 +402,4 @@ export class NetworkPlayer extends Player {
 
 export function isClientConnected(player: Player): player is NetworkPlayer {
     return player instanceof NetworkPlayer && !(player.client instanceof NullClientSocket);
-}
-
-export function isBufferFull(player: Player): boolean {
-    if (!isClientConnected(player)) {
-        return false;
-    }
-
-    let total = 0;
-
-    for (const message of player.buffer) {
-        const encoder: ServerGameMessageEncoder<ServerGameMessage> | undefined = ServerGameProtRepository.getEncoder(message);
-        if (!encoder) {
-            return true;
-        }
-
-        const prot = encoder.prot;
-        total += 1 + (prot.length === -1 ? 1 : prot.length === -2 ? 2 : 0) + encoder.test(message);
-    }
-
-    return total >= 5000;
 }

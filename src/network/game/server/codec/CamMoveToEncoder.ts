@@ -10,7 +10,7 @@ export default class CamMoveToEncoder extends ServerGameMessageEncoder<CamMoveTo
         buf.p1(message.x);
         buf.p1(message.z);
         buf.p2(message.height);
-        buf.p1(message.speed);
-        buf.p1(message.multiplier);
+        buf.p1(message.rate);
+        buf.p1(message.rate2);
     }
 }

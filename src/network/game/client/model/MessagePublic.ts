@@ -6,7 +6,7 @@ export default class MessagePublic extends ClientGameMessage {
 
     constructor(
         readonly input: Uint8Array,
-        readonly color: number,
+        readonly colour: number,
         readonly effect: number
     ) {
         super();

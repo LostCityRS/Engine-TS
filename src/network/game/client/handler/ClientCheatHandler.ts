@@ -1,3 +1,5 @@
+import v8 from 'node:v8';
+
 import { Visibility } from '@2004scape/rsbuf';
 import { LocAngle, LocShape } from '@2004scape/rsmod-pathfinder';
 
@@ -10,8 +12,11 @@ import ObjType from '#/cache/config/ObjType.js';
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
 import SeqType from '#/cache/config/SeqType.js';
 import SpotanimType from '#/cache/config/SpotanimType.js';
+import VarBitType from '#/cache/config/VarBitType.js';
 import VarPlayerType from '#/cache/config/VarPlayerType.js';
+
 import { CoordGrid } from '#/engine/CoordGrid.js';
+import World from '#/engine/World.js';
 import { EntityLifeCycle } from '#/engine/entity/EntityLifeCycle.js';
 import Loc from '#/engine/entity/Loc.js';
 import { MoveStrategy } from '#/engine/entity/MoveStrategy.js';
@@ -21,13 +26,15 @@ import Player, { getExpByLevel } from '#/engine/entity/Player.js';
 import { PlayerStat, PlayerStatEnabled, PlayerStatMap } from '#/engine/entity/PlayerStat.js';
 import ScriptProvider from '#/engine/script/ScriptProvider.js';
 import ScriptRunner from '#/engine/script/ScriptRunner.js';
-import World from '#/engine/World.js';
+
 import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import ClientCheat from '#/network/game/client/model/ClientCheat.js';
+
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
+
 import Environment from '#/util/Environment.js';
+import { printDebug } from '#/util/Logger.js';
 import { tryParseInt } from '#/util/TryParse.js';
-import VarBitType from '#/cache/config/VarBitType.js';
 
 export default class ClientCheatHandler extends ClientGameMessageHandler<ClientCheat> {
     handle(message: ClientCheat, player: Player): boolean {
@@ -140,9 +147,9 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                 }
 
                 player.executeScript(ScriptRunner.init(script, player, null, params), false);
-            } else if (cmd === 'reload' && !Environment.STANDALONE_BUNDLE) {
+            } else if (cmd === 'reload') {
                 World.reload();
-            } else if (cmd === 'rebuild' && !Environment.STANDALONE_BUNDLE) {
+            } else if (cmd === 'rebuild') {
                 player.messageGame('Rebuilding scripts...');
                 World.rebuild();
             } else if (cmd === 'speed') {
@@ -532,9 +539,12 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                     return false;
                 }
 
-                player.openOverlay(type.id);
+                player.openMainOverlay(type.id);
             } else if (cmd === 'closeoverlay') {
-                player.openOverlay(-1);
+                player.openMainOverlay(-1);
+            } else if (cmd === 'snapshot') {
+                const heap = v8.writeHeapSnapshot();
+                printDebug(`Heap snapshot written to: ${heap}`);
             }
         }
 
