@@ -3,6 +3,7 @@ import { ParamHelper, ParamMap } from '#/cache/config/ParamHelper.js';
 import { Direction } from '#/engine/CoordGrid.js';
 import { BlockWalk } from '#/engine/entity/BlockWalk.js';
 import { MoveRestrict } from '#/engine/entity/MoveRestrict.js';
+import { MoveSpeed } from '#/engine/entity/MoveSpeed.js';
 import { NpcMode } from '#/engine/entity/NpcMode.js';
 import { NpcStat } from '#/engine/entity/NpcStat.js';
 import Jagfile from '#/io/Jagfile.js';
@@ -102,9 +103,25 @@ export default class NpcType extends ConfigType {
     spotshadow_trans1 = -96;
     spotshadow_trans2 = -16;
     walkflags = 0;
-
+    code115_1: number = 0;
+    code115_2: number = 0;
+    modeloffset: number[][] = [];
+    hitbarid = -1;
+    bas = -1;
     overlayheight = -1;
     respawndir = Direction.SOUTH_EAST;
+    mapfunction = -1;
+    movespeed: MoveSpeed | null = null;
+    bgsound = -1;
+    bgsound_crawl = -1;
+    bgsound_walk = -1;
+    bgsound_run = -1;
+    bgsound_range = 0;
+    cursor1op = -1;
+    cursor1 = -1;
+    cursor2op = -1;
+    cursor2 = -1;
+    cursorattack = -1;
 
     // server-side
     regenRate = 100;
@@ -271,15 +288,62 @@ export default class NpcType extends ConfigType {
             this.spotshadow_trans1 = dat.g1b();
             this.spotshadow_trans2 = dat.g1b();    
         } else if (code === 115) {
-            // TODO: Figure out what these values actually are, if they're used that is.
-            dat.g1(); 
-            dat.g1(); 
+            // TODO: Figure out what these values actually are.
+            this.code115_1 = dat.g1(); 
+            this.code115_2 = dat.g1(); 
         } else if (code === 119) {
             this.walkflags = dat.g1b();
+        } else if (code === 121) {
+            this.modeloffset = new Array(this.models?.length);
+            const count = dat.g1();
+            for (let i = 0; i < count; i++) {
+                const offset = dat.g1();
+                const offsets = this.modeloffset[offset] = new Array(3);
+                offsets[0] = dat.g1b();
+                offsets[1] = dat.g1b();
+                offsets[2] = dat.g1b();
+            }
+        } else if (code === 122) {
+            this.hitbarid = dat.g2();
         } else if (code === 123) {
             this.overlayheight = dat.g2();
         } else if (code === 125) {
             this.respawndir = dat.g1b();
+        } else if (code === 126) {
+            this.mapfunction = dat.g2();
+        } else if (code === 127) {
+            this.bas = dat.g2();    
+        } else if (code === 128) {
+            this.movespeed = dat.g1();
+        } else if (code === 134) {
+            this.bgsound = dat.g2();
+            if (this.bgsound === 65535) {
+                this.bgsound = -1;
+            }
+
+            this.bgsound_crawl = dat.g2();
+            if (this.bgsound_crawl === 65535) {
+                this.bgsound_crawl = -1;
+            }
+
+            this.bgsound_walk = dat.g2();
+            if (this.bgsound_walk === 65535) {
+                this.bgsound_walk = -1;
+            }
+
+            this.bgsound_run = dat.g2();
+            if (this.bgsound_run === 65535) {
+                this.bgsound_run = -1;
+            }
+            this.bgsound_range = dat.g1();
+        } else if (code === 135) {
+            this.cursor1op = dat.g1();
+            this.cursor1 = dat.g2();
+        } else if (code === 136) {
+            this.cursor2op = dat.g1();
+            this.cursor2 = dat.g2();
+        } else if (code === 137) {
+            this.cursorattack = dat.g2();
         } else if (code === 200) {
             this.wanderrange = dat.g2();
         } else if (code === 201) {
