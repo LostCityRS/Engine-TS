@@ -206,10 +206,6 @@ export default class ObjType extends ConfigType {
             this.xof2d = dat.g2s();
         } else if (code === 8) {
             this.yof2d = dat.g2s();
-        } else if (code === 9) {
-            this.code9 = true;
-        } else if (code === 10) {
-            this.code10 = dat.g2();
         } else if (code === 11) {
             this.stackable = true;
         } else if (code === 12) {
