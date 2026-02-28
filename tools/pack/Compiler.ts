@@ -71,9 +71,9 @@ class CompilerTypeInfo {
 
         for (const [key, value] of Object.entries(input)) {
             if (valueAsKey) {
-                pack.map[value] = key.toLowerCase();
+                pack.map[value] = key;
             } else {
-                pack.map[key] = value.toLowerCase();
+                pack.map[key] = value;
             }
         }
 
