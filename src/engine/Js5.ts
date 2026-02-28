@@ -15,10 +15,12 @@ class Js5 {
     prefetchRequests: Js5Request[] = [];
     private clientArchivePacks = new Map<number, Js5PackReader | null>();
     private readonly clientPackPaths = new Map<number, string>([
-        [17, 'data/pack/client/enum.js5'],
-        [6, 'data/pack/client/midi.js5'],
-        [24, 'data/pack/client/quickchat.js5'],
-        [25, 'data/pack/client/quickchat.global.js5']
+        [17, 'data/pack/client/client.enum.config.js5'],
+        [6, 'data/pack/client/client.midi.js5'],
+        [24, 'data/pack/client/client.quickchat.js5'],
+        [25, 'data/pack/client/client.quickchat.global.js5'],
+        [18, 'data/pack/client/client.npc.config.js5'],
+        [15, 'data/pack/client/client.patches.js5']
     ]);
 
     async cycle() {
