@@ -524,9 +524,9 @@ async function main() {
     output.set(lengthTable, pos);
 
     // Write to appropriate .js5 file
-    const outPath = args.mode === 'server' 
-        ? path.join(args.out, 'server.enum.js5')
-        : path.join(args.out, 'client.enum.js5');
+    const modeDir = path.join(args.out, args.mode);
+    ensureDir(modeDir);
+    const outPath = path.join(modeDir, `${args.mode}.enum.config.js5`);
 
     fs.writeFileSync(outPath, output);
 

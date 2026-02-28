@@ -161,8 +161,13 @@ async function main() {
     js5Data.set(lengthTable, offset);
 
     // Write both server and client versions (identical for MIDI)
-    const serverOut = path.join(args.out, 'server.music.js5');
-    const clientOut = path.join(args.out, 'client.music.js5');
+    const serverDir = path.join(args.out, 'server');
+    const clientDir = path.join(args.out, 'client');
+    ensureDir(serverDir);
+    ensureDir(clientDir);
+
+    const serverOut = path.join(serverDir, 'server.music.js5');
+    const clientOut = path.join(clientDir, 'client.music.js5');
 
     fs.writeFileSync(serverOut, js5Data);
     fs.writeFileSync(clientOut, js5Data);

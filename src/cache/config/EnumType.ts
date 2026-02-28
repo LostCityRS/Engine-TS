@@ -13,7 +13,7 @@ export default class EnumType extends ConfigType {
     static configs: EnumType[] = [];
 
     static load(dir: string) {
-        const js5Path = path.join(dir, 'server.enum.js5');
+        const js5Path = path.join(dir, 'server.enum.config.js5');
         if (fs.existsSync(js5Path)) {
             this.loadFromJs5(js5Path);
             return;

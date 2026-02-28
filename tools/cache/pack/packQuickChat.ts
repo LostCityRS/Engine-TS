@@ -31,7 +31,7 @@ type Args = {
     phrasePackInput: string;
     enumPackInput: string;
     out: string;
-    mode: 'server' | 'client';
+    mode: 'server' | 'client' | 'both';
     exact: boolean;
     help: boolean;
 };
@@ -57,7 +57,7 @@ function parseArgs(argv: string[]): Args {
         phrasePackInput: path.join(Environment.BUILD_SRC_DIR, 'pack', 'chatphrase.pack'),
         enumPackInput: path.join(Environment.BUILD_SRC_DIR, 'pack', 'enum.pack'),
         out: 'data/pack',
-        mode: 'server',
+        mode: 'both',
         exact: false,
         help: false
     };
@@ -84,7 +84,7 @@ function parseArgs(argv: string[]): Args {
             args.enumPackInput = argv[++i];
         } else if (arg === '--mode') {
             const mode = argv[++i];
-            if (mode === 'server' || mode === 'client') {
+            if (mode === 'server' || mode === 'client' || mode === 'both') {
                 args.mode = mode;
             }
         } else if (arg === '--exact') {
@@ -519,9 +519,6 @@ async function main() {
     output.set(lengthTable, pos);
 
     // Write output
-    const modeDir = path.join(args.out, args.mode);
-    ensureDir(modeDir);
-    
     let filename: string;
     if (args.archive === 24) {
         filename = 'quickchat.js5';
@@ -530,10 +527,18 @@ async function main() {
     } else {
         throw new Error(`Unsupported archive ${args.archive}. Only archives 24 and 25 are supported.`);
     }
-    
-    const outPath = path.join(modeDir, filename);
-    fs.writeFileSync(outPath, output);
-    console.log(`Wrote ${outPath}`);
+
+    const modes: Array<'server' | 'client'> = args.mode === 'both'
+        ? ['server', 'client']
+        : [args.mode];
+
+    for (const mode of modes) {
+        const modeDir = path.join(args.out, mode);
+        ensureDir(modeDir);
+        const outPath = path.join(modeDir, `${mode}.${filename}`);
+        fs.writeFileSync(outPath, output);
+        console.log(`Wrote ${outPath}`);
+    }
 }
 
 main().catch((err) => {

@@ -164,8 +164,13 @@ async function main() {
 
     js5Data.set(lengthTable, offset);
 
-    const serverOut = path.join(args.out, 'server.patches.js5');
-    const clientOut = path.join(args.out, 'client.patches.js5');
+    const serverDir = path.join(args.out, 'server');
+    const clientDir = path.join(args.out, 'client');
+    ensureDir(serverDir);
+    ensureDir(clientDir);
+
+    const serverOut = path.join(serverDir, 'server.patches.js5');
+    const clientOut = path.join(clientDir, 'client.patches.js5');
 
     fs.writeFileSync(serverOut, js5Data);
     fs.writeFileSync(clientOut, js5Data);
