@@ -120,7 +120,6 @@ export default class ObjType extends ConfigType {
     // ----
     model = 0;
     name: string | null = null;
-    desc: string | null = null;
     recol_s: Uint16Array | null = null;
     recol_d: Uint16Array | null = null;
     retex_s: Uint16Array | null = null;
@@ -133,8 +132,6 @@ export default class ObjType extends ConfigType {
     zan2d = 0;
     xof2d = 0;
     yof2d = 0;
-    code9 = false;
-    code10 = -1;
     stackable = false;
     cost = 1;
     members = false;
@@ -177,8 +174,10 @@ export default class ObjType extends ConfigType {
     cursor1i = -1;
     cursor2iop = -1;
     cursor2i = -1;
+    params: ParamMap = new Map();
 
     // server-side
+    desc: string | null = null;
     wearpos = -1;
     wearpos2 = -1;
     wearpos3 = -1;
@@ -186,8 +185,8 @@ export default class ObjType extends ConfigType {
     category = -1;
     dummyitem = 0;
     tradeable = true;
+    lendable = false;
     respawnrate = 100; // default to 1-minute
-    params: ParamMap = new Map();
 
     decode(code: number, dat: Packet): void {
         if (code === 1) {
@@ -312,6 +311,8 @@ export default class ObjType extends ConfigType {
             this.lentlink = dat.g2();
         } else if (code === 122) {
             this.lenttemplate = dat.g2();
+        } else if (code === 123) {
+            this.lendable = true;
         } else if (code === 125) {
             this.manwearOffsetX = dat.g1b();
             this.manwearOffsetY = dat.g1b();
