@@ -89,7 +89,19 @@ function parseSourceTypeName(typeName: string): number {
     return typeCode ?? ScriptVarType.INT;
 }
 
-function parseSourceParams(content: string, nameToId: Map<string, number>): Map<number, ParsedParamSource> {
+function parseDefaultIntByType(value: string, type: number, structNameToId: Map<string, number>): number {
+    if (type === ScriptVarType.STRUCT) {
+        const structId = resolveSectionId(value, structNameToId, 'struct_');
+        if (structId === null) {
+            throw new Error(`Unknown struct default: ${value}`);
+        }
+        return structId;
+    }
+
+    return parseConfigInteger(value);
+}
+
+function parseSourceParams(content: string, nameToId: Map<string, number>, structNameToId: Map<string, number>): Map<number, ParsedParamSource> {
     const params = new Map<number, ParsedParamSource>();
     const sections = parseBracketedConfigSource(content);
 
@@ -137,7 +149,7 @@ function parseSourceParams(content: string, nameToId: Map<string, number>): Map<
                 config.defaultString = deferred.value;
                 opcodes[deferred.index] = { code: 5, value: deferred.value };
             } else {
-                const defaultInt = parseConfigInteger(deferred.value);
+                const defaultInt = parseDefaultIntByType(deferred.value, config.type, structNameToId);
                 config.defaultInt = defaultInt;
                 opcodes[deferred.index] = { code: 2, value: defaultInt };
             }
@@ -190,11 +202,16 @@ async function main() {
     const fallbackPackDir = path.join(Environment.BUILD_SRC_DIR, 'pack');
     const localPackPath = path.join(localPackDir, 'param.pack');
     const fallbackPackPath = path.join(fallbackPackDir, 'param.pack');
+    const localStructPackPath = path.join(localPackDir, 'struct.pack');
+    const fallbackStructPackPath = path.join(fallbackPackDir, 'struct.pack');
 
     const nameToId = fs.existsSync(localPackPath) ? parsePackFile(localPackPath) : parsePackFile(fallbackPackPath);
+    const structNameToId = fs.existsSync(localStructPackPath)
+        ? parsePackFile(localStructPackPath)
+        : parsePackFile(fallbackStructPackPath);
 
     const sourceContent = fs.readFileSync(args.src, 'utf-8');
-    const sourceParams = parseSourceParams(sourceContent, nameToId);
+    const sourceParams = parseSourceParams(sourceContent, nameToId, structNameToId);
 
     const fileData = new Map<number, Uint8Array>();
     for (const fileId of currentGroupFileIds) {
