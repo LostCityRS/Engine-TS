@@ -80,9 +80,14 @@ class BunSqliteConnection implements DatabaseConnection {
                     rows: []
                 });
             } catch (err) {
-                if (err instanceof SQLiteError) {
+                if (err instanceof SQLiteError && err.errno === 5) {
+                    // database is locked, retry
                     await sleep(100);
                     continue;
+                } else if (err instanceof SQLiteError) {
+                    // query error
+                    console.error(err.message);
+                    break;
                 } else {
                     console.error(err);
                     break;

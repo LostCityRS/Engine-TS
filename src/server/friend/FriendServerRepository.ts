@@ -80,7 +80,7 @@ export class FriendServerRepository {
             return false;
         }
 
-        if (!this.playerStaff.has(username37) && staffLvl > 0) {
+        if (staffLvl > 1 && !this.playerStaff.has(username37)) {
             this.playerStaff.add(username37);
         }
 

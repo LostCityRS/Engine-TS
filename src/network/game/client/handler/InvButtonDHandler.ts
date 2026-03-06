@@ -37,13 +37,13 @@ export default class InvButtonDHandler extends ClientGameMessageHandler<InvButto
         player.lastSlot = slot;
         player.lastTargetSlot = targetSlot;
 
-        const dragTrigger = ScriptProvider.getByTrigger(ServerTriggerType.INV_BUTTOND, comId);
+        const dragTrigger = ScriptProvider.getByTrigger(ServerTriggerType.IF_BUTTOND, comId);
         if (dragTrigger) {
             const root = Component.get(com.rootLayer);
 
             player.executeScript(ScriptRunner.init(dragTrigger, player), root.overlay == false);
         } else if (Environment.NODE_DEBUG) {
-            player.messageGame(`No trigger for [inv_buttond,${com.comName}]`);
+            player.messageGame(`No trigger for [if_buttond,${com.comName}]`);
         }
 
         return true;

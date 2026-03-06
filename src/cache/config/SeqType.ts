@@ -62,7 +62,7 @@ export default class SeqType extends ConfigType {
     delay: Int32Array | null = null;
     loops: number = -1;
     walkmerge: Int32Array | null = null;
-    stretches: boolean = false;
+    reachforward: boolean = false;
     priority: number = 5;
     replaceheldleft: number = -1;
     replaceheldright: number = -1;
@@ -112,7 +112,7 @@ export default class SeqType extends ConfigType {
 
             this.walkmerge[count] = 9999999;
         } else if (code === 4) {
-            this.stretches = true;
+            this.reachforward = true;
         } else if (code === 5) {
             this.priority = dat.g1();
         } else if (code === 6) {

@@ -40,6 +40,7 @@ import MinimapToggle from '#/network/game/server/model/MinimapToggle.js';
 import SynthSound from '#/network/game/server/model/SynthSound.js';
 import Environment from '#/util/Environment.js';
 import SetPlayerOp from '#/network/game/server/model/SetPlayerOp.js';
+import JavaRandom from '#/util/JavaRandom.js';
 
 const PlayerOps: CommandHandlers = {
     [ScriptOpcode.FINDUID]: state => {
@@ -206,11 +207,11 @@ const PlayerOps: CommandHandlers = {
             ServerTriggerType.OPHELD5,
             ServerTriggerType.OPHELDU,
             ServerTriggerType.OPHELDT,
-            ServerTriggerType.INV_BUTTON1,
-            ServerTriggerType.INV_BUTTON2,
-            ServerTriggerType.INV_BUTTON3,
-            ServerTriggerType.INV_BUTTON4,
-            ServerTriggerType.INV_BUTTON5
+            ServerTriggerType.IF_BUTTON1,
+            ServerTriggerType.IF_BUTTON2,
+            ServerTriggerType.IF_BUTTON3,
+            ServerTriggerType.IF_BUTTON4,
+            ServerTriggerType.IF_BUTTON5
         ];
         if (!allowedTriggers.includes(state.trigger)) {
             throw new Error('is not safe to use in this trigger');
@@ -228,12 +229,12 @@ const PlayerOps: CommandHandlers = {
             ServerTriggerType.OPHELD5,
             ServerTriggerType.OPHELDU,
             ServerTriggerType.OPHELDT,
-            ServerTriggerType.INV_BUTTON1,
-            ServerTriggerType.INV_BUTTON2,
-            ServerTriggerType.INV_BUTTON3,
-            ServerTriggerType.INV_BUTTON4,
-            ServerTriggerType.INV_BUTTON5,
-            ServerTriggerType.INV_BUTTOND
+            ServerTriggerType.IF_BUTTON1,
+            ServerTriggerType.IF_BUTTON2,
+            ServerTriggerType.IF_BUTTON3,
+            ServerTriggerType.IF_BUTTON4,
+            ServerTriggerType.IF_BUTTON5,
+            ServerTriggerType.IF_BUTTOND
         ];
         if (!allowedTriggers.includes(state.trigger)) {
             throw new Error('is not safe to use in this trigger');
@@ -511,7 +512,7 @@ const PlayerOps: CommandHandlers = {
 
         const level = state.activePlayer.levels[stat];
         const value = Math.floor((low * (99 - level)) / 98) + Math.floor((high * (level - 1)) / 98) + 1;
-        const chance = Math.floor(Math.random() * 256);
+        const chance = JavaRandom.nextDouble() * 256;
 
         state.pushInt(value > chance ? 1 : 0);
     }),
@@ -771,36 +772,36 @@ const PlayerOps: CommandHandlers = {
     },
 
     [ScriptOpcode.BAS_READYANIM]: state => {
-        state.activePlayer.basReadyAnim = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.readyanim = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_TURNONSPOT]: state => {
-        state.activePlayer.basTurnOnSpot = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.turnanim = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_WALK_F]: state => {
-        state.activePlayer.basWalkForward = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.walkanim = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_WALK_B]: state => {
-        state.activePlayer.basWalkBackward = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.walkanim_b = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_WALK_L]: state => {
-        state.activePlayer.basWalkLeft = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.walkanim_l = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_WALK_R]: state => {
-        state.activePlayer.basWalkRight = check(state.popInt(), SeqTypeValid).id;
+        state.activePlayer.walkanim_r = check(state.popInt(), SeqTypeValid).id;
     },
 
     [ScriptOpcode.BAS_RUNNING]: state => {
         const seq = state.popInt();
         if (seq === -1) {
-            state.activePlayer.basRunning = -1;
+            state.activePlayer.runanim = -1;
             return;
         }
-        state.activePlayer.basRunning = check(seq, SeqTypeValid).id;
+        state.activePlayer.runanim = check(seq, SeqTypeValid).id;
     },
 
     [ScriptOpcode.GENDER]: state => {
@@ -865,7 +866,7 @@ const PlayerOps: CommandHandlers = {
     },
 
     [ScriptOpcode.LAST_TARGETSLOT]: state => {
-        const allowedTriggers = [ServerTriggerType.INV_BUTTOND];
+        const allowedTriggers = [ServerTriggerType.IF_BUTTOND];
         if (!allowedTriggers.includes(state.trigger)) {
             throw new Error('is not safe to use in this trigger');
         }

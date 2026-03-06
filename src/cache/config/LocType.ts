@@ -65,12 +65,16 @@ export default class LocType extends ConfigType {
     desc: string | null = null;
     recol_s: Uint16Array | null = null;
     recol_d: Uint16Array | null = null;
+    retex_s: Uint16Array | null = null;
+    retex_d: Uint16Array | null = null;
+    recol_d_palette: Int8Array | null = null;
     width = 1;
     length = 1;
     blockwalk = true;
     blockrange = true;
     active = -1;
-    hillskew = false;
+    hillskew = 0;
+    hillskew_amount = -1;   // todo: verify name
     sharelight = false;
     occlude = false;
     anim = -1;
@@ -96,6 +100,24 @@ export default class LocType extends ConfigType {
     multivarbit = -1;
     multivarp = -1;
     multiloc: number[] = [];
+    bgsound_sound = -1;
+    bgsound_range = 0;
+    bgsound_mindelay = 0;
+    bgsound_maxdelay = 0;
+    bgsound_random: number[] = [];
+    mapsceneiconrotate = false;
+    mapsceneicon = -1;
+    members = false;
+    randomanimframe = true;
+    hardshadow = true;
+    istexture = false;
+    code90 = false; // TODO: 'renderbelow'?
+    code96 = false; // TODO: 'hasanimation'?
+    code98 = false; // TODO: 'animated'?
+    cursor1op = -1;
+    cursor1 = -1;
+    cursor2op = -1;
+    cursor2 = -1;
 
     // server-side
     category = -1;
@@ -128,12 +150,13 @@ export default class LocType extends ConfigType {
             this.length = dat.g1();
         } else if (code === 17) {
             this.blockwalk = false;
+            this.blockrange = false;
         } else if (code === 18) {
             this.blockrange = false;
         } else if (code === 19) {
             this.active = dat.g1();
         } else if (code === 21) {
-            this.hillskew = true;
+            this.hillskew = 1;
         } else if (code === 22) {
             this.sharelight = true;
         } else if (code === 23) {
@@ -146,12 +169,14 @@ export default class LocType extends ConfigType {
             }
         } else if (code === 25) {
             this.hasalpha = true;
+        } else if (code === 27) {
+            this.blockwalk = true;
         } else if (code === 28) {
             this.wallwidth = dat.g1();
         } else if (code === 29) {
             this.ambient = dat.g1b();
         } else if (code === 39) {
-            this.contrast = dat.g1b();
+            this.contrast = dat.g1b();  // Value multiplied by 5 client side
         } else if (code >= 30 && code < 35) {
             if (!this.op) {
                 this.op = new Array(5).fill(null);
@@ -167,10 +192,26 @@ export default class LocType extends ConfigType {
                 this.recol_s[i] = dat.g2();
                 this.recol_d[i] = dat.g2();
             }
+        } else if (code === 41) {
+            const count = dat.g1();
+            this.retex_s = new Uint16Array(count);
+            this.retex_d = new Uint16Array(count);
+
+            for (let i = 0; i < count; i++) {
+                this.retex_s[i] = dat.g2();
+                this.retex_d[i] = dat.g2();
+            }
+        } else if (code === 42) {
+            const count = dat.g1();
+            this.recol_d_palette = new Int8Array(count);
+
+            for (let i = 0; i < count; i++) {
+                this.recol_d_palette[i] = dat.g1b();
+            }
         } else if (code === 60) {
             this.mapfunction = dat.g2();
         } else if (code === 61) {
-            this.category = dat.g2();
+            this.category = dat.g2(); 
         } else if (code === 62) {
             this.mirror = true;
         } else if (code === 64) {
@@ -182,7 +223,7 @@ export default class LocType extends ConfigType {
         } else if (code === 67) {
             this.resizez = dat.g2();
         } else if (code === 68) {
-            this.mapscene = dat.g2();
+            this.mapscene = dat.g2(); // Removed 530 (most likely earlier).
         } else if (code === 69) {
             this.forceapproach = dat.g1();
         } else if (code === 70) {
@@ -197,7 +238,7 @@ export default class LocType extends ConfigType {
             this.breakroutefinding = true;
         } else if (code === 75) {
             this.raiseobject = dat.g1();
-        } else if (code === 77) {
+        } else if (code === 77 || code === 92) {
             this.multivarbit = dat.g2();
             if (this.multivarbit === 65535) {
                 this.multivarbit = -1;
@@ -208,14 +249,70 @@ export default class LocType extends ConfigType {
                 this.multivarp = -1;
             }
 
+            let defaultid = -1;
+            if (code === 92) {
+                defaultid = dat.g2();
+                if (defaultid === 65535) {
+                    defaultid = -1;
+                }
+            }
+
             const count = dat.g1();
-            this.multiloc = new Array(count + 1);
+            this.multiloc = new Array(count + 2);
             for (let i = 0; i <= count; i++) {
                 this.multiloc[i] = dat.g2();
                 if (this.multiloc[i] === 65535) {
                     this.multiloc[i] = -1;
                 }
             }
+            this.multiloc[count + 1] = defaultid;
+        } else if (code === 78) {
+            this.bgsound_sound = dat.g2();
+            this.bgsound_range = dat.g1();
+        } else if (code === 79) {
+            this.bgsound_mindelay = dat.g2();
+            this.bgsound_maxdelay = dat.g2();
+            this.bgsound_range = dat.g1();
+
+            const count = dat.g1();
+            this.bgsound_random = new Array(count);
+            for (let i = 0; i < count; i++) {
+                this.bgsound_random[i] = dat.g2();
+            }
+        } else if (code === 81) {
+            this.hillskew = 2;
+            this.hillskew_amount = dat.g1(); // Value multiplied by 256 client side
+        } else if (code === 82) {
+            this.istexture = true;
+        } else if (code === 88) {
+            this.hardshadow = false;
+        } else if (code === 89) {
+            this.randomanimframe = false;
+        } else if (code === 90) {
+            this.code90 = true;
+        } else if (code === 91) {
+            this.members = true;
+        } else if (code === 93) {
+            this.hillskew = 3;
+            this.hillskew_amount = dat.g2();
+        } else if (code === 94) {
+            this.hillskew = 4;
+        } else if (code === 95) {
+            this.hillskew = 5;
+        } else if (code === 96) {
+            this.code96 = true;
+        } else if (code === 97) {
+            this.mapsceneiconrotate = true;
+        } else if (code === 98) {
+            this.code98 = true;
+        } else if (code === 99) {
+            this.cursor1op = dat.g1();
+            this.cursor1 = dat.g2();
+        } else if (code === 100) {
+            this.cursor2op = dat.g1();
+            this.cursor2 = dat.g2();
+        } else if (code === 102) {
+            this.mapsceneicon = dat.g2(); 
         } else if (code === 249) {
             this.params = ParamHelper.decodeParams(dat);
         } else if (code === 250) {

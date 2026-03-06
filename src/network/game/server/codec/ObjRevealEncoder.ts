@@ -10,7 +10,7 @@ export default class ObjRevealEncoder extends ServerGameZoneMessageEncoder<ObjRe
     encode(buf: Packet, message: ObjReveal): void {
         buf.p2_alt3(message.receiverId);
         buf.p1_alt2(message.coord);
-        buf.p2_alt1(message.obj);
         buf.p2_alt1(Math.min(message.count, 65535));
+        buf.p2_alt1(message.obj);
     }
 }

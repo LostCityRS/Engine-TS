@@ -447,7 +447,7 @@ const InvOps: CommandHandlers = {
         const fromItems = Array.from(fromLogs.values().map(item => (({ cost: _cost, ...event }) => event)(item)));
 
         // Log wealth events
-        if (fromInvType.debugname === 'stakeinv') {
+        if (fromInvType.debugname === 'dueloffer') {
             if (fromItems.length > 0) {
                 fromPlayer.addWealthEvent({
                     event_type: WealthEventType.STAKE, 

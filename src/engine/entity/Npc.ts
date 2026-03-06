@@ -121,15 +121,17 @@ export default class Npc extends PathingEntity {
         // Npc Events (Respawn, Revert, Despawn)
         if (!this.delayed && --this.lifecycleTick === 0) {
             try {
-                // Respawn NPC
-                if (this.lifecycle === EntityLifeCycle.RESPAWN && !this.isActive) {
-                    World.addNpc(this, -1, false);
-                }
-                // Revert NPC
                 if (this.lifecycle === EntityLifeCycle.RESPAWN) {
-                    this.revertType();
+                    // Respawn NPC (npc_del)
+                    if (!this.isActive) {
+                        World.addNpc(this, -1, false);
+                    }
+                    // Revert NPC (npc_changetype)
+                    else {
+                        this.revertType();
+                    }
                 }
-                // Despawn NPC
+                // Despawn NPC (npc_add)
                 else if (this.lifecycle === EntityLifeCycle.DESPAWN) {
                     World.removeNpc(this, -1);
                     // Queue despawn trigger
@@ -289,6 +291,7 @@ export default class Npc extends PathingEntity {
             }
             this.heroPoints.clear();
             this.queue.clear();
+            this.clearWaypoints();
 
             for (let i = 0; i < this.vars.length; i++) {
                 const varn = VarNpcType.get(i);
@@ -461,9 +464,9 @@ export default class Npc extends PathingEntity {
     }
 
     spotanim(spotanim: number, height: number, delay: number) {
-        this.graphicId = spotanim;
-        this.graphicHeight = height;
-        this.graphicDelay = delay;
+        this.spotanimId = spotanim;
+        this.spotanimHeight = height;
+        this.spotanimTime = delay;
         this.masks |= NpcInfoProt.SPOT_ANIM;
     }
 
@@ -476,16 +479,16 @@ export default class Npc extends PathingEntity {
             this.levels[NpcStat.HITPOINTS] = current - damage;
         }
 
-        if (this.damageSlot % 2 === 1) {
-            this.damageTaken2 = damage;
-            this.damageType2 = type;
+        if (this.hitmarkSlot % 2 === 1) {
+            this.hitmark2Damage = damage;
+            this.hitmark2Type = type;
             this.masks |= NpcInfoProt.DAMAGE2;
         } else {
-            this.damageTaken = damage;
-            this.damageType = type;
+            this.hitmarkDamage = damage;
+            this.hitmarkType = type;
             this.masks |= NpcInfoProt.DAMAGE;
         }
-        this.damageSlot++;
+        this.hitmarkSlot++;
     }
 
     say(text: string) {
@@ -493,7 +496,7 @@ export default class Npc extends PathingEntity {
             return;
         }
 
-        this.chat = text;
+        this.sayMessage = text;
         this.masks |= NpcInfoProt.SAY;
     }
 

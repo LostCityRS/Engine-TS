@@ -9,7 +9,7 @@ export default class MoveClickDecoder extends ClientGameMessageDecoder<MoveClick
     }
 
     decode(buf: Packet, length: number) {
-        const ctrlHeld: number = buf.g1_alt1();
+        const ctrlHeld: number = buf.g1b_alt1();
         const startX: number = buf.g2();
         const startZ: number = buf.g2_alt2();
 

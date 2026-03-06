@@ -2,6 +2,7 @@ import Packet from '#/io/Packet.js';
 import ClientSocket from '#/server/ClientSocket.js';
 import TcpClientSocket from '#/server/tcp/TcpClientSocket.js';
 import { getGroup } from '#/util/OpenRS2.js';
+import Js5PackReader from '#/io/Js5PackReader.js';
 
 type Js5Request = {
     client: ClientSocket;
@@ -12,19 +13,28 @@ type Js5Request = {
 class Js5 {
     urgentRequests: Js5Request[] = [];
     prefetchRequests: Js5Request[] = [];
+    private clientArchivePacks = new Map<number, Js5PackReader | null>();
+    private readonly clientPackPaths = new Map<number, string>([
+        [17, 'data/pack/client/client.enum.config.js5'],
+        [6, 'data/pack/client/client.midi.js5'],
+        [24, 'data/pack/client/client.quickchat.js5'],
+        [25, 'data/pack/client/client.quickchat.global.js5'],
+        [18, 'data/pack/client/client.npc.config.js5'],
+        [15, 'data/pack/client/client.patches.js5']
+    ]);
 
     async cycle() {
         // todo: limit requests per client per cycle
 
         for (let i = 0; i < this.urgentRequests.length; i++) {
             const req = this.urgentRequests[i];
-            await this.send(req.client, false, req.archive, req.group);
+            this.sendAsync(req.client, false, req.archive, req.group);
             this.urgentRequests.splice(i--, 1);
         }
 
         for (let i = 0; i < this.prefetchRequests.length; i++) {
             const req = this.prefetchRequests[i];
-            await this.send(req.client, true, req.archive, req.group);
+            this.sendAsync(req.client, true, req.archive, req.group);
             this.prefetchRequests.splice(i--, 1);
         }
 
@@ -61,7 +71,11 @@ class Js5 {
             return;
         }
 
-        const data = await getGroup(archive, group);
+        let data = this.getClientPackGroup(archive, group);
+
+        if (!data) {
+            data = await getGroup(archive, group);
+        }
         if (!data || !data.length) {
             console.log('missing archive, group', archive, group);
             return;
@@ -99,6 +113,35 @@ class Js5 {
 
             client.send(response.data.subarray(0, response.pos));
         }
+    }
+
+    private sendAsync(client: ClientSocket, prefetch: boolean, archive: number, group: number): void {
+        void this.send(client, prefetch, archive, group).catch(err => {
+            console.warn('JS5 send failed', { archive, group, err });
+        });
+    }
+
+    private getClientPackGroup(archive: number, group: number): Uint8Array | undefined {
+        const packPath = this.clientPackPaths.get(archive);
+        if (!packPath) {
+            return undefined;
+        }
+
+        if (!this.clientArchivePacks.has(archive)) {
+            try {
+                this.clientArchivePacks.set(archive, Js5PackReader.load(packPath));
+            } catch (err) {
+                console.warn(`Unable to load client js5pack for archive ${archive} (${packPath}), falling back to cache.`, err);
+                this.clientArchivePacks.set(archive, null);
+            }
+        }
+
+        const data = this.clientArchivePacks.get(archive)?.getGroup(group);
+        if (!data || data.length === 0) {
+            return undefined;
+        }
+
+        return data;
     }
 }
 

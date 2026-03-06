@@ -1007,7 +1007,7 @@ class World {
             player.reorient();
             player.buildArea.rebuildNormal(); // set origin before compute player is why this is above.
 
-            const appearance = player.masks & PlayerInfoProt.APPEARANCE ? player.generateAppearance() : (player.lastAppearanceBytes ?? player.generateAppearance());
+            const appearance = player.masks & PlayerInfoProt.APPEARANCE ? player.generateAppearance() : (player.appearanceBuf ?? player.generateAppearance());
 
             rsbuf.computePlayer(
                 player.x,
@@ -1026,33 +1026,33 @@ class World {
                 appearance,
                 player.lastAppearance,
                 player.faceEntity,
-                player.faceX,
-                player.faceZ,
-                player.orientationX,
-                player.orientationZ,
-                player.damageTaken,
-                player.damageType,
-                player.damageTaken2,
-                player.damageType2,
+                player.faceSquareX,
+                player.faceSquareZ,
+                player.faceAngleX,
+                player.faceAngleZ,
+                player.hitmarkDamage,
+                player.hitmarkType,
+                player.hitmark2Damage,
+                player.hitmark2Type,
                 player.levels[PlayerStat.HITPOINTS],
                 player.baseLevels[PlayerStat.HITPOINTS],
                 player.animId,
                 player.animDelay,
-                player.chat,
-                player.message,
-                player.messageColor ?? -1,
-                player.messageEffect ?? -1,
-                player.messageType ?? 0,
-                player.graphicId,
-                player.graphicHeight,
-                player.graphicDelay,
+                player.sayMessage,
+                player.chatMessage,
+                player.chatColour ?? -1,
+                player.chatEffect ?? -1,
+                player.chatRights ?? 0,
+                player.spotanimId,
+                player.spotanimHeight,
+                player.spotanimTime,
                 player.exactStartX,
                 player.exactStartZ,
                 player.exactEndX,
                 player.exactEndZ,
                 player.exactMoveStart,
                 player.exactMoveEnd,
-                player.exactMoveDirection
+                player.exactMoveFacing
             );
         }
 
@@ -1071,22 +1071,22 @@ class World {
                 npc.isActive,
                 npc.masks,
                 npc.faceEntity,
-                npc.faceX,
-                npc.faceZ,
-                npc.orientationX,
-                npc.orientationZ,
-                npc.damageTaken,
-                npc.damageType,
-                npc.damageTaken2,
-                npc.damageType2,
+                npc.faceSquareX,
+                npc.faceSquareZ,
+                npc.faceAngleX,
+                npc.faceAngleZ,
+                npc.hitmarkDamage,
+                npc.hitmarkType,
+                npc.hitmark2Damage,
+                npc.hitmark2Type,
                 npc.levels[NpcStat.HITPOINTS],
                 npc.baseLevels[NpcStat.HITPOINTS],
                 npc.animId,
                 npc.animDelay,
-                npc.chat,
-                npc.graphicId,
-                npc.graphicHeight,
-                npc.graphicDelay
+                npc.sayMessage,
+                npc.spotanimId,
+                npc.spotanimHeight,
+                npc.spotanimTime
             );
         }
     }

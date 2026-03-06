@@ -1,7 +1,9 @@
 import { ConfigType } from '#/cache/config/ConfigType.js';
 import { ParamHelper, ParamMap } from '#/cache/config/ParamHelper.js';
+import { Direction } from '#/engine/CoordGrid.js';
 import { BlockWalk } from '#/engine/entity/BlockWalk.js';
 import { MoveRestrict } from '#/engine/entity/MoveRestrict.js';
+import { MoveSpeed } from '#/engine/entity/MoveSpeed.js';
 import { NpcMode } from '#/engine/entity/NpcMode.js';
 import { NpcStat } from '#/engine/entity/NpcStat.js';
 import Jagfile from '#/io/Jagfile.js';
@@ -74,6 +76,9 @@ export default class NpcType extends ConfigType {
     hasalpha = false;
     recol_s: Uint16Array | null = null;
     recol_d: Uint16Array | null = null;
+    retex_s: Uint16Array | null = null;
+    retex_d: Uint16Array | null = null;
+    recol_d_palette: Int8Array | null = null;
     op: (string | null)[] | null = null;
     resizex = -1;
     resizey = -1;
@@ -91,6 +96,32 @@ export default class NpcType extends ConfigType {
     multivarp = -1;
     multinpc: number[] = [];
     active = true;
+    walksmoothing = true;
+    spotshadow = true;
+    spotshadowcolour_1 = 0;
+    spotshadowcolour_2 = 0;
+    spotshadow_trans1 = -96;
+    spotshadow_trans2 = -16;
+    walkflags = 0;
+    code115_1: number = 0;
+    code115_2: number = 0;
+    modeloffset: number[][] = [];
+    hitbarid = -1;
+    bas = -1;
+    overlayheight = -1;
+    respawndir = Direction.SOUTH_EAST;
+    mapfunction = -1;
+    movespeed: MoveSpeed | null = null;
+    bgsound = -1;
+    bgsound_crawl = -1;
+    bgsound_walk = -1;
+    bgsound_run = -1;
+    bgsound_range = 0;
+    cursor1op = -1;
+    cursor1 = -1;
+    cursor2op = -1;
+    cursor2 = -1;
+    cursorattack = -1;
 
     // server-side
     regenRate = 100;
@@ -119,6 +150,9 @@ export default class NpcType extends ConfigType {
 
             for (let i = 0; i < count; i++) {
                 this.models[i] = dat.g2();
+                if (this.models[i] === 65535) {
+                    this.models[i] = -1;
+                }
             }
         } else if (code === 2) {
             this.name = dat.gjstr();
@@ -139,7 +173,7 @@ export default class NpcType extends ConfigType {
             this.walkanim_l = dat.g2();
         } else if (code === 18) {
             this.category = dat.g2();
-        } else if (code >= 30 && code < 40) {
+        } else if (code >= 30 && code < 35) {
             if (!this.op) {
                 this.op = new Array(5).fill(null);
             }
@@ -153,6 +187,22 @@ export default class NpcType extends ConfigType {
             for (let i = 0; i < count; i++) {
                 this.recol_s[i] = dat.g2();
                 this.recol_d[i] = dat.g2();
+            }
+        } else if (code === 41) {
+            const count = dat.g1();
+            this.retex_s = new Uint16Array(count);
+            this.retex_d = new Uint16Array(count);
+
+            for (let i = 0; i < count; i++) {
+                this.retex_s[i] = dat.g2();
+                this.retex_d[i] = dat.g2();
+            }
+        } else if (code === 42) {
+            const count = dat.g1();
+            this.recol_d_palette = new Int8Array(count);
+
+            for (let i = 0; i < count; i++) {
+                this.recol_d_palette[i] = dat.g1b();
             }
         } else if (code === 60) {
             const count = dat.g1();
@@ -192,12 +242,12 @@ export default class NpcType extends ConfigType {
         } else if (code === 100) {
             this.ambient = dat.g1b();
         } else if (code === 101) {
-            this.contrast = dat.g1b();
+            this.contrast = dat.g1b();  // Value multiplied by 5 client side
         } else if (code === 102) {
             this.headicon = dat.g2();
         } else if (code === 103) {
             this.turnspeed = dat.g2();
-        } else if (code === 106) {
+        } else if (code === 106 || code === 118) {
             this.multivarbit = dat.g2();
             if (this.multivarbit === 65535) {
                 this.multivarbit = -1;
@@ -208,16 +258,92 @@ export default class NpcType extends ConfigType {
                 this.multivarp = -1;
             }
 
+            let defaultid = -1;
+            if (code === 118) {
+                defaultid = dat.g2();
+                if (defaultid === 65535) {
+                    defaultid = -1;
+                }
+            }
+
             const count = dat.g1();
-            this.multinpc = new Array(count + 1);
+            this.multinpc = new Array(count + 2);
             for (let i = 0; i <= count; i++) {
                 this.multinpc[i] = dat.g2();
                 if (this.multinpc[i] === 65535) {
                     this.multinpc[i] = -1;
                 }
             }
+            this.multinpc[count + 1] = defaultid;
         } else if (code === 107) {
             this.active = false;
+        } else if (code === 109) {
+            this.walksmoothing = false;
+        } else if (code === 111) {
+            this.spotshadow = false;
+        } else if (code === 112) {
+            this.spotshadowcolour_1 = dat.g2();
+            this.spotshadowcolour_2 = dat.g2();
+        } else if (code === 113) {
+            this.spotshadow_trans1 = dat.g1b();
+            this.spotshadow_trans2 = dat.g1b();    
+        } else if (code === 115) {
+            // TODO: Figure out what these values actually are.
+            this.code115_1 = dat.g1(); 
+            this.code115_2 = dat.g1(); 
+        } else if (code === 119) {
+            this.walkflags = dat.g1b();
+        } else if (code === 121) {
+            this.modeloffset = new Array(this.models?.length);
+            const count = dat.g1();
+            for (let i = 0; i < count; i++) {
+                const offset = dat.g1();
+                const offsets = this.modeloffset[offset] = new Array(3);
+                offsets[0] = dat.g1b();
+                offsets[1] = dat.g1b();
+                offsets[2] = dat.g1b();
+            }
+        } else if (code === 122) {
+            this.hitbarid = dat.g2();
+        } else if (code === 123) {
+            this.overlayheight = dat.g2();
+        } else if (code === 125) {
+            this.respawndir = dat.g1b();
+        } else if (code === 126) {
+            this.mapfunction = dat.g2();
+        } else if (code === 127) {
+            this.bas = dat.g2();    
+        } else if (code === 128) {
+            this.movespeed = dat.g1();
+        } else if (code === 134) {
+            this.bgsound = dat.g2();
+            if (this.bgsound === 65535) {
+                this.bgsound = -1;
+            }
+
+            this.bgsound_crawl = dat.g2();
+            if (this.bgsound_crawl === 65535) {
+                this.bgsound_crawl = -1;
+            }
+
+            this.bgsound_walk = dat.g2();
+            if (this.bgsound_walk === 65535) {
+                this.bgsound_walk = -1;
+            }
+
+            this.bgsound_run = dat.g2();
+            if (this.bgsound_run === 65535) {
+                this.bgsound_run = -1;
+            }
+            this.bgsound_range = dat.g1();
+        } else if (code === 135) {
+            this.cursor1op = dat.g1();
+            this.cursor1 = dat.g2();
+        } else if (code === 136) {
+            this.cursor2op = dat.g1();
+            this.cursor2 = dat.g2();
+        } else if (code === 137) {
+            this.cursorattack = dat.g2();
         } else if (code === 200) {
             this.wanderrange = dat.g2();
         } else if (code === 201) {
