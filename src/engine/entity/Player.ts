@@ -2139,6 +2139,16 @@ export default class Player extends PathingEntity {
         }
     }
 
+    isInTutorial(): boolean {
+        if (this.x >= 3053 && this.x <= 3156 && this.z >= 3056 && this.z <= 3136) {
+            return true;
+        } else if (this.x >= 3072 && this.x <= 3118 && this.z >= 9492 && this.z <= 9535) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     // ----
 
     runScript(script: ScriptState, protect: boolean = false, force: boolean = false) {

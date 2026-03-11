@@ -768,8 +768,12 @@ const PlayerOps: CommandHandlers = {
 
         check(stat, NumberNotNull);
         check(xp, NumberNotNull);
-
-        state.activePlayer.addXp(stat, xp);
+        // Maybe this can go into addXp? Not sure
+        const player = state.activePlayer;
+        if (player.levels[stat] >= 3 && player.isInTutorial()) {
+            return;
+        }
+        player.addXp(stat, xp);
     }),
 
     [ScriptOpcode.DAMAGE]: state => {
