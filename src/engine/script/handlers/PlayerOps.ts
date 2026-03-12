@@ -51,6 +51,7 @@ import IfSetPosition from '#/network/game/server/model/IfSetPosition.js';
 import IfSetScrollPos from '#/network/game/server/model/IfSetScrollPos.js';
 import IfSetTabActive from '#/network/game/server/model/IfSetTabActive.js';
 import IfSetText from '#/network/game/server/model/IfSetText.js';
+import MinimapToggle from '#/network/game/server/model/MinimapToggle.js';
 import PCountDialog from '#/network/game/server/model/PCountDialog.js';
 import SetPlayerOp from '#/network/game/server/model/SetPlayerOp.js';
 import SynthSound from '#/network/game/server/model/SynthSound.js';
@@ -469,10 +470,13 @@ const PlayerOps: CommandHandlers = {
     [ScriptOpcode.SOUND_SYNTH]: checkedHandler(ActivePlayer, state => {
         const [synth, loops, delay] = state.popInts(3);
 
+        check(synth, NumberNotNull);
+
         const player = state.activePlayer;
         if (player.lowMemory) {
             return;
         }
+
         player.write(new SynthSound(synth, loops, delay));
     }),
 
@@ -695,11 +699,6 @@ const PlayerOps: CommandHandlers = {
 
         check(com, NumberNotNull);
 
-        if (seq === -1) {
-            // uh, client crashes! which means empty dialogue wasn't an option at the time
-            return;
-        }
-
         state.activePlayer.write(new IfSetAnim(com, seq));
     }),
 
@@ -786,10 +785,10 @@ const PlayerOps: CommandHandlers = {
         player.applyDamage(amount, type);
     },
 
-    [ScriptOpcode.IF_SETRESUMEBUTTONS]: checkedHandler(ActivePlayer, state => {
-        const [button1, button2, button3, button4, button5] = state.popInts(5);
+    [ScriptOpcode.IF_ADDRESUMEBUTTON]: checkedHandler(ActivePlayer, state => {
+        const comId = state.popInt();
 
-        state.activePlayer.resumeButtons = [button1, button2, button3, button4, button5];
+        state.activePlayer.resumeButtons.push(comId);
     }),
 
     [ScriptOpcode.TEXT_GENDER]: checkedHandler(ActivePlayer, state => {
@@ -802,26 +801,32 @@ const PlayerOps: CommandHandlers = {
     }),
 
     [ScriptOpcode.MIDI_SONG]: state => {
-        const name = check(state.popString(), StringNotNull);
+        const id = state.popInt();
 
         const player = state.activePlayer;
         if (player.lowMemory) {
             return;
         }
-        player.playSong(name);
+
+        player.playSong(id);
     },
 
     [ScriptOpcode.MIDI_JINGLE]: state => {
-        const delay = check(state.popInt(), NumberNotNull);
-        const name = check(state.popString(), StringNotNull);
+        const [id, delay] = state.popInts(2);
 
         const player = state.activePlayer;
         if (player.lowMemory) {
             return;
         }
-        player.playJingle(delay, name);
+
+        player.playJingle(id, delay);
     },
 
+    [ScriptOpcode.MINIMAP_TOGGLE]: checkedHandler(ActivePlayer, state => {
+        const type = check(state.popInt(), NumberNotNull);
+        state.activePlayer.write(new MinimapToggle(type));
+    }),
+    
     [ScriptOpcode.SOFTTIMER]: checkedHandler(ActivePlayer, state => {
         const args = popScriptArgs(state);
         const interval = state.popInt();
@@ -1125,6 +1130,11 @@ const PlayerOps: CommandHandlers = {
         }
         state.activePlayer.gender = gender;
     },
+
+    [ScriptOpcode.SET_SKILL_LEVEL]: checkedHandler(ActivePlayer, state => {
+        const level = check(state.popInt(), NumberNotNull);
+        state.activePlayer.skillLevel = level;
+    }),
 
     [ScriptOpcode.SETSKINCOLOUR]: state => {
         const skin = check(state.popInt(), SkinColourValid);

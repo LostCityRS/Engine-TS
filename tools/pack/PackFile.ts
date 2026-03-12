@@ -114,9 +114,11 @@ function validateConfigPack(pack: PackFile, ext: string, transmitted: boolean = 
         throw new Error(`You may need to edit ${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
     }
 
-    for (const name of pack.names) {
-        if (Environment.BUILD_VERIFY && !configNames.has(name) && !name.startsWith('cert_')) {
-            throw new Error(`${pack.type}: ${name} was not found in any ${ext} files, you may need to edit ${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
+    if (transmitted) {
+        for (const name of pack.names) {
+            if (Environment.BUILD_VERIFY && !configNames.has(name) && !name.startsWith('cert_')) {
+                throw new Error(`${pack.type}: ${name} was not found in any ${ext} files, you may need to edit ${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
+            }
         }
     }
 

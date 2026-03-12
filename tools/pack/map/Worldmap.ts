@@ -86,13 +86,13 @@ export async function packWorldmap() {
     }
 
     // easiest solution for the time being
-    const multiway = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').replace(/\r/g, '').split('\n');
+    const multiway = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').split(/\r?\n/);
     const multimap = processCsv(multiway, 'multiway');
 
-    const free2play = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').replace(/\r/g, '').split('\n');
+    const free2play = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').split(/\r?\n/);
     const freemap = processCsv(free2play, 'free');
 
-    const ignoreraw = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/ignore.csv`, 'ascii').replace(/\r/g, '').split('\n');
+    const ignoreraw = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/ignore.csv`, 'ascii').split(/\r?\n/);
     const ignoremap = processCsv(ignoreraw, 'ignore');
 
     const maps: string[] = fs.readdirSync('data/pack/server/maps').filter((x: string): boolean => x[0] === 'm');
@@ -613,7 +613,7 @@ export async function packWorldmap() {
 
     const mapscene = await convertImage(index, `${Environment.BUILD_SRC_DIR}/sprites`, 'mapscene');
     const mapfunction = await convertImage(index, `${Environment.BUILD_SRC_DIR}/sprites`, 'mapfunction');
-    const b12 = await convertImage(index, `${Environment.BUILD_SRC_DIR}/fonts`, 'b12');
+    const b12 = await convertImage(index, `${Environment.BUILD_SRC_DIR}/fonts`, 'b12_full');
     const mapdots = await convertImage(index, `${Environment.BUILD_SRC_DIR}/sprites`, 'mapdots');
     const f11 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f11.fm`, true);
     const f12 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f12.fm`, true);
@@ -629,8 +629,7 @@ export async function packWorldmap() {
     const labels = Packet.alloc(1);
     const labelsSrc = fs
         .readFileSync(`${Environment.BUILD_SRC_DIR}/maps/labels.txt`, 'ascii')
-        .replace(/\r/g, '')
-        .split('\n')
+        .split(/\r?\n/)
         .filter((x: string) => x.startsWith('='))
         .map((x: string) => x.substring(1).split(','));
 

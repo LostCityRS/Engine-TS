@@ -16,7 +16,7 @@ export function packClientInterface(cache: FileStream, modelFlags: number[]) {
     // ) {
     const { client, server } = packInterface(modelFlags);
 
-    if (Environment.BUILD_VERIFY && !Packet.checkcrc(client.data, 0, client.pos, 1728499832)) {
+    if (Environment.BUILD_VERIFY && !Packet.checkcrc(client.data, 0, client.pos, 2041671134)) {
         throw new Error('.if checksum mismatch!\nYou can disable this safety check by setting BUILD_VERIFY=false');
     }
 

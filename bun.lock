@@ -5,12 +5,13 @@
     "": {
       "name": "engine-ts",
       "dependencies": {
-        "@2004scape/rsbuf": "254.1.0",
+        "@2004scape/rsbuf": "274.1.0",
         "@2004scape/rsmod-pathfinder": "^5.0.4",
         "@inquirer/prompts": "^8.0.1",
         "@isaacs/ttlcache": "^2.1.3",
         "@jimp/js-png": "^1.6.0",
         "@jimp/plugin-quantize": "^1.6.0",
+        "@lostcityrs/runescript": "^0.9.6",
         "axios": "^1.13.2",
         "bcrypt": "^6.0.0",
         "dotenv": "^17.2.3",
@@ -47,7 +48,7 @@
     },
   },
   "packages": {
-    "@2004scape/rsbuf": ["@2004scape/rsbuf@254.1.0", "", {}, "sha512-IJFzvXUOheDsk5zvluSrKFUIxcNndq+3JNyxQ7YCQmLs5YYODYMRW/ERnrTGVLM0utzUaanheyhuExd1C4R+WA=="],
+    "@2004scape/rsbuf": ["@2004scape/rsbuf@274.1.0", "", {}, "sha512-vYPbiVZyPrlrnezP82RV5jilyLoGjM/xV3u41xjHRMXtbLdEBGN/LYklpv2yuKhDVPBD58fdqBOLIkx/f9MZsQ=="],
 
     "@2004scape/rsmod-pathfinder": ["@2004scape/rsmod-pathfinder@5.0.4", "", {}, "sha512-0QFYbUwasw4x9ZAl+KbyGUW/UFn7fyXJUsjze55PesBT7CAg7yCDr/bcRR8J+dsrUN/09xRwq7FqZDKMjrvKHA=="],
 
@@ -174,6 +175,8 @@
     "@jimp/types": ["@jimp/types@1.6.0", "", { "dependencies": { "zod": "^3.23.8" } }, "sha512-7UfRsiKo5GZTAATxm2qQ7jqmUXP0DxTArztllTcYdyw6Xi5oT4RaoXynVtCD4UyLK5gJgkZJcwonoijrhYFKfg=="],
 
     "@jimp/utils": ["@jimp/utils@1.6.0", "", { "dependencies": { "@jimp/types": "1.6.0", "tinycolor2": "^1.6.0" } }, "sha512-gqFTGEosKbOkYF/WFj26jMHOI5OH2jeP1MmC/zbK6BF6VJBf8rIC5898dPfSzZEbSA0wbbV5slbntWVc5PKLFA=="],
+
+    "@lostcityrs/runescript": ["@lostcityrs/runescript@0.9.6", "", {}, "sha512-j0P6mT86SXlX6znLJvfVPIkDGRv5xSMCACZ6J7w520+sxOqon1N6M62pGK1/Xg1ptByVwW82vL2P/RR7U6gxdA=="],
 
     "@mrleebo/prisma-ast": ["@mrleebo/prisma-ast@0.13.1", "", { "dependencies": { "chevrotain": "^10.5.0", "lilconfig": "^2.1.0" } }, "sha512-XyroGQXcHrZdvmrGJvsA9KNeOOgGMg1Vg9OlheUsBOSKznLMDl+YChxbkboRHvtFYJEMRYmlV3uoo/njCw05iw=="],
 

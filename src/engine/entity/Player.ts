@@ -71,7 +71,6 @@ import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/engine/ent
 import Environment from '#/util/Environment.js';
 import { toDisplayName } from '#/util/JString.js';
 import LinkList from '#/datastruct/LinkList.js';
-import { MidiPack } from '#tools/pack/PackFile.js';
 import VarBitType from '#/cache/config/VarBitType.js';
 import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 import UpdateIgnoreList from '#/network/game/server/model/UpdateIgnoreList.js';
@@ -212,14 +211,19 @@ export default class Player extends PathingEntity {
             sav.p1(this.levels[i]);
         }
 
-        sav.p2(this.vars.length);
-        for (let i = 0; i < this.vars.length; i++) {
-            const type = VarPlayerType.get(i);
-
-            if (type.scope === VarPlayerType.SCOPE_PERM) {
-                sav.p4(this.vars[i]);
-            } else {
-                sav.p4(0);
+        let saved = 0;
+        for (let id = 0; id < this.vars.length; id++) {
+            const varp = VarPlayerType.get(id);
+            if (varp.scope === VarPlayerType.SCOPE_PERM && this.vars[id] !== 0) {
+                saved++;
+            }
+        }
+        sav.p2(saved);
+        for (let id = 0; id < this.vars.length; id++) {
+            const varp = VarPlayerType.get(id);
+            if (varp.scope === VarPlayerType.SCOPE_PERM && this.vars[id] !== 0) {
+                sav.p2(id);
+                sav.pVarInt(this.vars[id]);
             }
         }
 
@@ -312,6 +316,7 @@ export default class Player extends PathingEntity {
     lowMemory: boolean = false;
     webClient: boolean = false;
     combatLevel: number = 3;
+    skillLevel: number = 0;
     headicons: number = 0;
     baseLevels = new Uint8Array(21);
     lastStats: Int32Array = new Int32Array(21); // we track this so we know to flush stats only once a tick on changes
@@ -447,6 +452,7 @@ export default class Player extends PathingEntity {
         this.slot = -1;
         this.uid = -1;
         this.activeScript = null;
+        this.resumeButtons = [];
         this.invListeners.length = 0;
         this.resumeButtons.length = 0;
         this.queue.clear();
@@ -770,6 +776,7 @@ export default class Player extends PathingEntity {
         // close any input dialogue suspended scripts.
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
 
         // close any main viewport interface
@@ -1391,6 +1398,7 @@ export default class Player extends PathingEntity {
 
         stream.p8(this.username37);
         stream.p1(this.combatLevel);
+        stream.p2(this.skillLevel);
 
         const appearance: Uint8Array = new Uint8Array(stream.pos);
         stream.pos = 0;
@@ -1951,25 +1959,12 @@ export default class Player extends PathingEntity {
         this.focus(CoordGrid.fine(x, 1), CoordGrid.fine(z, 1), true);
     }
 
-    // todo: make compiler do this at pack time
-    playSong(name: string) {
-        // todo: don't rely on MidiPack (server should be runnable using only packed content)
-        const id = MidiPack.getByName(
-            name
-                .toLowerCase()
-                .replaceAll(' ', '_')
-                .replace(/[^a-z0-9_-]/g, '')
-        );
-        if (id !== -1) {
-            this.write(new MidiSong(id));
-        }
+    playSong(id: number) {
+        this.write(new MidiSong(id));
     }
 
-    playJingle(delay: number, name: string): void {
-        const id = MidiPack.getByName(name.toLowerCase());
-        if (id !== -1) {
-            this.write(new MidiJingle(id, delay));
-        }
+    playJingle(id: number, delay: number): void {
+        this.write(new MidiJingle(id, delay));
     }
 
     openMainModal(com: number) {
@@ -1994,6 +1989,7 @@ export default class Player extends PathingEntity {
         // clear old suspended scripts
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
     }
 
@@ -2029,6 +2025,7 @@ export default class Player extends PathingEntity {
         // clear old suspended scripts
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
     }
 
@@ -2052,6 +2049,7 @@ export default class Player extends PathingEntity {
         // clear old suspended scripts
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
     }
 
@@ -2077,6 +2075,7 @@ export default class Player extends PathingEntity {
         // clear old suspended scripts
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
     }
 
@@ -2201,6 +2200,7 @@ export default class Player extends PathingEntity {
             }
         } else if (script === this.activeScript) {
             this.activeScript = null;
+            this.resumeButtons = [];
 
             if ((this.modalState & ModalState.MAIN) === ModalState.NONE) {
                 // close chat dialogues automatically and leave main modals alone

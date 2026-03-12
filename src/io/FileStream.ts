@@ -128,7 +128,7 @@ export default class FileStream {
             return false;
         }
 
-        if (archive < 0 || archive > this.idx.length || !this.idx[archive]) {
+        if (archive < 0 || archive > this.idx.length || !this.idx[archive] || file < 0) {
             return false;
         }
 

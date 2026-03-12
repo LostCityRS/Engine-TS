@@ -442,7 +442,7 @@ export async function packConfigs(cache: FileStream, modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, -716271600);
+                return Packet.checkcrc(client.data, 0, client.pos, -753410077);
             }
         );
     }
@@ -466,7 +466,7 @@ export async function packConfigs(cache: FileStream, modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, -826309209);
+                return Packet.checkcrc(client.data, 0, client.pos, 452815002);
             }
         );
     }
@@ -490,7 +490,7 @@ export async function packConfigs(cache: FileStream, modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, -1566957964);
+                return Packet.checkcrc(client.data, 0, client.pos, 960212554);
             }
         );
     }
@@ -514,7 +514,7 @@ export async function packConfigs(cache: FileStream, modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, -555849646);
+                return Packet.checkcrc(client.data, 0, client.pos, -1587698939);
             }
         );
     }
@@ -538,7 +538,7 @@ export async function packConfigs(cache: FileStream, modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, 1077655221);
+                return Packet.checkcrc(client.data, 0, client.pos, -1249602232);
             }
         );
     }
@@ -562,7 +562,7 @@ export async function packConfigs(cache: FileStream, modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, 535204494);
+                return Packet.checkcrc(client.data, 0, client.pos, 128627047);
             }
         );
     }
@@ -610,7 +610,7 @@ export async function packConfigs(cache: FileStream, modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, 1039564548);
+                return Packet.checkcrc(client.data, 0, client.pos, 703279713);
             }
         );
     }
@@ -634,7 +634,7 @@ export async function packConfigs(cache: FileStream, modelFlags: number[]) {
                 idx.release();
             },
             (client: Packet, _server: Packet): boolean => {
-                return Packet.checkcrc(client.data, 0, client.pos, -1387031023);
+                return Packet.checkcrc(client.data, 0, client.pos, -234977015);
             }
         );
     }

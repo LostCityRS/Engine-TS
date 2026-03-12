@@ -1,5 +1,5 @@
 <div align="center">
-    <h1>Lost City - September 7, 2004</h1>
+    <h1>Lost City - November 23, 2004</h1>
 </div>
 
 > [!NOTE]
@@ -23,8 +23,8 @@ The [Server](https://github.com/LostCityRS/Server) repository will simplify setu
 In absence of the [Server](https://github.com/LostCityRS/Server) scripts, download the specific engine and content repositories/branches you desire and extract them to the same parent folder.
 
 ```sh
-git clone https://github.com/LostCityRS/Engine-TS -b 254 --single-branch engine
-git clone https://github.com/LostCityRS/Content -b 254 --single-branch content
+git clone https://github.com/LostCityRS/Engine-TS -b 274 --single-branch engine
+git clone https://github.com/LostCityRS/Content -b 274 --single-branch content
 cd engine
 bun start
 ```

@@ -652,16 +652,16 @@ class IfType {
 
             switch (this.font) {
                 case 0:
-                    temp.push('font=p11');
+                    temp.push('font=p11_full');
                     break;
                 case 1:
-                    temp.push('font=p12');
+                    temp.push('font=p12_full');
                     break;
                 case 2:
-                    temp.push('font=b12');
+                    temp.push('font=b12_full');
                     break;
                 case 3:
-                    temp.push('font=q8');
+                    temp.push('font=q8_full');
                     break;
             }
 
@@ -747,16 +747,16 @@ class IfType {
 
             switch (this.font) {
                 case 0:
-                    temp.push('font=p11');
+                    temp.push('font=p11_full');
                     break;
                 case 1:
-                    temp.push('font=p12');
+                    temp.push('font=p12_full');
                     break;
                 case 2:
-                    temp.push('font=b12');
+                    temp.push('font=b12_full');
                     break;
                 case 3:
-                    temp.push('font=q8');
+                    temp.push('font=q8_full');
                     break;
             }
 

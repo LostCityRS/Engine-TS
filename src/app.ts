@@ -7,13 +7,8 @@ import World from '#/engine/World.js';
 import TcpServer from '#/server/tcp/TcpServer.js';
 import Environment from '#/util/Environment.js';
 import { printError, printInfo } from '#/util/Logger.js';
-import { updateCompiler } from '#/util/RuneScriptCompiler.js';
 import { startManagementWeb, startWeb } from '#/web.js';
 import OnDemand from '#/engine/OnDemand.js';
-
-if (Environment.BUILD_STARTUP_UPDATE) {
-    await updateCompiler();
-}
 
 if (
     OnDemand.cache.count(0) !== 9 ||

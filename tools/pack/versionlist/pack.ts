@@ -95,7 +95,7 @@ export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
         }
     }
 
-    const free2play = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').replace(/\r/g, '').split('\n');
+    const free2play = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').split(/\r?\n/);
     const prefetch = new Set();
     for (let index: number = 0; index < free2play.length; index++) {
         const line: string = free2play[index];

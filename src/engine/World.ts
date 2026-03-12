@@ -118,12 +118,16 @@ class World {
     private static readonly PLAYERS: number = Environment.NODE_MAX_PLAYERS;
     private static readonly NPCS: number = Environment.NODE_MAX_NPCS;
 
-    private static readonly TICKRATE: number = 600; // 0.6s / 600ms
+    private static readonly TICKRATE: number = 600; // ms (0.6s) - DO NOT CHANGE. This is only exposed for condensing time while testing long-running operations.
 
-    private static readonly INV_STOCKRATE: number = 100; // 1m
-    private static readonly AFK_EVENTRATE: number = 500; // 5m
-    private static readonly PLAYER_SAVERATE: number = 1500; // 15m
-    private static readonly PLAYER_COORDLOGRATE: number = 50; // 30s
+    private static readonly INV_STOCKRATE: number = 100; // 1m shop restocks
+
+    private static readonly PLAYER_SAVERATE: number = 1500; // 15m autosave
+    private static readonly PLAYER_COORDLOGRATE: number = 50; // 30s server check-in
+
+    private static readonly AFK_EVENTRATE: number = 500; // 5m: 60/5 = 12 chances per hour
+    private static readonly AFK_CHANCE1: number = 1 / (120 / 5); // 1/24 - 4% chance every 5 mins: avg 1 event every 2 hrs
+    private static readonly AFK_CHANCE2: number = 1 / (60 / 5); // 1/12 - 8% chance every 5 mins: avg 1 event every 1 hr while "aggro zone" hasn't changed
 
     private static readonly TIMEOUT_NO_CONNECTION: number = Environment.NODE_DEBUG_SOCKET ? 60000 : 50; // 30s with no connection (16 ticks in osrs)
     private static readonly TIMEOUT_NO_RESPONSE: number = Environment.NODE_DEBUG_SOCKET ? 60000 : 100; // 60s without any response
@@ -601,9 +605,7 @@ class World {
                 player.playtime++;
 
                 if (this.currentTick % World.AFK_EVENTRATE === 0) {
-                    // (normal) 1/12 chance every 5 minutes of setting an afk event state (even distrubution 60/5)
-                    // (afk) double the chance?
-                    player.afkEventReady = Math.random() < (player.zonesAfk() ? 0.1666 : 0.0833);
+                    player.afkEventReady = Math.random() < (player.zonesAfk() ? World.AFK_CHANCE2 : World.AFK_CHANCE1);
                 }
 
                 // - client input tracking
@@ -1050,6 +1052,7 @@ class World {
                 npc.nid,
                 npc.type,
                 npc.tele,
+                npc.jump,
                 npc.runDir,
                 npc.walkDir,
                 npc.isActive,
@@ -1804,7 +1807,7 @@ class World {
     broadcastMes(message: string): void {
         for (const player of this.playerLoop.all()) {
             if (message.includes('\n')) {
-                message.split('\n').forEach(wrap => player!.wrappedMessageGame(wrap));
+                message.split('\n').forEach(wrap => player.wrappedMessageGame(wrap));
             } else {
                 player.wrappedMessageGame(message);
             }
@@ -2137,7 +2140,10 @@ class World {
             seed.p4(Math.floor(Math.random() * 0xffffffff));
             client.send(seed.data);
         } else if (client.opcode === 16 || client.opcode === 18) {
-            const rev = World.loginBuf.g1();
+            let rev = World.loginBuf.g1();
+            if (rev === 0xFF) {
+                rev = World.loginBuf.g2();
+            }
             if (rev !== Environment.ENGINE_REVISION) {
                 client.send(Uint8Array.from([6]));
                 client.close();

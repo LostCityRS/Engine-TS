@@ -44,7 +44,7 @@ export function packClientSound(cache: FileStream) {
     }
     out.p2(-1);
 
-    if (Environment.BUILD_VERIFY && !Packet.checkcrc(out.data, 0, out.pos, 831919863)) {
+    if (Environment.BUILD_VERIFY && !Packet.checkcrc(out.data, 0, out.pos, 2127412105)) {
         throw new Error('.synth checksum mismatch!\nYou can disable this safety check by setting BUILD_VERIFY=false');
     }
 

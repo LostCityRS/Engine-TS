@@ -13,10 +13,10 @@ export async function packClientTitle(cache: FileStream) {
     const titlebox = await convertImage(index, `${Environment.BUILD_SRC_DIR}/title`, 'titlebox');
     const titlebutton = await convertImage(index, `${Environment.BUILD_SRC_DIR}/title`, 'titlebutton');
 
-    const b12 = await convertImage(index, `${Environment.BUILD_SRC_DIR}/fonts`, 'b12');
-    const p11 = await convertImage(index, `${Environment.BUILD_SRC_DIR}/fonts`, 'p11');
-    const p12 = await convertImage(index, `${Environment.BUILD_SRC_DIR}/fonts`, 'p12');
-    const q8 = await convertImage(index, `${Environment.BUILD_SRC_DIR}/fonts`, 'q8');
+    const b12 = await convertImage(index, `${Environment.BUILD_SRC_DIR}/fonts`, 'b12_full');
+    const p11 = await convertImage(index, `${Environment.BUILD_SRC_DIR}/fonts`, 'p11_full');
+    const p12 = await convertImage(index, `${Environment.BUILD_SRC_DIR}/fonts`, 'p12_full');
+    const q8 = await convertImage(index, `${Environment.BUILD_SRC_DIR}/fonts`, 'q8_full');
 
     const title = Jagfile.new();
     title.write('title.dat', Packet.load(`${Environment.BUILD_SRC_DIR}/binary/title.jpg`, true));
@@ -25,10 +25,10 @@ export async function packClientTitle(cache: FileStream) {
     title.write('runes.dat', runes);
     title.write('titlebox.dat', titlebox);
     title.write('titlebutton.dat', titlebutton);
-    title.write('b12.dat', b12);
-    title.write('p11.dat', p11);
-    title.write('p12.dat', p12);
-    title.write('q8.dat', q8);
+    title.write('b12_full.dat', b12);
+    title.write('p11_full.dat', p11);
+    title.write('p12_full.dat', p12);
+    title.write('q8_full.dat', q8);
     title.save('data/pack/client/title');
 
     cache.write(0, 1, fs.readFileSync('data/pack/client/title'));
