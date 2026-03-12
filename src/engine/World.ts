@@ -617,11 +617,6 @@ class World {
                             continue;
                         }
 
-                        if ((!player.target || player.target instanceof Loc || player.target instanceof Obj) && player.faceEntity !== -1) {
-                            player.faceEntity = -1;
-                            player.masks |= player.entitymask;
-                        }
-
                         if (!player.busy() && player.opcalled) {
                             player.moveClickRequest = false;
                         } else {
@@ -721,6 +716,8 @@ class World {
                 }
                 // - engine queue
                 player.processEngineQueue();
+                // Update target facing
+                player.setFaceEntity();
                 // - interactions
                 // - movement
                 player.processInteraction();
@@ -906,11 +903,13 @@ class World {
 
                 player.client.state = 1;
 
-                player.client.send(Uint8Array.from([
-                    2,
-                    Math.min(player.staffModLevel, 2),
-                    1 // mouse tracking can only be enabled on login
-                ]));
+                player.client.send(
+                    Uint8Array.from([
+                        2,
+                        Math.min(player.staffModLevel, 2),
+                        1 // mouse tracking can only be enabled on login
+                    ])
+                );
 
                 const remote = player.client.remoteAddress;
                 if (remote.indexOf('.') !== -1) {
@@ -1874,10 +1873,7 @@ class World {
             } else if (reply === 10) {
                 // hop timer
                 const { remaining } = msg;
-                client.send(Uint8Array.from([
-                    21,
-                    Math.min(255, remaining! / 1000)
-                ]));
+                client.send(Uint8Array.from([21, Math.min(255, remaining! / 1000)]));
                 client.close();
                 return;
             }

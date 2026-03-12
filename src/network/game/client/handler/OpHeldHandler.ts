@@ -56,8 +56,6 @@ export default class OpHeldHandler extends ClientGameMessageHandler<OpHeld> {
         }
 
         player.moveClickRequest = false; // uses the dueling ring op to move whilst busy & queue pending: https://youtu.be/GPfN3Isl2rM
-        player.faceEntity = -1;
-        player.masks |= player.entitymask;
 
         // opheld5 gets wealth logged in content
         if (message.op !== 5) {
