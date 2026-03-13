@@ -180,6 +180,8 @@ export default class Npc extends PathingEntity {
         this.processQueue();
         // Movement-Interactions
         this.processMovementInteraction();
+        // Update target facing
+        this.setFaceEntity();
         // Dev note: Is this necessary?
         this.validateDistanceWalked();
     }
@@ -404,16 +406,12 @@ export default class Npc extends PathingEntity {
     clearInteraction(): void {
         super.clearInteraction();
         this.targetOp = NpcMode.NONE;
-        this.faceEntity = -1;
-        this.masks |= NpcInfoProt.FACE_ENTITY;
     }
 
     resetDefaults(): void {
         this.clearInteraction();
         const type: NpcType = NpcType.get(this.type);
         this.targetOp = type.defaultmode;
-        this.faceEntity = -1;
-        this.masks |= this.entitymask;
 
         const npcType: NpcType = NpcType.get(this.type);
         this.huntMode = npcType.huntmode;

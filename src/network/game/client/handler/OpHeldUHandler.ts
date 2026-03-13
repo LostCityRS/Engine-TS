@@ -84,8 +84,6 @@ export default class OpHeldUHandler extends ClientGameMessageHandler<OpHeldU> {
         const useObjType = ObjType.get(player.lastUseItem);
 
         player.clearPendingAction();
-        player.faceEntity = -1;
-        player.masks |= player.entitymask;
 
         if ((objType.members || useObjType.members) && !Environment.NODE_MEMBERS) {
             player.messageGame("To use this item please login to a members' server.");
