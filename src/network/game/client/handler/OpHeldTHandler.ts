@@ -55,8 +55,6 @@ export default class OpHeldTHandler extends ClientGameMessageHandler<OpHeldT> {
         player.lastSlot = slot;
 
         player.clearPendingAction();
-        player.faceEntity = -1;
-        player.masks |= player.entitymask;
 
         player.addSessionLog(LoggerEventType.MODERATOR, `Cast ${spellCom.comName} on ${ObjType.get(obj).debugname}`);
 
