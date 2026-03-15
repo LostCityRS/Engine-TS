@@ -16,7 +16,7 @@ import Npc from '#/engine/entity/Npc.js';
 import { NpcMode } from '#/engine/entity/NpcMode.js';
 import Obj from '#/engine/entity/Obj.js';
 import Player from '#/engine/entity/Player.js';
-import { canTravel, changeNpcCollision, changePlayerCollision, findPath, findPathToEntity, findPathToLoc, isApproached, isZoneAllocated, reachedEntity, reachedLoc, reachedObj, findNaivePath } from '#/engine/GameMap.js';
+import { canTravel, changeNpcCollision, changePlayerCollision, findPath, findPathToEntity, findPathToLoc, isApproached, isZoneAllocated, reachedEntity, reachedLoc, reachedObj, naiveDestination } from '#/engine/GameMap.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
 
@@ -435,8 +435,8 @@ export default abstract class PathingEntity extends Entity {
         if (this.target instanceof Loc) {
             angle = this.target.angle;
         }
-        const waypoints = findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, angle, CollisionType.NORMAL);
-        this.queueWaypoints(waypoints);
+        const waypoint = naiveDestination(this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, angle);
+        this.queueWaypoint(waypoint.x, waypoint.z);
     }
 
     pathToTarget(): void {

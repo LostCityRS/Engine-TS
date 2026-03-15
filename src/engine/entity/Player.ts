@@ -25,7 +25,6 @@ import HeroPoints from '#/engine/entity/HeroPoints.js';
 import Loc from '#/engine/entity/Loc.js';
 import { ModalState } from '#/engine/entity/ModalState.js';
 import { AllowRepath } from './AllowRepath.js';
-import { MoveGeneratedFrom } from './MoveGeneratedFrom.js';
 import { MoveRestrict } from '#/engine/entity/MoveRestrict.js';
 import { MoveSpeed } from '#/engine/entity/MoveSpeed.js';
 import { MoveStrategy } from '#/engine/entity/MoveStrategy.js';
@@ -38,7 +37,7 @@ import { PlayerQueueRequest, PlayerQueueType, QueueType, ScriptArgument } from '
 import { PlayerStat, PlayerStatEnabled, PlayerStatFree, PlayerStatNameMap } from '#/engine/entity/PlayerStat.js';
 import InputTracking from '#/engine/entity/tracking/InputTracking.js';
 import { WealthEventParams } from '#/engine/entity/tracking/WealthEvent.js';
-import { changeNpcCollision, changePlayerCollision, reachedEntity, reachedLoc, reachedObj } from '#/engine/GameMap.js';
+import { changeNpcCollision, changePlayerCollision, naiveDestination, reachedEntity, reachedLoc, reachedObj } from '#/engine/GameMap.js';
 import { Inventory, InventoryListener } from '#/engine/Inventory.js';
 import ScriptFile from '#/engine/script/ScriptFile.js';
 import ScriptPointer from '#/engine/script/ScriptPointer.js';
@@ -326,7 +325,6 @@ export default class Player extends PathingEntity {
     allowDesign: boolean = false;
     afkEventReady: boolean = false;
     moveClickRequest: boolean = false;
-    moveGeneratedFrom: MoveGeneratedFrom = MoveGeneratedFrom.SERVER;
 
     requestLogout: boolean = false;
     requestIdleLogout: boolean = false;
@@ -1051,12 +1049,22 @@ export default class Player extends PathingEntity {
 
     queueWaypoint(x: number, z: number): void {
         super.queueWaypoint(x, z);
-        this.moveGeneratedFrom = MoveGeneratedFrom.SERVER;
     }
 
     queueWaypoints(waypoints: ArrayLike<number>): void {
         super.queueWaypoints(waypoints);
-        this.moveGeneratedFrom = MoveGeneratedFrom.SERVER;
+    }
+
+    naivePathToTarget() {
+        if (!this.target) {
+            return;
+        }
+        let angle = 0;
+        if (this.target instanceof Loc) {
+            angle = this.target.angle;
+        }
+        const waypoint = naiveDestination(this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, angle, true);
+        this.queueWaypoint(waypoint.x, waypoint.z);
     }
 
     pathToPathingTarget(): void {
@@ -1084,14 +1092,6 @@ export default class Player extends PathingEntity {
             }
 
             if (this.isLastWaypoint() && this.allowRepath === AllowRepath.BEFOREDEST) {
-                // If path is generated from client, force player to reach their next dest before repathing
-                if (this.moveGeneratedFrom === MoveGeneratedFrom.CLIENT) {
-                    this.naivePathToTarget();
-                    this.setAllowRepath(AllowRepath.ATDEST);
-                } else {
-                    this.naivePathToTarget();
-                }
-            } else if (this.waypointIndex === -1 && this.allowRepath === AllowRepath.ATDEST) {
                 this.naivePathToTarget();
             }
         } else if (this.isLastWaypoint()) {
