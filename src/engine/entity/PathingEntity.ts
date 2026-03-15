@@ -448,7 +448,11 @@ export default abstract class PathingEntity extends Entity {
             angle = this.target.angle;
         }
         const waypoints = findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, angle, CollisionType.NORMAL);
-        this.queueWaypoints(waypoints);
+
+        const { x, z } = CoordGrid.unpackCoord(waypoints[0]);
+        if (x !== this.x || z !== this.z) {
+            this.queueWaypoints(waypoints);
+        }
     }
 
     pathToTarget(): void {
