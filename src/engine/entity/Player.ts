@@ -37,7 +37,7 @@ import { PlayerQueueRequest, PlayerQueueType, QueueType, ScriptArgument } from '
 import { PlayerStat, PlayerStatEnabled, PlayerStatFree, PlayerStatNameMap } from '#/engine/entity/PlayerStat.js';
 import InputTracking from '#/engine/entity/tracking/InputTracking.js';
 import { WealthEventParams } from '#/engine/entity/tracking/WealthEvent.js';
-import { changeNpcCollision, changePlayerCollision, naiveDestination, reachedEntity, reachedLoc, reachedObj } from '#/engine/GameMap.js';
+import { changeNpcCollision, changePlayerCollision, reachedEntity, reachedLoc, reachedObj } from '#/engine/GameMap.js';
 import { Inventory, InventoryListener } from '#/engine/Inventory.js';
 import ScriptFile from '#/engine/script/ScriptFile.js';
 import ScriptPointer from '#/engine/script/ScriptPointer.js';
@@ -1062,18 +1062,6 @@ export default class Player extends PathingEntity {
         super.queueWaypoints(waypoints);
     }
 
-    naivePathToTarget() {
-        if (!this.target) {
-            return;
-        }
-        let angle = 0;
-        if (this.target instanceof Loc) {
-            angle = this.target.angle;
-        }
-        const waypoint = naiveDestination(this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, angle, true);
-        this.queueWaypoint(waypoint.x, waypoint.z);
-    }
-
     pathToPathingTarget(): void {
         if (!(this.target instanceof PathingEntity)) {
             return;
@@ -1988,17 +1976,8 @@ export default class Player extends PathingEntity {
     }
 
     // todo: make compiler do this at pack time
-    playSong(name: string) {
-        // todo: don't rely on MidiPack (server should be runnable using only packed content)
-        const id = MidiPack.getByName(
-            name
-                .toLowerCase()
-                .replaceAll(' ', '_')
-                .replace(/[^a-z0-9_-]/g, '')
-        );
-        if (id !== -1) {
-            this.write(new MidiSong(id));
-        }
+    playSong(id: number) {
+        this.write(new MidiSong(id));
     }
 
     playJingle(id: number, delay: number): void {

@@ -3,7 +3,6 @@ import { NetworkPlayer } from '#/engine/entity/NetworkPlayer.js';
 import ClientGameMessageHandler from '#/network/game/client/ClientGameMessageHandler.js';
 import { AllowRepath } from '#/engine/entity/AllowRepath.js';
 import MoveClick from '#/network/game/client/model/MoveClick.js';
-import { MoveGeneratedFrom } from '#/engine/entity/MoveGeneratedFrom.js';
 import UnsetMapFlag from '#/network/game/server/model/UnsetMapFlag.js';
 import Environment from '#/util/Environment.js';
 
@@ -48,7 +47,6 @@ export default class MoveClickHandler extends ClientGameMessageHandler<MoveClick
                 }
                 player.queueWaypoints(player.userPath);
             }
-            player.moveGeneratedFrom = MoveGeneratedFrom.CLIENT;
             player.processWalktrigger();
         } else {
             const dest = message.path[message.path.length - 1];

@@ -341,78 +341,10 @@ export function changeLocCollision(shape: number, angle: number, blockrange: boo
         }
     }
 }
-
-function translate(coord: RouteCoordinates, dx: number, dz: number): RouteCoordinates {
-    return { x: coord.x + dx, z: coord.z + dz };
+export function findNaivePath(level: number, srcX: number, srcZ: number, destX: number, destZ: number, srcWidth: number, srcHeight: number, destWidth: number, destHeight: number, extraFlag: number, collision: CollisionType): Uint32Array {
+    return rsmod.findNaivePath(level, srcX, srcZ, destX, destZ, srcWidth, srcHeight, destWidth, destHeight, extraFlag, collision);
 }
 
-// Keep these as your existing implementations.
-// The Kotlin rotate(...) as used here appears to mean "pick width vs length based on angle".
-// If you have a different rotate behavior, swap it in.
-export function rotate(angle: number, dimensionA: number, dimensionB: number): number {
-    return (angle & 0x1) !== 0 ? dimensionB : dimensionA;
-}
-export function naiveDestination(
-    sourceX: number,
-    sourceZ: number,
-    sourceWidth: number,
-    sourceLength: number,
-    targetX: number,
-    targetZ: number,
-    targetWidth: number,
-    targetLength: number,
-    targetAngle: number = 0,
-    reversePriority: boolean = false // NEW
-): RouteCoordinates {
-    const diagonal = sourceX - targetX + (sourceZ - targetZ);
-    const anti = sourceX - targetX - (sourceZ - targetZ);
-
-    const rotatedWidth = rotate(targetAngle, targetWidth, targetLength);
-    const rotatedLength = rotate(targetAngle, targetLength, targetWidth);
-
-    const nwBoundary = rotatedLength - 1 - (sourceWidth - 1);
-    const seBoundary = rotatedWidth - 1 - (sourceLength - 1);
-    const neBoundary = sourceWidth - sourceLength;
-
-    // Default behavior (reversePriority=false): N/S wins ties.
-    // Reverse behavior (reversePriority=true): E/W wins ties by flipping equality ownership.
-    const southWestClockwise = reversePriority ? anti <= 0 : anti < 0;
-    const northWestClockwise = reversePriority ? diagonal > nwBoundary : diagonal >= nwBoundary;
-    const northEastClockwise = reversePriority ? anti >= neBoundary : anti > neBoundary;
-    const southEastClockwise = reversePriority ? diagonal < seBoundary : diagonal <= seBoundary;
-
-    const target: RouteCoordinates = { x: targetX, z: targetZ };
-
-    if (southWestClockwise && !northWestClockwise) {
-        // West
-        if (reversePriority && anti === 0) return translate(target, -sourceWidth, 0); // FIX
-
-        const offZ = diagonal >= -sourceWidth ? Math.min(diagonal + sourceWidth, rotatedLength - 1) : anti > -sourceWidth ? -(sourceWidth + anti) : 0;
-
-        return translate(target, -sourceWidth, offZ);
-    } else if (northWestClockwise && !northEastClockwise) {
-        // North
-        const offX = anti >= -rotatedLength ? Math.min(anti + rotatedLength, rotatedWidth - 1) : diagonal < rotatedLength ? Math.max(diagonal - rotatedLength, -(sourceWidth - 1)) : 0;
-
-        return translate(target, offX, rotatedLength);
-    } else if (northEastClockwise && !southEastClockwise) {
-        // East
-        if (reversePriority && anti === 0) return translate(target, rotatedWidth, 0); // FIX
-
-        const offZ = anti <= rotatedWidth ? rotatedLength - anti : diagonal < rotatedWidth ? Math.max(diagonal - rotatedWidth, -(sourceLength - 1)) : 0;
-
-        return translate(target, rotatedWidth, offZ);
-    } else {
-        if (!(southEastClockwise && !southWestClockwise)) {
-            throw new Error('Invariant failed: expected southEastClockwise && !southWestClockwise');
-        }
-
-        // South
-        const offX = diagonal > -sourceLength ? Math.min(diagonal + sourceLength, rotatedWidth - 1) : anti < sourceLength ? Math.max(anti - sourceLength, -(sourceLength - 1)) : 0;
-
-        return translate(target, offX, -sourceLength);
-    }
-}
 /**
  * Change collision at a specified Position for npcs.
  * @param size The size square of this npc. (1x1, 2x2, etc).
