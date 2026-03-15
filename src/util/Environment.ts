@@ -11,19 +11,12 @@ export default {
     /// web server
     WEB_PORT: tryParseInt(process.env.WEB_PORT, process.platform === 'win32' || process.platform === 'darwin' ? 80 : 8888),
     WEB_ALLOWED_ORIGIN: tryParseString(process.env.WEB_ALLOWED_ORIGIN, ''),
-    // WEB_SOCKET_TOKEN_RPOTECTION tightens security somewhat by embedding a token in the
-    // rs2.cgi html which is sent on each login. if token is absent or wrong,
-    // the login is rejected. this is mainly for preventing external WebSockets
-    // that have not accessed the server's game page.
-    // NOTE: if you set protection on, and there were clients with page loaded without this option on,
-    // they wont be able to connect until they F5, as the cookie won't have been sent.
-    WEB_SOCKET_TOKEN_PROTECTION: tryParseBoolean(process.env.WEB_SOCKET_TOKEN_PROTECTECTION, false),
 
     // management server
     WEB_MANAGEMENT_PORT: tryParseInt(process.env.WEB_MANAGEMENT_PORT, 8898),
 
     /// game server
-    ENGINE_REVISION: tryParseInt(process.env.ENGINE_REVISION, 254),
+    ENGINE_REVISION: tryParseInt(process.env.ENGINE_REVISION, 274),
     // world id - offset by 9, so 1 = 10, 2 = 11, etc
     NODE_ID: tryParseInt(process.env.NODE_ID, 10),
     NODE_PORT: tryParseInt(process.env.NODE_PORT, 43594),
@@ -96,12 +89,9 @@ export default {
     KYSELY_VERBOSE: tryParseBoolean(process.env.KYSELY_VERBOSE, false),
 
     /// development
-    // some users may not be able to change their system PATH for this project
-    BUILD_JAVA_PATH: tryParseString(process.env.BUILD_JAVA_PATH, 'java'),
+    BUILD_VERBOSE: tryParseBoolean(process.env.BUILD_VERBOSE, false),
     // auto-build on startup
     BUILD_STARTUP: tryParseBoolean(process.env.BUILD_STARTUP, false),
-    // auto-update compiler on startup
-    BUILD_STARTUP_UPDATE: tryParseBoolean(process.env.BUILD_STARTUP_UPDATE, true),
     // used to check if we're producing the original cache without edits
     BUILD_VERIFY: tryParseBoolean(process.env.BUILD_VERIFY, true),
     // used to keep some semblance of sanity in our folder structure

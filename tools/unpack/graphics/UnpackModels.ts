@@ -35,7 +35,7 @@ if (modelIndex) {
 const modelCount = cache.count(1);
 console.log(`Extracting ${modelCount} models`);
 
-for (let id = 0; id < modelCount && id < models.length; id++) {
+for (let id = 0; id <= models.length; id++) {
     if (!ModelPack.getById(id)) {
         ModelPack.register(id, `model_${id}`);
     }

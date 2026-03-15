@@ -21,7 +21,8 @@ export class LoginClient extends InternalClient {
             JSON.stringify({
                 type: 'world_startup',
                 nodeId: this.nodeId,
-                nodeTime: Date.now()
+                nodeTime: Date.now(),
+                profile: Environment.NODE_PROFILE
             })
         );
     }

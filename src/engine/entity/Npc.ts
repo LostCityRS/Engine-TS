@@ -59,6 +59,7 @@ export default class Npc extends PathingEntity {
     queue: LinkList<NpcQueueRequest> = new LinkList();
     timerInterval: number = 0;
     timerClock: number = 0;
+    regenInterval: number = 0;
     regenClock: number = 0;
     huntClock: number = 0;
     huntMode: number = -1;
@@ -179,6 +180,8 @@ export default class Npc extends PathingEntity {
         this.processQueue();
         // Movement-Interactions
         this.processMovementInteraction();
+        // Update target facing
+        this.setFaceEntity();
         // Dev note: Is this necessary?
         this.validateDistanceWalked();
     }
@@ -403,16 +406,12 @@ export default class Npc extends PathingEntity {
     clearInteraction(): void {
         super.clearInteraction();
         this.targetOp = NpcMode.NONE;
-        this.faceEntity = -1;
-        this.masks |= NpcInfoProt.FACE_ENTITY;
     }
 
     resetDefaults(): void {
         this.clearInteraction();
         const type: NpcType = NpcType.get(this.type);
         this.targetOp = type.defaultmode;
-        this.faceEntity = -1;
-        this.masks |= this.entitymask;
 
         const npcType: NpcType = NpcType.get(this.type);
         this.huntMode = npcType.huntmode;
@@ -508,13 +507,15 @@ export default class Npc extends PathingEntity {
 
     // --- Npc turn
     private processRegen() {
-        const type = NpcType.get(this.type);
+        if (++this.regenClock >= this.regenInterval) {
+            // Every time we regen, let's reload regen interval from NPC type
+            // This seems to match NPC behavior for when they change type, the regenrate doesn't update until a regen happens
+            // See: Vorkath in OSRS
+            const type = NpcType.get(this.type);
+            this.regenInterval = type.regenrate;
+            this.regenClock = 0;
 
-        // Hp regen timer counts down and procs every `regenrate` ticks
-        // Since regenClock is initialized to 0, NPCs regen their hp on their first turn alive, and then on turn 101
-        // This is accurate to OSRS behavior
-        if (type.regenrate !== 0 && --this.regenClock <= 0) {
-            this.regenClock = type.regenrate;
+            // Regen the stats
             for (let index = 0; index < this.baseLevels.length; index++) {
                 const stat = this.levels[index];
                 const baseStat = this.baseLevels[index];
@@ -891,7 +892,7 @@ export default class Npc extends PathingEntity {
         const hunt: HuntType = HuntType.get(this.huntMode);
 
         // We need a huntTarget and a huntMode
-        if (!this.huntTarget || hunt.type === HuntModeType.OFF) {
+        if (!this.huntTarget || typeof hunt === 'undefined' || hunt.type === HuntModeType.OFF) {
             return;
         }
 

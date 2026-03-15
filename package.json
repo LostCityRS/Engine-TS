@@ -34,12 +34,13 @@
     ]
   },
   "dependencies": {
-    "@2004scape/rsbuf": "254.1.0",
+    "@2004scape/rsbuf": "274.1.0",
     "@2004scape/rsmod-pathfinder": "^5.0.4",
     "@inquirer/prompts": "^8.0.1",
     "@isaacs/ttlcache": "^2.1.3",
     "@jimp/js-png": "^1.6.0",
     "@jimp/plugin-quantize": "^1.6.0",
+    "@lostcityrs/runescript": "^0.9.6",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",

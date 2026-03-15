@@ -26,7 +26,7 @@ if (background) {
     fs.writeFileSync(`${Environment.BUILD_SRC_DIR}/binary/title.jpg`, background.data);
 }
 
-const fonts = ['b12', 'p11', 'p12', 'q8'];
+const fonts = ['b12_full', 'p11_full', 'p12_full', 'q8_full'];
 
 for (const name of fonts) {
     Pix.unpackFull(title, name, `${Environment.BUILD_SRC_DIR}/fonts`);

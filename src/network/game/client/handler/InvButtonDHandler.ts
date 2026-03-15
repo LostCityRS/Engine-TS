@@ -14,7 +14,7 @@ export default class InvButtonDHandler extends ClientGameMessageHandler<InvButto
         // todo: is it necessary to pass message.mode to script? is it just verification?
 
         const com = Component.get(comId);
-        if (typeof com === 'undefined' || !com.draggable) {
+        if (typeof com === 'undefined' || (!com.draggable && !com.swappable)) {
             // bad client: component is not acceptable for this packet
             return false;
         } else if (!player.isComponentVisible(com)) {

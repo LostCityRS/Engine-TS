@@ -365,6 +365,7 @@ const NpcOps: CommandHandlers = {
         state.pointerAdd(ActiveNpc[state.intOperand]);
         state.pushInt(1);
     },
+
     [ScriptOpcode.NPC_FINDCAT]: state => {
         const [coord, npcCategory, distance, checkVis] = state.popInts(4);
 

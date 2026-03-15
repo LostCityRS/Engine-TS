@@ -1,4 +1,3 @@
-import child_process from 'child_process';
 import fs from 'fs';
 import { parentPort } from 'worker_threads';
 
@@ -18,11 +17,9 @@ import { packClientSound } from '#tools/pack/sound/pack.js';
 import { packClientMedia } from '#tools/pack/sprite/media.js';
 import { packClientTexture } from '#tools/pack/sprite/textures.js';
 import { packClientTitle } from '#tools/pack/sprite/title.js';
-import { generateCompilerSymbols } from '#tools/pack/CompilerSymbols.js';
+import { runServerCompiler } from '#tools/pack/Compiler.js';
 import { packClientVersionList } from '#tools/pack/versionlist/pack.js';
 import { clearFsCache } from '#tools/pack/FsCache.js';
-
-import Environment from '#/util/Environment.js';
 
 export async function packAll(modelFlags: number[]) {
     if (parentPort) {
@@ -45,13 +42,8 @@ export async function packAll(modelFlags: number[]) {
     await packConfigs(cache, modelFlags);
     packClientInterface(cache, modelFlags);
 
-    // todo: better/native compiler integration to extract npc_add/npc_changetype calls for modelFlags
-    generateCompilerSymbols(); // relies on reading configs/interfaces
-    try {
-        child_process.execSync(`"${Environment.BUILD_JAVA_PATH}" -jar RuneScriptCompiler.jar`, { stdio: 'inherit' });
-    } catch (_err) {
-        throw new Error('Failed to compile scripts.');
-    }
+    // relies on reading configs/interfaces for compile-time context
+    runServerCompiler();
 
     await packClientTitle(cache);
     await packClientMedia(cache);

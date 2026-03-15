@@ -488,6 +488,26 @@ export default abstract class PathingEntity extends Entity {
         }
     }
 
+    setFaceEntity(): void {
+        const oldEntity = this.faceEntity;
+        if (this.target instanceof Player) {
+            const playerSlot: number = this.target.slot + 32768;
+            if (this.faceEntity !== playerSlot) {
+                this.faceEntity = playerSlot;
+            }
+        } else if (this.target instanceof Npc) {
+            const nid: number = this.target.nid;
+            if (this.faceEntity !== nid) {
+                this.faceEntity = nid;
+            }
+        } else {
+            this.faceEntity = -1;
+        }
+        if (this.faceEntity !== oldEntity) {
+            this.masks |= this.entitymask;
+        }
+    }
+
     setInteraction(interaction: Interaction, target: Entity, op: TargetOp, com?: number): boolean {
         if (!target.isValid(this instanceof Player ? this.hash64 : undefined)) {
             return false;
@@ -513,19 +533,7 @@ export default abstract class PathingEntity extends Entity {
 
         this.focus(CoordGrid.fine(target.x, target.width), CoordGrid.fine(target.z, target.length), target instanceof NonPathingEntity && interaction === Interaction.ENGINE);
 
-        if (target instanceof Player) {
-            const playerSlot: number = target.slot + 32768;
-            if (this.faceEntity !== playerSlot) {
-                this.faceEntity = playerSlot;
-                this.masks |= this.entitymask;
-            }
-        } else if (target instanceof Npc) {
-            const nid: number = target.nid;
-            if (this.faceEntity !== nid) {
-                this.faceEntity = nid;
-                this.masks |= this.entitymask;
-            }
-        } else {
+        if (target instanceof NonPathingEntity) {
             this.targetX = CoordGrid.fine(target.x, target.width);
             this.targetZ = CoordGrid.fine(target.z, target.length);
         }
@@ -597,10 +605,7 @@ export default abstract class PathingEntity extends Entity {
         this.faceSquareX = -1;
         this.faceSquareZ = -1;
 
-        if (!this.target && this.faceEntity !== -1) {
-            this.masks |= this.entitymask;
-            this.faceEntity = -1;
-        }
+        this.setFaceEntity();
     }
 
     private takeStep(): number | null {
@@ -637,7 +642,7 @@ export default abstract class PathingEntity extends Entity {
             if (canTravel(this.level, srcX, srcZ, 0, CoordGrid.deltaZ(tryDirZ), this.width, extraFlag, collisionStrategy)) {
                 return tryDirZ;
             }
-            return -1;
+            return null;
         }
 
         const dir: number = CoordGrid.face(srcX, srcZ, x, z);
