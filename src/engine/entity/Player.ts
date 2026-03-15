@@ -1054,14 +1054,6 @@ export default class Player extends PathingEntity {
         return ScriptProvider.getByTrigger(this.targetOp, typeId, categoryId) ?? null;
     }
 
-    queueWaypoint(x: number, z: number): void {
-        super.queueWaypoint(x, z);
-    }
-
-    queueWaypoints(waypoints: ArrayLike<number>): void {
-        super.queueWaypoints(waypoints);
-    }
-
     pathToPathingTarget(): void {
         if (!(this.target instanceof PathingEntity)) {
             return;
