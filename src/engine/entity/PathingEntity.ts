@@ -7,6 +7,7 @@ import Entity from '#/engine/entity/Entity.js';
 import { EntityLifeCycle } from '#/engine/entity/EntityLifeCycle.js';
 import { Interaction } from '#/engine/entity/Interaction.js';
 import Loc from '#/engine/entity/Loc.js';
+import { AllowRepath } from './AllowRepath.js';
 import { MoveRestrict } from '#/engine/entity/MoveRestrict.js';
 import { MoveSpeed } from '#/engine/entity/MoveSpeed.js';
 import { MoveStrategy } from '#/engine/entity/MoveStrategy.js';
@@ -15,10 +16,9 @@ import Npc from '#/engine/entity/Npc.js';
 import { NpcMode } from '#/engine/entity/NpcMode.js';
 import Obj from '#/engine/entity/Obj.js';
 import Player from '#/engine/entity/Player.js';
-import { canTravel, changeNpcCollision, changePlayerCollision, findNaivePath, findPath, findPathToEntity, findPathToLoc, isApproached, isZoneAllocated, reachedEntity, reachedLoc, reachedObj } from '#/engine/GameMap.js';
+import { canTravel, changeNpcCollision, changePlayerCollision, findPath, findPathToEntity, findPathToLoc, isApproached, isZoneAllocated, reachedEntity, reachedLoc, reachedObj, findNaivePath } from '#/engine/GameMap.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
-import Environment from '#/util/Environment.js';
 
 type TargetSubject = {
     type: number;
@@ -54,6 +54,7 @@ export default abstract class PathingEntity extends Entity {
     lastInt: number = -1; // resume_p_countdialog, ai_queue
     lastCrawl: boolean = false;
     lastMovement: number = 0;
+    allowRepath: AllowRepath = AllowRepath.BEFOREDEST;
 
     walktrigger: number = -1;
     walktriggerArg: number = 0; // used for npcs
@@ -161,25 +162,22 @@ export default abstract class PathingEntity extends Entity {
      * @param previousLevel Their previous recorded level position before movement. This one is important for teleport.
      */
     private refreshZonePresence(previousX: number, previousZ: number, previousLevel: number): void {
-        // only update collision map when the entity moves.
-        if (this.x != previousX || this.z !== previousZ || this.level !== previousLevel) {
-            // update collision map
-            // players and npcs both can change this collision
-            switch (this.blockWalk) {
-                case BlockWalk.NPC:
-                    changeNpcCollision(this.width, previousX, previousZ, previousLevel, false);
-                    changeNpcCollision(this.width, this.x, this.z, this.level, true);
-                    break;
-                case BlockWalk.ALL:
-                    changeNpcCollision(this.width, previousX, previousZ, previousLevel, false);
-                    changeNpcCollision(this.width, this.x, this.z, this.level, true);
-                    changePlayerCollision(this.width, previousX, previousZ, previousLevel, false);
-                    changePlayerCollision(this.width, this.x, this.z, this.level, true);
-                    break;
-            }
-            this.lastStepX = previousX;
-            this.lastStepZ = previousZ;
+        // update collision map
+        // players and npcs both can change this collision
+        switch (this.blockWalk) {
+            case BlockWalk.NPC:
+                changeNpcCollision(this.width, previousX, previousZ, previousLevel, false);
+                changeNpcCollision(this.width, this.x, this.z, this.level, true);
+                break;
+            case BlockWalk.ALL:
+                changeNpcCollision(this.width, previousX, previousZ, previousLevel, false);
+                changeNpcCollision(this.width, this.x, this.z, this.level, true);
+                changePlayerCollision(this.width, previousX, previousZ, previousLevel, false);
+                changePlayerCollision(this.width, this.x, this.z, this.level, true);
+                break;
         }
+        this.lastStepX = previousX;
+        this.lastStepZ = previousZ;
 
         if (CoordGrid.zone(previousX) !== CoordGrid.zone(this.x) || CoordGrid.zone(previousZ) !== CoordGrid.zone(this.z) || previousLevel != this.level) {
             World.gameMap.getZone(previousX, previousZ, previousLevel).leave(this);
@@ -203,27 +201,33 @@ export default abstract class PathingEntity extends Entity {
      * Returns the final validated step direction.
      */
     private validateAndAdvanceStep(): number {
-        const dir: number | null = this.takeStep();
-        if (dir === null) {
-            return -1;
-        }
-        if (dir === -1) {
-            this.waypointIndex--;
-            if (this.waypointIndex != -1) {
-                return this.validateAndAdvanceStep();
-            }
-            return -1;
-        }
-        const previousX: number = this.x;
-        const previousZ: number = this.z;
-        this.x = CoordGrid.moveX(this.x, dir);
-        this.z = CoordGrid.moveZ(this.z, dir);
-        const moveX: number = CoordGrid.moveX(this.x, dir);
-        const moveZ: number = CoordGrid.moveZ(this.z, dir);
-        this.focus(CoordGrid.fine(moveX, this.width), CoordGrid.fine(moveZ, this.length), false);
-        this.stepsTaken++;
-        this.refreshZonePresence(previousX, previousZ, this.level);
+        const collisionStrategy: CollisionType | null = this.getCollisionStrategy();
+        const extraFlag: CollisionFlag = this.blockWalkFlag();
 
+        // Clear waypoints if no movement is allowed
+        if (collisionStrategy === null || extraFlag === CollisionFlag.NULL) {
+            this.waypointIndex = -1;
+        }
+
+        // If no waypoints, return
+        if (this.waypointIndex === -1) {
+            return -1;
+        }
+
+        // If we have a valid collision strategy and extra flag, attempt to take step.
+        const delta: [number, number] = this.takeStep();
+
+        const srcX = this.x;
+        const srcZ = this.z;
+
+        // Move entity
+        this.x = this.x + delta[0];
+        this.z = this.z + delta[1];
+
+        // Refresh zone presence if we had a waypoint, even if we didn't move
+        this.refreshZonePresence(srcX, srcZ, this.level);
+
+        // Update waypoint index if we reached the current waypoint
         if (this.waypointIndex !== -1) {
             const coord: CoordGrid = CoordGrid.unpackCoord(this.waypoints[this.waypointIndex]);
             if (coord.x === this.x && coord.z === this.z) {
@@ -231,7 +235,17 @@ export default abstract class PathingEntity extends Entity {
             }
         }
 
-        return dir;
+        // If we actually moved, update orientation and steps taken.
+        if (this.x !== srcX || this.z !== srcZ) {
+            // Focus the tile in front
+            const focusX: number = this.x + delta[0];
+            const focusZ: number = this.z + delta[1];
+            this.focus(CoordGrid.fine(focusX, this.width), CoordGrid.fine(focusZ, this.length), false);
+            this.stepsTaken++;
+            return CoordGrid.face(srcX, srcZ, this.x, this.z);
+        }
+
+        return -1;
     }
 
     /**
@@ -242,6 +256,7 @@ export default abstract class PathingEntity extends Entity {
     queueWaypoint(x: number, z: number): void {
         this.waypoints[0] = CoordGrid.packCoord(0, x, z); // level doesn't matter here
         this.waypointIndex = 0;
+        this.setAllowRepath(AllowRepath.BEFOREDEST);
     }
 
     /**
@@ -255,6 +270,11 @@ export default abstract class PathingEntity extends Entity {
             index++;
         }
         this.waypointIndex = index;
+        this.setAllowRepath(AllowRepath.BEFOREDEST);
+    }
+
+    setAllowRepath(value: AllowRepath) {
+        this.allowRepath = value;
     }
 
     clearWaypoints(): void {
@@ -374,7 +394,7 @@ export default abstract class PathingEntity extends Entity {
     /*
      * Returns if this PathingEntity is at the last waypoint or has no waypoint.
      */
-    isLastOrNoWaypoint(): boolean {
+    isLastWaypoint(): boolean {
         return this.waypointIndex <= 0;
     }
 
@@ -408,53 +428,31 @@ export default abstract class PathingEntity extends Entity {
         return CoordGrid.distanceTo(this, target) <= range && isApproached(this.level, this.x, this.z, target.x, target.z, this.width, this.length, target.width, target.length);
     }
 
-    pathToMoveClick(input: number[], needsfinding: boolean): void {
-        if (this.moveStrategy === MoveStrategy.SMART) {
-            if (needsfinding) {
-                const { x, z } = CoordGrid.unpackCoord(input[0]);
-                this.queueWaypoints(findPath(this.level, this.x, this.z, x, z));
-            } else {
-                this.queueWaypoints(input);
-            }
+    randomWalk(): void {
+        let x = this.x,
+            z = this.z;
+        if (Math.random() < 0.5) {
+            x += Math.random() < 0.5 ? -1 : 1;
         } else {
-            const { x, z } = CoordGrid.unpackCoord(input[input.length - 1]);
-            this.queueWaypoint(x, z);
+            z += Math.random() < 0.5 ? -1 : 1;
         }
+        this.queueWaypoint(x, z);
     }
 
-    pathToPathingTarget(): void {
+    naivePathToTarget() {
         if (!this.target) {
             return;
         }
-
-        if (!(this.target instanceof PathingEntity)) {
-            this.pathToTarget();
-            return;
+        let angle = 0;
+        if (this.target instanceof Loc) {
+            angle = this.target.angle;
         }
+        const waypoints = findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, angle, CollisionType.NORMAL);
 
-        if (
-            !(this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3) &&
-            Environment.NODE_CLIENT_ROUTEFINDER &&
-            CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)
-        ) {
-            this.queueWaypoints(findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, 0, CollisionType.NORMAL));
-            return;
+        const { x, z } = CoordGrid.unpackCoord(waypoints[0]);
+        if (x !== this.x || z !== this.z) {
+            this.queueWaypoints(waypoints);
         }
-
-        if (!this.isLastOrNoWaypoint()) {
-            return;
-        }
-
-        if (this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3) {
-            this.queueWaypoint(this.target.followX, this.target.followZ);
-            return;
-        }
-
-        /*if (this.targetX === this.target.x && this.targetZ === this.target.z && !Position.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)) {
-            return;
-        }*/
-
-        this.pathToTarget();
     }
 
     pathToTarget(): void {
@@ -464,11 +462,7 @@ export default abstract class PathingEntity extends Entity {
 
         if (this.moveStrategy === MoveStrategy.SMART) {
             if (this.target instanceof PathingEntity) {
-                if (Environment.NODE_CLIENT_ROUTEFINDER && CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)) {
-                    this.queueWaypoints(findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, 0, CollisionType.NORMAL));
-                } else {
-                    this.queueWaypoints(findPathToEntity(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.target.width, this.target.length));
-                }
+                this.queueWaypoints(findPathToEntity(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.target.width, this.target.length));
             } else if (this.target instanceof Loc) {
                 const forceapproach = LocType.get(this.target.type).forceapproach;
                 this.queueWaypoints(findPathToLoc(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.target.width, this.target.length, this.target.angle, this.target.shape, forceapproach));
@@ -490,7 +484,7 @@ export default abstract class PathingEntity extends Entity {
                 return;
             }
             if (this.target instanceof PathingEntity) {
-                this.queueWaypoints(findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, extraFlag, collisionStrategy));
+                this.naivePathToTarget();
             } else {
                 this.queueWaypoint(this.target.x, this.target.z);
             }
@@ -546,6 +540,11 @@ export default abstract class PathingEntity extends Entity {
             this.targetSubject.type = target.type;
         } else {
             this.targetSubject.type = -1;
+        }
+
+        if (interaction === Interaction.SCRIPT) {
+            // Allow repath
+            this.allowRepath = AllowRepath.BEFOREDEST;
         }
 
         this.focus(CoordGrid.fine(target.x, target.width), CoordGrid.fine(target.z, target.length), target instanceof NonPathingEntity && interaction === Interaction.ENGINE);
@@ -625,24 +624,20 @@ export default abstract class PathingEntity extends Entity {
         this.setFaceEntity();
     }
 
-    private takeStep(): number | null {
+    private takeStep(): [number, number] {
         // dir -1 means we reached the destination.
         // dir null means nothing happened
         if (this.waypointIndex === -1) {
             // failsafe check
-            return null;
+            return [0, 0];
         }
 
         const collisionStrategy: CollisionType | null = this.getCollisionStrategy();
-        if (collisionStrategy === null) {
-            // nomove moverestrict returns as null = no walking allowed.
-            return -1;
-        }
-
         const extraFlag: CollisionFlag = this.blockWalkFlag();
-        if (extraFlag === CollisionFlag.NULL) {
-            // nomove moverestrict returns as null = no walking allowed.
-            return -1;
+
+        if (collisionStrategy === null) {
+            // failsafe check
+            return [0, 0];
         }
 
         const srcX: number = this.x;
@@ -650,46 +645,30 @@ export default abstract class PathingEntity extends Entity {
 
         const { x, z } = CoordGrid.unpackCoord(this.waypoints[this.waypointIndex]);
 
-        if (this.width > 1) {
-            const tryDirX = CoordGrid.face(srcX, 0, x, 0);
-            if (canTravel(this.level, srcX, srcZ, CoordGrid.deltaX(tryDirX), 0, this.width, extraFlag, collisionStrategy)) {
-                return tryDirX;
-            }
-            const tryDirZ = CoordGrid.face(0, srcZ, 0, z);
-            if (canTravel(this.level, srcX, srcZ, 0, CoordGrid.deltaZ(tryDirZ), this.width, extraFlag, collisionStrategy)) {
-                return tryDirZ;
-            }
-            return null;
-        }
-
         const dir: number = CoordGrid.face(srcX, srcZ, x, z);
         const dx: number = CoordGrid.deltaX(dir);
         const dz: number = CoordGrid.deltaZ(dir);
 
-        // check if moved off current pos.
-        if (dx == 0 && dz == 0) {
-            return -1;
-        }
-
+        // Noclip stuff, I guess. God mode
         if (this.moveStrategy === MoveStrategy.FLY) {
-            return dir;
+            return [dx, dz];
         }
 
-        // check current direction if can travel to chosen dest.
-        if (canTravel(this.level, this.x, this.z, dx, dz, this.width, extraFlag, collisionStrategy)) {
-            return dir;
+        // Move diagonal
+        if (this.width === 1 && canTravel(this.level, this.x, this.z, dx, dz, this.width, extraFlag, collisionStrategy)) {
+            return [dx, dz];
         }
 
-        // check another direction if can travel to chosen dest on current z-axis.
+        // Move E/W
         if (dx != 0 && canTravel(this.level, this.x, this.z, dx, 0, this.width, extraFlag, collisionStrategy)) {
-            return CoordGrid.face(srcX, srcZ, x, srcZ);
+            return [dx, 0];
         }
 
-        // check another direction if can travel to chosen dest on current x-axis.
+        // Move N/S
         if (dz != 0 && canTravel(this.level, this.x, this.z, 0, dz, this.width, extraFlag, collisionStrategy)) {
-            return CoordGrid.face(srcX, srcZ, srcX, z);
+            return [0, dz];
         }
         // https://x.com/JagexAsh/status/1727609489954664502
-        return null;
+        return [0, 0];
     }
 }
