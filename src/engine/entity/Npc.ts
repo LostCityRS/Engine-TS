@@ -75,8 +75,8 @@ export default class Npc extends PathingEntity {
 
     heroPoints: HeroPoints = new HeroPoints(16); // be sure to reset when stats are recovered/reset
 
-    constructor(level: number, x: number, z: number, width: number, length: number, lifecycle: EntityLifeCycle, nid: number, type: number, moveRestrict: MoveRestrict, blockWalk: BlockWalk) {
-        super(level, x, z, width, length, lifecycle, moveRestrict, blockWalk, MoveStrategy.NAIVE, NpcInfoProt.FACE_COORD, NpcInfoProt.FACE_ENTITY);
+    constructor(level: number, x: number, z: number, width: number, length: number, lifecycle: EntityLifeCycle, nid: number, type: number, blockWalk: BlockWalk) {
+        super(level, x, z, width, length, lifecycle, blockWalk, MoveStrategy.NAIVE, NpcInfoProt.FACE_COORD, NpcInfoProt.FACE_ENTITY);
         this.nid = nid;
         this.baseType = type;
         this.type = type;
@@ -381,19 +381,20 @@ export default class Npc extends PathingEntity {
     }
 
     blockWalkFlag(): CollisionFlag {
-        if (this.moveRestrict === MoveRestrict.NORMAL) {
+        const type: NpcType = NpcType.get(this.type);
+        if (type.moverestrict === MoveRestrict.NORMAL) {
             return CollisionFlag.NPC;
-        } else if (this.moveRestrict === MoveRestrict.BLOCKED) {
+        } else if (type.moverestrict === MoveRestrict.BLOCKED) {
             return CollisionFlag.OPEN;
-        } else if (this.moveRestrict === MoveRestrict.BLOCKED_NORMAL) {
+        } else if (type.moverestrict === MoveRestrict.BLOCKED_NORMAL) {
             return CollisionFlag.NPC;
-        } else if (this.moveRestrict === MoveRestrict.INDOORS) {
+        } else if (type.moverestrict === MoveRestrict.INDOORS) {
             return CollisionFlag.NPC;
-        } else if (this.moveRestrict === MoveRestrict.OUTDOORS) {
+        } else if (type.moverestrict === MoveRestrict.OUTDOORS) {
             return CollisionFlag.NPC;
-        } else if (this.moveRestrict === MoveRestrict.NOMOVE) {
+        } else if (type.moverestrict === MoveRestrict.NOMOVE) {
             return CollisionFlag.NULL;
-        } else if (this.moveRestrict === MoveRestrict.PASSTHRU) {
+        } else if (type.moverestrict === MoveRestrict.PASSTHRU) {
             return CollisionFlag.OPEN;
         }
         return CollisionFlag.NULL;
@@ -430,9 +431,10 @@ export default class Npc extends PathingEntity {
         this.masks |= NpcInfoProt.CHANGE_TYPE;
         this.uid = (type << 16) | this.nid;
         this.resetOnRevert = reset;
+        
+        const npcType = NpcType.get(type);
 
         if (reset) {
-            const npcType = NpcType.get(type);
             for (let index = 0; index < npcType.stats.length; index++) {
                 const level = npcType.stats[index];
                 this.levels[index] = Math.max(level - (this.baseLevels[index] - this.levels[index]), 0);

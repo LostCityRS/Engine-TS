@@ -25,7 +25,6 @@ import HeroPoints from '#/engine/entity/HeroPoints.js';
 import Loc from '#/engine/entity/Loc.js';
 import { ModalState } from '#/engine/entity/ModalState.js';
 import { AllowRepath } from './AllowRepath.js';
-import { MoveRestrict } from '#/engine/entity/MoveRestrict.js';
 import { MoveSpeed } from '#/engine/entity/MoveSpeed.js';
 import { MoveStrategy } from '#/engine/entity/MoveStrategy.js';
 import { isClientConnected } from '#/engine/entity/NetworkPlayer.js';
@@ -421,7 +420,6 @@ export default class Player extends PathingEntity {
             1,
             1,
             EntityLifeCycle.FOREVER,
-            MoveRestrict.NORMAL,
             BlockWalk.NPC,
             Environment.NODE_CLIENT_ROUTEFINDER ? MoveStrategy.NAIVE : MoveStrategy.SMART,
             PlayerInfoProt.FACE_COORD,
