@@ -74,6 +74,7 @@ import LinkList from '#/datastruct/LinkList.js';
 import VarBitType from '#/cache/config/VarBitType.js';
 import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 import UpdateIgnoreList from '#/network/game/server/model/UpdateIgnoreList.js';
+import Midi from '#/cache/midi/Midi.js';
 
 const levelExperience = new Int32Array(99);
 
@@ -1983,13 +1984,12 @@ export default class Player extends PathingEntity {
         this.focus(CoordGrid.fine(x, 1), CoordGrid.fine(z, 1), true);
     }
 
-    // todo: make compiler do this at pack time
     playSong(id: number) {
         this.write(new MidiSong(id));
     }
 
-    playJingle(id: number, delay: number): void {
-        this.write(new MidiJingle(id, delay));
+    playJingle(id: number): void {
+        this.write(new MidiJingle(id, Midi.getLength(id)));
     }
 
     openMainModal(com: number) {

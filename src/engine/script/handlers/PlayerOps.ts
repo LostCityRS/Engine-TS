@@ -812,14 +812,14 @@ const PlayerOps: CommandHandlers = {
     },
 
     [ScriptOpcode.MIDI_JINGLE]: state => {
-        const [id, delay] = state.popInts(2);
+        const id = state.popInt();
 
         const player = state.activePlayer;
         if (player.lowMemory) {
             return;
         }
 
-        player.playJingle(id, delay);
+        player.playJingle(id);
     },
 
     [ScriptOpcode.MINIMAP_TOGGLE]: checkedHandler(ActivePlayer, state => {

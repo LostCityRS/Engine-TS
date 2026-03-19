@@ -99,6 +99,7 @@ import DbTableIndex from '#/cache/config/DbTableIndex.js';
 import VarBitType from '#/cache/config/VarBitType.js';
 import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 import HashTable from '#/datastruct/HashTable.js';
+import Midi from '#/cache/midi/Midi.js';
 
 const priv = forge.pki.privateKeyFromPem(fs.readFileSync('data/config/private.pem', 'ascii'));
 
@@ -292,6 +293,7 @@ class World {
 
         FontType.load('data/pack');
         WordEnc.load('data/pack');
+        Midi.load();
 
         this.reload();
 
