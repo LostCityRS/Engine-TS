@@ -131,7 +131,7 @@ export default class GameMap {
                 }
                 if ((npcType.members && this.members) || !npcType.members) {
                     const size: number = npcType.size;
-                    const npc: Npc = new Npc(level, absoluteX, absoluteZ, size, size, EntityLifeCycle.RESPAWN, World.getNextNid(), npcType.id, npcType.moverestrict, npcType.blockwalk);
+                    const npc: Npc = new Npc(level, absoluteX, absoluteZ, size, size, EntityLifeCycle.RESPAWN, World.getNextNid(), npcType.id, npcType.blockwalk);
                     World.addNpc(npc, -1);
                 }
             }
