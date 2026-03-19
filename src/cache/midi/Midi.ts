@@ -293,4 +293,8 @@ export default class Midi {
     static getLength(id: number): number {
         return this.lengths[id] ?? 0;
     }
+
+    static getTickLength(id: number): number {
+        return Math.ceil(this.getLength(id) / 600) + 1;
+    }
 }

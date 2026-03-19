@@ -61,6 +61,7 @@ export const enum ScriptOpcode {
     SEQLENGTH, // official
     SPOTANIM_MAP,
     WORLD_DELAY, // official
+    MIDI_LENGTH,
 
     // Player ops (2000-2499)
     AFK_EVENT = 2000,
@@ -507,6 +508,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['SEQLENGTH', ScriptOpcode.SEQLENGTH],
     ['SPOTANIM_MAP', ScriptOpcode.SPOTANIM_MAP],
     ['WORLD_DELAY', ScriptOpcode.WORLD_DELAY],
+    ['MIDI_LENGTH', ScriptOpcode.MIDI_LENGTH],
 
     ['AFK_EVENT', ScriptOpcode.AFK_EVENT],
     ['ALLOWDESIGN', ScriptOpcode.ALLOWDESIGN],
