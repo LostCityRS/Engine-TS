@@ -513,7 +513,7 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                 if (!type) {
                     return false;
                 }
-                World.addNpc(new Npc(player.level, player.x, player.z, type.size, type.size, EntityLifeCycle.DESPAWN, World.getNextNid(), type.id, type.moverestrict, type.blockwalk), 500);
+                World.addNpc(new Npc(player.level, player.x, player.z, type.size, type.size, EntityLifeCycle.DESPAWN, World.getNextNid(), type.id, type.blockwalk), 500);
             } else if (cmd === 'openmain') {
                 if (args.length < 1) {
                     return false;
