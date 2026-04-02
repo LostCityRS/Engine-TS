@@ -506,7 +506,7 @@ const ScriptOpcodePointers: {
     [ScriptOpcode.SETGENDER]: {
         require: ['p_active_player']
     },
-    [ScriptOpcode.SETSKINCOLOUR]: {
+    [ScriptOpcode.SETIDKCOLOUR]: {
         require: ['p_active_player']
     },
     [ScriptOpcode.P_ANIMPROTECT]: {
