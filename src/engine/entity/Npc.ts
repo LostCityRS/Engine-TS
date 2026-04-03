@@ -1,6 +1,6 @@
 import { NpcInfoProt } from '@2004scape/rsbuf';
 import * as rsbuf from '@2004scape/rsbuf';
-import { CollisionFlag } from '@2004scape/rsmod-pathfinder';
+import { CollisionFlag } from '#/engine/routefinder/index.js';
 
 import HuntType from '#/cache/config/HuntType.js';
 import NpcType from '#/cache/config/NpcType.js';
@@ -431,7 +431,7 @@ export default class Npc extends PathingEntity {
         this.masks |= NpcInfoProt.CHANGE_TYPE;
         this.uid = (type << 16) | this.nid;
         this.resetOnRevert = reset;
-        
+
         const npcType = NpcType.get(type);
 
         if (reset) {

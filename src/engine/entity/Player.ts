@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 import { PlayerInfoProt, Visibility } from '@2004scape/rsbuf';
-import { CollisionFlag, CollisionType } from '@2004scape/rsmod-pathfinder';
+import { CollisionFlag, CollisionType } from '#/engine/routefinder/index.js';
 
 import Component from '#/cache/config/Component.js';
 import FontType from '#/cache/config/FontType.js';

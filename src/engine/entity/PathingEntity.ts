@@ -1,4 +1,4 @@
-import { CollisionFlag, CollisionType } from '@2004scape/rsmod-pathfinder';
+import { CollisionFlag, CollisionType } from '#/engine/routefinder/index.js';
 
 import LocType from '#/cache/config/LocType.js';
 import { CoordGrid } from '#/engine/CoordGrid.js';
@@ -565,7 +565,7 @@ export default abstract class PathingEntity extends Entity {
     }
 
     protected getCollisionStrategy(): CollisionType | null {
-        if(this instanceof Npc) {
+        if (this instanceof Npc) {
             const type: NpcType = NpcType.get(this.type);
             if (type.moverestrict === MoveRestrict.NORMAL) {
                 return CollisionType.NORMAL;

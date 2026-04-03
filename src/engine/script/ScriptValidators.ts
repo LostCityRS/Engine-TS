@@ -1,4 +1,4 @@
-import { LocAngle, LocShape } from '@2004scape/rsmod-pathfinder';
+import { LocAngle, LocShape } from '#/engine/routefinder/index.js';
 
 import CategoryType from '#/cache/config/CategoryType.js';
 import { ConfigType } from '#/cache/config/ConfigType.js';

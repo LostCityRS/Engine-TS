@@ -1,7 +1,7 @@
 import v8 from 'node:v8';
 
 import { Visibility } from '@2004scape/rsbuf';
-import { LocAngle, LocShape } from '@2004scape/rsmod-pathfinder';
+import { LocAngle, LocShape } from '#/engine/routefinder/index.js';
 
 import Component from '#/cache/config/Component.js';
 import IdkType from '#/cache/config/IdkType.js';
@@ -140,7 +140,6 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                             }
                         }
                     } catch (_) {
-                         
                         // invalid arguments
                         return false;
                     }
@@ -423,7 +422,7 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                     return false;
                 }
 
-                World.rebootTimer(Math.ceil(tryParseInt(args[0], 30) * 1000 / 600));
+                World.rebootTimer(Math.ceil((tryParseInt(args[0], 30) * 1000) / 600));
             } else if (cmd === 'serverdrop') {
                 // testing reconnection behavior
                 player.terminate();
