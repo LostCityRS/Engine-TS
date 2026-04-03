@@ -1,7 +1,6 @@
 import fs from 'fs';
 
-import { CollisionFlag, CollisionType, LocAngle, LocLayer } from '@2004scape/rsmod-pathfinder';
-import * as rsmod from '@2004scape/rsmod-pathfinder';
+import rsmod, { CollisionFlag, CollisionType, LocAngle, LocLayer } from '#/engine/routefinder/index.js';
 
 import LocType from '#/cache/config/LocType.js';
 import NpcType from '#/cache/config/NpcType.js';

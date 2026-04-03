@@ -1,4 +1,4 @@
-import { CollisionFlag, CollisionType } from '@2004scape/rsmod-pathfinder';
+import { CollisionFlag, CollisionType } from '#/engine/routefinder/index.js';
 
 import LocType from '#/cache/config/LocType.js';
 import { CoordGrid } from '#/engine/CoordGrid.js';
@@ -559,22 +559,25 @@ export default abstract class PathingEntity extends Entity {
     }
 
     protected getCollisionStrategy(): CollisionType | null {
-        if (this.moveRestrict === MoveRestrict.NORMAL) {
-            return CollisionType.NORMAL;
-        } else if (this.moveRestrict === MoveRestrict.BLOCKED) {
-            return CollisionType.BLOCKED;
-        } else if (this.moveRestrict === MoveRestrict.BLOCKED_NORMAL) {
-            return CollisionType.LINE_OF_SIGHT;
-        } else if (this.moveRestrict === MoveRestrict.INDOORS) {
-            return CollisionType.INDOORS;
-        } else if (this.moveRestrict === MoveRestrict.OUTDOORS) {
-            return CollisionType.OUTDOORS;
-        } else if (this.moveRestrict === MoveRestrict.NOMOVE) {
-            return null;
-        } else if (this.moveRestrict === MoveRestrict.PASSTHRU) {
-            return CollisionType.NORMAL;
+        if (this instanceof Npc) {
+            const type: NpcType = NpcType.get(this.type);
+            if (type.moverestrict === MoveRestrict.NORMAL) {
+                return CollisionType.NORMAL;
+            } else if (type.moverestrict === MoveRestrict.BLOCKED) {
+                return CollisionType.BLOCKED;
+            } else if (type.moverestrict === MoveRestrict.BLOCKED_NORMAL) {
+                return CollisionType.LINE_OF_SIGHT;
+            } else if (type.moverestrict === MoveRestrict.INDOORS) {
+                return CollisionType.INDOORS;
+            } else if (type.moverestrict === MoveRestrict.OUTDOORS) {
+                return CollisionType.OUTDOORS;
+            } else if (type.moverestrict === MoveRestrict.NOMOVE) {
+                return null;
+            } else if (type.moverestrict === MoveRestrict.PASSTHRU) {
+                return CollisionType.NORMAL;
+            }
         }
-        return null;
+        return CollisionType.NORMAL;
     }
 
     protected resetPathingEntity(): void {

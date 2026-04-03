@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 import { PlayerInfoProt, Visibility } from '@2004scape/rsbuf';
-import { CollisionType, CollisionFlag } from '@2004scape/rsmod-pathfinder';
+import { CollisionFlag, CollisionType } from '#/engine/routefinder/index.js';
 
 import Component from '#/cache/config/Component.js';
 import FontType from '#/cache/config/FontType.js';
@@ -415,9 +415,17 @@ export default class Player extends PathingEntity {
 
     constructor(username: string, username37: bigint, hash64: bigint) {
         super(
-            0, 3094, 3106, // tutorial island
-            1, 1,
-            EntityLifeCycle.FOREVER, MoveRestrict.NORMAL, BlockWalk.NPC, MoveStrategy.SMART, PlayerInfoProt.FACE_COORD, PlayerInfoProt.FACE_ENTITY
+            0,
+            3094,
+            3106, // tutorial island
+            1,
+            1,
+            EntityLifeCycle.FOREVER,
+            MoveRestrict.NORMAL,
+            BlockWalk.NPC,
+            MoveStrategy.SMART,
+            PlayerInfoProt.FACE_COORD,
+            PlayerInfoProt.FACE_ENTITY
         );
 
         this.username = username;
@@ -1324,8 +1332,8 @@ export default class Player extends PathingEntity {
         const stream = Packet.alloc(0);
 
         stream.p1(this.gender);
-        stream.p1(0xFF); // prayer icon?
-        stream.p1(0xFF); // skull icon?
+        stream.p1(0xff); // prayer icon?
+        stream.p1(0xff); // skull icon?
 
         const skippedSlots = [];
 
@@ -1356,7 +1364,7 @@ export default class Player extends PathingEntity {
         }
 
         for (let slot = 0; slot < 12; slot++) {
-            if(this.npcId != -1) {
+            if (this.npcId != -1) {
                 stream.p2(-1);
                 stream.p2(this.npcId);
                 break;
@@ -1759,7 +1767,7 @@ export default class Player extends PathingEntity {
         const { basevar, startbit, endbit } = varbit;
         const mask = Packet.bitmask[endbit - startbit + 1];
 
-        return this.vars[basevar] >> startbit & mask;
+        return (this.vars[basevar] >> startbit) & mask;
     }
 
     setVarBit(id: number, value: number) {
@@ -1776,7 +1784,7 @@ export default class Player extends PathingEntity {
         }
 
         mask <<= startbit;
-        this.setVar(basevar, mask & value << startbit | this.vars[basevar] & ~mask);
+        this.setVar(basevar, (mask & (value << startbit)) | (this.vars[basevar] & ~mask));
     }
 
     private writeVarp(id: number, value: number): void {
@@ -2245,19 +2253,11 @@ export default class Player extends PathingEntity {
         const daysSinceLogin: number = (Number(lastDate) / (1000 * 60 * 60 * 24)) | 0;
         const daysSincePasswordChanged = 201; // hide :)
         const daysSinceRecoveriesChanged = 201; // hide :)
-        const currentDay: number = Number(nextDate) / (1000 * 60 * 60 * 24) | 0;
+        const currentDay: number = (Number(nextDate) / (1000 * 60 * 60 * 24)) | 0;
         const unreadMessageCount = 0;
         const membersCreditDays = 365;
 
-        this.write(new LastLoginInfo(
-            lastIp,
-            currentDay,
-            daysSinceLogin,
-            daysSincePasswordChanged,
-            daysSinceRecoveriesChanged,
-            unreadMessageCount,
-            membersCreditDays
-        ));
+        this.write(new LastLoginInfo(lastIp, currentDay, daysSinceLogin, daysSincePasswordChanged, daysSinceRecoveriesChanged, unreadMessageCount, membersCreditDays));
         this.lastLoginTime = nextDate;
     }
 

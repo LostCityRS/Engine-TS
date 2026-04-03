@@ -1,4 +1,4 @@
-import { LocLayer, LocAngle } from '@2004scape/rsmod-pathfinder';
+import { LocLayer, LocAngle } from '#/engine/routefinder/index.js';
 
 import SpotanimType from '#/cache/config/SpotanimType.js';
 import { CoordGrid } from '#/engine/CoordGrid.js';
