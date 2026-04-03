@@ -9,6 +9,7 @@ import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
 
 import { MapPack, shouldBuildFile } from '#tools/pack/PackFile.js';
+import { packWorldmap } from '#tools/pack/map/Worldmap.js';
 
 function packKey(level, x, z) {
     return (level << 12) | (x << 6) | z;
@@ -160,7 +161,7 @@ function updateModelFlags(npcMap, modelFlags) {
     }
 }
 
-export function packMaps(cache, modelFlags) {
+export async function packMaps(cache, modelFlags) {
     if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps`)) {
         return;
     }
@@ -185,6 +186,7 @@ export function packMaps(cache, modelFlags) {
         maps.push(name);
     }
 
+    let rebuildWorldmap = !fs.existsSync('data/pack/mapview/worldmap.jag');
     for (const name of maps) {
         const mapXZ = name.slice(1);
         const file = `${Environment.BUILD_SRC_DIR}/maps/m${mapXZ}.jm2`;
@@ -217,6 +219,7 @@ export function packMaps(cache, modelFlags) {
             continue;
         }
 
+        rebuildWorldmap = true;
         const map = readMap(data);
 
         // encode land data
@@ -375,5 +378,9 @@ export function packMaps(cache, modelFlags) {
         cache.write(4, MapPack.getByName(`l${mapXZ}`), fs.readFileSync(locFile), 1);
 
         updateModelFlags(map.npc, modelFlags);
+    }
+
+    if (rebuildWorldmap) {
+        await packWorldmap();
     }
 }

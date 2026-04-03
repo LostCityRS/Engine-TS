@@ -55,7 +55,7 @@ export async function packAll(modelFlags: number[]) {
 
     packClientMidi(cache);
 
-    packMaps(cache, modelFlags);
+    await packMaps(cache, modelFlags);
 
     packClientVersionList(cache, modelFlags); // relies on additional flags set during packMaps
 
