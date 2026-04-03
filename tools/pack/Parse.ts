@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 import Environment from '#/util/Environment.js';
-import { listDir, listFiles } from '#tools/pack/FsCache.js';
+import { listDir, listFiles, readTextFile } from '#tools/pack/FsCache.js';
 
 // simple! just reads the file as-is
 export function loadFile(path: string): string[] {
@@ -9,7 +9,7 @@ export function loadFile(path: string): string[] {
         return [];
     }
 
-    return fs.readFileSync(path, 'utf8').split(/\r?\n/);
+    return readTextFile(path).split(/\r?\n/);
 }
 
 // fully-featured! strips out comments

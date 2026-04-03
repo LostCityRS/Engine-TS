@@ -4,12 +4,59 @@ import { basename, dirname } from 'path';
 import Environment from '#/util/Environment.js';
 import { PackFile } from '#tools/pack/PackFileBase.js';
 import { listFilesExt, loadDirExtFull } from '#tools/pack/Parse.js';
-import { fileExists, fileStats } from '#tools/pack/FsCache.js';
+import { didFileSetChange, fileExists, fileStats } from '#tools/pack/FsCache.js';
+import { SourceSnapshot } from '#tools/pack/SourceSnapshot.js';
 import { printDebug, printError } from '#/util/Logger.js';
 // import { printWarning } from '#/util/Logger.js';
 
+type RevalidateContext = {
+    snapshot: SourceSnapshot;
+    toolChanged: boolean;
+};
+
+let currentRevalidateContext: RevalidateContext | null = null;
+
+function getPackFilePath(type: string) {
+    return `${Environment.BUILD_SRC_DIR}/pack/${type}.pack`;
+}
+
+function shouldRevalidatePackFile(pack: PackFile, sources: { path: string; ext: string }[]) {
+    const packFile = getPackFilePath(pack.type);
+    if (!fileExists(packFile)) {
+        return true;
+    }
+
+    if (currentRevalidateContext?.toolChanged) {
+        return true;
+    }
+
+    const packTimestamp = fileStats(packFile).mtimeMs;
+    for (const source of sources) {
+        if (currentRevalidateContext) {
+            if (currentRevalidateContext.snapshot.isNewer(source.path, source.ext, packTimestamp)) {
+                return true;
+            }
+        } else if (shouldBuild(source.path, source.ext, packFile)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function validateFilesPack(pack: PackFile, paths: string[], ext: string, verify: boolean = true): void {
-    pack.load(`${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
+    const packFile = getPackFilePath(pack.type);
+    if (
+        !shouldRevalidatePackFile(
+            pack,
+            paths.map(path => ({ path, ext }))
+        )
+    ) {
+        pack.load(packFile);
+        return;
+    }
+
+    pack.load(packFile);
 
     for (const path of paths) {
         const files = listFilesExt(path, ext);
@@ -44,7 +91,13 @@ function validateFilesPack(pack: PackFile, paths: string[], ext: string, verify:
 }
 
 function validateImagePack(pack: PackFile, path: string, ext: string): void {
-    pack.load(`${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
+    const packFile = getPackFilePath(pack.type);
+    if (!shouldRevalidatePackFile(pack, [{ path, ext }])) {
+        pack.load(packFile);
+        return;
+    }
+
+    pack.load(packFile);
 
     const files = listFilesExt(path, ext);
 
@@ -76,10 +129,16 @@ function validateImagePack(pack: PackFile, path: string, ext: string): void {
 }
 
 function validateConfigPack(pack: PackFile, ext: string, transmitted: boolean = false): void {
+    const packFile = getPackFilePath(pack.type);
+    if (!shouldRevalidatePackFile(pack, [{ path: `${Environment.BUILD_SRC_DIR}/scripts`, ext }])) {
+        pack.load(packFile);
+        return;
+    }
+
     const names = crawlConfigNames(ext);
     const configNames = new Set(names);
 
-    pack.load(`${Environment.BUILD_SRC_DIR}/pack/${pack.type}.pack`);
+    pack.load(packFile);
 
     if (!transmitted || (!Environment.BUILD_VERIFY && transmitted)) {
         for (let i = 0; i < names.length; i++) {
@@ -128,10 +187,21 @@ function validateConfigPack(pack: PackFile, ext: string, transmitted: boolean = 
 }
 
 function validateCategoryPack(pack: PackFile) {
+    const packFile = getPackFilePath(pack.type);
+    const shouldRebuild = currentRevalidateContext
+        ? currentRevalidateContext.toolChanged ||
+          currentRevalidateContext.snapshot.isNewer(`${Environment.BUILD_SRC_DIR}/scripts`, '.loc', fileExists(packFile) ? fileStats(packFile).mtimeMs : 0) ||
+          currentRevalidateContext.snapshot.isNewer(`${Environment.BUILD_SRC_DIR}/scripts`, '.npc', fileExists(packFile) ? fileStats(packFile).mtimeMs : 0) ||
+          currentRevalidateContext.snapshot.isNewer(`${Environment.BUILD_SRC_DIR}/scripts`, '.obj', fileExists(packFile) ? fileStats(packFile).mtimeMs : 0)
+        : false;
+
     if (
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.loc', `${Environment.BUILD_SRC_DIR}/pack/category.pack`) ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.npc', `${Environment.BUILD_SRC_DIR}/pack/category.pack`) ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.obj', `${Environment.BUILD_SRC_DIR}/pack/category.pack`)
+        shouldRebuild ||
+        (!currentRevalidateContext &&
+            (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.loc', packFile) ||
+                shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.npc', packFile) ||
+                shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.obj', packFile) ||
+                didFileSetChange(`data/pack/.stamps/revalidate-${pack.type}.txt`, [Environment.IS_BUN ? __filename : import.meta.filename, 'tools/pack/Parse.ts'])))
     ) {
         const categories = crawlConfigCategories();
         for (let i = 0; i < categories.length; i++) {
@@ -140,12 +210,18 @@ function validateCategoryPack(pack: PackFile) {
         pack.refreshNames();
         pack.save();
     } else {
-        pack.load(`${Environment.BUILD_SRC_DIR}/pack/category.pack`);
+        pack.load(packFile);
     }
 }
 
 function validateInterfacePack(pack: PackFile) {
-    pack.load(`${Environment.BUILD_SRC_DIR}/pack/interface.pack`);
+    const packFile = getPackFilePath(pack.type);
+    if (!shouldRevalidatePackFile(pack, [{ path: `${Environment.BUILD_SRC_DIR}/scripts`, ext: '.if' }])) {
+        pack.load(packFile);
+        return;
+    }
+
+    pack.load(packFile);
 
     loadDirExtFull(`${Environment.BUILD_SRC_DIR}/scripts`, '.if', (lines: string[], file: string) => {
         if (Environment.BUILD_VERIFY_FOLDER) {
@@ -178,7 +254,13 @@ function validateInterfacePack(pack: PackFile) {
 
 // todo: validate triggers, names, and/or reuse IDs?
 function regenScriptPack(pack: PackFile) {
-    pack.load(`${Environment.BUILD_SRC_DIR}/pack/script.pack`);
+    const packFile = getPackFilePath(pack.type);
+    if (!shouldRevalidatePackFile(pack, [{ path: `${Environment.BUILD_SRC_DIR}/scripts`, ext: '.rs2' }])) {
+        pack.load(packFile);
+        return;
+    }
+
+    pack.load(packFile);
 
     const names = crawlConfigNames('.rs2', true);
     for (let i = 0; i < names.length; i++) {
@@ -189,6 +271,8 @@ function regenScriptPack(pack: PackFile) {
     pack.refreshNames();
     pack.save();
 }
+
+PackFile.suspendAutoReload = true;
 
 export const AnimSetPack = new PackFile('animset', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/models`], '.anim');
 export const AnimPack = new PackFile('anim', validateFilesPack, [`${Environment.BUILD_SRC_DIR}/models`], '.frame', false);
@@ -221,41 +305,65 @@ export const VarbitPack = new PackFile('varbit', validateConfigPack, '.varbit', 
 export const VarnPack = new PackFile('varn', validateConfigPack, '.varn');
 export const VarsPack = new PackFile('vars', validateConfigPack, '.vars');
 
-export function revalidatePack() {
-    AnimSetPack.reload();
-    AnimPack.reload();
-    BasePack.reload();
-    CategoryPack.reload();
-    DbRowPack.reload();
-    DbTablePack.reload();
-    EnumPack.reload();
-    FloPack.reload();
-    HuntPack.reload();
-    IdkPack.reload();
-    InterfacePack.reload();
-    InvPack.reload();
-    LocPack.reload();
-    MesAnimPack.reload();
-    MapPack.reload();
-    MidiPack.reload();
-    ModelPack.reload();
-    NpcPack.reload();
-    ObjPack.reload();
-    ParamPack.reload();
-    ScriptPack.reload();
-    SeqPack.reload();
-    SynthPack.reload();
-    SpotAnimPack.reload();
-    StructPack.reload();
-    TexturePack.reload();
-    VarpPack.reload();
-    VarnPack.reload();
-    VarsPack.reload();
-    VarbitPack.reload();
+PackFile.suspendAutoReload = false;
+
+export async function revalidatePack() {
+    const snapshot = await SourceSnapshot.create([
+        {
+            path: `${Environment.BUILD_SRC_DIR}/scripts`,
+            exts: ['.constant', '.dbrow', '.dbtable', '.enum', '.flo', '.hunt', '.idk', '.if', '.inv', '.loc', '.mesanim', '.npc', '.obj', '.param', '.rs2', '.seq', '.spotanim', '.struct', '.varbit', '.varn', '.varp', '.vars']
+        },
+        { path: `${Environment.BUILD_SRC_DIR}/models`, exts: ['.anim', '.base', '.frame', '.ob2'] },
+        { path: `${Environment.BUILD_SRC_DIR}/maps`, exts: ['.jm2'] },
+        { path: `${Environment.BUILD_SRC_DIR}/jingles`, exts: ['.mid'] },
+        { path: `${Environment.BUILD_SRC_DIR}/songs`, exts: ['.mid'] },
+        { path: `${Environment.BUILD_SRC_DIR}/synth`, exts: ['.synth'] },
+        { path: `${Environment.BUILD_SRC_DIR}/textures`, exts: ['.png'] }
+    ]);
+
+    currentRevalidateContext = {
+        snapshot,
+        toolChanged: didFileSetChange('data/pack/.stamps/revalidate-tools.txt', [Environment.IS_BUN ? __filename : import.meta.filename, 'tools/pack/Parse.ts'])
+    };
+
+    try {
+        AnimSetPack.reload();
+        AnimPack.reload();
+        BasePack.reload();
+        CategoryPack.reload();
+        DbRowPack.reload();
+        DbTablePack.reload();
+        EnumPack.reload();
+        FloPack.reload();
+        HuntPack.reload();
+        IdkPack.reload();
+        InterfacePack.reload();
+        InvPack.reload();
+        LocPack.reload();
+        MesAnimPack.reload();
+        MapPack.reload();
+        MidiPack.reload();
+        ModelPack.reload();
+        NpcPack.reload();
+        ObjPack.reload();
+        ParamPack.reload();
+        ScriptPack.reload();
+        SeqPack.reload();
+        SynthPack.reload();
+        SpotAnimPack.reload();
+        StructPack.reload();
+        TexturePack.reload();
+        VarpPack.reload();
+        VarnPack.reload();
+        VarsPack.reload();
+        VarbitPack.reload();
+    } finally {
+        currentRevalidateContext = null;
+    }
 }
 
 export function crawlConfigNames(ext: string, includeBrackets = false) {
-    const names: string[] = [];
+    const names = new Set<string>();
 
     loadDirExtFull(`${Environment.BUILD_SRC_DIR}/scripts`, ext, (lines: string[], file: string) => {
         if (file === `${Environment.BUILD_SRC_DIR}/scripts/engine.rs2`) {
@@ -276,7 +384,7 @@ export function crawlConfigNames(ext: string, includeBrackets = false) {
                     const parentParent = basename(dirname(dirname(dirname(file))));
                     const parent = basename(dirname(dirname(file)));
                     const dir = basename(dirname(file));
-                    if ((dir !== '_unpack' && parent !== '_unpack' && parentParent !== '_unpack') && ext !== '.flo') {
+                    if (dir !== '_unpack' && parent !== '_unpack' && parentParent !== '_unpack' && ext !== '.flo') {
                         if (ext === '.rs2' && dir !== 'scripts' && parent !== 'scripts') {
                             throw new Error(`Script file ${file} must be located inside a "scripts" directory.`);
                         } else if (ext !== '.rs2' && dir !== 'configs' && parent !== 'configs') {
@@ -285,29 +393,23 @@ export function crawlConfigNames(ext: string, includeBrackets = false) {
                     }
                 }
 
-                if (names.indexOf(name) === -1) {
-                    names.push(name);
-                }
+                names.add(name);
             }
         }
     });
 
-    return names;
+    return Array.from(names);
 }
 
 function crawlConfigCategories() {
-    const names: string[] = [];
+    const names = new Set<string>();
 
     loadDirExtFull(`${Environment.BUILD_SRC_DIR}/scripts`, '.loc', (lines: string[]) => {
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
 
             if (line.startsWith('category=')) {
-                const name = line.substring('category='.length);
-
-                if (names.indexOf(name) === -1) {
-                    names.push(name);
-                }
+                names.add(line.substring('category='.length));
             }
         }
     });
@@ -317,11 +419,7 @@ function crawlConfigCategories() {
             const line = lines[i];
 
             if (line.startsWith('category=')) {
-                const name = line.substring('category='.length);
-
-                if (names.indexOf(name) === -1) {
-                    names.push(name);
-                }
+                names.add(line.substring('category='.length));
             }
         }
     });
@@ -331,16 +429,12 @@ function crawlConfigCategories() {
             const line = lines[i];
 
             if (line.startsWith('category=')) {
-                const name = line.substring('category='.length);
-
-                if (names.indexOf(name) === -1) {
-                    names.push(name);
-                }
+                names.add(line.substring('category='.length));
             }
         }
     });
 
-    return names;
+    return Array.from(names);
 }
 
 export function getModified(path: string) {
@@ -395,6 +489,10 @@ export function shouldBuildFileAny(path: string, dest: string) {
         return true;
     }
 
+    if (!fileExists(path)) {
+        return false;
+    }
+
     const entries = fs.readdirSync(path, { withFileTypes: true });
 
     for (const entry of entries) {
@@ -409,6 +507,21 @@ export function shouldBuildFileAny(path: string, dest: string) {
             if (shouldBuildFile(target, dest)) {
                 return true;
             }
+        }
+    }
+
+    return false;
+}
+
+export function shouldBuildFileList(files: string[], dest: string) {
+    if (!fileExists(dest)) {
+        return true;
+    }
+
+    const stats = fileStats(dest);
+    for (const file of files) {
+        if (fileExists(file) && fileStats(file).mtimeMs > stats.mtimeMs) {
+            return true;
         }
     }
 

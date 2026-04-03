@@ -17,6 +17,7 @@ import { ScriptOpcodeMap } from '#/engine/script/ScriptOpcode.js';
 import ScriptOpcodePointers from '#/engine/script/ScriptOpcodePointers.js';
 import Environment from '#/util/Environment.js';
 import VarBitType from '#/cache/config/VarBitType.js';
+import { readTextFile } from '#tools/pack/FsCache.js';
 import { loadDirExtFull } from '#tools/pack/Parse.js';
 
 class CompilerTypeInfo {
@@ -43,7 +44,7 @@ class CompilerTypeInfo {
             return pack;
         }
 
-        const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+        const lines = readTextFile(file).split(/\r?\n/);
         for (const line of lines) {
             if (!line.length || line.indexOf('=') === -1) {
                 continue;
@@ -104,8 +105,7 @@ class CompilerTypeInfo {
 }
 
 export function runServerCompiler() {
-    const allCommands = Array.from(ScriptOpcodeMap.entries())
-        .sort((a, b) => a[1] - b[1]);
+    const allCommands = Array.from(ScriptOpcodeMap.entries()).sort((a, b) => a[1] - b[1]);
     const commandInfo = new CompilerTypeInfo();
     for (let i = 0; i < allCommands.length; i++) {
         const [name, opcode] = allCommands[i];
@@ -336,42 +336,42 @@ export function runServerCompiler() {
 
     CompileServerScript({
         symbols: {
-            'command': commandInfo,
+            command: commandInfo,
 
-            'constant': constantInfo,
-            'npc': npcInfo,
-            'obj': objInfo,
-            'inv': invInfo,
-            'writeinv': writeinvInfo,
-            'seq': seqInfo,
-            'idk': idkInfo,
-            'spotanim': spotanimInfo,
-            'loc': locInfo,
-            'component': componentInfo,
-            'interface': interfaceInfo,
-            'overlayinterface': overlayInfo,
-            'varp': varpInfo,
-            'varbit': varbitInfo,
-            'varn': varnInfo,
-            'vars': varsInfo,
-            'param': paramInfo,
-            'struct': structInfo,
-            'enum': enumInfo,
-            'hunt': huntInfo,
-            'mesanim': mesanimInfo,
-            'synth': synthInfo,
-            'category': categoryInfo,
-            'runescript': runescriptInfo,
-            'dbtable': dbtableInfo,
-            'dbcolumn': dbcolumnInfo,
-            'dbrow': dbrowInfo,
-            'midi': midiInfo,
+            constant: constantInfo,
+            npc: npcInfo,
+            obj: objInfo,
+            inv: invInfo,
+            writeinv: writeinvInfo,
+            seq: seqInfo,
+            idk: idkInfo,
+            spotanim: spotanimInfo,
+            loc: locInfo,
+            component: componentInfo,
+            interface: interfaceInfo,
+            overlayinterface: overlayInfo,
+            varp: varpInfo,
+            varbit: varbitInfo,
+            varn: varnInfo,
+            vars: varsInfo,
+            param: paramInfo,
+            struct: structInfo,
+            enum: enumInfo,
+            hunt: huntInfo,
+            mesanim: mesanimInfo,
+            synth: synthInfo,
+            category: categoryInfo,
+            runescript: runescriptInfo,
+            dbtable: dbtableInfo,
+            dbcolumn: dbcolumnInfo,
+            dbrow: dbrowInfo,
+            midi: midiInfo,
 
-            'stat': statInfo,
-            'npc_stat': npcStatInfo,
-            'npc_mode': npcModeInfo,
-            'fontmetrics': fontmetricsInfo,
-            'locshape': locshapeInfo,
+            stat: statInfo,
+            npc_stat: npcStatInfo,
+            npc_mode: npcModeInfo,
+            fontmetrics: fontmetricsInfo,
+            locshape: locshapeInfo
         }
     });
 }

@@ -1,15 +1,32 @@
 import fs from 'fs';
 
-import NpcType from '#/cache/config/NpcType.js';
-
 import { compressGz } from '#/io/GZip.js';
 import Packet from '#/io/Packet.js';
 
 import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
 
-import { MapPack, shouldBuildFile } from '#tools/pack/PackFile.js';
-import { packWorldmap } from '#tools/pack/map/Worldmap.js';
+import { MapPack, shouldBuild, shouldBuildFile } from '#tools/pack/PackFile.js';
+import { didFileSetChange } from '#tools/pack/FsCache.js';
+
+let npcTypePromise = null;
+let worldmapPromise = null;
+
+async function getNpcType() {
+    if (!npcTypePromise) {
+        npcTypePromise = import('#/cache/config/NpcType.js').then(module => module.default);
+    }
+
+    return npcTypePromise;
+}
+
+async function getPackWorldmap() {
+    if (!worldmapPromise) {
+        worldmapPromise = import('#tools/pack/map/Worldmap.js').then(module => module.packWorldmap);
+    }
+
+    return worldmapPromise;
+}
 
 function packKey(level, x, z) {
     return (level << 12) | (x << 6) | z;
@@ -25,7 +42,8 @@ function readMap(lines) {
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        if (line.charCodeAt(0) === 61) { // '='
+        if (line.charCodeAt(0) === 61) {
+            // '='
             section = line.slice(4, -4).slice(1, 4);
             continue;
         }
@@ -41,7 +59,12 @@ function readMap(lines) {
         const data = line.slice(colon + 2);
 
         if (section === 'MAP') {
-            let h = 0, overlayId = -1, overlayShape = -1, overlayRot = -1, flags = -1, underlay = -1;
+            let h = 0,
+                overlayId = -1,
+                overlayShape = -1,
+                overlayRot = -1,
+                flags = -1,
+                underlay = -1;
             let start = 0;
             while (start < data.length) {
                 const end = data.indexOf(' ', start);
@@ -49,17 +72,21 @@ function readMap(lines) {
                 const type = token.charCodeAt(0);
                 const info = token.slice(1);
 
-                if (type === 104) { // 'h'
+                if (type === 104) {
+                    // 'h'
                     h = parseInt(info);
-                } else if (type === 111) { // 'o'
+                } else if (type === 111) {
+                    // 'o'
                     const sc1 = info.indexOf(';');
                     const sc2 = sc1 === -1 ? -1 : info.indexOf(';', sc1 + 1);
                     overlayId = sc1 === -1 ? parseInt(info) : parseInt(info.slice(0, sc1));
                     overlayShape = sc1 === -1 ? -1 : parseInt(info.slice(sc1 + 1, sc2 === -1 ? undefined : sc2));
                     overlayRot = sc2 === -1 ? -1 : parseInt(info.slice(sc2 + 1));
-                } else if (type === 102) { // 'f'
+                } else if (type === 102) {
+                    // 'f'
                     flags = parseInt(info);
-                } else if (type === 117) { // 'u'
+                } else if (type === 117) {
+                    // 'u'
                     underlay = parseInt(info);
                 }
 
@@ -143,7 +170,7 @@ function readMapSection(lines, ...sections) {
     return { npc };
 }
 
-function updateModelFlags(npcMap, modelFlags) {
+function updateModelFlags(npcMap, modelFlags, NpcType) {
     for (const [_key, ids] of npcMap) {
         for (const id of ids) {
             const type = NpcType.get(id);
@@ -161,9 +188,54 @@ function updateModelFlags(npcMap, modelFlags) {
     }
 }
 
-export async function packMaps(cache, modelFlags) {
+function hasUnexpectedPackedFiles(dir, expected) {
+    if (!fs.existsSync(dir)) {
+        return false;
+    }
+
+    const files = fs.readdirSync(dir, { withFileTypes: true });
+    for (const file of files) {
+        if (!file.isFile() || !expected.has(file.name)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+export async function collectMapModelFlags(modelFlags) {
     if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps`)) {
         return;
+    }
+
+    const NpcType = await getNpcType();
+    NpcType.load('data/pack');
+
+    for (let id = 0; id < MapPack.max; id++) {
+        const name = MapPack.getById(id);
+        if (!name.startsWith('m')) {
+            continue;
+        }
+
+        const mapXZ = name.slice(1);
+        const file = `${Environment.BUILD_SRC_DIR}/maps/m${mapXZ}.jm2`;
+        if (!fs.existsSync(file)) {
+            continue;
+        }
+
+        const data = fs
+            .readFileSync(file, 'utf8')
+            .replace(/\r/g, '')
+            .split('\n')
+            .filter(x => x.length);
+        const map = readMapSection(data, 'NPC');
+        updateModelFlags(map.npc, modelFlags, NpcType);
+    }
+}
+
+export async function packMaps(cache, modelFlags) {
+    if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps`)) {
+        return false;
     }
 
     if (!fs.existsSync('data/pack/client/maps')) {
@@ -174,9 +246,8 @@ export async function packMaps(cache, modelFlags) {
         fs.mkdirSync('data/pack/server/maps', { recursive: true });
     }
 
-    NpcType.load('data/pack');
-
     const maps = [];
+    const expectedPackedFiles = new Set();
     for (let id = 0; id < MapPack.max; id++) {
         const name = MapPack.getById(id);
         if (!name.startsWith('m')) {
@@ -184,9 +255,26 @@ export async function packMaps(cache, modelFlags) {
         }
 
         maps.push(name);
+        expectedPackedFiles.add(name);
+        expectedPackedFiles.add(`l${name.slice(1)}`);
+    }
+
+    const rebuildMapArchive = shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/map.pack`, 'data/pack/main_file_cache.idx4') || hasUnexpectedPackedFiles('data/pack/client/maps', expectedPackedFiles);
+    const needsMapHydration = rebuildMapArchive || cache.count(4) === 0;
+    const toolChanged = didFileSetChange('data/pack/.stamps/map-tools.txt', [Environment.IS_BUN ? __filename : import.meta.filename]);
+    const needsAnyMapPackWork = rebuildMapArchive || shouldBuild(`${Environment.BUILD_SRC_DIR}/maps`, '.jm2', 'data/pack/main_file_cache.idx4') || toolChanged;
+
+    if (rebuildMapArchive) {
+        cache.clearArchive(4);
+    }
+
+    if (!needsAnyMapPackWork && !needsMapHydration) {
+        return false;
     }
 
     let rebuildWorldmap = !fs.existsSync('data/pack/mapview/worldmap.jag');
+    let rebuiltAnyMap = false;
+    let NpcType = null;
     for (const name of maps) {
         const mapXZ = name.slice(1);
         const file = `${Environment.BUILD_SRC_DIR}/maps/m${mapXZ}.jm2`;
@@ -202,24 +290,26 @@ export async function packMaps(cache, modelFlags) {
         const serverLocFile = `data/pack/server/maps/l${mapXZ}`;
         const serverNpcFile = `data/pack/server/maps/n${mapXZ}`;
         const serverObjFile = `data/pack/server/maps/o${mapXZ}`;
-        const packerUpdated = shouldBuildFile(Environment.IS_BUN ? __filename : import.meta.filename, mapFile);
-        const needsRebuild = packerUpdated || shouldBuildFile(file, mapFile);
+        const needsRebuild = toolChanged || shouldBuildFile(file, mapFile);
+        if (!needsRebuild) {
+            const mapId = MapPack.getByName(`m${mapXZ}`);
+            const locMapId = MapPack.getByName(`l${mapXZ}`);
+            if (needsMapHydration && !cache.has(4, mapId)) {
+                cache.write(4, mapId, fs.readFileSync(mapFile), 1);
+            }
+            if (needsMapHydration && !cache.has(4, locMapId)) {
+                cache.write(4, locMapId, fs.readFileSync(locFile), 1);
+            }
+            continue;
+        }
 
+        rebuiltAnyMap = true;
+        rebuildWorldmap = true;
         const data = fs
             .readFileSync(file, 'utf8')
             .replace(/\r/g, '')
             .split('\n')
             .filter(x => x.length);
-        if (!needsRebuild) {
-            // only parse NPC section for model flags
-            const map = readMapSection(data, 'NPC');
-            updateModelFlags(map.npc, modelFlags);
-            cache.write(4, MapPack.getByName(`m${mapXZ}`), fs.readFileSync(mapFile), 1);
-            cache.write(4, MapPack.getByName(`l${mapXZ}`), fs.readFileSync(locFile), 1);
-            continue;
-        }
-
-        rebuildWorldmap = true;
         const map = readMap(data);
 
         // encode land data
@@ -300,7 +390,7 @@ export async function packMaps(cache, modelFlags) {
             const allLocs = [];
             for (const [key, entries] of map.loc) {
                 for (const { id, shape, angle } of entries) {
-                    allLocs.push(id << 14 | key, shape, angle);
+                    allLocs.push((id << 14) | key, shape, angle);
                 }
             }
             const locList = [];
@@ -312,7 +402,7 @@ export async function packMaps(cache, modelFlags) {
                     locList.push({ id, level, x, z, shape, angle });
                 }
             }
-            locList.sort((a, b) => a.id !== b.id ? a.id - b.id : ((a.level << 12 | a.x << 6 | a.z) - (b.level << 12 | b.x << 6 | b.z)));
+            locList.sort((a, b) => (a.id !== b.id ? a.id - b.id : ((a.level << 12) | (a.x << 6) | a.z) - ((b.level << 12) | (b.x << 6) | b.z)));
 
             let out = Packet.alloc(3);
             let lastLocId = -1;
@@ -377,10 +467,18 @@ export async function packMaps(cache, modelFlags) {
         cache.write(4, MapPack.getByName(`m${mapXZ}`), fs.readFileSync(mapFile), 1);
         cache.write(4, MapPack.getByName(`l${mapXZ}`), fs.readFileSync(locFile), 1);
 
-        updateModelFlags(map.npc, modelFlags);
+        if (!NpcType) {
+            NpcType = await getNpcType();
+            NpcType.load('data/pack');
+        }
+
+        updateModelFlags(map.npc, modelFlags, NpcType);
     }
 
     if (rebuildWorldmap) {
+        const packWorldmap = await getPackWorldmap();
         await packWorldmap();
     }
+
+    return rebuiltAnyMap;
 }
