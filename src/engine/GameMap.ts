@@ -1,5 +1,7 @@
 import fs from 'fs';
 
+import { unzipSync } from 'fflate';
+
 import rsmod, { CollisionFlag, CollisionType, LocAngle, LocLayer } from '#/engine/routefinder/index.js';
 
 import LocType from '#/cache/config/LocType.js';
@@ -61,19 +63,37 @@ export default class GameMap {
             this.loadCsvMap(this.freemap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').split(/\r?\n/));
         }
 
-        const path: string = 'data/pack/server/maps/';
-        const maps: string[] = fs.readdirSync(path).filter(x => x[0] === 'm');
-        for (let index: number = 0; index < maps.length; index++) {
-            const [mx, mz] = maps[index].substring(1).split('_').map(Number);
-            const mapsquareX: number = mx << 6;
-            const mapsquareZ: number = mz << 6;
+        const zipPath = 'data/pack/.cache/maps-server.zip';
+        if (fs.existsSync(zipPath)) {
+            const mapEntries = unzipSync(fs.readFileSync(zipPath));
+            const maps: string[] = Object.keys(mapEntries).filter(name => name[0] === 'm');
+            for (let index: number = 0; index < maps.length; index++) {
+                const [mx, mz] = maps[index].substring(1).split('_').map(Number);
+                const mapsquareX: number = mx << 6;
+                const mapsquareZ: number = mz << 6;
 
-            this.loadNpcs(Packet.load(`${path}n${mx}_${mz}`), mapsquareX, mapsquareZ);
-            this.loadObjs(Packet.load(`${path}o${mx}_${mz}`), mapsquareX, mapsquareZ);
-            // collision
-            const lands: Int8Array = new Int8Array(GameMap.MAPSQUARE); // 4 * 64 * 64 size is guaranteed for lands
-            this.loadGround(lands, Packet.load(`${path}m${mx}_${mz}`), mapsquareX, mapsquareZ);
-            this.loadLocations(lands, Packet.load(`${path}l${mx}_${mz}`), mapsquareX, mapsquareZ);
+                this.loadNpcs(new Packet(mapEntries[`n${mx}_${mz}`] ?? new Uint8Array()), mapsquareX, mapsquareZ);
+                this.loadObjs(new Packet(mapEntries[`o${mx}_${mz}`] ?? new Uint8Array()), mapsquareX, mapsquareZ);
+                // collision
+                const lands: Int8Array = new Int8Array(GameMap.MAPSQUARE); // 4 * 64 * 64 size is guaranteed for lands
+                this.loadGround(lands, new Packet(mapEntries[`m${mx}_${mz}`]), mapsquareX, mapsquareZ);
+                this.loadLocations(lands, new Packet(mapEntries[`l${mx}_${mz}`]), mapsquareX, mapsquareZ);
+            }
+        } else {
+            const path: string = 'data/pack/server/maps/';
+            const maps: string[] = fs.readdirSync(path).filter(x => x[0] === 'm');
+            for (let index: number = 0; index < maps.length; index++) {
+                const [mx, mz] = maps[index].substring(1).split('_').map(Number);
+                const mapsquareX: number = mx << 6;
+                const mapsquareZ: number = mz << 6;
+
+                this.loadNpcs(Packet.load(`${path}n${mx}_${mz}`), mapsquareX, mapsquareZ);
+                this.loadObjs(Packet.load(`${path}o${mx}_${mz}`), mapsquareX, mapsquareZ);
+                // collision
+                const lands: Int8Array = new Int8Array(GameMap.MAPSQUARE); // 4 * 64 * 64 size is guaranteed for lands
+                this.loadGround(lands, Packet.load(`${path}m${mx}_${mz}`), mapsquareX, mapsquareZ);
+                this.loadLocations(lands, Packet.load(`${path}l${mx}_${mz}`), mapsquareX, mapsquareZ);
+            }
         }
 
         printDebug(`${World.getTotalNpcs()}/${Environment.NODE_MAX_NPCS} static NPCs added`);
