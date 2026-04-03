@@ -103,6 +103,8 @@ const ScriptOpcodePointers: {
     [ScriptOpcode.FINDUID]: {
         set: ['active_player'],
         set2: ['active_player2'],
+        corrupt: ['p_active_player'],
+        corrupt2: ['p_active_player2'],
         conditional: true
     },
     [ScriptOpcode.GENDER]: {
@@ -211,7 +213,7 @@ const ScriptOpcodePointers: {
     [ScriptOpcode.IF_SETPOSITION]: {
         require: ['active_player']
     },
-    [ScriptOpcode.IF_SETRESUMEBUTTONS]: {
+    [ScriptOpcode.IF_ADDRESUMEBUTTON]: {
         require: ['active_player']
     },
     [ScriptOpcode.IF_SETTAB]: {

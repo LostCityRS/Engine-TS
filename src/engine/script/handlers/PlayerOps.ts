@@ -469,10 +469,13 @@ const PlayerOps: CommandHandlers = {
     [ScriptOpcode.SOUND_SYNTH]: checkedHandler(ActivePlayer, state => {
         const [synth, loops, delay] = state.popInts(3);
 
+        check(synth, NumberNotNull);
+
         const player = state.activePlayer;
         if (player.lowMemory) {
             return;
         }
+
         player.write(new SynthSound(synth, loops, delay));
     }),
 
@@ -786,10 +789,10 @@ const PlayerOps: CommandHandlers = {
         player.applyDamage(amount, type);
     },
 
-    [ScriptOpcode.IF_SETRESUMEBUTTONS]: checkedHandler(ActivePlayer, state => {
-        const [button1, button2, button3, button4, button5] = state.popInts(5);
+    [ScriptOpcode.IF_ADDRESUMEBUTTON]: checkedHandler(ActivePlayer, state => {
+        const comId = state.popInt();
 
-        state.activePlayer.resumeButtons = [button1, button2, button3, button4, button5];
+        state.activePlayer.resumeButtons.push(comId);
     }),
 
     [ScriptOpcode.TEXT_GENDER]: checkedHandler(ActivePlayer, state => {
@@ -802,24 +805,25 @@ const PlayerOps: CommandHandlers = {
     }),
 
     [ScriptOpcode.MIDI_SONG]: state => {
-        const name = check(state.popString(), StringNotNull);
+        const id = state.popInt();
 
         const player = state.activePlayer;
         if (player.lowMemory) {
             return;
         }
-        player.playSong(name);
+
+        player.playSong(id);
     },
 
     [ScriptOpcode.MIDI_JINGLE]: state => {
-        const delay = check(state.popInt(), NumberNotNull);
-        const name = check(state.popString(), StringNotNull);
+        const id = state.popInt();
 
         const player = state.activePlayer;
         if (player.lowMemory) {
             return;
         }
-        player.playJingle(delay, name);
+
+        player.playJingle(id);
     },
 
     [ScriptOpcode.SOFTTIMER]: checkedHandler(ActivePlayer, state => {

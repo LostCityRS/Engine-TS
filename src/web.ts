@@ -47,77 +47,89 @@ export async function startWeb() {
         async fetch(req, server) {
             const url = new URL(req.url ?? `', 'http://${req.headers.get('host')}`);
 
-            if (url.pathname === '/') {
-                const upgraded = server.upgrade(req, {
-                    data: {
-                        client: new WSClientSocket(),
-                        origin: req.headers.get('origin'),
-                        remoteAddress: getIp(req)
-                    }
-                });
-
-                if (upgraded) {
-                    return undefined;
-                }
-
-                return new Response(null, { status: 404 });
-            } else if (url.pathname.startsWith('/crc')) {
-                return new Response(Buffer.from(CrcBuffer.data));
-            } else if (url.pathname.startsWith('/title')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 1)!));
-            } else if (url.pathname.startsWith('/config')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 2)!));
-            } else if (url.pathname.startsWith('/interface')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 3)!));
-            } else if (url.pathname.startsWith('/media')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 4)!));
-            } else if (url.pathname.startsWith('/versionlist')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 5)!));
-            } else if (url.pathname.startsWith('/textures')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 6)!));
-            } else if (url.pathname.startsWith('/wordenc')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 7)!));
-            } else if (url.pathname.startsWith('/sounds')) {
-                return new Response(Buffer.from(OnDemand.cache.read(0, 8)!));
-            } else if (url.pathname.startsWith('/ondemand.zip')) {
-                return new Response(Bun.file('data/pack/ondemand.zip'));
-            } else if (url.pathname.startsWith('/build')) {
-                return new Response(Bun.file('data/pack/server/build'));
-            } else if (url.pathname === '/rs2.cgi') {
-                const plugin = tryParseInt(url.searchParams.get('plugin'), 0);
-                const lowmem = tryParseInt(url.searchParams.get('lowmem'), 0);
-
-                if (Environment.NODE_DEBUG && plugin === 1) {
-                    return new Response(await ejs.renderFile('view/java.ejs', {
-                        nodeid: Environment.NODE_ID,
-                        lowmem,
-                        members: Environment.NODE_MEMBERS,
-                        portoff: Environment.NODE_PORT - 43594
-                    }), {
-                        headers: {
-                            'Content-Type': 'text/html'
+            if (req.method === 'GET') {
+                if (url.pathname === '/') {
+                    const upgraded = server.upgrade(req, {
+                        data: {
+                            client: new WSClientSocket(),
+                            origin: req.headers.get('origin'),
+                            remoteAddress: getIp(req)
                         }
                     });
-                } else {
-                    return new Response(await ejs.renderFile('view/client.ejs', {
-                        nodeid: Environment.NODE_ID,
-                        lowmem,
-                        members: Environment.NODE_MEMBERS
-                    }), {
+
+                    if (upgraded) {
+                        return undefined;
+                    }
+
+                    return new Response(null, { status: 404 });
+                } else if (url.pathname.startsWith('/crc')) {
+                    return new Response(Buffer.from(CrcBuffer.data));
+                } else if (url.pathname.startsWith('/title')) {
+                    return new Response(Buffer.from(OnDemand.cache.read(0, 1)!));
+                } else if (url.pathname.startsWith('/config')) {
+                    return new Response(Buffer.from(OnDemand.cache.read(0, 2)!));
+                } else if (url.pathname.startsWith('/interface')) {
+                    return new Response(Buffer.from(OnDemand.cache.read(0, 3)!));
+                } else if (url.pathname.startsWith('/media')) {
+                    return new Response(Buffer.from(OnDemand.cache.read(0, 4)!));
+                } else if (url.pathname.startsWith('/versionlist')) {
+                    return new Response(Buffer.from(OnDemand.cache.read(0, 5)!));
+                } else if (url.pathname.startsWith('/textures')) {
+                    return new Response(Buffer.from(OnDemand.cache.read(0, 6)!));
+                } else if (url.pathname.startsWith('/wordenc')) {
+                    return new Response(Buffer.from(OnDemand.cache.read(0, 7)!));
+                } else if (url.pathname.startsWith('/sounds')) {
+                    return new Response(Buffer.from(OnDemand.cache.read(0, 8)!));
+                } else if (url.pathname.startsWith('/ondemand.zip')) {
+                    return new Response(Bun.file('data/pack/ondemand.zip'));
+                } else if (url.pathname.startsWith('/build')) {
+                    return new Response(Bun.file('data/pack/server/build'));
+                } else if (url.pathname === '/rs2.cgi') {
+                    const plugin = tryParseInt(url.searchParams.get('plugin'), 0);
+                    const lowmem = tryParseInt(url.searchParams.get('lowmem'), 0);
+
+                    if (Environment.NODE_DEBUG && plugin === 1) {
+                        return new Response(await ejs.renderFile('view/java.ejs', {
+                            nodeid: Environment.NODE_ID,
+                            lowmem,
+                            members: Environment.NODE_MEMBERS,
+                            portoff: Environment.NODE_PORT - 43594
+                        }), {
+                            headers: {
+                                'Content-Type': 'text/html'
+                            }
+                        });
+                    } else {
+                        return new Response(await ejs.renderFile('view/client.ejs', {
+                            nodeid: Environment.NODE_ID,
+                            lowmem,
+                            members: Environment.NODE_MEMBERS
+                        }), {
+                            headers: {
+                                'Content-Type': 'text/html'
+                            }
+                        });
+                    }
+                } else if (url.pathname === '/worldmap.jag') {
+                    if (fs.existsSync('data/pack/mapview/worldmap.jag')) {
+                        return new Response(Bun.file('data/pack/mapview/worldmap.jag'), {
+                            headers: {
+                                'Content-Type': 'application/octet-stream'
+                            }
+                        });
+                    }
+                }
+
+                if (fs.existsSync(`public${url.pathname}`)) {
+                    return new Response(Bun.file(`public${url.pathname}`), {
                         headers: {
-                            'Content-Type': 'text/html'
+                            'Content-Type': MIME_TYPES.get(path.extname(url.pathname ?? '')) ?? 'text/plain'
                         }
                     });
                 }
-            } else if (fs.existsSync(`public${url.pathname}`)) {
-                return new Response(Bun.file(`public${url.pathname}`), {
-                    headers: {
-                        'Content-Type': MIME_TYPES.get(path.extname(url.pathname ?? '')) ?? 'text/plain'
-                    }
-                });
-            } else {
-                return new Response(null, { status: 404 });
             }
+
+            return new Response(null, { status: 404 });
         },
         websocket: {
             maxPayloadLength: 2000,

@@ -10,6 +10,7 @@ import ScriptState from '#/engine/script/ScriptState.js';
 import { check, CoordValid, LocTypeValid, NumberPositive, SeqTypeValid, SpotAnimTypeValid, FindSquareValid } from '#/engine/script/ScriptValidators.js';
 import World from '#/engine/World.js';
 import Environment from '#/util/Environment.js';
+import Midi from '#/cache/midi/Midi.js';
 
 const ServerOps: CommandHandlers = {
     [ScriptOpcode.MAP_CLOCK]: state => {
@@ -377,6 +378,12 @@ const ServerOps: CommandHandlers = {
         const coord = state.popInt();
 
         state.pushInt(World.gameMap.isMulti(coord) ? 1 : 0);
+    },
+
+    [ScriptOpcode.MIDI_LENGTH]: state => {
+        const track = state.popInt();
+
+        state.pushInt(Midi.getTickLength(track));
     }
 };
 

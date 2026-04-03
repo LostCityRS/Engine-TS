@@ -71,10 +71,10 @@ import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/engine/ent
 import Environment from '#/util/Environment.js';
 import { toDisplayName } from '#/util/JString.js';
 import LinkList from '#/datastruct/LinkList.js';
-import { MidiPack } from '#tools/pack/PackFile.js';
 import VarBitType from '#/cache/config/VarBitType.js';
 import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 import UpdateIgnoreList from '#/network/game/server/model/UpdateIgnoreList.js';
+import Midi from '#/cache/midi/Midi.js';
 
 const levelExperience = new Int32Array(99);
 
@@ -212,14 +212,19 @@ export default class Player extends PathingEntity {
             sav.p1(this.levels[i]);
         }
 
-        sav.p2(this.vars.length);
-        for (let i = 0; i < this.vars.length; i++) {
-            const type = VarPlayerType.get(i);
-
-            if (type.scope === VarPlayerType.SCOPE_PERM) {
-                sav.p4(this.vars[i]);
-            } else {
-                sav.p4(0);
+        let saved = 0;
+        for (let id = 0; id < this.vars.length; id++) {
+            const varp = VarPlayerType.get(id);
+            if (varp.scope === VarPlayerType.SCOPE_PERM && this.vars[id] !== 0) {
+                saved++;
+            }
+        }
+        sav.p2(saved);
+        for (let id = 0; id < this.vars.length; id++) {
+            const varp = VarPlayerType.get(id);
+            if (varp.scope === VarPlayerType.SCOPE_PERM && this.vars[id] !== 0) {
+                sav.p2(id);
+                sav.pVarInt(this.vars[id]);
             }
         }
 
@@ -439,6 +444,7 @@ export default class Player extends PathingEntity {
         this.slot = -1;
         this.uid = -1;
         this.activeScript = null;
+        this.resumeButtons = [];
         this.invListeners.length = 0;
         this.resumeButtons.length = 0;
         this.queue.clear();
@@ -762,6 +768,7 @@ export default class Player extends PathingEntity {
         // close any input dialogue suspended scripts.
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
 
         // close any main viewport interface
@@ -1747,7 +1754,7 @@ export default class Player extends PathingEntity {
         const { basevar, startbit, endbit } = varbit;
         const mask = Packet.bitmask[endbit - startbit + 1];
 
-        return this.vars[basevar] >> startbit & mask;
+        return (this.vars[basevar] >> startbit) & mask;
     }
 
     setVarBit(id: number, value: number) {
@@ -1764,7 +1771,7 @@ export default class Player extends PathingEntity {
         }
 
         mask <<= startbit;
-        this.setVar(basevar, mask & value << startbit | this.vars[basevar] & ~mask);
+        this.setVar(basevar, (mask & (value << startbit)) | (this.vars[basevar] & ~mask));
     }
 
     private writeVarp(id: number, value: number): void {
@@ -1943,20 +1950,12 @@ export default class Player extends PathingEntity {
         this.focus(CoordGrid.fine(x, 1), CoordGrid.fine(z, 1), true);
     }
 
-    // todo: make compiler do this at pack time
-    playSong(name: string) {
-        // todo: don't rely on MidiPack (server should be runnable using only packed content)
-        const id = MidiPack.getByName(name.toLowerCase().replaceAll(' ', '_').replace(/[^a-z0-9_-]/g, ''));
-        if (id !== -1) {
-            this.write(new MidiSong(id));
-        }
+    playSong(id: number) {
+        this.write(new MidiSong(id));
     }
 
-    playJingle(delay: number, name: string): void {
-        const id = MidiPack.getByName(name.toLowerCase());
-        if (id !== -1) {
-            this.write(new MidiJingle(id, delay));
-        }
+    playJingle(id: number): void {
+        this.write(new MidiJingle(id, Midi.getLength(id)));
     }
 
     openMainModal(com: number) {
@@ -1981,6 +1980,7 @@ export default class Player extends PathingEntity {
         // clear old suspended scripts
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
     }
 
@@ -2016,6 +2016,7 @@ export default class Player extends PathingEntity {
         // clear old suspended scripts
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
     }
 
@@ -2039,6 +2040,7 @@ export default class Player extends PathingEntity {
         // clear old suspended scripts
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
     }
 
@@ -2064,6 +2066,7 @@ export default class Player extends PathingEntity {
         // clear old suspended scripts
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
     }
 
@@ -2188,6 +2191,7 @@ export default class Player extends PathingEntity {
             }
         } else if (script === this.activeScript) {
             this.activeScript = null;
+            this.resumeButtons = [];
 
             if ((this.modalState & ModalState.MAIN) === ModalState.NONE) {
                 // close chat dialogues automatically and leave main modals alone
