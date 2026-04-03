@@ -220,7 +220,7 @@ export function packInterface(modelFlags: number[]) {
 
             if (key === 'layer') {
                 const layerId = InterfacePack.getByName(`${ifName}:${value}`);
-                if (!layerId) {
+                if (layerId === -1) {
                     throw new Error(`ERROR: Layer ${ifName}:${value} does not exist`);
                 }
 

@@ -1,7 +1,7 @@
 import 'dotenv/config';
 
 import { PlayerInfoProt, Visibility } from '@2004scape/rsbuf';
-import { CollisionType, CollisionFlag } from '@2004scape/rsmod-pathfinder';
+import { CollisionFlag, CollisionType } from '@2004scape/rsmod-pathfinder';
 
 import Component from '#/cache/config/Component.js';
 import FontType from '#/cache/config/FontType.js';
@@ -24,7 +24,7 @@ import { EntityTimer, PlayerTimerType } from '#/engine/entity/EntityTimer.js';
 import HeroPoints from '#/engine/entity/HeroPoints.js';
 import Loc from '#/engine/entity/Loc.js';
 import { ModalState } from '#/engine/entity/ModalState.js';
-import { MoveRestrict } from '#/engine/entity/MoveRestrict.js';
+import { AllowRepath } from './AllowRepath.js';
 import { MoveSpeed } from '#/engine/entity/MoveSpeed.js';
 import { MoveStrategy } from '#/engine/entity/MoveStrategy.js';
 import { isClientConnected } from '#/engine/entity/NetworkPlayer.js';
@@ -71,10 +71,10 @@ import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/engine/ent
 import Environment from '#/util/Environment.js';
 import { toDisplayName } from '#/util/JString.js';
 import LinkList from '#/datastruct/LinkList.js';
-import { MidiPack } from '#tools/pack/PackFile.js';
 import VarBitType from '#/cache/config/VarBitType.js';
 import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 import UpdateIgnoreList from '#/network/game/server/model/UpdateIgnoreList.js';
+import Midi from '#/cache/midi/Midi.js';
 
 const levelExperience = new Int32Array(99);
 
@@ -212,14 +212,19 @@ export default class Player extends PathingEntity {
             sav.p1(this.levels[i]);
         }
 
-        sav.p2(this.vars.length);
-        for (let i = 0; i < this.vars.length; i++) {
-            const type = VarPlayerType.get(i);
-
-            if (type.scope === VarPlayerType.SCOPE_PERM) {
-                sav.p4(this.vars[i]);
-            } else {
-                sav.p4(0);
+        let saved = 0;
+        for (let id = 0; id < this.vars.length; id++) {
+            const varp = VarPlayerType.get(id);
+            if (varp.scope === VarPlayerType.SCOPE_PERM && this.vars[id] !== 0) {
+                saved++;
+            }
+        }
+        sav.p2(saved);
+        for (let id = 0; id < this.vars.length; id++) {
+            const varp = VarPlayerType.get(id);
+            if (varp.scope === VarPlayerType.SCOPE_PERM && this.vars[id] !== 0) {
+                sav.p2(id);
+                sav.pVarInt(this.vars[id]);
             }
         }
 
@@ -409,9 +414,16 @@ export default class Player extends PathingEntity {
 
     constructor(username: string, username37: bigint, hash64: bigint) {
         super(
-            0, 3094, 3106, // tutorial island
-            1, 1,
-            EntityLifeCycle.FOREVER, MoveRestrict.NORMAL, BlockWalk.NPC, MoveStrategy.SMART, PlayerInfoProt.FACE_COORD, PlayerInfoProt.FACE_ENTITY
+            0,
+            3094,
+            3106, // tutorial island
+            1,
+            1,
+            EntityLifeCycle.FOREVER,
+            BlockWalk.NPC,
+            Environment.NODE_CLIENT_ROUTEFINDER ? MoveStrategy.NAIVE : MoveStrategy.SMART,
+            PlayerInfoProt.FACE_COORD,
+            PlayerInfoProt.FACE_ENTITY
         );
 
         this.username = username;
@@ -439,6 +451,7 @@ export default class Player extends PathingEntity {
         this.slot = -1;
         this.uid = -1;
         this.activeScript = null;
+        this.resumeButtons = [];
         this.invListeners.length = 0;
         this.resumeButtons.length = 0;
         this.queue.clear();
@@ -762,6 +775,7 @@ export default class Player extends PathingEntity {
         // close any input dialogue suspended scripts.
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
 
         // close any main viewport interface
@@ -1043,7 +1057,7 @@ export default class Player extends PathingEntity {
             return;
         }
 
-        if (this.isLastOrNoWaypoint() && (this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3)) {
+        if (this.isLastWaypoint() && (this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3)) {
             this.queueWaypoint(this.target.followX, this.target.followZ);
             return;
         }
@@ -1052,12 +1066,39 @@ export default class Player extends PathingEntity {
             return;
         }
 
-        if (Environment.NODE_CLIENT_ROUTEFINDER && CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)) {
-            this.queueWaypoints(findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, 0, CollisionType.NORMAL));
+        // Different mechanics for naive and smart paths
+        if (this.moveStrategy === MoveStrategy.NAIVE) {
+            // This logic is redundant with some stuff in pathToTarget and findNaivePath,
+            // But for maintainability it's nice to split it out... It's pretty hard to match correct mechanics
+            const underTarget = CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length);
+            if (underTarget) {
+                this.randomWalk();
+                return;
+            }
+
+            if (this.isLastWaypoint() && this.allowRepath === AllowRepath.BEFOREDEST) {
+                this.naivePathToTarget();
+            }
+        } else if (this.isLastWaypoint()) {
+            this.pathToTarget();
+        }
+    }
+
+    naivePathToTarget() {
+        if (!this.target) {
             return;
         }
-        if (this.isLastOrNoWaypoint()) {
-            this.pathToTarget();
+        let angle = 0;
+        if (this.target instanceof Loc) {
+            angle = this.target.angle;
+        }
+
+        const { x, z } = CoordGrid.unpackCoord(this.waypoints[0]);
+
+        // If no waypoint, or waypoint is further than 1 tile from target, set new dest
+        if (this.waypointIndex === -1 || Math.abs(this.target.x - x) > 1 || Math.abs(this.target.z - z) > 1) {
+            const waypoints = findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, angle, CollisionType.NORMAL);
+            this.queueWaypoints(waypoints);
         }
     }
 
@@ -1222,8 +1263,7 @@ export default class Player extends PathingEntity {
                 return;
             }
 
-            // Run the optrigger, but applayer3 should not run this
-            if (!followOp) {
+            if (Environment.NODE_CLIENT_ROUTEFINDER && !followOp) {
                 this.processWalktrigger();
             }
 
@@ -1246,13 +1286,12 @@ export default class Player extends PathingEntity {
             }
 
             this.updateMovement();
-
             // If there's a target and p_access is available, try to interact after moving
             if (this.target && this.canAccess() && !followOp) {
                 interacted = this.tryInteract(this.stepsTaken === 0);
 
                 // If Player did not interact, has no path, and did not move this cycle, terminate the interaction
-                if (!interacted && !this.hasWaypoints() && this.stepsTaken === 0) {
+                if (!interacted && !this.apRangeCalled && !this.hasWaypoints() && this.stepsTaken === 0) {
                     this.messageGame("I can't reach that!");
                     this.clearInteraction();
                 }
@@ -1747,7 +1786,7 @@ export default class Player extends PathingEntity {
         const { basevar, startbit, endbit } = varbit;
         const mask = Packet.bitmask[endbit - startbit + 1];
 
-        return this.vars[basevar] >> startbit & mask;
+        return (this.vars[basevar] >> startbit) & mask;
     }
 
     setVarBit(id: number, value: number) {
@@ -1764,7 +1803,7 @@ export default class Player extends PathingEntity {
         }
 
         mask <<= startbit;
-        this.setVar(basevar, mask & value << startbit | this.vars[basevar] & ~mask);
+        this.setVar(basevar, (mask & (value << startbit)) | (this.vars[basevar] & ~mask));
     }
 
     private writeVarp(id: number, value: number): void {
@@ -1943,20 +1982,12 @@ export default class Player extends PathingEntity {
         this.focus(CoordGrid.fine(x, 1), CoordGrid.fine(z, 1), true);
     }
 
-    // todo: make compiler do this at pack time
-    playSong(name: string) {
-        // todo: don't rely on MidiPack (server should be runnable using only packed content)
-        const id = MidiPack.getByName(name.toLowerCase().replaceAll(' ', '_').replace(/[^a-z0-9_-]/g, ''));
-        if (id !== -1) {
-            this.write(new MidiSong(id));
-        }
+    playSong(id: number) {
+        this.write(new MidiSong(id));
     }
 
-    playJingle(delay: number, name: string): void {
-        const id = MidiPack.getByName(name.toLowerCase());
-        if (id !== -1) {
-            this.write(new MidiJingle(id, delay));
-        }
+    playJingle(id: number): void {
+        this.write(new MidiJingle(id, Midi.getLength(id)));
     }
 
     openMainModal(com: number) {
@@ -1981,6 +2012,7 @@ export default class Player extends PathingEntity {
         // clear old suspended scripts
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
     }
 
@@ -2016,6 +2048,7 @@ export default class Player extends PathingEntity {
         // clear old suspended scripts
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
     }
 
@@ -2039,6 +2072,7 @@ export default class Player extends PathingEntity {
         // clear old suspended scripts
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
     }
 
@@ -2064,6 +2098,7 @@ export default class Player extends PathingEntity {
         // clear old suspended scripts
         if (this.activeScript?.execution === ScriptState.COUNTDIALOG || this.activeScript?.execution === ScriptState.PAUSEBUTTON) {
             this.activeScript = null;
+            this.resumeButtons = [];
         }
     }
 
@@ -2188,6 +2223,7 @@ export default class Player extends PathingEntity {
             }
         } else if (script === this.activeScript) {
             this.activeScript = null;
+            this.resumeButtons = [];
 
             if ((this.modalState & ModalState.MAIN) === ModalState.NONE) {
                 // close chat dialogues automatically and leave main modals alone

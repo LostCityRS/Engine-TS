@@ -19,6 +19,8 @@ import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printDebug, printFatalError, printWarning } from '#/util/Logger.js';
 
+export type RouteCoordinates = { x: number; z: number };
+
 export default class GameMap {
     private static readonly OPEN: number = 0x0;
     private static readonly BLOCK_MAP_SQUARE: number = 0x1;
@@ -53,11 +55,11 @@ export default class GameMap {
         printDebug('Loading game map');
 
         if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`)) {
-            this.loadCsvMap(this.multimap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').replace(/\r/g, '').split('\n'));
+            this.loadCsvMap(this.multimap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').split(/\r?\n/));
         }
 
         if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`)) {
-            this.loadCsvMap(this.freemap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').replace(/\r/g, '').split('\n'));
+            this.loadCsvMap(this.freemap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').split(/\r?\n/));
         }
 
         const path: string = 'data/pack/server/maps/';
@@ -129,7 +131,7 @@ export default class GameMap {
                 }
                 if ((npcType.members && this.members) || !npcType.members) {
                     const size: number = npcType.size;
-                    const npc: Npc = new Npc(level, absoluteX, absoluteZ, size, size, EntityLifeCycle.RESPAWN, World.getNextNid(), npcType.id, npcType.moverestrict, npcType.blockwalk);
+                    const npc: Npc = new Npc(level, absoluteX, absoluteZ, size, size, EntityLifeCycle.RESPAWN, World.getNextNid(), npcType.id, npcType.blockwalk);
                     World.addNpc(npc, -1);
                 }
             }
@@ -339,6 +341,9 @@ export function changeLocCollision(shape: number, angle: number, blockrange: boo
         }
     }
 }
+export function findNaivePath(level: number, srcX: number, srcZ: number, destX: number, destZ: number, srcWidth: number, srcHeight: number, destWidth: number, destHeight: number, extraFlag: number, collision: CollisionType): Uint32Array {
+    return rsmod.findNaivePath(level, srcX, srcZ, destX, destZ, srcWidth, srcHeight, destWidth, destHeight, extraFlag, collision);
+}
 
 /**
  * Change collision at a specified Position for npcs.
@@ -385,10 +390,6 @@ export function findPathToEntity(level: number, srcX: number, srcZ: number, dest
 
 export function findPathToLoc(level: number, srcX: number, srcZ: number, destX: number, destZ: number, srcSize: number, destWidth: number, destHeight: number, angle: number, shape: number, blockAccessFlags: number): Uint32Array {
     return rsmod.findPath(level, srcX, srcZ, destX, destZ, srcSize, destWidth, destHeight, angle, shape, true, blockAccessFlags, 25, CollisionType.NORMAL);
-}
-
-export function findNaivePath(level: number, srcX: number, srcZ: number, destX: number, destZ: number, srcWidth: number, srcHeight: number, destWidth: number, destHeight: number, extraFlag: number, collision: CollisionType): Uint32Array {
-    return rsmod.findNaivePath(level, srcX, srcZ, destX, destZ, srcWidth, srcHeight, destWidth, destHeight, extraFlag, collision);
 }
 
 export function reachedEntity(level: number, srcX: number, srcZ: number, destX: number, destZ: number, destWidth: number, destHeight: number, srcSize: number): boolean {

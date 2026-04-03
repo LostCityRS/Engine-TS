@@ -8,8 +8,7 @@ export function loadOrder(path: string) {
 
     return fs
         .readFileSync(path, 'ascii')
-        .replace(/\r/g, '')
-        .split('\n')
+        .split(/\r?\n/)
         .filter(x => x)
         .map(x => parseInt(x));
 }
@@ -23,8 +22,7 @@ export function loadPack(path: string) {
 
     return fs
         .readFileSync(path, 'ascii')
-        .replace(/\r/g, '')
-        .split('\n')
+        .split(/\r?\n/)
         .filter(x => x)
         .reduce((acc, x) => {
             const [id, name] = x.split('=');
@@ -41,8 +39,7 @@ export function loadDir(path: string, extension: string, callback: (src: string[
             callback(
                 fs
                     .readFileSync(file, 'ascii')
-                    .replace(/\r/g, '')
-                    .split('\n')
+                    .split(/\r?\n/)
                     .filter(x => x),
                 file.substring(file.lastIndexOf('/') + 1),
                 file.substring(0, file.lastIndexOf('/'))
@@ -56,7 +53,7 @@ export function loadDirExact(path: string, extension: string, callback: (src: st
 
     for (const file of files) {
         if (file.endsWith(extension)) {
-            callback(fs.readFileSync(file, 'ascii').replace(/\r/g, '').split('\n'), file.substring(file.lastIndexOf('/') + 1), file.substring(0, file.lastIndexOf('/')));
+            callback(fs.readFileSync(file, 'ascii').split(/\r?\n/), file.substring(file.lastIndexOf('/') + 1), file.substring(0, file.lastIndexOf('/')));
         }
     }
 }

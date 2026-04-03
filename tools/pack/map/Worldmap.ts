@@ -29,7 +29,7 @@ export async function packWorldmap() {
 
     const underlay = Packet.alloc(20_000_000);
     const overlay = Packet.alloc(20_000_000);
-    const loc = Packet.alloc(5);
+    const loc = Packet.alloc(20_000_000);
     const obj = Packet.alloc(5);
     const npc = Packet.alloc(5);
     const multi = Packet.alloc(5);
@@ -86,13 +86,13 @@ export async function packWorldmap() {
     }
 
     // easiest solution for the time being
-    const multiway = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').replace(/\r/g, '').split('\n');
+    const multiway = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').split(/\r?\n/);
     const multimap = processCsv(multiway, 'multiway');
 
-    const free2play = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').replace(/\r/g, '').split('\n');
+    const free2play = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').split(/\r?\n/);
     const freemap = processCsv(free2play, 'free');
 
-    const ignoreraw = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/ignore.csv`, 'ascii').replace(/\r/g, '').split('\n');
+    const ignoreraw = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/ignore.csv`, 'ascii').split(/\r?\n/);
     const ignoremap = processCsv(ignoreraw, 'ignore');
 
     const maps: string[] = fs.readdirSync('data/pack/server/maps').filter((x: string): boolean => x[0] === 'm');
@@ -629,8 +629,7 @@ export async function packWorldmap() {
     const labels = Packet.alloc(1);
     const labelsSrc = fs
         .readFileSync(`${Environment.BUILD_SRC_DIR}/maps/labels.txt`, 'ascii')
-        .replace(/\r/g, '')
-        .split('\n')
+        .split(/\r?\n/)
         .filter((x: string) => x.startsWith('='))
         .map((x: string) => x.substring(1).split(','));
 
@@ -669,5 +668,3 @@ export async function packWorldmap() {
     jag.write('labels.dat', labels);
     jag.save('data/pack/mapview/worldmap.jag');
 }
-
-await packWorldmap();

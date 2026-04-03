@@ -46,7 +46,7 @@ const NpcOps: CommandHandlers = {
         const npcType: NpcType = check(id, NpcTypeValid);
         check(duration, DurationValid);
 
-        const npc = new Npc(position.level, position.x, position.z, npcType.size, npcType.size, EntityLifeCycle.DESPAWN, World.getNextNid(), npcType.id, npcType.moverestrict, npcType.blockwalk);
+        const npc = new Npc(position.level, position.x, position.z, npcType.size, npcType.size, EntityLifeCycle.DESPAWN, World.getNextNid(), npcType.id, npcType.blockwalk);
         World.addNpc(npc, duration);
         state.activeNpc = npc;
         state.pointerAdd(ActiveNpc[state.intOperand]);
@@ -365,6 +365,7 @@ const NpcOps: CommandHandlers = {
         state.pointerAdd(ActiveNpc[state.intOperand]);
         state.pushInt(1);
     },
+
     [ScriptOpcode.NPC_FINDCAT]: state => {
         const [coord, npcCategory, distance, checkVis] = state.popInts(4);
 

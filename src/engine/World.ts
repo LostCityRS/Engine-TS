@@ -93,14 +93,13 @@ import Environment from '#/util/Environment.js';
 import { fromBase37, toBase37, toSafeName } from '#/util/JString.js';
 import LinkList from '#/datastruct/LinkList.js';
 import { printDebug, printError, printInfo } from '#/util/Logger.js';
-import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
-
 import OnDemand from './OnDemand.js';
 import { ObjDelayedRequest } from './entity/ObjDelayedRequest.js';
 import DbTableIndex from '#/cache/config/DbTableIndex.js';
 import VarBitType from '#/cache/config/VarBitType.js';
 import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 import HashTable from '#/datastruct/HashTable.js';
+import Midi from '#/cache/midi/Midi.js';
 
 const priv = forge.pki.privateKeyFromPem(fs.readFileSync('data/config/private.pem', 'ascii'));
 
@@ -294,6 +293,7 @@ class World {
 
         FontType.load('data/pack');
         WordEnc.load('data/pack');
+        Midi.load();
 
         this.reload();
 
@@ -612,35 +612,16 @@ class World {
                 player.processInputTracking();
 
                 if (isClientConnected(player) && player.decodeIn()) {
-                    const followingPlayer = player.targetOp === ServerTriggerType.APPLAYER3 || player.targetOp === ServerTriggerType.OPPLAYER3;
                     if (player.userPath.length > 0 || player.opcalled) {
                         if (player.delayed) {
                             player.unsetMapFlag();
                             continue;
                         }
 
-                        if ((!player.target || player.target instanceof Loc || player.target instanceof Obj) && player.faceEntity !== -1) {
-                            player.faceEntity = -1;
-                            player.masks |= player.entitymask;
-                        }
-
                         if (!player.busy() && player.opcalled) {
                             player.moveClickRequest = false;
                         } else {
                             player.moveClickRequest = true;
-                        }
-
-                        if (!followingPlayer && player.opcalled && (player.userPath.length === 0 || !Environment.NODE_CLIENT_ROUTEFINDER)) {
-                            player.pathToTarget();
-                            continue;
-                        }
-
-                        if (Environment.NODE_WALKTRIGGER_SETTING !== WalkTriggerSetting.PLAYERPACKET) {
-                            player.pathToMoveClick(player.userPath, !Environment.NODE_CLIENT_ROUTEFINDER);
-
-                            if (Environment.NODE_WALKTRIGGER_SETTING === WalkTriggerSetting.PLAYERSETUP && !player.opcalled && player.hasWaypoints()) {
-                                player.processWalktrigger();
-                            }
                         }
                     }
                 }
@@ -723,6 +704,8 @@ class World {
                 }
                 // - engine queue
                 player.processEngineQueue();
+                // Update target facing
+                player.setFaceEntity();
                 // - interactions
                 // - movement
                 player.processInteraction();
@@ -908,11 +891,13 @@ class World {
 
                 player.client.state = 1;
 
-                player.client.send(Uint8Array.from([
-                    2,
-                    Math.min(player.staffModLevel, 2),
-                    1 // mouse tracking can only be enabled on login
-                ]));
+                player.client.send(
+                    Uint8Array.from([
+                        2,
+                        Math.min(player.staffModLevel, 2),
+                        1 // mouse tracking can only be enabled on login
+                    ])
+                );
 
                 const remote = player.client.remoteAddress;
                 if (remote.indexOf('.') !== -1) {
@@ -1807,7 +1792,7 @@ class World {
     broadcastMes(message: string): void {
         for (const player of this.playerLoop.all()) {
             if (message.includes('\n')) {
-                message.split('\n').forEach(wrap => player!.wrappedMessageGame(wrap));
+                message.split('\n').forEach(wrap => player.wrappedMessageGame(wrap));
             } else {
                 player.wrappedMessageGame(message);
             }
@@ -1876,10 +1861,7 @@ class World {
             } else if (reply === 10) {
                 // hop timer
                 const { remaining } = msg;
-                client.send(Uint8Array.from([
-                    21,
-                    Math.min(255, remaining! / 1000)
-                ]));
+                client.send(Uint8Array.from([21, Math.min(255, remaining! / 1000)]));
                 client.close();
                 return;
             }
