@@ -6,6 +6,7 @@ import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
 
+import { getArtifactManifestPath, getArtifactSourceStamp, loadArtifactManifest, openArtifactStore, saveArtifactManifest } from '#tools/pack/ArtifactCache.js';
 import { MapPack, shouldBuild, shouldBuildFile } from '#tools/pack/PackFile.js';
 import { didFileSetChange } from '#tools/pack/FsCache.js';
 
@@ -188,21 +189,6 @@ function updateModelFlags(npcMap, modelFlags, NpcType) {
     }
 }
 
-function hasUnexpectedPackedFiles(dir, expected) {
-    if (!fs.existsSync(dir)) {
-        return false;
-    }
-
-    const files = fs.readdirSync(dir, { withFileTypes: true });
-    for (const file of files) {
-        if (!file.isFile() || !expected.has(file.name)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 export async function collectMapModelFlags(modelFlags) {
     if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps`)) {
         return;
@@ -238,16 +224,7 @@ export async function packMaps(cache, modelFlags) {
         return false;
     }
 
-    if (!fs.existsSync('data/pack/client/maps')) {
-        fs.mkdirSync('data/pack/client/maps', { recursive: true });
-    }
-
-    if (!fs.existsSync('data/pack/server/maps')) {
-        fs.mkdirSync('data/pack/server/maps', { recursive: true });
-    }
-
     const maps = [];
-    const expectedPackedFiles = new Set();
     for (let id = 0; id < MapPack.max; id++) {
         const name = MapPack.getById(id);
         if (!name.startsWith('m')) {
@@ -255,14 +232,17 @@ export async function packMaps(cache, modelFlags) {
         }
 
         maps.push(name);
-        expectedPackedFiles.add(name);
-        expectedPackedFiles.add(`l${name.slice(1)}`);
     }
 
-    const rebuildMapArchive = shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/map.pack`, 'data/pack/main_file_cache.idx4') || hasUnexpectedPackedFiles('data/pack/client/maps', expectedPackedFiles);
+    const rebuildMapArchive = shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/map.pack`, 'data/pack/main_file_cache.idx4');
     const needsMapHydration = rebuildMapArchive || cache.count(4) === 0;
+    const artifactName = 'maps';
+    const clientStore = openArtifactStore('maps-client', rebuildMapArchive);
+    const serverStore = openArtifactStore('maps-server', rebuildMapArchive);
+    const artifactManifest = loadArtifactManifest(artifactName, rebuildMapArchive);
+    let artifactManifestDirty = false;
     const toolChanged = didFileSetChange('data/pack/.stamps/map-tools.txt', [Environment.IS_BUN ? __filename : import.meta.filename]);
-    const needsAnyMapPackWork = rebuildMapArchive || shouldBuild(`${Environment.BUILD_SRC_DIR}/maps`, '.jm2', 'data/pack/main_file_cache.idx4') || toolChanged;
+    const needsAnyMapPackWork = rebuildMapArchive || shouldBuild(`${Environment.BUILD_SRC_DIR}/maps`, '.jm2', getArtifactManifestPath(artifactName)) || toolChanged;
 
     if (rebuildMapArchive) {
         cache.clearArchive(4);
@@ -284,22 +264,34 @@ export async function packMaps(cache, modelFlags) {
             continue;
         }
 
-        const mapFile = `data/pack/client/maps/m${mapXZ}`;
-        const locFile = `data/pack/client/maps/l${mapXZ}`;
-        const serverMapFile = `data/pack/server/maps/m${mapXZ}`;
-        const serverLocFile = `data/pack/server/maps/l${mapXZ}`;
-        const serverNpcFile = `data/pack/server/maps/n${mapXZ}`;
-        const serverObjFile = `data/pack/server/maps/o${mapXZ}`;
-        const needsRebuild = toolChanged || shouldBuildFile(file, mapFile);
+        const mapId = MapPack.getByName(`m${mapXZ}`);
+        const locMapId = MapPack.getByName(`l${mapXZ}`);
+        const mapKey = `m${mapXZ}`;
+        const locKey = `l${mapXZ}`;
+        const npcKey = `n${mapXZ}`;
+        const objKey = `o${mapXZ}`;
+        const sourceStamp = getArtifactSourceStamp(file);
+        let needsRebuild =
+            needsAnyMapPackWork &&
+            (toolChanged || artifactManifest[mapXZ] !== sourceStamp || !clientStore.has(mapKey) || !clientStore.has(locKey) || !serverStore.has(mapKey) || !serverStore.has(locKey) || !serverStore.has(npcKey) || !serverStore.has(objKey));
         if (!needsRebuild) {
-            const mapId = MapPack.getByName(`m${mapXZ}`);
-            const locMapId = MapPack.getByName(`l${mapXZ}`);
-            if (needsMapHydration && !cache.has(4, mapId)) {
-                cache.write(4, mapId, fs.readFileSync(mapFile), 1);
+            if (needsMapHydration) {
+                const packedMap = clientStore.read(mapKey);
+                const packedLoc = clientStore.read(locKey);
+                if (!packedMap || !packedLoc) {
+                    needsRebuild = true;
+                } else {
+                    if (!cache.has(4, mapId)) {
+                        cache.write(4, mapId, packedMap, 1);
+                    }
+                    if (!cache.has(4, locMapId)) {
+                        cache.write(4, locMapId, packedLoc, 1);
+                    }
+                }
             }
-            if (needsMapHydration && !cache.has(4, locMapId)) {
-                cache.write(4, locMapId, fs.readFileSync(locFile), 1);
-            }
+        }
+
+        if (!needsRebuild) {
             continue;
         }
 
@@ -380,9 +372,12 @@ export async function packMaps(cache, modelFlags) {
             }
 
             const data = out.data.subarray(0, out.pos);
-            fs.writeFileSync(mapFile, compressGz(data));
-            fs.writeFileSync(serverMapFile, data);
+            const packed = compressGz(data);
+            clientStore.write(mapKey, packed);
+            serverStore.write(mapKey, data);
             out.release();
+
+            cache.write(4, mapId, packed, 1);
         }
 
         // encode loc data
@@ -426,9 +421,12 @@ export async function packMaps(cache, modelFlags) {
             out.psmart(0); // end of map
 
             const data = out.data.subarray(0, out.pos);
-            fs.writeFileSync(locFile, compressGz(data));
-            fs.writeFileSync(serverLocFile, data);
+            const packed = compressGz(data);
+            clientStore.write(locKey, packed);
+            serverStore.write(locKey, data);
             out.release();
+
+            cache.write(4, locMapId, packed, 1);
         }
 
         // encode npc data
@@ -443,7 +441,7 @@ export async function packMaps(cache, modelFlags) {
                 }
             }
 
-            out.save(serverNpcFile);
+            serverStore.write(npcKey, out.data.subarray(0, out.pos));
             out.release();
         }
 
@@ -460,12 +458,12 @@ export async function packMaps(cache, modelFlags) {
                 }
             }
 
-            out.save(serverObjFile);
+            serverStore.write(objKey, out.data.subarray(0, out.pos));
             out.release();
         }
 
-        cache.write(4, MapPack.getByName(`m${mapXZ}`), fs.readFileSync(mapFile), 1);
-        cache.write(4, MapPack.getByName(`l${mapXZ}`), fs.readFileSync(locFile), 1);
+        artifactManifest[mapXZ] = sourceStamp;
+        artifactManifestDirty = true;
 
         if (!NpcType) {
             NpcType = await getNpcType();
@@ -479,6 +477,13 @@ export async function packMaps(cache, modelFlags) {
         const packWorldmap = await getPackWorldmap();
         await packWorldmap();
     }
+
+    if (artifactManifestDirty) {
+        saveArtifactManifest(artifactName, artifactManifest);
+    }
+
+    clientStore.save();
+    serverStore.save();
 
     return rebuiltAnyMap;
 }

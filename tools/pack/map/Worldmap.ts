@@ -11,15 +11,15 @@ import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
 import { convertImage } from '#tools/pack/PixPack.js';
+import { openArtifactStore } from '#tools/pack/ArtifactCache.js';
+import { MapPack } from '#tools/pack/PackFile.js';
 
 export async function packWorldmap() {
-    if (!fs.existsSync('data/pack/server/maps')) {
-        return;
-    }
-
     FloType.load('data/pack');
     LocType.load('data/pack');
     NpcType.load('data/pack');
+
+    const serverStore = openArtifactStore('maps-server');
 
     // ---
 
@@ -95,9 +95,13 @@ export async function packWorldmap() {
     const ignoreraw = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/ignore.csv`, 'ascii').split(/\r?\n/);
     const ignoremap = processCsv(ignoreraw, 'ignore');
 
-    const maps: string[] = fs.readdirSync('data/pack/server/maps').filter((x: string): boolean => x[0] === 'm');
-    for (let index: number = 0; index < maps.length; index++) {
-        const [mx, mz] = maps[index]
+    for (let mapId = 0; mapId < MapPack.max; mapId++) {
+        const mapName = MapPack.getById(mapId);
+        if (!mapName.startsWith('m') || !serverStore.has(mapName)) {
+            continue;
+        }
+
+        const [mx, mz] = mapName
             .substring(1)
             .split('_')
             .map((x: string) => parseInt(x));
@@ -147,7 +151,11 @@ export async function packWorldmap() {
             }
         }
 
-        const landBuf = Packet.load(`data/pack/server/maps/m${mx}_${mz}`);
+        const landData = serverStore.read(mapName);
+        if (!landData) {
+            continue;
+        }
+        const landBuf = new Packet(landData);
         for (let level: number = 0; level < 4; level++) {
             for (let x: number = 0; x < 64; x++) {
                 for (let z: number = 0; z < 64; z++) {
@@ -222,7 +230,11 @@ export async function packWorldmap() {
             }
         }
 
-        const locBuf = Packet.load(`data/pack/server/maps/l${mx}_${mz}`);
+        const locData = serverStore.read(`l${mx}_${mz}`);
+        if (!locData) {
+            continue;
+        }
+        const locBuf = new Packet(locData);
         let locId: number = -1;
         let locIdOffset: number = locBuf.gsmarts();
         while (locIdOffset !== 0) {
@@ -360,7 +372,8 @@ export async function packWorldmap() {
             }
         }
 
-        const objBuf = Packet.load(`data/pack/server/maps/o${mx}_${mz}`);
+        const objData = serverStore.read(`o${mx}_${mz}`) ?? new Uint8Array();
+        const objBuf = new Packet(objData);
         if (objBuf.data.length > 0) {
             while (objBuf.available > 0) {
                 const pos = objBuf.g2();
@@ -401,7 +414,8 @@ export async function packWorldmap() {
             }
         }
 
-        const npcBuf = Packet.load(`data/pack/server/maps/n${mx}_${mz}`);
+        const npcData = serverStore.read(`n${mx}_${mz}`) ?? new Uint8Array();
+        const npcBuf = new Packet(npcData);
         if (npcBuf.data.length > 0) {
             while (npcBuf.available > 0) {
                 const pos = npcBuf.g2();
@@ -601,7 +615,7 @@ export async function packWorldmap() {
         [0x0150dc13, 0x00466b17], // debugname=jungle_dark_green overlay=false occlude=true rgb=0x396215
         [0x00a0c011, 0x0055431b], // debugname=mm_town_overlay overlay=true occlude=true rgb=0x544217
         [0x01203c0f, 0x00303224], // debugname=slayer_tower overlay=true occlude=true rgb=0x303525
-        [0x02605c07, 0x00030704], // debugname=morytania_dark_green overlay=false occlude=true rgb=0x111e1a
+        [0x02605c07, 0x00030704] // debugname=morytania_dark_green overlay=false occlude=true rgb=0x111e1a
     ];
 
     for (let i = 0; i < FloType.configs.length; i++) {

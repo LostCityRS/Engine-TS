@@ -4,46 +4,33 @@ import path from 'path';
 import { compressGz } from '#/io/GZip.js';
 import Environment from '#/util/Environment.js';
 import FileStream from '#/io/FileStream.js';
+import { getArtifactManifestPath, getArtifactSourceStamp, loadArtifactManifest, openArtifactStore, saveArtifactManifest } from '#tools/pack/ArtifactCache.js';
 import { didFileSetChange } from '#tools/pack/FsCache.js';
 import { listFilesExt } from '#tools/pack/Parse.js';
 import { AnimSetPack, ModelPack, shouldBuild, shouldBuildFile } from '#tools/pack/PackFile.js';
 import { printWarning } from '#/util/Logger.js';
 
-function hasUnexpectedPackedFiles(dir: string, expected: Set<string>) {
-    if (!fs.existsSync(dir)) {
-        return false;
-    }
-
-    const files = fs.readdirSync(dir, { withFileTypes: true });
-    for (const file of files) {
-        if (!file.isFile() || !expected.has(file.name)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 export function packClientGraphics(cache: FileStream, modelFlags: number[]) {
-    fs.mkdirSync('data/pack/client/models', { recursive: true });
-    fs.mkdirSync('data/pack/client/anims', { recursive: true });
-
     const models = listFilesExt(`${Environment.BUILD_SRC_DIR}/models`, '.ob2');
-    const expectedModels = new Set(models.map(file => path.basename(file, '.ob2')));
     const toolChanged = didFileSetChange('data/pack/.stamps/graphics-tools.txt', [Environment.IS_BUN ? __filename : import.meta.filename]);
-    const rebuildModelsArchive = shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/model.pack`, 'data/pack/main_file_cache.idx1') || hasUnexpectedPackedFiles('data/pack/client/models', expectedModels);
+    const rebuildModelsArchive = shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/model.pack`, 'data/pack/main_file_cache.idx1');
     const needsModelHydration = rebuildModelsArchive || cache.count(1) === 0;
-    const needsModelPackWork = rebuildModelsArchive || shouldBuild(`${Environment.BUILD_SRC_DIR}/models`, '.ob2', 'data/pack/main_file_cache.idx1') || toolChanged;
+    const needsModelPackWork = rebuildModelsArchive || shouldBuild(`${Environment.BUILD_SRC_DIR}/models`, '.ob2', getArtifactManifestPath('graphics-models')) || toolChanged;
+    const modelStore = openArtifactStore('graphics-models', rebuildModelsArchive);
+    const modelManifest = loadArtifactManifest('graphics-models', rebuildModelsArchive);
+    let modelManifestDirty = false;
 
     if (rebuildModelsArchive) {
         cache.clearArchive(1);
     }
 
     const anims = listFilesExt(`${Environment.BUILD_SRC_DIR}/models`, '.anim');
-    const expectedAnims = new Set(anims.map(file => path.basename(file, '.anim')));
-    const rebuildAnimsArchive = shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/animset.pack`, 'data/pack/main_file_cache.idx2') || hasUnexpectedPackedFiles('data/pack/client/anims', expectedAnims);
+    const rebuildAnimsArchive = shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/animset.pack`, 'data/pack/main_file_cache.idx2');
     const needsAnimHydration = rebuildAnimsArchive || cache.count(2) === 0;
-    const needsAnimPackWork = rebuildAnimsArchive || shouldBuild(`${Environment.BUILD_SRC_DIR}/models`, '.anim', 'data/pack/main_file_cache.idx2') || toolChanged;
+    const needsAnimPackWork = rebuildAnimsArchive || shouldBuild(`${Environment.BUILD_SRC_DIR}/models`, '.anim', getArtifactManifestPath('graphics-anims')) || toolChanged;
+    const animStore = openArtifactStore('graphics-anims', rebuildAnimsArchive);
+    const animManifest = loadArtifactManifest('graphics-anims', rebuildAnimsArchive);
+    let animManifestDirty = false;
 
     if (rebuildAnimsArchive) {
         cache.clearArchive(2);
@@ -56,18 +43,29 @@ export function packClientGraphics(cache: FileStream, modelFlags: number[]) {
     for (const file of models) {
         const name = path.basename(file, '.ob2');
         const id = ModelPack.getByName(name);
-        const packedFile = `data/pack/client/models/${name}`;
-        const needsRebuild = needsModelPackWork && (toolChanged || shouldBuildFile(file, packedFile));
+        const sourceStamp = getArtifactSourceStamp(file);
+        const needsRebuild = needsModelPackWork && (toolChanged || modelManifest[name] !== sourceStamp || !modelStore.has(name));
+        let packedData: Uint8Array | null = null;
 
         if (needsRebuild) {
             const data = fs.readFileSync(file);
             if (data.length) {
-                fs.writeFileSync(packedFile, compressGz(data)!);
+                packedData = compressGz(data)!;
+                modelStore.write(name, packedData);
+            } else {
+                packedData = new Uint8Array();
+                modelStore.write(name, packedData);
             }
+
+            modelManifest[name] = sourceStamp;
+            modelManifestDirty = true;
         }
 
         if (needsRebuild || needsModelHydration) {
-            cache.write(1, id, fs.readFileSync(packedFile), 1);
+            packedData ??= modelStore.read(name);
+            if (packedData) {
+                cache.write(1, id, packedData, 1);
+            }
         }
     }
 
@@ -94,18 +92,41 @@ export function packClientGraphics(cache: FileStream, modelFlags: number[]) {
     for (const file of anims) {
         const name = path.basename(file, '.anim');
         const id = AnimSetPack.getByName(name);
-        const packedFile = `data/pack/client/anims/${name}`;
-        const needsRebuild = needsAnimPackWork && (toolChanged || shouldBuildFile(file, packedFile));
+        const sourceStamp = getArtifactSourceStamp(file);
+        const needsRebuild = needsAnimPackWork && (toolChanged || animManifest[name] !== sourceStamp || !animStore.has(name));
+        let packedData: Uint8Array | null = null;
 
         if (needsRebuild) {
             const data = fs.readFileSync(file);
             if (data.length) {
-                fs.writeFileSync(packedFile, compressGz(data)!);
+                packedData = compressGz(data)!;
+                animStore.write(name, packedData);
+            } else {
+                packedData = new Uint8Array();
+                animStore.write(name, packedData);
             }
+
+            animManifest[name] = sourceStamp;
+            animManifestDirty = true;
         }
 
         if (needsRebuild || needsAnimHydration) {
-            cache.write(2, id, fs.readFileSync(packedFile), 1);
+            packedData ??= animStore.read(name);
+            if (packedData) {
+                cache.write(2, id, packedData, 1);
+            }
         }
     }
+
+    if (modelManifestDirty) {
+        saveArtifactManifest('graphics-models', modelManifest);
+    }
+
+    modelStore.save();
+
+    if (animManifestDirty) {
+        saveArtifactManifest('graphics-anims', animManifest);
+    }
+
+    animStore.save();
 }
