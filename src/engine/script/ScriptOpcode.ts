@@ -169,7 +169,7 @@ export const enum ScriptOpcode {
     SETGENDER,
     SETIDKIT,
     SET_SKILL_LEVEL,
-    SETSKINCOLOUR,
+    SETIDKCOLOUR,
     SETTIMER,
     SOFTTIMER, // official
     SOUND_SYNTH, // official, newspost
@@ -616,7 +616,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['SETGENDER', ScriptOpcode.SETGENDER],
     ['SETIDKIT', ScriptOpcode.SETIDKIT],
     ['SET_SKILL_LEVEL', ScriptOpcode.SET_SKILL_LEVEL],
-    ['SETSKINCOLOUR', ScriptOpcode.SETSKINCOLOUR],
+    ['SETIDKCOLOUR', ScriptOpcode.SETIDKCOLOUR],
     ['SETTIMER', ScriptOpcode.SETTIMER],
     ['SOFTTIMER', ScriptOpcode.SOFTTIMER],
     ['SOUND_SYNTH', ScriptOpcode.SOUND_SYNTH],

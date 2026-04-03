@@ -31,7 +31,6 @@ import {
     SeqTypeValid,
     StringNotNull,
     GenderValid,
-    SkinColourValid,
     PlayerOpIndexValid,
     PlayerOpStateValid,
     HuntVisValid
@@ -1136,9 +1135,12 @@ const PlayerOps: CommandHandlers = {
         state.activePlayer.skillLevel = level;
     }),
 
-    [ScriptOpcode.SETSKINCOLOUR]: state => {
-        const skin = check(state.popInt(), SkinColourValid);
-        state.activePlayer.colors[4] = skin;
+    [ScriptOpcode.SETIDKCOLOUR]: state => {
+        const [slot, color] = state.popInts(2);
+        if (slot > state.activePlayer.colors.length || slot < 0) {
+            throw new Error(`Invalid idk slot: ${slot}`);
+        }
+        state.activePlayer.colors[slot] = color;
     },
 
     // https://x.com/JagexAsh/status/1791472651623370843
