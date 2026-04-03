@@ -1,6 +1,6 @@
 import v8 from 'node:v8';
 
-import { Visibility } from '@2004scape/rsbuf';
+import { Visibility } from '#/network/rsbuf/index.js';
 import { LocAngle, LocShape } from '#/engine/routefinder/index.js';
 
 import Component from '#/cache/config/Component.js';

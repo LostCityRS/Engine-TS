@@ -1,5 +1,5 @@
-import { NpcInfoProt } from '@2004scape/rsbuf';
-import * as rsbuf from '@2004scape/rsbuf';
+import { NpcInfoProt } from '#/network/rsbuf/index.js';
+import * as rsbuf from '#/network/rsbuf/index.js';
 import { CollisionFlag } from '#/engine/routefinder/index.js';
 
 import HuntType from '#/cache/config/HuntType.js';

@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-import * as rsbuf from '@2004scape/rsbuf';
+import * as rsbuf from '#/network/rsbuf/index.js';
 
 import InvType from '#/cache/config/InvType.js';
 import { CoordGrid } from '#/engine/CoordGrid.js';
@@ -67,12 +67,7 @@ export class NetworkPlayer extends Player {
         this.restrictedLimit = 0;
 
         const bytesStart = this.client.in.pos;
-        while (
-            this.userLimit < ClientGameProtCategory.USER_EVENT.limit &&
-            this.clientLimit < ClientGameProtCategory.CLIENT_EVENT.limit &&
-            this.restrictedLimit < ClientGameProtCategory.RESTRICTED_EVENT.limit &&
-            this.read()
-        ) {
+        while (this.userLimit < ClientGameProtCategory.USER_EVENT.limit && this.clientLimit < ClientGameProtCategory.CLIENT_EVENT.limit && this.restrictedLimit < ClientGameProtCategory.RESTRICTED_EVENT.limit && this.read()) {
             // empty
         }
         const bytesRead = bytesStart - this.client.in.pos;

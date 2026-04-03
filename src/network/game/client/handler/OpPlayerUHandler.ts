@@ -1,4 +1,4 @@
-import * as rsbuf from '@2004scape/rsbuf';
+import * as rsbuf from '#/network/rsbuf/index.js';
 
 import Component from '#/cache/config/Component.js';
 import ObjType from '#/cache/config/ObjType.js';

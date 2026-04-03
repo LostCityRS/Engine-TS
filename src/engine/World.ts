@@ -3,8 +3,8 @@ import fs from 'fs';
 import { Worker } from 'worker_threads';
 
 // deps
-import * as rsbuf from '@2004scape/rsbuf';
-import { PlayerInfoProt } from '@2004scape/rsbuf';
+import * as rsbuf from '#/network/rsbuf/index.js';
+import { PlayerInfoProt } from '#/network/rsbuf/index.js';
 import kleur from 'kleur';
 import forge from 'node-forge';
 import { TTLCache } from '@isaacs/ttlcache';
@@ -2127,7 +2127,7 @@ class World {
             client.send(seed.data);
         } else if (client.opcode === 16 || client.opcode === 18) {
             let rev = World.loginBuf.g1();
-            if (rev === 0xFF) {
+            if (rev === 0xff) {
                 rev = World.loginBuf.g2();
             }
             if (rev !== Environment.ENGINE_REVISION) {
