@@ -473,17 +473,17 @@ export async function packMaps(cache, modelFlags) {
         updateModelFlags(map.npc, modelFlags, NpcType);
     }
 
-    if (rebuildWorldmap) {
-        const packWorldmap = await getPackWorldmap();
-        await packWorldmap();
-    }
-
     if (artifactManifestDirty) {
         saveArtifactManifest(artifactName, artifactManifest);
     }
 
     clientStore.save();
     serverStore.save();
+
+    if (rebuildWorldmap) {
+        const packWorldmap = await getPackWorldmap();
+        await packWorldmap();
+    }
 
     return rebuiltAnyMap;
 }

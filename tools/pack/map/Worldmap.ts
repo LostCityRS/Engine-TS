@@ -15,6 +15,11 @@ import { openArtifactStore } from '#tools/pack/ArtifactCache.js';
 import { MapPack } from '#tools/pack/PackFile.js';
 
 export async function packWorldmap() {
+    const zipPath = 'data/pack/.cache/maps-server.zip';
+    if (!fs.existsSync(zipPath)) {
+        throw new Error(`${zipPath} is missing; pack maps before building the worldmap`);
+    }
+
     FloType.load('data/pack');
     LocType.load('data/pack');
     NpcType.load('data/pack');
