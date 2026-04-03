@@ -11,6 +11,7 @@ let processNextTimeout: NodeJS.Timeout | null = null;
 
 // prevent other file change events from building multiple times
 let active = false;
+const watchedDirs = new Set<string>();
 
 async function processChangedFiles() {
     active = true;
@@ -66,27 +67,39 @@ function trackFileChange(filename: string) {
 }
 
 function trackDir(dir: string) {
+    if (watchedDirs.has(dir)) {
+        return;
+    }
+
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
     }
+
+    watchedDirs.add(dir);
+    fs.watch(dir, (_event, filename) => {
+        if (!filename) {
+            return;
+        }
+
+        const full = path.join(dir, filename.toString());
+        trackFileChange(full);
+
+        try {
+            if (fs.statSync(full).isDirectory()) {
+                trackDir(full);
+            }
+        } catch {
+            // The path may have been removed or replaced between the watch event and stat.
+        }
+    });
 
     const files = fs.readdirSync(dir);
 
     for (const file of files) {
         const full = path.join(dir, file);
-        if (!fs.statSync(full).isDirectory()) {
-            continue;
+        if (fs.statSync(full).isDirectory()) {
+            trackDir(full);
         }
-
-        fs.watch(full, (_event, filename) => {
-            if (!filename) {
-                return;
-            }
-
-            trackFileChange(path.join(full, filename));
-        });
-
-        trackDir(full);
     }
 }
 
