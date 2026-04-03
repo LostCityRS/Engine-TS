@@ -41,6 +41,25 @@ export type WebSocketRoutes = {
     '/': Response
 };
 
+function resolveContentPath(name: string): string | null {
+    let decodedName: string;
+    try {
+        decodedName = decodeURIComponent(name);
+    } catch {
+        return null;
+    }
+
+    const contentRoot = path.resolve(Environment.BUILD_SRC_DIR);
+    const targetPath = path.resolve(contentRoot, decodedName);
+    const relativePath = path.relative(contentRoot, targetPath);
+
+    if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+        return null;
+    }
+
+    return targetPath;
+}
+
 export async function startWeb() {
     Bun.serve<WebSocketData, WebSocketRoutes>({
         port: Environment.WEB_PORT,
@@ -118,6 +137,37 @@ export async function startWeb() {
                             }
                         });
                     }
+                } else if (Environment.NODE_DEBUG) {
+                    if (url.pathname === '/maped') {
+                        return new Response(await ejs.renderFile('view/maped.ejs'), {
+                            headers: {
+                                'Content-Type': 'text/html'
+                            }
+                        });
+                    } else if (url.pathname.startsWith('/content/')) {
+                        const name = url.pathname.replace('/content/', '');
+                        const filePath = resolveContentPath(name);
+                        if (!filePath || !fs.existsSync(filePath)) {
+                            return new Response(null, { status: 404 });
+                        }
+
+                        return new Response(Bun.file(filePath), {
+                            headers: {
+                                'Content-Type': MIME_TYPES.get(path.extname(url.pathname ?? '')) ?? 'text/plain'
+                            }
+                        });
+                    } else if (url.pathname.startsWith('/data/')) {
+                        const name = url.pathname.replace('/data/', '');
+                        if (!fs.existsSync(`data/${name}`)) {
+                            return new Response(null, { status: 404 });
+                        }
+
+                        return new Response(Bun.file(`data/${name}`), {
+                            headers: {
+                                'Content-Type': MIME_TYPES.get(path.extname(url.pathname ?? '')) ?? 'text/plain'
+                            }
+                        });
+                    }
                 }
 
                 if (fs.existsSync(`public${url.pathname}`)) {
@@ -126,6 +176,21 @@ export async function startWeb() {
                             'Content-Type': MIME_TYPES.get(path.extname(url.pathname ?? '')) ?? 'text/plain'
                         }
                     });
+                }
+            } else if (req.method === 'PUT') {
+                if (Environment.NODE_DEBUG) {
+                    if (url.pathname.startsWith('/content/')) {
+                        const name = url.pathname.replace('/content/', '');
+                        const filePath = resolveContentPath(name);
+                        if (!filePath) {
+                            return new Response(null, { status: 400 });
+                        }
+
+                        const body = new Uint8Array(await req.arrayBuffer());
+                        await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+                        await Bun.write(filePath, body);
+                        return new Response(null, { status: 200 });
+                    }
                 }
             }
 
