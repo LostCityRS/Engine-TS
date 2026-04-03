@@ -1982,7 +1982,6 @@ export default class Player extends PathingEntity {
         this.focus(CoordGrid.fine(x, 1), CoordGrid.fine(z, 1), true);
     }
 
-    // todo: make compiler do this at pack time
     playSong(id: number) {
         this.write(new MidiSong(id));
     }
