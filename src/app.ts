@@ -9,12 +9,9 @@ import Environment from '#/util/Environment.js';
 import { printError, printInfo } from '#/util/Logger.js';
 import { startManagementWeb, startWeb } from '#/web.js';
 import OnDemand from '#/engine/OnDemand.js';
+import { createRuntimeWorker } from '#/util/RuntimeWorker.js';
 
-if (
-    OnDemand.cache.count(0) !== 9 ||
-    OnDemand.cache.count(2) === 0 ||
-    !fs.existsSync('data/pack/server/script.dat')
-) {
+if (OnDemand.cache.count(0) !== 9 || OnDemand.cache.count(2) === 0 || !fs.existsSync('data/pack/server/script.dat')) {
     printInfo('Packing cache, please wait until you see the world is ready.');
 
     try {
@@ -31,9 +28,9 @@ if (
 }
 
 if (Environment.EASY_STARTUP) {
-    new Worker('./src/login.ts');
-    new Worker('./src/friend.ts');
-    new Worker('./src/logger.ts');
+    createRuntimeWorker(new URL('./login.ts', import.meta.url));
+    createRuntimeWorker(new URL('./friend.ts', import.meta.url));
+    createRuntimeWorker(new URL('./logger.ts', import.meta.url));
 }
 
 await World.start();

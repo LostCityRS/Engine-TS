@@ -95,6 +95,7 @@ import LinkList from '#/datastruct/LinkList.js';
 import Linkable from '#/datastruct/Linkable.js';
 import { printDebug, printError, printInfo } from '#/util/Logger.js';
 import OnDemand from './OnDemand.js';
+import { createRuntimeWorker } from '#/util/RuntimeWorker.js';
 import { ObjDelayedRequest } from './entity/ObjDelayedRequest.js';
 import DbTableIndex from '#/cache/config/DbTableIndex.js';
 import VarBitType from '#/cache/config/VarBitType.js';
@@ -110,9 +111,9 @@ type LogoutRequest = {
 };
 
 class World {
-    private loginThread = new Worker('./src/server/login/LoginThread.ts');
-    private friendThread = new Worker('./src/server/friend/FriendThread.ts');
-    private loggerThread = new Worker('./src/server/logger/LoggerThread.ts');
+    private loginThread = createRuntimeWorker(new URL('../server/login/LoginThread.ts', import.meta.url));
+    private friendThread = createRuntimeWorker(new URL('../server/friend/FriendThread.ts', import.meta.url));
+    private loggerThread = createRuntimeWorker(new URL('../server/logger/LoggerThread.ts', import.meta.url));
     private devThread: Worker | null = null;
 
     private static readonly PLAYERS: number = Environment.NODE_MAX_PLAYERS;
@@ -1821,7 +1822,7 @@ class World {
     }
 
     private createDevThread() {
-        this.devThread = new Worker('./src/cache/DevThread.ts');
+        this.devThread = createRuntimeWorker(new URL('../cache/DevThread.ts', import.meta.url));
 
         this.devThread.on('message', msg => {
             try {
