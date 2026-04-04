@@ -7,6 +7,12 @@ const statsCache: Map<string, fs.Stats> = new Map();
 const textCache: Map<string, string> = new Map();
 const binaryCache: Map<string, Buffer> = new Map();
 
+export function stableMtimeMs(mtimeMs: number): number {
+    // Bun and Node/tsx report different fractional precision for the same file.
+    // Normalize to integer milliseconds so cache stamp files stay runtime-agnostic.
+    return Math.trunc(mtimeMs);
+}
+
 export function clearFsCache() {
     dirCache.clear();
     existsCache.clear();
@@ -157,7 +163,7 @@ export function writeFileIfChanged(filePath: string, data: string | Uint8Array, 
 }
 
 export function didFileSetChange(stampPath: string, files: string[]): boolean {
-    const state = files.map(file => `${file}=${fileExists(file) ? fileStats(file).mtimeMs : 0}`).join('\n');
+    const state = files.map(file => `${file}=${fileExists(file) ? stableMtimeMs(fileStats(file).mtimeMs) : 0}`).join('\n');
 
     if (fileExists(stampPath) && readTextFile(stampPath) === state) {
         return false;

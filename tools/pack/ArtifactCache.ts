@@ -1,6 +1,6 @@
 import { zipSync, unzipSync } from 'fflate';
 
-import { fileExists, fileStats, readBinaryFile, readTextFile, writeFileIfChanged } from '#tools/pack/FsCache.js';
+import { fileExists, fileStats, readBinaryFile, readTextFile, stableMtimeMs, writeFileIfChanged } from '#tools/pack/FsCache.js';
 
 export type ArtifactManifest = Record<string, string>;
 
@@ -102,5 +102,5 @@ export function getArtifactSourceStamp(filePath: string) {
     }
 
     const stats = fileStats(filePath);
-    return `${stats.size}:${stats.mtimeMs}`;
+    return `${stats.size}:${stableMtimeMs(stats.mtimeMs)}`;
 }
