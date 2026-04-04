@@ -360,7 +360,7 @@ async function startBunWeb(): Promise<void> {
                     data: {
                         client: new WSClientSocket(),
                         origin: req.headers.get('origin'),
-                        remoteAddress: 'unknown'
+                        remoteAddress: server.requestIP(req)?.address ?? 'unknown'
                     }
                 });
 
