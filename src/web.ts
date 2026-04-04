@@ -47,16 +47,6 @@ function getHeader(headers: Headers | IncomingHttpHeaders, name: string): string
     return value ?? null;
 }
 
-function getIp(headers: Headers | IncomingHttpHeaders) {
-    // todo: environment flag to respect cf-connecting-ip (NOT safe if origin is exposed publicly by IP + proxied)
-    const forwardedFor = getHeader(headers, 'cf-connecting-ip') || getHeader(headers, 'x-forwarded-for');
-    if (!forwardedFor) {
-        return null;
-    }
-
-    return forwardedFor.split(',')[0].trim();
-}
-
 function resolveContentPath(name: string): string | null {
     let decodedName: string;
     try {
@@ -307,7 +297,7 @@ async function startNodeWeb(): Promise<void> {
                         ws.terminate();
                     }
                 },
-                getIp(req.headers) ?? req.socket.remoteAddress ?? 'unknown'
+                req.socket.remoteAddress ?? 'unknown'
             );
 
             ws.on('message', message => {
@@ -365,7 +355,7 @@ async function startBunWeb(): Promise<void> {
                     data: {
                         client: new WSClientSocket(),
                         origin: req.headers.get('origin'),
-                        remoteAddress: getIp(req.headers) ?? 'unknown'
+                        remoteAddress: 'unknown'
                     }
                 });
 
