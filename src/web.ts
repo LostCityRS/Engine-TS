@@ -71,6 +71,14 @@ function streamFile(filePath: string, contentType?: string): Response {
     });
 }
 
+function isRegularFile(filePath: string): boolean {
+    try {
+        return fs.statSync(filePath).isFile();
+    } catch {
+        return false;
+    }
+}
+
 async function handleWebRequest(req: Request): Promise<Response> {
     const url = new URL(req.url);
 
@@ -130,7 +138,7 @@ async function handleWebRequest(req: Request): Promise<Response> {
                 }
             );
         } else if (url.pathname === '/worldmap.jag') {
-            if (fs.existsSync('data/pack/mapview/worldmap.jag')) {
+            if (isRegularFile('data/pack/mapview/worldmap.jag')) {
                 return streamFile('data/pack/mapview/worldmap.jag', 'application/octet-stream');
             }
         } else if (Environment.NODE_DEBUG) {
@@ -143,7 +151,7 @@ async function handleWebRequest(req: Request): Promise<Response> {
             } else if (url.pathname.startsWith('/content/')) {
                 const name = url.pathname.replace('/content/', '');
                 const filePath = resolveContentPath(name);
-                if (!filePath || !fs.existsSync(filePath)) {
+                if (!filePath || !isRegularFile(filePath)) {
                     return new Response(null, { status: 404 });
                 }
 
@@ -151,7 +159,7 @@ async function handleWebRequest(req: Request): Promise<Response> {
             } else if (url.pathname.startsWith('/data/')) {
                 const name = url.pathname.replace('/data/', '');
                 const filePath = `data/${name}`;
-                if (!fs.existsSync(filePath)) {
+                if (!isRegularFile(filePath)) {
                     return new Response(null, { status: 404 });
                 }
 
@@ -160,7 +168,7 @@ async function handleWebRequest(req: Request): Promise<Response> {
         }
 
         const publicPath = `public${url.pathname}`;
-        if (fs.existsSync(publicPath)) {
+        if (isRegularFile(publicPath)) {
             return streamFile(publicPath, MIME_TYPES.get(path.extname(url.pathname ?? '')) ?? 'text/plain');
         }
     } else if (req.method === 'PUT' && Environment.NODE_DEBUG && url.pathname.startsWith('/content/')) {
@@ -342,7 +350,7 @@ async function startNodeWeb(): Promise<void> {
 }
 
 async function startBunWeb(): Promise<void> {
-    Bun.serve<WebSocketData>({
+    Bun.serve<WebSocketData, never>({
         port: Environment.WEB_PORT,
         async fetch(req, server) {
             const url = new URL(req.url ?? `http://${req.headers.get('host')}`);
