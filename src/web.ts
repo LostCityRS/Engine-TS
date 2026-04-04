@@ -71,7 +71,7 @@ function streamFile(filePath: string, contentType?: string): Response {
     });
 }
 
-function isRegularFile(filePath: string): boolean {
+function fileExists(filePath: string): boolean {
     try {
         return fs.statSync(filePath).isFile();
     } catch {
@@ -138,7 +138,7 @@ async function handleWebRequest(req: Request): Promise<Response> {
                 }
             );
         } else if (url.pathname === '/worldmap.jag') {
-            if (isRegularFile('data/pack/mapview/worldmap.jag')) {
+            if (fileExists('data/pack/mapview/worldmap.jag')) {
                 return streamFile('data/pack/mapview/worldmap.jag', 'application/octet-stream');
             }
         } else if (Environment.NODE_DEBUG) {
@@ -151,7 +151,7 @@ async function handleWebRequest(req: Request): Promise<Response> {
             } else if (url.pathname.startsWith('/content/')) {
                 const name = url.pathname.replace('/content/', '');
                 const filePath = resolveContentPath(name);
-                if (!filePath || !isRegularFile(filePath)) {
+                if (!filePath || !fileExists(filePath)) {
                     return new Response(null, { status: 404 });
                 }
 
@@ -159,7 +159,7 @@ async function handleWebRequest(req: Request): Promise<Response> {
             } else if (url.pathname.startsWith('/data/')) {
                 const name = url.pathname.replace('/data/', '');
                 const filePath = `data/${name}`;
-                if (!isRegularFile(filePath)) {
+                if (!fileExists(filePath)) {
                     return new Response(null, { status: 404 });
                 }
 
@@ -168,20 +168,24 @@ async function handleWebRequest(req: Request): Promise<Response> {
         }
 
         const publicPath = `public${url.pathname}`;
-        if (isRegularFile(publicPath)) {
+        if (fileExists(publicPath)) {
             return streamFile(publicPath, MIME_TYPES.get(path.extname(url.pathname ?? '')) ?? 'text/plain');
         }
-    } else if (req.method === 'PUT' && Environment.NODE_DEBUG && url.pathname.startsWith('/content/')) {
-        const name = url.pathname.replace('/content/', '');
-        const filePath = resolveContentPath(name);
-        if (!filePath) {
-            return new Response(null, { status: 400 });
-        }
+    } else if (req.method === 'PUT') {
+        if (Environment.NODE_DEBUG) {
+            if (url.pathname.startsWith('/content/')) {
+                const name = url.pathname.replace('/content/', '');
+                const filePath = resolveContentPath(name);
+                if (!filePath) {
+                    return new Response(null, { status: 400 });
+                }
 
-        const body = new Uint8Array(await req.arrayBuffer());
-        await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
-        await fs.promises.writeFile(filePath, body);
-        return new Response(null, { status: 200 });
+                const body = new Uint8Array(await req.arrayBuffer());
+                await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+                await fs.promises.writeFile(filePath, body);
+                return new Response(null, { status: 200 });
+            }
+        }
     }
 
     return new Response(null, { status: 404 });
@@ -305,15 +309,14 @@ async function startNodeWeb(): Promise<void> {
                 req.socket.remoteAddress ?? 'unknown'
             );
 
-            ws.on('message', message => {
+            ws.on('message', (message: Buffer<ArrayBufferLike>) => {
                 try {
                     if (client.state === -1 || client.remaining <= 0) {
                         client.terminate();
                         return;
                     }
 
-                    const data = Buffer.isBuffer(message) ? message : Buffer.from(message as ArrayBuffer);
-                    client.buffer(data);
+                    client.buffer(message);
 
                     if (client.state === 0) {
                         World.onClientData(client);
@@ -383,7 +386,7 @@ async function startBunWeb(): Promise<void> {
 
                 ws.data.client.init(ws, ws.data.remoteAddress ?? ws.remoteAddress);
             },
-            message(ws, message: string | Buffer) {
+            message(ws, message: Buffer<ArrayBuffer>) {
                 try {
                     const { client } = ws.data;
                     if (client.state === -1 || client.remaining <= 0) {
@@ -391,7 +394,7 @@ async function startBunWeb(): Promise<void> {
                         return;
                     }
 
-                    client.buffer(typeof message === 'string' ? Buffer.from(message) : message);
+                    client.buffer(message);
 
                     if (client.state === 0) {
                         World.onClientData(client);
