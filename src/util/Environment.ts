@@ -37,6 +37,9 @@ export default {
     NODE_DEBUG: tryParseBoolean(process.env.NODE_DEBUG, true),
     // measuring script execution
     NODE_DEBUG_PROFILE: tryParseBoolean(process.env.NODE_DEBUG_PROFILE, false),
+    // periodic memory snapshots for long-running leak checks
+    NODE_DEBUG_MEMORY: tryParseBoolean(process.env.NODE_DEBUG_MEMORY, false),
+    NODE_DEBUG_MEMORY_RATE: tryParseInt(process.env.NODE_DEBUG_MEMORY_RATE, 100),
     // doing headless bot testing!
     NODE_DEBUG_SOCKET: tryParseBoolean(process.env.NODE_DEBUG_SOCKET, false),
     // no server routefinding until 2009
@@ -98,6 +101,8 @@ export default {
     BUILD_VERIFY_FOLDER: tryParseBoolean(process.env.BUILD_VERIFY_FOLDER, true),
     // used for unpacking/custom development
     BUILD_VERIFY_PACK: tryParseBoolean(process.env.BUILD_VERIFY_PACK, true),
+    // background content watch/rebuild worker in non-production
+    BUILD_LIVE_RELOAD: tryParseBoolean(process.env.BUILD_LIVE_RELOAD, true),
     // used for unpacking/custom development
     BUILD_SRC_DIR: tryParseString(process.env.BUILD_SRC_DIR, '../content')
 };

@@ -92,6 +92,7 @@ import {
 import Environment from '#/util/Environment.js';
 import { fromBase37, toBase37, toSafeName } from '#/util/JString.js';
 import LinkList from '#/datastruct/LinkList.js';
+import Linkable from '#/datastruct/Linkable.js';
 import { printDebug, printError, printInfo } from '#/util/Logger.js';
 import OnDemand from './OnDemand.js';
 import { ObjDelayedRequest } from './entity/ObjDelayedRequest.js';
@@ -175,6 +176,89 @@ class World {
 
     loginAddressAttempts: TTLCache<string, number> = new TTLCache({ ttl: 60000 });
     loginDeviceAttempts: TTLCache<string, number> = new TTLCache({ ttl: 15000 });
+
+    private countLinks<T extends Linkable>(list: LinkList<T>): number {
+        let count = 0;
+        for (const _ of list.all()) {
+            count++;
+        }
+        return count;
+    }
+
+    getMemorySnapshot() {
+        const usage = process.memoryUsage();
+
+        return {
+            timestamp: Date.now(),
+            tick: this.currentTick,
+            runtime: {
+                pid: process.pid,
+                platform: process.platform,
+                bun: process.versions.bun ?? null,
+                node: process.versions.node ?? null,
+                liveReload: !Environment.NODE_PRODUCTION && Environment.BUILD_LIVE_RELOAD
+            },
+            memory: {
+                rss: usage.rss,
+                heapTotal: usage.heapTotal,
+                heapUsed: usage.heapUsed,
+                external: usage.external,
+                arrayBuffers: usage.arrayBuffers
+            },
+            world: {
+                players: this.getTotalPlayers(),
+                npcs: this.getTotalNpcs(),
+                invs: this.invs.size,
+                newPlayers: this.newPlayers.size,
+                loginRequests: this.loginRequests.size,
+                logoutRequests: this.logoutRequests.size,
+                zonesTracking: this.zonesTracking.size,
+                locObjTracker: this.countLinks(this.locObjTracker),
+                queue: this.countLinks(this.queue),
+                npcEventQueue: this.countLinks(this.npcEventQueue),
+                objDelayedQueue: this.countLinks(this.objDelayedQueue),
+                sessionLogs: this.sessionLogs.length,
+                wealthTransactionGroup: this.wealthTransactionGroup.size,
+                wealthTransactions: this.wealthTransactions.length
+            },
+            map: {
+                zones: this.gameMap.getTotalZones(),
+                locs: this.gameMap.getTotalLocs(),
+                objs: this.gameMap.getTotalObjs()
+            },
+            ondemand: {
+                urgentRequests: OnDemand.urgentRequests.length,
+                extraRequests: OnDemand.extraRequests.length,
+                ingameRequests: OnDemand.ingameRequests.length
+            }
+        };
+    }
+
+    private logMemorySnapshot(): void {
+        const snapshot = this.getMemorySnapshot();
+        const toMb = (bytes: number) => Math.round((bytes / 1024 / 1024) * 10) / 10;
+
+        printInfo(
+            [
+                `[mem] tick=${snapshot.tick}`,
+                `rss=${toMb(snapshot.memory.rss)}MB`,
+                `heapUsed=${toMb(snapshot.memory.heapUsed)}MB`,
+                `heapTotal=${toMb(snapshot.memory.heapTotal)}MB`,
+                `external=${toMb(snapshot.memory.external)}MB`,
+                `arrayBuffers=${toMb(snapshot.memory.arrayBuffers)}MB`,
+                `players=${snapshot.world.players}`,
+                `npcs=${snapshot.world.npcs}`,
+                `locObjTracker=${snapshot.world.locObjTracker}`,
+                `queue=${snapshot.world.queue}`,
+                `npcEventQueue=${snapshot.world.npcEventQueue}`,
+                `objDelayedQueue=${snapshot.world.objDelayedQueue}`,
+                `zonesTracking=${snapshot.world.zonesTracking}`,
+                `loginRequests=${snapshot.world.loginRequests}`,
+                `logoutRequests=${snapshot.world.logoutRequests}`,
+                `ondemand=${snapshot.ondemand.urgentRequests}/${snapshot.ondemand.extraRequests}/${snapshot.ondemand.ingameRequests}`
+            ].join(' ')
+        );
+    }
 
     constructor() {
         this.loginThread.on('message', msg => {
@@ -311,7 +395,7 @@ class World {
             });
         }, 2000);
 
-        if (!Environment.NODE_PRODUCTION) {
+        if (!Environment.NODE_PRODUCTION && Environment.BUILD_LIVE_RELOAD) {
             this.createDevThread();
 
             if (Environment.BUILD_STARTUP) {
@@ -496,6 +580,10 @@ class World {
                 printDebug(
                     `${this.cycleStats[WorldStat.WORLD]} ms world | ${this.cycleStats[WorldStat.CLIENT_IN]} ms client in | ${this.cycleStats[WorldStat.NPC]} ms npcs | ${this.cycleStats[WorldStat.PLAYER]} ms players | ${this.cycleStats[WorldStat.LOGOUT]} ms logout | ${this.cycleStats[WorldStat.LOGIN]} ms login | ${this.cycleStats[WorldStat.ZONE]} ms zones | ${this.cycleStats[WorldStat.CLIENT_OUT]} ms client out | ${this.cycleStats[WorldStat.CLEANUP]} ms cleanup`
                 );
+            }
+
+            if (Environment.NODE_DEBUG_MEMORY && tick % Math.max(1, Environment.NODE_DEBUG_MEMORY_RATE) === 0) {
+                this.logMemorySnapshot();
             }
 
             this.currentTick++;

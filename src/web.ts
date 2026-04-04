@@ -32,13 +32,13 @@ MIME_TYPES.set('.wasm', 'application/wasm');
 MIME_TYPES.set('.sf2', 'application/octet-stream');
 
 export type WebSocketData = {
-    client: WSClientSocket,
-    origin: string,
-    remoteAddress: string
+    client: WSClientSocket;
+    origin: string;
+    remoteAddress: string;
 };
 
 export type WebSocketRoutes = {
-    '/': Response
+    '/': Response;
 };
 
 function resolveContentPath(name: string): string | null {
@@ -108,26 +108,32 @@ export async function startWeb() {
                     const lowmem = tryParseInt(url.searchParams.get('lowmem'), 0);
 
                     if (Environment.NODE_DEBUG && plugin === 1) {
-                        return new Response(await ejs.renderFile('view/java.ejs', {
-                            nodeid: Environment.NODE_ID,
-                            lowmem,
-                            members: Environment.NODE_MEMBERS,
-                            portoff: Environment.NODE_PORT - 43594
-                        }), {
-                            headers: {
-                                'Content-Type': 'text/html'
+                        return new Response(
+                            await ejs.renderFile('view/java.ejs', {
+                                nodeid: Environment.NODE_ID,
+                                lowmem,
+                                members: Environment.NODE_MEMBERS,
+                                portoff: Environment.NODE_PORT - 43594
+                            }),
+                            {
+                                headers: {
+                                    'Content-Type': 'text/html'
+                                }
                             }
-                        });
+                        );
                     } else {
-                        return new Response(await ejs.renderFile('view/client.ejs', {
-                            nodeid: Environment.NODE_ID,
-                            lowmem,
-                            members: Environment.NODE_MEMBERS
-                        }), {
-                            headers: {
-                                'Content-Type': 'text/html'
+                        return new Response(
+                            await ejs.renderFile('view/client.ejs', {
+                                nodeid: Environment.NODE_ID,
+                                lowmem,
+                                members: Environment.NODE_MEMBERS
+                            }),
+                            {
+                                headers: {
+                                    'Content-Type': 'text/html'
+                                }
                             }
-                        });
+                        );
                     }
                 } else if (url.pathname === '/worldmap.jag') {
                     if (fs.existsSync('data/pack/mapview/worldmap.jag')) {
@@ -245,15 +251,26 @@ export async function startWeb() {
 export async function startManagementWeb() {
     Bun.serve({
         port: Environment.WEB_MANAGEMENT_PORT,
-        routes: {
-            '/prometheus': new Response(await register.metrics(), {
-                headers: {
-                    'Content-Type': register.contentType
-                }
-            })
-        },
-        fetch() {
+        async fetch(req) {
+            const url = new URL(req.url ?? `http://${req.headers.get('host')}`);
+
+            if (url.pathname === '/prometheus') {
+                return new Response(await register.metrics(), {
+                    headers: {
+                        'Content-Type': register.contentType
+                    }
+                });
+            }
+
+            if (url.pathname === '/memory') {
+                return new Response(JSON.stringify(World.getMemorySnapshot(), null, 2), {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+            }
+
             return new Response(null, { status: 404 });
-        },
+        }
     });
 }
