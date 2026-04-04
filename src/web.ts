@@ -2,6 +2,7 @@ import fs from 'fs';
 import http, { type IncomingHttpHeaders, type IncomingMessage, type ServerResponse } from 'http';
 import path from 'path';
 import { Readable } from 'stream';
+import type { ReadableStream as NodeReadableStream } from 'stream/web';
 
 import ejs from 'ejs';
 import { register } from 'prom-client';
@@ -20,10 +21,6 @@ export type WebSocketData = {
     client: WSClientSocket;
     origin: string | null;
     remoteAddress: string;
-};
-
-export type WebSocketRoutes = {
-    '/': Response;
 };
 
 const MIME_TYPES = new Map<string, string>();
@@ -247,7 +244,7 @@ async function writeNodeResponse(res: ServerResponse, response: Response): Promi
     }
 
     await new Promise<void>((resolve, reject) => {
-        Readable.fromWeb(response.body as ReadableStream).pipe(res);
+        Readable.fromWeb(response.body as unknown as NodeReadableStream).pipe(res);
         res.on('finish', resolve);
         res.on('error', reject);
     });
@@ -345,7 +342,7 @@ async function startNodeWeb(): Promise<void> {
 }
 
 async function startBunWeb(): Promise<void> {
-    Bun.serve<WebSocketData, WebSocketRoutes>({
+    Bun.serve<WebSocketData>({
         port: Environment.WEB_PORT,
         async fetch(req, server) {
             const url = new URL(req.url ?? `http://${req.headers.get('host')}`);
@@ -378,7 +375,7 @@ async function startBunWeb(): Promise<void> {
 
                 ws.data.client.init(ws, ws.data.remoteAddress ?? ws.remoteAddress);
             },
-            message(ws, message: Buffer) {
+            message(ws, message: string | Buffer) {
                 try {
                     const { client } = ws.data;
                     if (client.state === -1 || client.remaining <= 0) {
@@ -386,7 +383,7 @@ async function startBunWeb(): Promise<void> {
                         return;
                     }
 
-                    client.buffer(message);
+                    client.buffer(typeof message === 'string' ? Buffer.from(message) : message);
 
                     if (client.state === 0) {
                         World.onClientData(client);
