@@ -614,7 +614,6 @@ class World {
     }
 
     // - world queue
-    // - npc spawn scripts
     // - npc hunt
     private processWorld(): void {
         const start: number = Date.now();
@@ -661,17 +660,19 @@ class World {
                 console.error(err);
             }
         }
-        // - npc ai_spawn scripts
-        // - npc hunt players if not busy
-        for (const npc of this.npcs) {
-            // Check if npc is alive
-            if (npc.isActive) {
-                // Hunts will process even if the npc is delayed during this portion
-                if (npc.huntMode !== -1 && rsbuf.getNpcObservers(npc.nid) > 0) {
-                    const hunt = HuntType.get(npc.huntMode);
 
-                    if (hunt && hunt.type === HuntModeType.PLAYER) {
-                        npc.huntAll(hunt);
+        // - npc hunt players if not busy
+        if (this.getTotalPlayers() > 0) {
+            for (const npc of this.npcs) {
+                // Check if npc is alive
+                if (npc.isActive) {
+                    // Hunts will process even if the npc is delayed during this portion
+                    if (npc.huntMode !== -1 && rsbuf.getNpcObservers(npc.nid) > 0) {
+                        const hunt = HuntType.get(npc.huntMode);
+
+                        if (hunt && hunt.type === HuntModeType.PLAYER) {
+                            npc.huntAll(hunt);
+                        }
                     }
                 }
             }
@@ -1064,6 +1065,10 @@ class World {
     // - convert npc movements
     // - compute npc info
     private processInfo(): void {
+        if (this.getTotalPlayers() === 0) {
+            return;
+        }
+
         // TODO: benchmark this?
         for (const player of this.playerLoop.all()) {
             player.reorient();
