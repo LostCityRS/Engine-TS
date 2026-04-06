@@ -1227,7 +1227,7 @@ class World {
                     continue;
                 }
 
-                inv.update = false;
+                inv.resetTracking();
             }
         }
 
@@ -1238,7 +1238,7 @@ class World {
 
         // - reset invs (world)
         for (const inv of this.invs) {
-            inv.update = false;
+            inv.resetTracking();
 
             // Increase or Decrease shop stock
             const invType = InvType.get(inv.type);

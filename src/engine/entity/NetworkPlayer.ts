@@ -25,6 +25,7 @@ import NpcInfo from '#/network/game/server/model/NpcInfo.js';
 import PlayerInfo from '#/network/game/server/model/PlayerInfo.js';
 import SetMultiway from '#/network/game/server/model/SetMultiway.js';
 import UpdateInvFull from '#/network/game/server/model/UpdateInvFull.js';
+import UpdateInvPartial from '#/network/game/server/model/UpdateInvPartial.js';
 import UpdateRunEnergy from '#/network/game/server/model/UpdateRunEnergy.js';
 import UpdateRunWeight from '#/network/game/server/model/UpdateRunWeight.js';
 import UpdateStat from '#/network/game/server/model/UpdateStat.js';
@@ -330,7 +331,6 @@ export class NetworkPlayer extends Player {
         }
     }
 
-    // todo: partial updates
     updateInvs() {
         let runWeightChanged = false;
         let firstSeen = false;
@@ -341,6 +341,8 @@ export class NetworkPlayer extends Player {
                 continue;
             }
 
+            const needsFullUpdate = listener.firstSeen;
+
             if (listener.source === -1) {
                 // world inventory
                 const inv = World.getInventory(listener.type);
@@ -348,9 +350,11 @@ export class NetworkPlayer extends Player {
                     continue;
                 }
 
-                if (inv.update || listener.firstSeen) {
+                if (needsFullUpdate) {
                     this.write(new UpdateInvFull(listener.com, inv));
                     listener.firstSeen = false;
+                } else if (inv.update) {
+                    this.write(new UpdateInvPartial(listener.com, inv, ...inv.getDirtySlots()));
                 }
             } else {
                 // player inventory
@@ -364,13 +368,15 @@ export class NetworkPlayer extends Player {
                     continue;
                 }
 
-                if (inv.update || listener.firstSeen) {
+                if (needsFullUpdate) {
                     this.write(new UpdateInvFull(listener.com, inv));
-                    if (listener.firstSeen) {
-                        firstSeen = true;
-                    }
+                    firstSeen = true; // ensure weight is sent between logins
                     listener.firstSeen = false;
+                } else if (inv.update) {
+                    this.write(new UpdateInvPartial(listener.com, inv, ...inv.getDirtySlots()));
+                }
 
+                if (inv.update || needsFullUpdate) {
                     const invType = InvType.get(listener.type);
                     if (invType.runweight) {
                         runWeightChanged = true;

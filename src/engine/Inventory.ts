@@ -84,16 +84,13 @@ export class Inventory {
     readonly items: (Item | null)[];
 
     update = false;
+    readonly dirtySlots: Set<number> = new Set();
 
     constructor(type: number, capacity: number, stackType = Inventory.NORMAL_STACK) {
         this.type = type;
         this.capacity = capacity;
         this.stackType = stackType;
         this.items = new Array(capacity).fill(null);
-    }
-
-    contains(id: number) {
-        return this.items.some(item => item && item.id == id);
     }
 
     hasAt(slot: number, id: number) {
@@ -107,26 +104,6 @@ export class Inventory {
 
     get freeSlotCount() {
         return this.items.filter(item => item == null).length;
-    }
-
-    get occupiedSlotCount() {
-        return this.items.filter(item => item != null).length;
-    }
-
-    get isFull() {
-        return this.occupiedSlotCount == this.capacity;
-    }
-
-    get isEmpty() {
-        return this.occupiedSlotCount == 0;
-    }
-
-    get hasAny() {
-        return this.items.some(item => item != null);
-    }
-
-    get hasSpace() {
-        return this.nextFreeSlot != -1;
     }
 
     get itemsFiltered() {
@@ -151,8 +128,12 @@ export class Inventory {
     }
 
     removeAll() {
-        this.items.fill(null, 0, this.capacity);
-        this.update = true;
+        for (let slot = 0; slot < this.capacity; slot++) {
+            if (this.items[slot] !== null) {
+                this.items[slot] = null;
+                this.markDirty(slot);
+            }
+        }
     }
 
     add(id: number, count = 1, beginSlot = -1, assureFullInsertion = true, forceNoStack = false, dryRun = false) {
@@ -284,6 +265,7 @@ export class Inventory {
                     removed.push({ slot: i, item: removedItem });
                 }
             }
+            this.markDirty(i);
 
             if (totalRemoved >= count) {
                 break;
@@ -308,6 +290,7 @@ export class Inventory {
                         removed.push({ slot: i, item: removedItem });
                     }
                 }
+                this.markDirty(i);
 
                 if (totalRemoved >= count) {
                     break;
@@ -315,36 +298,11 @@ export class Inventory {
             }
         }
 
-        if (totalRemoved > 0) {
-            this.update = true;
-        }
-
         return new InventoryTransaction(count, totalRemoved, removed);
     }
 
     delete(slot: number) {
-        this.items[slot] = null;
-        this.update = true;
-    }
-
-    swap(from: number, to: number) {
-        const temp = this.items[from];
-        this.set(from, this.items[to]);
-        this.set(to, temp);
-    }
-
-    // REVIEW: This method isn't used anywhere
-    shift() {
-        this.items.sort((a: Item | null, b: Item | null) => {
-            if (a === null || b === null) {
-                // null values go to the end of the array
-                return +(a === null) - +(b === null);
-            } else {
-                return +(a > b) || -(a < b);
-            }
-        });
-
-        this.update = true;
+        this.set(slot, null);
     }
 
     get(slot: number) {
@@ -353,38 +311,24 @@ export class Inventory {
 
     set(slot: number, item: Item | null) {
         this.items[slot] = item;
-        this.update = true;
+        this.markDirty(slot);
     }
 
     validSlot(slot: number) {
         return slot >= 0 && slot < this.capacity;
     }
 
-    transfer(to: Inventory, item: Item, fromSlot = -1, toSlot = -1, note = false, unnote = false) {
-        if (item.count <= 0) {
-            return null;
-        }
+    getDirtySlots() {
+        return [...this.dirtySlots].sort((a, b) => a - b);
+    }
 
-        const count = Math.min(item.count, this.getItemCount(item.id));
+    resetTracking() {
+        this.update = false;
+        this.dirtySlots.clear();
+    }
 
-        const objType = ObjType.get(item.id);
-        let finalItem = { id: item.id, count: count };
-        if (note && objType.certlink !== -1 && objType.certtemplate === -1) {
-            finalItem = { id: objType.certlink, count };
-        } else if (unnote && objType.certlink !== -1 && objType.certtemplate >= 0) {
-            finalItem = { id: objType.certlink, count };
-        }
-
-        const add = to.add(finalItem.id, finalItem.count, toSlot, false);
-        if (add.completed == 0) {
-            return null;
-        }
-
-        const remove = this.remove(item.id, add.completed, fromSlot, false);
-        if (remove.completed == 0) {
-            return null;
-        }
-
-        return remove;
+    private markDirty(slot: number) {
+        this.dirtySlots.add(slot);
+        this.update = true;
     }
 }
