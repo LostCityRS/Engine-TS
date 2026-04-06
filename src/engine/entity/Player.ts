@@ -1543,14 +1543,13 @@ export default class Player extends PathingEntity {
         container.removeAll();
     }
 
-    invAdd(inv: number, obj: number, count: number, assureFullInsertion: boolean = true): number {
+    invAdd(inv: number, obj: number, count: number): number {
         const container = this.getInventory(inv);
         if (!container) {
             throw new Error('invAdd: Invalid inventory type: ' + inv);
         }
 
-        const transaction = container.add(obj, count, -1, assureFullInsertion);
-        return transaction.completed;
+        return container.add(obj, count, -1);
     }
 
     invSet(inv: number, obj: number, count: number, slot: number) {
@@ -1577,8 +1576,7 @@ export default class Player extends PathingEntity {
             throw new Error('invDel: Invalid beginSlot: ' + beginSlot);
         }
 
-        const transaction = container.remove(obj, count, beginSlot);
-        return transaction.completed;
+        return container.remove(obj, count, beginSlot);
     }
 
     invDelSlot(inv: number, slot: number) {
@@ -1701,7 +1699,7 @@ export default class Player extends PathingEntity {
         this.invDelSlot(fromInv, fromSlot);
 
         return {
-            overflow: fromObj.count - this.invAdd(toInv, fromObj.id, fromObj.count, false),
+            overflow: fromObj.count - this.invAdd(toInv, fromObj.id, fromObj.count),
             fromObj: fromObj.id
         };
     }

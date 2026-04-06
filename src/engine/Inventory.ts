@@ -2,38 +2,6 @@ import InvType from '#/cache/config/InvType.js';
 import ObjType from '#/cache/config/ObjType.js';
 
 type Item = { id: number; count: number };
-type TransactionResult = { slot: number; item: Item };
-
-export class InventoryTransaction {
-    requested = 0;
-    completed = 0;
-    items: TransactionResult[] = [];
-
-    constructor(requested: number, completed: number = 0, items: TransactionResult[] = []) {
-        this.requested = requested;
-        this.completed = completed;
-        this.items = items;
-    }
-
-    getLeftOver() {
-        return this.requested - this.completed;
-    }
-
-    hasSucceeded() {
-        return this.completed == this.requested;
-    }
-
-    hasFailed() {
-        return !this.hasSucceeded();
-    }
-
-    revert(from: Inventory) {
-        for (let i = 0; i < this.items.length; i++) {
-            const item = this.items[i].item;
-            from.remove(item.id, item.count, this.items[i].slot);
-        }
-    }
-}
 
 export interface InventoryListener {
     type: number; // InvType
@@ -136,43 +104,11 @@ export class Inventory {
         }
     }
 
-    add(id: number, count = 1, beginSlot = -1, assureFullInsertion = true, forceNoStack = false, dryRun = false) {
+    add(id: number, count = 1, beginSlot = -1) {
         const type = ObjType.get(id);
-        const stockObj = InvType.get(this.type).stockobj?.includes(id) === true;
-        const stack = !forceNoStack && this.stackType != Inventory.NEVER_STACK && (type.stackable || this.stackType == Inventory.ALWAYS_STACK);
-
-        let previousCount = 0;
-        if (stack) {
-            previousCount = this.getItemCount(id);
-        }
-
-        if (previousCount == Inventory.STACK_LIMIT) {
-            return new InventoryTransaction(count, 0, []);
-        }
-
-        const freeSlotCount = this.freeSlotCount;
-        if (freeSlotCount == 0 && (!stack || (stack && previousCount == 0 && !stockObj))) {
-            return new InventoryTransaction(count, 0, []);
-        }
-
-        if (assureFullInsertion) {
-            if (stack && previousCount > Inventory.STACK_LIMIT - count) {
-                return new InventoryTransaction(count, 0, []);
-            }
-
-            if (!stack && count > freeSlotCount) {
-                return new InventoryTransaction(count, 0, []);
-            }
-        } else {
-            if (stack && previousCount == Inventory.STACK_LIMIT) {
-                return new InventoryTransaction(count, 0, []);
-            } else if (!stack && freeSlotCount == 0) {
-                return new InventoryTransaction(count, 0, []);
-            }
-        }
+        const stack = this.stackType != Inventory.NEVER_STACK && (type.stackable || this.stackType == Inventory.ALWAYS_STACK);
 
         let completed = 0;
-        const added = [];
 
         if (!stack) {
             const startSlot = Math.max(0, beginSlot);
@@ -182,11 +118,7 @@ export class Inventory {
                     continue;
                 }
 
-                const add = { id, count: 1 };
-                if (!dryRun) {
-                    this.set(i, add);
-                }
-                added.push({ slot: i, item: add });
+                this.set(i, { id, count: 1 });
 
                 if (++completed >= count) {
                     break;
@@ -203,36 +135,24 @@ export class Inventory {
                 }
 
                 if (stackIndex == -1) {
-                    return new InventoryTransaction(count, completed, []);
+                    return completed;
                 }
             }
 
             const stackCount = this.get(stackIndex)?.count ?? 0;
             const total = Math.min(Inventory.STACK_LIMIT, stackCount + count);
 
-            const add = { id, count: total };
-            if (!dryRun) {
-                this.set(stackIndex, add);
-            }
-            added.push({ slot: stackIndex, item: add });
+            this.set(stackIndex, { id, count: total });
             completed = total - stackCount;
         }
 
-        return new InventoryTransaction(count, completed, added);
+        return completed;
     }
 
-    remove(id: number, count = 1, beginSlot = -1, assureFullRemoval = false) {
-        const hasCount = this.getItemCount(id);
+    remove(id: number, count = 1, beginSlot = -1) {
         const stockObj = InvType.get(this.type).stockobj?.includes(id) === true;
 
-        if (assureFullRemoval && hasCount < count) {
-            return new InventoryTransaction(count, 0, []);
-        } else if (!assureFullRemoval && hasCount < 1) {
-            return new InventoryTransaction(count, 0, []);
-        }
-
         let totalRemoved = 0;
-        const removed: TransactionResult[] = [];
 
         let skippedIndices = null;
         if (beginSlot != -1) {
@@ -259,11 +179,7 @@ export class Inventory {
 
             curItem.count -= removeCount;
             if (curItem.count == 0 && !stockObj) {
-                const removedItem = this.items[i];
                 this.items[i] = null;
-                if (removedItem) {
-                    removed.push({ slot: i, item: removedItem });
-                }
             }
             this.markDirty(i);
 
@@ -284,11 +200,7 @@ export class Inventory {
 
                 curItem.count -= removeCount;
                 if (curItem.count == 0 && !stockObj) {
-                    const removedItem = this.items[i];
                     this.items[i] = null;
-                    if (removedItem) {
-                        removed.push({ slot: i, item: removedItem });
-                    }
                 }
                 this.markDirty(i);
 
@@ -298,7 +210,7 @@ export class Inventory {
             }
         }
 
-        return new InventoryTransaction(count, totalRemoved, removed);
+        return totalRemoved;
     }
 
     delete(slot: number) {

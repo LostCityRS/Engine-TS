@@ -351,7 +351,7 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                 }
 
                 const count = Math.max(1, Math.min(tryParseInt(args[1], 1), 0x7fffffff));
-                player.invAdd(InvType.INV, obj, count, false);
+                player.invAdd(InvType.INV, obj, count);
             } else if (cmd === 'giveother' && Environment.NODE_PRODUCTION) {
                 // custom
                 if (args.length < 2) {
@@ -371,7 +371,7 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                 }
 
                 const count = Math.max(1, Math.min(tryParseInt(args[2], 1), 0x7fffffff));
-                other.invAdd(InvType.INV, obj, count, false);
+                other.invAdd(InvType.INV, obj, count);
             } else if (cmd === 'givecrap') {
                 // authentic (we don't know the exact specifics of this...)
 
@@ -386,7 +386,7 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                         }
                     }
 
-                    player.invAdd(InvType.INV, random, 1, false);
+                    player.invAdd(InvType.INV, random, 1);
                 }
             } else if (cmd === 'givemany') {
                 // authentic
@@ -401,7 +401,7 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                     return false;
                 }
 
-                player.invAdd(InvType.INV, obj, 1000, false);
+                player.invAdd(InvType.INV, obj, 1000);
             } else if (cmd === 'broadcast' && Environment.NODE_PRODUCTION) {
                 // custom
                 if (args.length < 0) {
