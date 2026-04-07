@@ -252,13 +252,14 @@ function validateInterfacePack(pack: PackFile) {
     });
 }
 
-// todo: validate triggers, names, and/or reuse IDs?
 function regenScriptPack(pack: PackFile) {
     const packFile = getPackFilePath(pack.type);
-    if (!shouldRevalidatePackFile(pack, [{ path: `${Environment.BUILD_SRC_DIR}/scripts`, ext: '.rs2' }])) {
-        pack.load(packFile);
-        return;
-    }
+
+    // todo: would be nice to not crawl scripts on each reload. this checks script.dat against script.pack
+    // if (!shouldRevalidatePackFile(pack, [{ path: `${Environment.BUILD_SRC_DIR}/scripts`, ext: '.rs2' }])) {
+    //     pack.load(packFile);
+    //     return;
+    // }
 
     pack.load(packFile);
 
