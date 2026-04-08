@@ -41,6 +41,50 @@ function getProcessMemorySnapshot() {
     };
 }
 
+function tailLines(value: string, count: number): string {
+    const lines = value.trim().split(/\r?\n/).filter(Boolean);
+    return lines.slice(Math.max(0, lines.length - count)).join('\n');
+}
+
+async function runProcess(command: string, args: string[]): Promise<{ code: number; output: string }> {
+    return await new Promise((resolve, reject) => {
+        const child = spawn(command, args, {
+            cwd: process.cwd(),
+            env: process.env,
+            stdio: ['ignore', 'pipe', 'pipe']
+        });
+
+        let output = '';
+
+        child.stdout.on('data', data => {
+            output += data.toString();
+        });
+
+        child.stderr.on('data', data => {
+            output += data.toString();
+        });
+
+        child.on('error', reject);
+        child.on('close', code => resolve({ code: code ?? -1, output }));
+    });
+}
+
+async function runSetupMigration(backend: string): Promise<void> {
+    const script = backend === 'sqlite' ? 'sqlite:migrate' : 'db:migrate';
+    const command = Environment.runtime.isBun ? 'bun' : process.platform === 'win32' ? 'npm.cmd' : 'npm';
+    const args = ['run', script];
+
+    printInfo(`Running ${script}...`);
+    const result = await runProcess(command, args);
+
+    if (result.code !== 0) {
+        const tail = tailLines(result.output, 40);
+        throw new Error(`Migration failed (${command} ${args.join(' ')}).\n${tail || 'No output.'}`);
+    }
+
+    printInfo('Database ready!');
+}
+
 async function handleManagementRequest(req: Request): Promise<Response> {
     const url = new URL(req.url);
     const method = req.method ?? 'GET';
@@ -72,6 +116,24 @@ async function handleManagementRequest(req: Request): Promise<Response> {
 
             const config = normalizeWorldConfig(payload);
             saveWorldConfig(config);
+
+            const hasSupportServer = config.login.enabled || config.friend.enabled || config.logger.enabled;
+            const shouldRunMigration = hasSupportServer && config.db.host.trim().toLowerCase() === 'localhost';
+            if (shouldRunMigration) {
+                try {
+                    await runSetupMigration(config.db.backend);
+                } catch (error) {
+                    const message = error instanceof Error ? error.message : 'Migration failed after saving configuration.';
+                    return jsonResponse(
+                        {
+                            error: message,
+                            config,
+                            restartRequired: true
+                        },
+                        500
+                    );
+                }
+            }
 
             return jsonResponse({
                 config,
