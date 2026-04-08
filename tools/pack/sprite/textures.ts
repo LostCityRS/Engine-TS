@@ -10,8 +10,8 @@ import { shouldBuildFile, shouldBuildFileAny } from '#tools/pack/PackFile.js';
 
 export async function packClientTexture(cache: FileStream) {
     const rebuild =
-        shouldBuildFileAny(`${Environment.BUILD_SRC_DIR}/textures`, 'data/pack/client/textures') ||
-        shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/texture.pack`, 'data/pack/client/textures') ||
+        shouldBuildFileAny(`${Environment.build.srcDir}/textures`, 'data/pack/client/textures') ||
+        shouldBuildFile(`${Environment.build.srcDir}/pack/texture.pack`, 'data/pack/client/textures') ||
         shouldBuildFileAny('tools/pack/sprite', 'data/pack/client/textures') ||
         shouldBuildFile('tools/pack/PixPack.ts', 'data/pack/client/textures');
 
@@ -24,7 +24,7 @@ export async function packClientTexture(cache: FileStream) {
 
         const all = [];
         for (let id = 0; id < 50; id++) {
-            all.push(await convertImage(index, `${Environment.BUILD_SRC_DIR}/textures`, TexturePack.getById(id)));
+            all.push(await convertImage(index, `${Environment.build.srcDir}/textures`, TexturePack.getById(id)));
         }
 
         const textures = Jagfile.new();

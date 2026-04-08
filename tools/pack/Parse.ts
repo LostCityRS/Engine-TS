@@ -142,7 +142,7 @@ export function loadDirExtFull(path: string, ext: string, callback: LoadDirCallb
 export function readConfigs(ext: string) {
     const configs = new Map<string, string[]>();
 
-    loadDirExtFull(`${Environment.BUILD_SRC_DIR}/scripts`, ext, (lines: string[], file: string) => {
+    loadDirExtFull(`${Environment.build.srcDir}/scripts`, ext, (lines: string[], file: string) => {
         let current: string = '';
         let config: string[] = [];
 

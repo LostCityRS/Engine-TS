@@ -110,7 +110,7 @@ function getConfigDependencyFiles(ext: string) {
         files.push(`tools/pack/config/${toolFile}`);
     }
     for (const packType of spec.packTypes ?? []) {
-        files.push(`${Environment.BUILD_SRC_DIR}/pack/${packType}.pack`);
+        files.push(`${Environment.build.srcDir}/pack/${packType}.pack`);
     }
 
     return uniqueFiles(files);
@@ -309,7 +309,7 @@ export async function readConfigs(
 
     const { client, server } = pack(configs, modelFlags);
 
-    if (Environment.BUILD_VERIFY && validate && !validate(client.dat, server.dat)) {
+    if (Environment.build.verify && validate && !validate(client.dat, server.dat)) {
         throw new Error(`${extension} checksum mismatch!\nYou can disable this safety check by setting BUILD_VERIFY=false`);
     }
 
@@ -320,12 +320,12 @@ export async function readConfigs(
 function noOp() {}
 
 export function shouldBuildConfigOutput(ext: string, out: string) {
-    return shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.constant', out) || shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, ext, out) || shouldBuildFileList(getConfigDependencyFiles(ext), out);
+    return shouldBuild(`${Environment.build.srcDir}/scripts`, '.constant', out) || shouldBuild(`${Environment.build.srcDir}/scripts`, ext, out) || shouldBuildFileList(getConfigDependencyFiles(ext), out);
 }
 
 export async function packConfigs(cache: FileStream, modelFlags: number[]) {
     let rebuildParam = shouldBuildConfigOutput('.param', 'data/pack/server/param.dat');
-    const rebuildCategory = shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/category.pack`, 'data/pack/server/category.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/category.dat');
+    const rebuildCategory = shouldBuildFile(`${Environment.build.srcDir}/pack/category.pack`, 'data/pack/server/category.dat') || shouldBuild('tools/pack/config', '.ts', 'data/pack/server/category.dat');
     const rebuildDbTables = shouldBuildConfigOutput('.dbtable', 'data/pack/server/dbtable.dat');
     const rebuildDbRows = shouldBuildConfigOutput('.dbrow', 'data/pack/server/dbrow.dat');
     const rebuildEnum = shouldBuildConfigOutput('.enum', 'data/pack/server/enum.dat');
@@ -409,7 +409,7 @@ export async function packConfigs(cache: FileStream, modelFlags: number[]) {
 
     CONSTANTS.clear();
 
-    loadDir(`${Environment.BUILD_SRC_DIR}/scripts`, '.constant', src => {
+    loadDir(`${Environment.build.srcDir}/scripts`, '.constant', src => {
         for (let i = 0; i < src.length; i++) {
             if (!src[i] || src[i].startsWith('//')) {
                 continue;
@@ -464,7 +464,7 @@ export async function packConfigs(cache: FileStream, modelFlags: number[]) {
     }
 
     const dirTree = new Set<string>();
-    readDirTree(dirTree, `${Environment.BUILD_SRC_DIR}/scripts`);
+    readDirTree(dirTree, `${Environment.build.srcDir}/scripts`);
 
     // We have to pack params for other configs to parse correctly
     if (rebuildParam) {

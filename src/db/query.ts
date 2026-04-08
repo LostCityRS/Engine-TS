@@ -7,8 +7,8 @@ import Environment from '#/util/Environment.js';
 
 let dialect: Dialect;
 
-if (Environment.DB_BACKEND === 'sqlite') {
-    if (Environment.IS_BUN) {
+if (Environment.db.backend === 'sqlite') {
+    if (Environment.runtime.isBun) {
         const { BunSqliteDialect } = await import('./dialect/BunSqliteDialect.js');
         const { Database } = await import('bun:sqlite');
 
@@ -26,11 +26,11 @@ if (Environment.DB_BACKEND === 'sqlite') {
     dialect = new MysqlDialect({
         pool: async () =>
             createPool({
-                database: Environment.DB_NAME,
-                host: Environment.DB_HOST,
-                port: Environment.DB_PORT,
-                user: Environment.DB_USER,
-                password: Environment.DB_PASS,
+                database: Environment.db.name,
+                host: Environment.db.host,
+                port: Environment.db.port,
+                user: Environment.db.user,
+                password: Environment.db.pass,
                 timezone: 'Z'
             })
     });
@@ -45,7 +45,7 @@ function logVerbose(event: LogEvent) {
 
 export const db = new Kysely<DB>({
     dialect,
-    log: Environment.KYSELY_VERBOSE ? logVerbose : []
+    log: Environment.db.kyselyVerbose ? logVerbose : []
 });
 
 export function toDbDate(date: Date | string | number) {

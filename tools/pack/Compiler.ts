@@ -147,7 +147,7 @@ export function runServerCompiler() {
     }
 
     const allConstants: Record<string, string> = {};
-    loadDirExtFull(`${Environment.BUILD_SRC_DIR}/scripts`, '.constant', src => {
+    loadDirExtFull(`${Environment.build.srcDir}/scripts`, '.constant', src => {
         for (let i = 0; i < src.length; i++) {
             if (!src[i] || src[i].startsWith('//')) {
                 continue;
@@ -171,36 +171,36 @@ export function runServerCompiler() {
     const constantInfo = CompilerTypeInfo.loadRecords(allConstants);
 
     // load id mapping files
-    const npcInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/npc.pack`);
-    const objInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/obj.pack`);
-    const invInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/inv.pack`);
-    const seqInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/seq.pack`);
-    const idkInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/idk.pack`);
-    const spotanimInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/spotanim.pack`);
-    const locInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/loc.pack`);
-    const componentInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/interface.pack`);
+    const npcInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/npc.pack`);
+    const objInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/obj.pack`);
+    const invInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/inv.pack`);
+    const seqInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/seq.pack`);
+    const idkInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/idk.pack`);
+    const spotanimInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/spotanim.pack`);
+    const locInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/loc.pack`);
+    const componentInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/interface.pack`);
     const interfaceInfo = new CompilerTypeInfo();
     const overlayInfo = new CompilerTypeInfo();
-    const varpInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/varp.pack`);
-    const varbitInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/varbit.pack`);
-    const varnInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/varn.pack`);
-    const varsInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/vars.pack`);
-    const paramInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/param.pack`);
-    const structInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/struct.pack`);
-    const enumInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/enum.pack`);
-    const huntInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/hunt.pack`);
-    const mesanimInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/mesanim.pack`);
-    const synthInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/synth.pack`);
-    const categoryInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/category.pack`);
-    const runescriptInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/script.pack`);
-    const dbtableInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/dbtable.pack`);
+    const varpInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/varp.pack`);
+    const varbitInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/varbit.pack`);
+    const varnInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/varn.pack`);
+    const varsInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/vars.pack`);
+    const paramInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/param.pack`);
+    const structInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/struct.pack`);
+    const enumInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/enum.pack`);
+    const huntInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/hunt.pack`);
+    const mesanimInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/mesanim.pack`);
+    const synthInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/synth.pack`);
+    const categoryInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/category.pack`);
+    const runescriptInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/script.pack`);
+    const dbtableInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/dbtable.pack`);
     const dbcolumnInfo = new CompilerTypeInfo();
-    const dbrowInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/dbrow.pack`);
-    const midiInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/midi.pack`);
+    const dbrowInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/dbrow.pack`);
+    const midiInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/midi.pack`);
 
     // load extra context for compiler
     InvType.load('data/pack');
-    const writeinvInfo = CompilerTypeInfo.load(`${Environment.BUILD_SRC_DIR}/pack/inv.pack`);
+    const writeinvInfo = CompilerTypeInfo.load(`${Environment.build.srcDir}/pack/inv.pack`);
     for (let id = 0; id <= writeinvInfo.max; id++) {
         if (typeof writeinvInfo.map[id] === 'undefined') {
             continue;

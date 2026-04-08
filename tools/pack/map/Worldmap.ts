@@ -91,13 +91,13 @@ export async function packWorldmap() {
     }
 
     // easiest solution for the time being
-    const multiway = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').split(/\r?\n/);
+    const multiway = fs.readFileSync(`${Environment.build.srcDir}/maps/multiway.csv`, 'ascii').split(/\r?\n/);
     const multimap = processCsv(multiway, 'multiway');
 
-    const free2play = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').split(/\r?\n/);
+    const free2play = fs.readFileSync(`${Environment.build.srcDir}/maps/free2play.csv`, 'ascii').split(/\r?\n/);
     const freemap = processCsv(free2play, 'free');
 
-    const ignoreraw = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/ignore.csv`, 'ascii').split(/\r?\n/);
+    const ignoreraw = fs.readFileSync(`${Environment.build.srcDir}/maps/ignore.csv`, 'ascii').split(/\r?\n/);
     const ignoremap = processCsv(ignoreraw, 'ignore');
 
     for (let mapId = 0; mapId < MapPack.max; mapId++) {
@@ -632,24 +632,24 @@ export async function packWorldmap() {
 
     const index = Packet.alloc(2);
 
-    const mapscene = await convertImage(index, `${Environment.BUILD_SRC_DIR}/sprites`, 'mapscene');
-    const mapfunction = await convertImage(index, `${Environment.BUILD_SRC_DIR}/sprites`, 'mapfunction');
-    const b12 = await convertImage(index, `${Environment.BUILD_SRC_DIR}/fonts`, 'b12_full');
-    const mapdots = await convertImage(index, `${Environment.BUILD_SRC_DIR}/sprites`, 'mapdots');
-    const f11 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f11.fm`, true);
-    const f12 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f12.fm`, true);
-    const f14 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f14.fm`, true);
-    const f17 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f17.fm`, true);
-    const f19 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f19.fm`, true);
-    const f22 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f22.fm`, true);
-    const f26 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f26.fm`, true);
-    const f30 = Packet.load(`${Environment.BUILD_SRC_DIR}/fonts/f30.fm`, true);
+    const mapscene = await convertImage(index, `${Environment.build.srcDir}/sprites`, 'mapscene');
+    const mapfunction = await convertImage(index, `${Environment.build.srcDir}/sprites`, 'mapfunction');
+    const b12 = await convertImage(index, `${Environment.build.srcDir}/fonts`, 'b12_full');
+    const mapdots = await convertImage(index, `${Environment.build.srcDir}/sprites`, 'mapdots');
+    const f11 = Packet.load(`${Environment.build.srcDir}/fonts/f11.fm`, true);
+    const f12 = Packet.load(`${Environment.build.srcDir}/fonts/f12.fm`, true);
+    const f14 = Packet.load(`${Environment.build.srcDir}/fonts/f14.fm`, true);
+    const f17 = Packet.load(`${Environment.build.srcDir}/fonts/f17.fm`, true);
+    const f19 = Packet.load(`${Environment.build.srcDir}/fonts/f19.fm`, true);
+    const f22 = Packet.load(`${Environment.build.srcDir}/fonts/f22.fm`, true);
+    const f26 = Packet.load(`${Environment.build.srcDir}/fonts/f26.fm`, true);
+    const f30 = Packet.load(`${Environment.build.srcDir}/fonts/f30.fm`, true);
 
     // ----
 
     const labels = Packet.alloc(1);
     const labelsSrc = fs
-        .readFileSync(`${Environment.BUILD_SRC_DIR}/maps/labels.txt`, 'ascii')
+        .readFileSync(`${Environment.build.srcDir}/maps/labels.txt`, 'ascii')
         .split(/\r?\n/)
         .filter((x: string) => x.startsWith('='))
         .map((x: string) => x.substring(1).split(','));

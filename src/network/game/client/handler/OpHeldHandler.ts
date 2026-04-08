@@ -66,7 +66,7 @@ export default class OpHeldHandler extends ClientGameMessageHandler<OpHeld> {
         const script = ScriptProvider.getByTrigger(trigger, obj.id, obj.category);
         if (script) {
             player.executeScript(ScriptRunner.init(script, player), true);
-        } else if (Environment.NODE_DEBUG) {
+        } else if (Environment.node.debug) {
             player.messageGame(`No trigger for [${ServerTriggerType.toString(trigger)},${obj.debugname}]`);
         }
 

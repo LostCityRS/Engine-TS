@@ -5,7 +5,7 @@ import Environment from '#/util/Environment.js';
 const NODE_WORKER_BOOTSTRAP = new URL('./RuntimeWorkerNode.mjs', import.meta.url);
 
 export function createRuntimeWorker(specifier: string | URL, options: WorkerOptions = {}): Worker {
-    if (Environment.IS_BUN) {
+    if (Environment.runtime.isBun) {
         return new Worker(specifier, options);
     }
 

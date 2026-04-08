@@ -4,7 +4,6 @@ import fsp from 'fs/promises';
 import bcrypt from 'bcrypt';
 import { WebSocket, WebSocketServer } from 'ws';
 
-
 import { db, toDbDate } from '#/db/query.js';
 import Player from '#/engine/entity/Player.js';
 import { PlayerLoading } from '#/engine/entity/PlayerLoading.js';
@@ -16,9 +15,8 @@ import { printInfo } from '#/util/Logger.js';
 import { startManagementWeb } from '#/web.js';
 import InvType from '#/cache/config/InvType.js';
 
-async function updateHiscores(account: { id: number, staffmodlevel: number, banned_until: string | null } | undefined, player: Player, profile: string) {
-    if (!account)
-        return;
+async function updateHiscores(account: { id: number; staffmodlevel: number; banned_until: string | null } | undefined, player: Player, profile: string) {
+    if (!account) return;
 
     if (account.staffmodlevel > 1) {
         return;
@@ -141,14 +139,14 @@ export default class LoginServer {
     }
 
     constructor() {
-        if (Environment.LOGIN_SERVER && !Environment.EASY_STARTUP) {
+        if (Environment.login.enabled && !Environment.easyStartup) {
             startManagementWeb();
         }
 
         InvType.load('data/pack');
 
-        this.server = new WebSocketServer({ port: Environment.LOGIN_PORT, host: '0.0.0.0' }, () => {
-            printInfo(`Login server listening on port ${Environment.LOGIN_PORT}`);
+        this.server = new WebSocketServer({ port: Environment.login.port, host: '0.0.0.0' }, () => {
+            printInfo(`Login server listening on port ${Environment.login.port}`);
         });
 
         this.server.on('connection', (s: WebSocket) => {
@@ -170,7 +168,7 @@ export default class LoginServer {
                     } else if (type === 'player_login') {
                         const { nodeMembers, replyTo, username, password, uid, socket, remoteAddress, reconnecting, hasSave } = msg;
                         const safeName = toSafeName(username);
-                        
+
                         if (this.loginRequests.has(safeName)) {
                             s.send(
                                 JSON.stringify({
@@ -195,16 +193,14 @@ export default class LoginServer {
                                 return;
                             }
 
-                            let account = await db.selectFrom('account')
-                                .leftJoin('account_login', join => join
-                                    .onRef('account_id', '=', 'id')
-                                    .on('profile', '=', profile)
-                                )
+                            let account = await db
+                                .selectFrom('account')
+                                .leftJoin('account_login', join => join.onRef('account_id', '=', 'id').on('profile', '=', profile))
                                 .where('username', '=', username)
                                 .selectAll()
                                 .executeTakeFirst();
 
-                            if (!Environment.WEBSITE_REGISTRATION && !account) {
+                            if (!Environment.website.registration && !account) {
                                 // register the user automatically
                                 const insertResult = await db
                                     .insertInto('account')
@@ -220,11 +216,9 @@ export default class LoginServer {
                                     return;
                                 }
 
-                                account = await db.selectFrom('account')
-                                    .leftJoin('account_login', join => join
-                                        .onRef('account_id', '=', 'id')
-                                        .on('profile', '=', profile)
-                                    )
+                                account = await db
+                                    .selectFrom('account')
+                                    .leftJoin('account_login', join => join.onRef('account_id', '=', 'id').on('profile', '=', profile))
                                     .where('username', '=', username)
                                     .selectAll()
                                     .executeTakeFirst();
@@ -253,7 +247,7 @@ export default class LoginServer {
                             }
 
                             if (nodeMembers && !account.members) {
-                                if (Environment.NODE_AUTO_SUBSCRIBE_MEMBERS) {
+                                if (Environment.node.autoSubscribeMembers) {
                                     // Set members=1 for the account and proceed with login
                                     await db.updateTable('account').where('id', '=', account.id).set('members', 1).executeTakeFirstOrThrow();
                                     account.members = 1;
@@ -324,13 +318,8 @@ export default class LoginServer {
                                     })
                                 );
                                 return;
-                            } else if (
-                                account.staffmodlevel < 2 &&
-                                account.logged_out !== 0 &&
-                                account.logged_out !== nodeId &&
-                                account.logout_time !== null
-                            ) {
-                                const remaining = new Date(account.logout_time).getTime() - new Date(Date.now() - Environment.NODE_HOP_TIME).getTime();
+                            } else if (account.staffmodlevel < 2 && account.logged_out !== 0 && account.logged_out !== nodeId && account.logout_time !== null) {
+                                const remaining = new Date(account.logout_time).getTime() - new Date(Date.now() - Environment.node.hopTime).getTime();
                                 if (remaining > 0) {
                                     // rate limited (hop timer)
                                     s.send(
@@ -400,7 +389,8 @@ export default class LoginServer {
 
                             // Login is valid - update account table
                             if (account.account_id) {
-                                await db.updateTable('account_login')
+                                await db
+                                    .updateTable('account_login')
                                     .set({
                                         logged_in: nodeId,
                                         login_time: toDbDate(new Date())
@@ -409,7 +399,8 @@ export default class LoginServer {
                                     .where('profile', '=', profile)
                                     .executeTakeFirst();
                             } else {
-                                await db.insertInto('account_login')
+                                await db
+                                    .insertInto('account_login')
                                     .values({
                                         account_id: account.id,
                                         profile: profile,
@@ -435,15 +426,13 @@ export default class LoginServer {
                             console.error(username, 'Invalid save file');
                         }
 
-                        const account = await db.selectFrom('account')
-                            .leftJoin('account_login', join => join
-                                .onRef('account_id', '=', 'id')
-                                .on('profile', '=', profile)
-                            )
+                        const account = await db
+                            .selectFrom('account')
+                            .leftJoin('account_login', join => join.onRef('account_id', '=', 'id').on('profile', '=', profile))
                             .where('username', '=', username)
                             .selectAll()
                             .executeTakeFirst();
-                        
+
                         if (account?.account_id) {
                             await db
                                 .updateTable('account_login')
@@ -484,10 +473,7 @@ export default class LoginServer {
 
                         const account = await db
                             .selectFrom('account')
-                            .leftJoin('account_login', join => join
-                                .onRef('account_id', '=', 'id')
-                                .on('profile', '=', profile)
-                            )
+                            .leftJoin('account_login', join => join.onRef('account_id', '=', 'id').on('profile', '=', profile))
                             .where('username', '=', username)
                             .selectAll()
                             .executeTakeFirst();
@@ -503,7 +489,6 @@ export default class LoginServer {
                                 .where('profile', '=', profile)
                                 .executeTakeFirst();
                         }
-                        
                     } else if (type === 'player_ban') {
                         const { _staff, username, until } = msg;
 

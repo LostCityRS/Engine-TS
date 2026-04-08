@@ -825,7 +825,7 @@ const PlayerOps: CommandHandlers = {
         const type = check(state.popInt(), NumberNotNull);
         state.activePlayer.write(new MinimapToggle(type));
     }),
-    
+
     [ScriptOpcode.SOFTTIMER]: checkedHandler(ActivePlayer, state => {
         const args = popScriptArgs(state);
         const interval = state.popInt();
@@ -1067,7 +1067,7 @@ const PlayerOps: CommandHandlers = {
     },
 
     [ScriptOpcode.AFK_EVENT]: state => {
-        state.pushInt((Environment.NODE_DEBUG || state.activePlayer.staffModLevel < 2) && state.activePlayer.afkEventReady ? 1 : 0);
+        state.pushInt((Environment.node.debug || state.activePlayer.staffModLevel < 2) && state.activePlayer.afkEventReady ? 1 : 0);
         state.activePlayer.afkEventReady = false;
     },
 
@@ -1215,8 +1215,8 @@ const PlayerOps: CommandHandlers = {
         const objType = ObjType.getByName(name);
 
         state.activePlayer.addWealthEvent({
-            event_type: eventType, 
-            account_items: [{ id: objType?.id, name, count }], 
+            event_type: eventType,
+            account_items: [{ id: objType?.id, name, count }],
             account_value: value
         });
     }),
@@ -1266,7 +1266,7 @@ const PlayerOps: CommandHandlers = {
         state.activePlayer = result.value;
         state.pointerAdd(ActivePlayer[state.intOperand]);
         state.pushInt(1);
-    },
+    }
 };
 
 /**

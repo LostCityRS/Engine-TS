@@ -1,5 +1,3 @@
-import 'dotenv/config';
-
 import InvType from '#/cache/config/InvType.js';
 import { NetworkPlayer } from '#/engine/entity/NetworkPlayer.js';
 import Player, { getExpByLevel, getLevelByExp } from '#/engine/entity/Player.js';

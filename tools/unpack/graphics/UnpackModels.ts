@@ -15,10 +15,10 @@ export const ModelPack = new PackFile('model');
 
 const cache = new FileStream('data/unpack');
 
-const existingFiles = listFilesExt(`${Environment.BUILD_SRC_DIR}/models`, '.ob2');
+const existingFiles = listFilesExt(`${Environment.build.srcDir}/models`, '.ob2');
 
-if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/models/_unpack`)) {
-    fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/models/_unpack`, { recursive: true });
+if (!fs.existsSync(`${Environment.build.srcDir}/models/_unpack`)) {
+    fs.mkdirSync(`${Environment.build.srcDir}/models/_unpack`, { recursive: true });
 }
 
 const versionlist = new Jagfile(new Packet(cache.read(0, 5)));
@@ -42,7 +42,7 @@ for (let id = 0; id <= models.length; id++) {
     const name = ModelPack.getById(id);
 
     const existingFile = existingFiles.find(x => x.endsWith(`/${name}.ob2`));
-    const destFile = existingFile ?? `${Environment.BUILD_SRC_DIR}/models/_unpack/${name}.ob2`;
+    const destFile = existingFile ?? `${Environment.build.srcDir}/models/_unpack/${name}.ob2`;
 
     const model = cache.read(1, id);
     if (model) {

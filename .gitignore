@@ -8,24 +8,12 @@ data/src/
 data/unpack/
 
 data/players/
-data/sessions/
-data/symbols/
 
-data/config/worlds.json
-data/config/login.json
-data/config/friend.json
+data/config/world.json
 
 dump/
 
 node_modules/
-
-# keep these precompiled files out of the repo
-bz2.dll
-JagCompress.jar
-RuneScriptCompiler.jar
-PreloadedDirs.ts
-
-*.bz2
 
 db.sqlite
 db.sqlite-journal

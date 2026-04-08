@@ -11,9 +11,9 @@ import { SynthPack, shouldBuildFile, shouldBuildFileAny } from '#tools/pack/Pack
 
 export function packClientSound(cache: FileStream) {
     const rebuild =
-        shouldBuildFileAny(`${Environment.BUILD_SRC_DIR}/synth`, 'data/pack/client/sounds') ||
-        shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/synth.order`, 'data/pack/client/sounds') ||
-        shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/synth.pack`, 'data/pack/client/sounds') ||
+        shouldBuildFileAny(`${Environment.build.srcDir}/synth`, 'data/pack/client/sounds') ||
+        shouldBuildFile(`${Environment.build.srcDir}/pack/synth.order`, 'data/pack/client/sounds') ||
+        shouldBuildFile(`${Environment.build.srcDir}/pack/synth.pack`, 'data/pack/client/sounds') ||
         shouldBuildFileAny('tools/pack/sound', 'data/pack/client/sounds');
 
     if (!rebuild && cache.has(0, 8)) {
@@ -21,8 +21,8 @@ export function packClientSound(cache: FileStream) {
     }
 
     if (rebuild) {
-        const order = loadOrder(`${Environment.BUILD_SRC_DIR}/pack/synth.order`);
-        const files = listFilesExt(`${Environment.BUILD_SRC_DIR}/synth`, '.synth');
+        const order = loadOrder(`${Environment.build.srcDir}/pack/synth.order`);
+        const files = listFilesExt(`${Environment.build.srcDir}/synth`, '.synth');
 
         const nameToFile = new Map();
         for (const file of files) {
@@ -55,7 +55,7 @@ export function packClientSound(cache: FileStream) {
         }
         out.p2(-1);
 
-        if (Environment.BUILD_VERIFY && !Packet.checkcrc(out.data, 0, out.pos, 2127412105)) {
+        if (Environment.build.verify && !Packet.checkcrc(out.data, 0, out.pos, 2127412105)) {
             throw new Error('.synth checksum mismatch!\nYou can disable this safety check by setting BUILD_VERIFY=false');
         }
 

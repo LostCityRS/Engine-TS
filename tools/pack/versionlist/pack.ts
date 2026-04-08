@@ -10,24 +10,24 @@ import { shouldBuild, shouldBuildFile, shouldBuildFileAny } from '#tools/pack/Pa
 
 export function shouldRebuildVersionListPack() {
     return (
-        shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/model.pack`, 'data/pack/client/versionlist') ||
-        shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/anim.pack`, 'data/pack/client/versionlist') ||
-        shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/animset.pack`, 'data/pack/client/versionlist') ||
-        shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/map.pack`, 'data/pack/client/versionlist') ||
-        shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/midi.pack`, 'data/pack/client/versionlist') ||
-        shouldBuildFileAny(`${Environment.BUILD_SRC_DIR}/models`, 'data/pack/client/versionlist') ||
-        shouldBuildFileAny(`${Environment.BUILD_SRC_DIR}/maps`, 'data/pack/client/versionlist') ||
-        shouldBuildFileAny(`${Environment.BUILD_SRC_DIR}/jingles`, 'data/pack/client/versionlist') ||
-        shouldBuildFileAny(`${Environment.BUILD_SRC_DIR}/songs`, 'data/pack/client/versionlist') ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.idk', 'data/pack/client/versionlist') ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.npc', 'data/pack/client/versionlist') ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.obj', 'data/pack/client/versionlist') ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.loc', 'data/pack/client/versionlist') ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.spotanim', 'data/pack/client/versionlist') ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.if', 'data/pack/client/versionlist') ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varp', 'data/pack/client/versionlist') ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.varbit', 'data/pack/client/versionlist') ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.seq', 'data/pack/client/versionlist') ||
+        shouldBuildFile(`${Environment.build.srcDir}/pack/model.pack`, 'data/pack/client/versionlist') ||
+        shouldBuildFile(`${Environment.build.srcDir}/pack/anim.pack`, 'data/pack/client/versionlist') ||
+        shouldBuildFile(`${Environment.build.srcDir}/pack/animset.pack`, 'data/pack/client/versionlist') ||
+        shouldBuildFile(`${Environment.build.srcDir}/pack/map.pack`, 'data/pack/client/versionlist') ||
+        shouldBuildFile(`${Environment.build.srcDir}/pack/midi.pack`, 'data/pack/client/versionlist') ||
+        shouldBuildFileAny(`${Environment.build.srcDir}/models`, 'data/pack/client/versionlist') ||
+        shouldBuildFileAny(`${Environment.build.srcDir}/maps`, 'data/pack/client/versionlist') ||
+        shouldBuildFileAny(`${Environment.build.srcDir}/jingles`, 'data/pack/client/versionlist') ||
+        shouldBuildFileAny(`${Environment.build.srcDir}/songs`, 'data/pack/client/versionlist') ||
+        shouldBuild(`${Environment.build.srcDir}/scripts`, '.idk', 'data/pack/client/versionlist') ||
+        shouldBuild(`${Environment.build.srcDir}/scripts`, '.npc', 'data/pack/client/versionlist') ||
+        shouldBuild(`${Environment.build.srcDir}/scripts`, '.obj', 'data/pack/client/versionlist') ||
+        shouldBuild(`${Environment.build.srcDir}/scripts`, '.loc', 'data/pack/client/versionlist') ||
+        shouldBuild(`${Environment.build.srcDir}/scripts`, '.spotanim', 'data/pack/client/versionlist') ||
+        shouldBuild(`${Environment.build.srcDir}/scripts`, '.if', 'data/pack/client/versionlist') ||
+        shouldBuild(`${Environment.build.srcDir}/scripts`, '.varp', 'data/pack/client/versionlist') ||
+        shouldBuild(`${Environment.build.srcDir}/scripts`, '.varbit', 'data/pack/client/versionlist') ||
+        shouldBuild(`${Environment.build.srcDir}/scripts`, '.seq', 'data/pack/client/versionlist') ||
         shouldBuildFileAny('tools/pack/versionlist', 'data/pack/client/versionlist') ||
         shouldBuildFileAny('tools/pack/map', 'data/pack/client/versionlist') ||
         shouldBuildFileAny('tools/pack/interface', 'data/pack/client/versionlist') ||
@@ -123,7 +123,7 @@ export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
             midiVersion.p2(1);
             midiCrc.p4(Packet.getcrc(data, 0, data.length - 2));
             // used for prefetching jingles
-            midiIndex.pbool(fileExists(`${Environment.BUILD_SRC_DIR}/jingles/${MidiPack.getById(id)}.mid`));
+            midiIndex.pbool(fileExists(`${Environment.build.srcDir}/jingles/${MidiPack.getById(id)}.mid`));
         } else {
             midiVersion.p2(0);
             midiCrc.p4(0);
@@ -148,7 +148,7 @@ export function packClientVersionList(cache: FileStream, modelFlags: number[]) {
         }
     }
 
-    const free2play = fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').split(/\r?\n/);
+    const free2play = fs.readFileSync(`${Environment.build.srcDir}/maps/free2play.csv`, 'ascii').split(/\r?\n/);
     const prefetch = new Set();
     for (let index: number = 0; index < free2play.length; index++) {
         const line: string = free2play[index];

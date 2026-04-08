@@ -21,7 +21,7 @@ export function printError(message: string | Error) {
     if (message instanceof Error) {
         console.error(kleur.magenta(`${now.toLocaleDateString()} ${now.toLocaleTimeString()}\t`), kleur.red('ERROR\t'), message.message);
 
-        if (Environment.BUILD_VERBOSE) {
+        if (Environment.build.verbose) {
             console.error(message.stack);
         }
     } else {
@@ -35,7 +35,7 @@ export function printFatalError(message: string | Error) {
     if (message instanceof Error) {
         console.error(kleur.magenta(`${now.toLocaleDateString()} ${now.toLocaleTimeString()}\t`), kleur.red('ERROR\t'), message.message);
 
-        if (Environment.BUILD_VERBOSE) {
+        if (Environment.build.verbose) {
             console.error(message.stack);
         }
     } else {

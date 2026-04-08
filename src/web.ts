@@ -52,7 +52,7 @@ function resolveContentPath(name: string): string | null {
         return null;
     }
 
-    const contentRoot = path.resolve(Environment.BUILD_SRC_DIR);
+    const contentRoot = path.resolve(Environment.build.srcDir);
     const targetPath = path.resolve(contentRoot, decodedName);
     const relativePath = path.relative(contentRoot, targetPath);
 
@@ -109,13 +109,13 @@ async function handleWebRequest(req: Request): Promise<Response> {
             const plugin = tryParseInt(url.searchParams.get('plugin'), 0);
             const lowmem = tryParseInt(url.searchParams.get('lowmem'), 0);
 
-            if (Environment.NODE_DEBUG && plugin === 1) {
+            if (Environment.node.debug && plugin === 1) {
                 return new Response(
                     await ejs.renderFile('view/java.ejs', {
-                        nodeid: Environment.NODE_ID,
+                        nodeid: Environment.node.id,
                         lowmem,
-                        members: Environment.NODE_MEMBERS,
-                        portoff: Environment.NODE_PORT - 43594
+                        members: Environment.node.members,
+                        portoff: Environment.node.port - 43594
                     }),
                     {
                         headers: {
@@ -127,9 +127,9 @@ async function handleWebRequest(req: Request): Promise<Response> {
 
             return new Response(
                 await ejs.renderFile('view/client.ejs', {
-                    nodeid: Environment.NODE_ID,
+                    nodeid: Environment.node.id,
                     lowmem,
-                    members: Environment.NODE_MEMBERS
+                    members: Environment.node.members
                 }),
                 {
                     headers: {
@@ -141,7 +141,7 @@ async function handleWebRequest(req: Request): Promise<Response> {
             if (fileExists('data/pack/mapview/worldmap.jag')) {
                 return streamFile('data/pack/mapview/worldmap.jag', 'application/octet-stream');
             }
-        } else if (Environment.NODE_DEBUG) {
+        } else if (Environment.node.debug) {
             if (url.pathname === '/maped') {
                 return new Response(await ejs.renderFile('view/maped.ejs'), {
                     headers: {
@@ -172,7 +172,7 @@ async function handleWebRequest(req: Request): Promise<Response> {
             return streamFile(publicPath, MIME_TYPES.get(path.extname(url.pathname ?? '')) ?? 'text/plain');
         }
     } else if (req.method === 'PUT') {
-        if (Environment.NODE_DEBUG) {
+        if (Environment.node.debug) {
             if (url.pathname.startsWith('/content/')) {
                 const name = url.pathname.replace('/content/', '');
                 const filePath = resolveContentPath(name);
@@ -265,7 +265,7 @@ async function writeNodeResponse(res: ServerResponse, response: Response): Promi
 async function startNodeWeb(): Promise<void> {
     const server = http.createServer(async (req, res) => {
         try {
-            const response = await handleWebRequest(createNodeRequest(req, Environment.WEB_PORT));
+            const response = await handleWebRequest(createNodeRequest(req, Environment.web.port));
             await writeNodeResponse(res, response);
         } catch (err) {
             console.error(err);
@@ -280,14 +280,14 @@ async function startNodeWeb(): Promise<void> {
     });
 
     server.on('upgrade', (req, socket, head) => {
-        const url = new URL(req.url ?? '/', `http://${req.headers.host ?? `localhost:${Environment.WEB_PORT}`}`);
+        const url = new URL(req.url ?? '/', `http://${req.headers.host ?? `localhost:${Environment.web.port}`}`);
         if (url.pathname !== '/') {
             socket.destroy();
             return;
         }
 
         const origin = getHeader(req.headers, 'origin');
-        if (Environment.WEB_ALLOWED_ORIGIN && origin !== Environment.WEB_ALLOWED_ORIGIN) {
+        if (Environment.web.allowedOrigin && origin !== Environment.web.allowedOrigin) {
             socket.destroy();
             return;
         }
@@ -321,7 +321,7 @@ async function startNodeWeb(): Promise<void> {
                     if (client.state === 0) {
                         World.onClientData(client);
                     } else if (client.state === 2) {
-                        if (Environment.NODE_WS_ONDEMAND) {
+                        if (Environment.node.wsOnDemand) {
                             OnDemand.onClientData(client);
                         } else {
                             client.terminate();
@@ -348,13 +348,13 @@ async function startNodeWeb(): Promise<void> {
     });
 
     await new Promise<void>(resolve => {
-        server.listen(Environment.WEB_PORT, '0.0.0.0', () => resolve());
+        server.listen(Environment.web.port, '0.0.0.0', () => resolve());
     });
 }
 
 async function startBunWeb(): Promise<void> {
     Bun.serve<WebSocketData, never>({
-        port: Environment.WEB_PORT,
+        port: Environment.web.port,
         async fetch(req, server) {
             const url = new URL(req.url ?? `http://${req.headers.get('host')}`);
 
@@ -379,7 +379,7 @@ async function startBunWeb(): Promise<void> {
         websocket: {
             maxPayloadLength: 2000,
             open(ws) {
-                if (Environment.WEB_ALLOWED_ORIGIN && ws.data.origin !== Environment.WEB_ALLOWED_ORIGIN) {
+                if (Environment.web.allowedOrigin && ws.data.origin !== Environment.web.allowedOrigin) {
                     ws.terminate();
                     return;
                 }
@@ -399,7 +399,7 @@ async function startBunWeb(): Promise<void> {
                     if (client.state === 0) {
                         World.onClientData(client);
                     } else if (client.state === 2) {
-                        if (Environment.NODE_WS_ONDEMAND) {
+                        if (Environment.node.wsOnDemand) {
                             OnDemand.onClientData(client);
                         } else {
                             client.terminate();
@@ -425,7 +425,7 @@ async function startBunWeb(): Promise<void> {
 async function startNodeManagementWeb(): Promise<void> {
     const server = http.createServer(async (req, res) => {
         try {
-            const response = await handleManagementRequest(createNodeRequest(req, Environment.WEB_MANAGEMENT_PORT));
+            const response = await handleManagementRequest(createNodeRequest(req, Environment.web.managementPort));
             await writeNodeResponse(res, response);
         } catch (err) {
             console.error(err);
@@ -435,13 +435,13 @@ async function startNodeManagementWeb(): Promise<void> {
     });
 
     await new Promise<void>(resolve => {
-        server.listen(Environment.WEB_MANAGEMENT_PORT, '0.0.0.0', () => resolve());
+        server.listen(Environment.web.managementPort, '0.0.0.0', () => resolve());
     });
 }
 
 async function startBunManagementWeb(): Promise<void> {
     Bun.serve({
-        port: Environment.WEB_MANAGEMENT_PORT,
+        port: Environment.web.managementPort,
         fetch(req) {
             return handleManagementRequest(req);
         }
@@ -449,7 +449,7 @@ async function startBunManagementWeb(): Promise<void> {
 }
 
 export async function startWeb() {
-    if (Environment.IS_BUN) {
+    if (Environment.runtime.isBun) {
         await startBunWeb();
     } else {
         await startNodeWeb();
@@ -457,7 +457,7 @@ export async function startWeb() {
 }
 
 export async function startManagementWeb() {
-    if (Environment.IS_BUN) {
+    if (Environment.runtime.isBun) {
         await startBunManagementWeb();
     } else {
         await startNodeManagementWeb();

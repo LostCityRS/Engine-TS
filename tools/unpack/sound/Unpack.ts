@@ -16,12 +16,12 @@ class Wave {
     static order: number[] = [];
 
     static unpack(buf: Packet, keepNames: boolean = true) {
-        if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/synth`)) {
-            fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/synth`);
+        if (!fs.existsSync(`${Environment.build.srcDir}/synth`)) {
+            fs.mkdirSync(`${Environment.build.srcDir}/synth`);
         }
 
         // can't trust synth IDs to remain stable
-        const existingFiles = listFilesExt(`${Environment.BUILD_SRC_DIR}/synth`, '.synth');
+        const existingFiles = listFilesExt(`${Environment.build.srcDir}/synth`, '.synth');
         const crcs: Map<number, string> = new Map();
 
         if (!keepNames) {
@@ -32,7 +32,7 @@ class Wave {
                 if (crcs.get(crc)) {
                     printWarning(`${file} has CRC collision with ${crcs.get(crc)}`);
                 }
-            
+
                 crcs.set(crc, path.basename(file));
             }
         }
@@ -67,7 +67,7 @@ class Wave {
                     if (!filePath) {
                         printWarning(`${existing} should exist but does not`);
 
-                        fs.writeFileSync(`${Environment.BUILD_SRC_DIR}/synth/${existing}`, data);
+                        fs.writeFileSync(`${Environment.build.srcDir}/synth/${existing}`, data);
                     } else {
                         fs.writeFileSync(filePath, data);
                     }
@@ -84,14 +84,14 @@ class Wave {
 
             const filePath = existingFiles.find(x => x.endsWith(`/${name}.synth`));
             if (!filePath) {
-                fs.writeFileSync(`${Environment.BUILD_SRC_DIR}/synth/${name}.synth`, data);
+                fs.writeFileSync(`${Environment.build.srcDir}/synth/${name}.synth`, data);
             } else {
                 fs.writeFileSync(filePath, data);
             }
         }
 
         SynthPack.save();
-        fs.writeFileSync(`${Environment.BUILD_SRC_DIR}/pack/synth.order`, this.order.join('\n') + '\n');
+        fs.writeFileSync(`${Environment.build.srcDir}/pack/synth.order`, this.order.join('\n') + '\n');
     }
 
     tones: Tone[] = [];
@@ -229,7 +229,7 @@ class Filter {
     unpack(buf: Packet, envelope: Envelope) {
         const count = buf.g1();
         this.pairs[0] = count >> 4;
-        this.pairs[1] = count & 0xF;
+        this.pairs[1] = count & 0xf;
 
         if (count !== 0) {
             this.unities[0] = buf.g2();
@@ -258,7 +258,7 @@ class Filter {
 
             for (let direction = 0; direction < 2; direction++) {
                 for (let pair = 0; pair < this.pairs[direction]; pair++) {
-                    if ((migration & (1 << (direction * 4) << pair)) !== 0) {
+                    if ((migration & ((1 << (direction * 4)) << pair)) !== 0) {
                         this.frequencies[direction][1][pair] = buf.g2();
                         this.ranges[direction][1][pair] = buf.g2();
                     } else {
@@ -285,11 +285,11 @@ if (!soundsData) {
     throw new Error('missing sounds.dat');
 }
 
-if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/synth`)) {
-    fs.mkdirSync(`${Environment.BUILD_SRC_DIR}/synth`);
+if (!fs.existsSync(`${Environment.build.srcDir}/synth`)) {
+    fs.mkdirSync(`${Environment.build.srcDir}/synth`);
 }
 
 Wave.unpack(soundsData);
 
-// fs.writeFileSync(`${Environment.BUILD_SRC_DIR}/pack/synth.pack`, pack);
-// fs.writeFileSync(`${Environment.BUILD_SRC_DIR}/pack/synth.order`, order);
+// fs.writeFileSync(`${Environment.build.srcDir}/pack/synth.pack`, pack);
+// fs.writeFileSync(`${Environment.build.srcDir}/pack/synth.order`, order);

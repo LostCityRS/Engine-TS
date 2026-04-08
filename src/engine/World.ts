@@ -116,8 +116,8 @@ class World {
     private loggerThread = createRuntimeWorker(new URL('../server/logger/LoggerThread.ts', import.meta.url));
     private devThread: Worker | null = null;
 
-    private static readonly PLAYERS: number = Environment.NODE_MAX_PLAYERS;
-    private static readonly NPCS: number = Environment.NODE_MAX_NPCS;
+    private static readonly PLAYERS: number = Environment.node.maxPlayers;
+    private static readonly NPCS: number = Environment.node.maxNpcs;
 
     private static readonly TICKRATE: number = 600; // ms (0.6s) - DO NOT CHANGE. This is only exposed for condensing time while testing long-running operations.
 
@@ -130,11 +130,11 @@ class World {
     private static readonly AFK_CHANCE1: number = 1 / (120 / 5); // 1/24 - 4% chance every 5 mins: avg 1 event every 2 hrs
     private static readonly AFK_CHANCE2: number = 1 / (60 / 5); // 1/12 - 8% chance every 5 mins: avg 1 event every 1 hr while "aggro zone" hasn't changed
 
-    private static readonly TIMEOUT_NO_CONNECTION: number = Environment.NODE_DEBUG_SOCKET ? 60000 : 50; // 30s with no connection (16 ticks in osrs)
-    private static readonly TIMEOUT_NO_RESPONSE: number = Environment.NODE_DEBUG_SOCKET ? 60000 : 100; // 60s without any response
+    private static readonly TIMEOUT_NO_CONNECTION: number = Environment.node.debugSocket ? 60000 : 50; // 30s with no connection (16 ticks in osrs)
+    private static readonly TIMEOUT_NO_RESPONSE: number = Environment.node.debugSocket ? 60000 : 100; // 60s without any response
 
     // the game/zones map
-    readonly gameMap: GameMap = new GameMap(Environment.NODE_MEMBERS);
+    readonly gameMap: GameMap = new GameMap(Environment.node.members);
 
     // shared inventories (shops)
     readonly invs: Set<Inventory> = new Set();
@@ -197,7 +197,7 @@ class World {
                 platform: process.platform,
                 bun: process.versions.bun ?? null,
                 node: process.versions.node ?? null,
-                liveReload: !Environment.NODE_PRODUCTION && Environment.BUILD_LIVE_RELOAD
+                liveReload: !Environment.node.production && Environment.build.liveReload
             },
             memory: {
                 rss: usage.rss,
@@ -355,7 +355,7 @@ class World {
         Component.load('data/pack');
 
         const count = ScriptProvider.load('data/pack');
-        if (Environment.NODE_DEBUG) {
+        if (Environment.node.debug) {
             if (count === -1) {
                 this.broadcastMes('There was an issue while reloading scripts.');
             } else {
@@ -396,18 +396,18 @@ class World {
             });
         }, 2000);
 
-        if (!Environment.NODE_PRODUCTION && Environment.BUILD_LIVE_RELOAD) {
+        if (!Environment.node.production && Environment.build.liveReload) {
             this.createDevThread();
 
-            if (Environment.BUILD_STARTUP) {
+            if (Environment.build.startup) {
                 this.rebuild();
             }
         }
 
-        if (Environment.WEB_PORT === 80) {
+        if (Environment.web.port === 80) {
             printInfo(kleur.green().bold('World ready') + kleur.white().bold(': Visit http://localhost/rs2.cgi'));
         } else {
-            printInfo(kleur.green().bold('World ready') + kleur.white().bold(': Visit http://localhost:' + Environment.WEB_PORT + '/rs2.cgi'));
+            printInfo(kleur.green().bold('World ready') + kleur.white().bold(': Visit http://localhost:' + Environment.web.port + '/rs2.cgi'));
         }
 
         if (startCycle) {
@@ -557,7 +557,7 @@ class World {
             this.lastCycleStats[WorldStat.BANDWIDTH_OUT] = this.cycleStats[WorldStat.BANDWIDTH_OUT];
 
             // push stats to prometheus
-            if (Environment.NODE_PRODUCTION) {
+            if (Environment.node.production) {
                 trackPlayerCount.set(this.getTotalPlayers());
                 trackNpcCount.set(this.getTotalNpcs());
 
@@ -575,7 +575,7 @@ class World {
                 trackCycleBandwidthOutBytes.inc(this.cycleStats[WorldStat.BANDWIDTH_OUT]);
             }
 
-            if (Environment.NODE_DEBUG_PROFILE) {
+            if (Environment.node.debugProfile) {
                 printInfo(`tick ${this.currentTick}: ${this.cycleStats[WorldStat.CYCLE]}/${this.tickRate} ms, ${Math.trunc(process.memoryUsage().heapTotal / 1024 / 1024)} MB heap`);
                 printDebug(`${this.getTotalPlayers()}/${World.PLAYERS} players | ${this.getTotalNpcs()}/${World.NPCS} npcs | ${this.gameMap.getTotalZones()} zones | ${this.gameMap.getTotalLocs()} locs | ${this.gameMap.getTotalObjs()} objs`);
                 printDebug(
@@ -583,7 +583,7 @@ class World {
                 );
             }
 
-            if (Environment.NODE_DEBUG_MEMORY && tick % Math.max(1, Environment.NODE_DEBUG_MEMORY_RATE) === 0) {
+            if (Environment.node.debugMemory && tick % Math.max(1, Environment.node.debugMemoryRate) === 0) {
                 this.logMemorySnapshot();
             }
 
@@ -911,7 +911,7 @@ class World {
                     }
 
                     if (isClientConnected(other)) {
-                        player.addSessionLog(LoggerEventType.MODERATOR, 'Logged to world ' + Environment.NODE_ID + ' replacing session', other.client.uuid);
+                        player.addSessionLog(LoggerEventType.MODERATOR, 'Logged to world ' + Environment.node.id + ' replacing session', other.client.uuid);
                         other.client.close();
                     }
 
@@ -1719,7 +1719,7 @@ class World {
             type: 'private_message',
             username: player.username,
             staffLvl: player.staffModLevel,
-            pmId: (Environment.NODE_ID << 24) + ((Math.random() * 0xff) << 16) + this.pmCount++,
+            pmId: (Environment.node.id << 24) + ((Math.random() * 0xff) << 16) + this.pmCount++,
             target: targetUsername37,
             message: message,
             coord: player.coord
@@ -1837,7 +1837,7 @@ class World {
                     if (msg.error) {
                         console.error(msg.error);
 
-                        this.broadcastMes(msg.error.replaceAll(`${Environment.BUILD_SRC_DIR}/scripts/`, ''));
+                        this.broadcastMes(msg.error.replaceAll(`${Environment.build.srcDir}/scripts/`, ''));
                         this.broadcastMes('Check the console for more information.');
                     }
                 } else if (msg.type === 'dev_progress') {
@@ -1995,7 +1995,7 @@ class World {
                     return;
                 }
 
-                if (!Environment.NODE_MEMBERS && !this.gameMap.isFreeToPlay(player.x, player.z)) {
+                if (!Environment.node.members && !this.gameMap.isFreeToPlay(player.x, player.z)) {
                     // in a p2p zone when logging into f2p
                     if (player.members) {
                         client.send(Uint8Array.from([17]));
@@ -2199,12 +2199,12 @@ class World {
         if (client.opcode === 14) {
             client.send(Uint8Array.from([0, 0, 0, 0, 0, 0, 0, 0]));
 
-            if (Environment.NODE_PRODUCTION && Environment.NODE_RATELIMIT_ADDRESS_LOGIN > 0) {
+            if (Environment.node.production && Environment.node.rateLimitAddressLogin > 0) {
                 const last = this.loginAddressAttempts.get(client.remoteAddress);
                 const attempts = last ? last + 1 : 1;
                 this.loginAddressAttempts.set(client.remoteAddress, attempts);
 
-                if (attempts >= Environment.NODE_RATELIMIT_ADDRESS_LOGIN) {
+                if (attempts >= Environment.node.rateLimitAddressLogin) {
                     // login attempts exceeded
                     client.send(Uint8Array.from([16]));
                     client.close();
@@ -2224,7 +2224,7 @@ class World {
             if (rev === 0xff) {
                 rev = World.loginBuf.g2();
             }
-            if (rev !== Environment.ENGINE_REVISION) {
+            if (rev !== Environment.engine.revision) {
                 client.send(Uint8Array.from([6]));
                 client.close();
                 return;
@@ -2267,12 +2267,12 @@ class World {
             const username = World.loginBuf.gjstr();
             const password = World.loginBuf.gjstr();
 
-            if (Environment.NODE_PRODUCTION && Environment.NODE_RATELIMIT_DEVICE_LOGIN > 0) {
+            if (Environment.node.production && Environment.node.rateLimitDeviceLogin > 0) {
                 const last = this.loginDeviceAttempts.get(`${uid}@${client.remoteAddress}`);
                 const attempts = last ? last + 1 : 1;
                 this.loginDeviceAttempts.set(`${uid}@${client.remoteAddress}`, attempts);
 
-                if (attempts >= Environment.NODE_RATELIMIT_DEVICE_LOGIN) {
+                if (attempts >= Environment.node.rateLimitDeviceLogin) {
                     // login attempts exceeded
                     client.send(Uint8Array.from([16]));
                     client.close();
@@ -2292,7 +2292,7 @@ class World {
                 return;
             }
 
-            if (this.getTotalPlayers() > Environment.NODE_MAX_CONNECTED) {
+            if (this.getTotalPlayers() > Environment.node.maxConnected) {
                 client.send(Uint8Array.from([7]));
                 client.close();
                 return;
@@ -2341,7 +2341,7 @@ class World {
     }
 
     addWealthEvent(event: WealthEvent) {
-        if (filteredEventTypes.includes(event.event_type) && Math.abs(event.account_value) < Environment.NODE_MINIMUM_WEALTH_VALUE_EVENT) {
+        if (filteredEventTypes.includes(event.event_type) && Math.abs(event.account_value) < Environment.node.minimumWealthValueEvent) {
             return;
         }
 

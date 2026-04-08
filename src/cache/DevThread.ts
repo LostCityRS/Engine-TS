@@ -111,15 +111,15 @@ if (parentPort) {
     });
 }
 
-trackDir(`${Environment.BUILD_SRC_DIR}/maps`);
-trackDir(`${Environment.BUILD_SRC_DIR}/songs`);
-trackDir(`${Environment.BUILD_SRC_DIR}/jingles`);
-trackDir(`${Environment.BUILD_SRC_DIR}/binary`);
-trackDir(`${Environment.BUILD_SRC_DIR}/fonts`);
-trackDir(`${Environment.BUILD_SRC_DIR}/title`);
-trackDir(`${Environment.BUILD_SRC_DIR}/scripts`);
-trackDir(`${Environment.BUILD_SRC_DIR}/sprites`);
-trackDir(`${Environment.BUILD_SRC_DIR}/models`);
-trackDir(`${Environment.BUILD_SRC_DIR}/textures`);
-trackDir(`${Environment.BUILD_SRC_DIR}/synth`);
-trackDir(`${Environment.BUILD_SRC_DIR}/wordenc`);
+trackDir(`${Environment.build.srcDir}/maps`);
+trackDir(`${Environment.build.srcDir}/songs`);
+trackDir(`${Environment.build.srcDir}/jingles`);
+trackDir(`${Environment.build.srcDir}/binary`);
+trackDir(`${Environment.build.srcDir}/fonts`);
+trackDir(`${Environment.build.srcDir}/title`);
+trackDir(`${Environment.build.srcDir}/scripts`);
+trackDir(`${Environment.build.srcDir}/sprites`);
+trackDir(`${Environment.build.srcDir}/models`);
+trackDir(`${Environment.build.srcDir}/textures`);
+trackDir(`${Environment.build.srcDir}/synth`);
+trackDir(`${Environment.build.srcDir}/wordenc`);

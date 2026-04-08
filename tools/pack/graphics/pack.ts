@@ -11,11 +11,11 @@ import { AnimSetPack, ModelPack, shouldBuild, shouldBuildFile } from '#tools/pac
 import { printWarning } from '#/util/Logger.js';
 
 export function packClientGraphics(cache: FileStream, modelFlags: number[]) {
-    const models = listFilesExt(`${Environment.BUILD_SRC_DIR}/models`, '.ob2');
-    const toolChanged = didFileSetChange('data/pack/.stamps/graphics-tools.txt', [Environment.IS_BUN ? __filename : import.meta.filename]);
-    const rebuildModelsArchive = shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/model.pack`, 'data/pack/main_file_cache.idx1');
+    const models = listFilesExt(`${Environment.build.srcDir}/models`, '.ob2');
+    const toolChanged = didFileSetChange('data/pack/.stamps/graphics-tools.txt', [Environment.runtime.isBun ? __filename : import.meta.filename]);
+    const rebuildModelsArchive = shouldBuildFile(`${Environment.build.srcDir}/pack/model.pack`, 'data/pack/main_file_cache.idx1');
     const needsModelHydration = rebuildModelsArchive || cache.count(1) === 0;
-    const needsModelPackWork = rebuildModelsArchive || shouldBuild(`${Environment.BUILD_SRC_DIR}/models`, '.ob2', getArtifactManifestPath('graphics-models')) || toolChanged;
+    const needsModelPackWork = rebuildModelsArchive || shouldBuild(`${Environment.build.srcDir}/models`, '.ob2', getArtifactManifestPath('graphics-models')) || toolChanged;
     const modelStore = openArtifactStore('graphics-models', rebuildModelsArchive);
     const modelManifest = loadArtifactManifest('graphics-models', rebuildModelsArchive);
     let modelManifestDirty = false;
@@ -24,10 +24,10 @@ export function packClientGraphics(cache: FileStream, modelFlags: number[]) {
         cache.clearArchive(1);
     }
 
-    const anims = listFilesExt(`${Environment.BUILD_SRC_DIR}/models`, '.anim');
-    const rebuildAnimsArchive = shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/animset.pack`, 'data/pack/main_file_cache.idx2');
+    const anims = listFilesExt(`${Environment.build.srcDir}/models`, '.anim');
+    const rebuildAnimsArchive = shouldBuildFile(`${Environment.build.srcDir}/pack/animset.pack`, 'data/pack/main_file_cache.idx2');
     const needsAnimHydration = rebuildAnimsArchive || cache.count(2) === 0;
-    const needsAnimPackWork = rebuildAnimsArchive || shouldBuild(`${Environment.BUILD_SRC_DIR}/models`, '.anim', getArtifactManifestPath('graphics-anims')) || toolChanged;
+    const needsAnimPackWork = rebuildAnimsArchive || shouldBuild(`${Environment.build.srcDir}/models`, '.anim', getArtifactManifestPath('graphics-anims')) || toolChanged;
     const animStore = openArtifactStore('graphics-anims', rebuildAnimsArchive);
     const animManifest = loadArtifactManifest('graphics-anims', rebuildAnimsArchive);
     let animManifestDirty = false;

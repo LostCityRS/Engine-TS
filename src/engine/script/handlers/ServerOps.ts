@@ -18,11 +18,11 @@ const ServerOps: CommandHandlers = {
     },
 
     [ScriptOpcode.MAP_MEMBERS]: state => {
-        state.pushInt(Environment.NODE_MEMBERS ? 1 : 0);
+        state.pushInt(Environment.node.members ? 1 : 0);
     },
 
     [ScriptOpcode.MAP_LIVE]: state => {
-        state.pushInt(Environment.NODE_PRODUCTION ? 1 : 0);
+        state.pushInt(Environment.node.production ? 1 : 0);
     },
 
     [ScriptOpcode.MAP_PLAYERCOUNT]: state => {
@@ -74,7 +74,7 @@ const ServerOps: CommandHandlers = {
             return;
         }
 
-        if (!Environment.NODE_MEMBERS && !World.gameMap.isFreeToPlay(to.x, to.z)) {
+        if (!Environment.node.members && !World.gameMap.isFreeToPlay(to.x, to.z)) {
             state.pushInt(0);
             return;
         }
@@ -130,7 +130,7 @@ const ServerOps: CommandHandlers = {
     [ScriptOpcode.MAP_BLOCKED]: state => {
         const coord: CoordGrid = check(state.popInt(), CoordValid);
 
-        if (!Environment.NODE_MEMBERS && !World.gameMap.isFreeToPlay(coord.x, coord.z)) {
+        if (!Environment.node.members && !World.gameMap.isFreeToPlay(coord.x, coord.z)) {
             state.pushInt(1);
             return;
         }
@@ -154,7 +154,7 @@ const ServerOps: CommandHandlers = {
             return;
         }
 
-        if (!Environment.NODE_MEMBERS && !World.gameMap.isFreeToPlay(to.x, to.z)) {
+        if (!Environment.node.members && !World.gameMap.isFreeToPlay(to.x, to.z)) {
             state.pushInt(0);
             return;
         }
@@ -258,7 +258,7 @@ const ServerOps: CommandHandlers = {
         check(maxRadius, NumberPositive);
         check(type, FindSquareValid);
         const origin: CoordGrid = check(coord, CoordValid);
-        const freeWorld = !Environment.NODE_MEMBERS;
+        const freeWorld = !Environment.node.members;
         if (maxRadius < 10) {
             if (type === MapFindSquareType.NONE) {
                 for (let i = 0; i < 50; i++) {

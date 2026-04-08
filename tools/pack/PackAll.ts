@@ -27,7 +27,7 @@ const MODEL_FLAG_CONFIG_EXTENSIONS = ['.idk', '.loc', '.npc', '.obj', '.spotanim
 
 function shouldBuildFromScripts(exts: string[], out: string) {
     for (const ext of exts) {
-        if (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, ext, out)) {
+        if (shouldBuild(`${Environment.build.srcDir}/scripts`, ext, out)) {
             return true;
         }
     }
@@ -40,32 +40,32 @@ function shouldRunServerCompiler() {
 
     return (
         !fileExists('data/pack/server/script.idx') ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.rs2', out) ||
+        shouldBuild(`${Environment.build.srcDir}/scripts`, '.rs2', out) ||
         shouldBuildFromScripts(COMPILER_DIRECT_SOURCE_EXTENSIONS, out) ||
         shouldBuildFileList(
             [
-                `${Environment.BUILD_SRC_DIR}/pack/category.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/dbrow.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/dbtable.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/enum.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/hunt.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/idk.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/interface.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/inv.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/loc.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/mesanim.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/midi.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/npc.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/obj.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/param.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/script.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/seq.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/spotanim.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/struct.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/varbit.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/varn.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/varp.pack`,
-                `${Environment.BUILD_SRC_DIR}/pack/vars.pack`,
+                `${Environment.build.srcDir}/pack/category.pack`,
+                `${Environment.build.srcDir}/pack/dbrow.pack`,
+                `${Environment.build.srcDir}/pack/dbtable.pack`,
+                `${Environment.build.srcDir}/pack/enum.pack`,
+                `${Environment.build.srcDir}/pack/hunt.pack`,
+                `${Environment.build.srcDir}/pack/idk.pack`,
+                `${Environment.build.srcDir}/pack/interface.pack`,
+                `${Environment.build.srcDir}/pack/inv.pack`,
+                `${Environment.build.srcDir}/pack/loc.pack`,
+                `${Environment.build.srcDir}/pack/mesanim.pack`,
+                `${Environment.build.srcDir}/pack/midi.pack`,
+                `${Environment.build.srcDir}/pack/npc.pack`,
+                `${Environment.build.srcDir}/pack/obj.pack`,
+                `${Environment.build.srcDir}/pack/param.pack`,
+                `${Environment.build.srcDir}/pack/script.pack`,
+                `${Environment.build.srcDir}/pack/seq.pack`,
+                `${Environment.build.srcDir}/pack/spotanim.pack`,
+                `${Environment.build.srcDir}/pack/struct.pack`,
+                `${Environment.build.srcDir}/pack/varbit.pack`,
+                `${Environment.build.srcDir}/pack/varn.pack`,
+                `${Environment.build.srcDir}/pack/varp.pack`,
+                `${Environment.build.srcDir}/pack/vars.pack`,
                 'src/cache/config/Component.ts',
                 'src/cache/config/DbTableType.ts',
                 'src/cache/config/InvType.ts',
@@ -106,8 +106,8 @@ function shouldRebuildModelFlagSources() {
     return (
         shouldBuildFromScripts(MODEL_FLAG_CONFIG_EXTENSIONS, 'data/pack/client/versionlist') ||
         shouldRebuildInterfacePack() ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.if', 'data/pack/client/versionlist') ||
-        shouldBuildFileAny(`${Environment.BUILD_SRC_DIR}/maps`, 'data/pack/client/versionlist') ||
+        shouldBuild(`${Environment.build.srcDir}/scripts`, '.if', 'data/pack/client/versionlist') ||
+        shouldBuildFileAny(`${Environment.build.srcDir}/maps`, 'data/pack/client/versionlist') ||
         shouldBuildFileAny('tools/pack/map', 'data/pack/client/versionlist') ||
         shouldBuildFileAny('tools/pack/interface', 'data/pack/client/versionlist') ||
         shouldBuildFileList(

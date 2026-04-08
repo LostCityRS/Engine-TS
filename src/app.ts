@@ -27,7 +27,7 @@ if (OnDemand.cache.count(0) !== 9 || OnDemand.cache.count(2) === 0 || !fs.exists
     }
 }
 
-if (Environment.EASY_STARTUP) {
+if (Environment.easyStartup) {
     createRuntimeWorker(new URL('./login.ts', import.meta.url));
     createRuntimeWorker(new URL('./friend.ts', import.meta.url));
     createRuntimeWorker(new URL('./logger.ts', import.meta.url));
@@ -41,7 +41,7 @@ tcpServer.start();
 await startWeb();
 await startManagementWeb();
 
-register.setDefaultLabels({ nodeId: Environment.NODE_ID });
+register.setDefaultLabels({ nodeId: Environment.node.id });
 collectDefaultMetrics({ register });
 
 // bun does not give us a signal to gracefully shut down in our dev mode...

@@ -35,7 +35,7 @@ export default class MoveClickHandler extends ClientGameMessageHandler<MoveClick
         }
 
         // Set new path
-        if (Environment.NODE_CLIENT_ROUTEFINDER) {
+        if (Environment.node.clientRoutefinder) {
             player.userPath = [];
             // this check ignores setting the path when the player is clicking on their current tile
             if (message.path.length === 1 && start.x === player.x && start.z === player.z) {

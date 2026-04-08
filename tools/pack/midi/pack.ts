@@ -10,16 +10,16 @@ import { MidiPack, shouldBuild, shouldBuildFile } from '#tools/pack/PackFile.js'
 import { listFilesExt } from '#tools/pack/Parse.js';
 
 export function packClientMidi(cache: FileStream) {
-    const midis = [...listFilesExt(`${Environment.BUILD_SRC_DIR}/jingles`, '.mid'), ...listFilesExt(`${Environment.BUILD_SRC_DIR}/songs`, '.mid')];
-    const toolChanged = didFileSetChange('data/pack/.stamps/midi-tools.txt', [Environment.IS_BUN ? __filename : import.meta.filename]);
-    const rebuildMidiArchive = shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/midi.pack`, 'data/pack/main_file_cache.idx3');
+    const midis = [...listFilesExt(`${Environment.build.srcDir}/jingles`, '.mid'), ...listFilesExt(`${Environment.build.srcDir}/songs`, '.mid')];
+    const toolChanged = didFileSetChange('data/pack/.stamps/midi-tools.txt', [Environment.runtime.isBun ? __filename : import.meta.filename]);
+    const rebuildMidiArchive = shouldBuildFile(`${Environment.build.srcDir}/pack/midi.pack`, 'data/pack/main_file_cache.idx3');
     const needsMidiHydration = rebuildMidiArchive || cache.count(3) === 0;
     const artifactName = 'midi';
     const artifactStore = openArtifactStore(artifactName, rebuildMidiArchive);
     const artifactManifest = loadArtifactManifest(artifactName, rebuildMidiArchive);
     let artifactManifestDirty = false;
     const needsMidiPackWork =
-        rebuildMidiArchive || shouldBuild(`${Environment.BUILD_SRC_DIR}/jingles`, '.mid', getArtifactManifestPath(artifactName)) || shouldBuild(`${Environment.BUILD_SRC_DIR}/songs`, '.mid', getArtifactManifestPath(artifactName)) || toolChanged;
+        rebuildMidiArchive || shouldBuild(`${Environment.build.srcDir}/jingles`, '.mid', getArtifactManifestPath(artifactName)) || shouldBuild(`${Environment.build.srcDir}/songs`, '.mid', getArtifactManifestPath(artifactName)) || toolChanged;
 
     if (rebuildMidiArchive) {
         cache.clearArchive(3);

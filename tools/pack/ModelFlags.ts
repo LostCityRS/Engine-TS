@@ -106,7 +106,7 @@ function shouldRefreshModelFlagGroup(group: ModelFlagGroup) {
         case 'interface':
             return shouldRebuildInterfacePack();
         case 'map':
-            return shouldBuildConfigOutput('.npc', 'data/pack/server/npc.dat') || shouldBuildFileAny(`${Environment.BUILD_SRC_DIR}/maps`, 'data/pack/client/versionlist') || shouldBuildFileAny('tools/pack/map', 'data/pack/client/versionlist');
+            return shouldBuildConfigOutput('.npc', 'data/pack/server/npc.dat') || shouldBuildFileAny(`${Environment.build.srcDir}/maps`, 'data/pack/client/versionlist') || shouldBuildFileAny('tools/pack/map', 'data/pack/client/versionlist');
     }
 }
 
@@ -114,7 +114,7 @@ export async function rebuildModelFlags(modelFlags: number[]) {
     clearModelFlags(modelFlags);
 
     const dirTree = new Set<string>();
-    readDirTree(dirTree, `${Environment.BUILD_SRC_DIR}/scripts`);
+    readDirTree(dirTree, `${Environment.build.srcDir}/scripts`);
 
     const builders: Record<ModelFlagGroup, () => Promise<Uint8Array>> = {
         idk: () => buildConfigModelFlags(dirTree, '.idk', parseIdkConfig, packIdkConfigs),

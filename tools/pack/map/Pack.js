@@ -190,7 +190,7 @@ function updateModelFlags(npcMap, modelFlags, NpcType) {
 }
 
 export async function collectMapModelFlags(modelFlags) {
-    if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps`)) {
+    if (!fs.existsSync(`${Environment.build.srcDir}/maps`)) {
         return;
     }
 
@@ -204,7 +204,7 @@ export async function collectMapModelFlags(modelFlags) {
         }
 
         const mapXZ = name.slice(1);
-        const file = `${Environment.BUILD_SRC_DIR}/maps/m${mapXZ}.jm2`;
+        const file = `${Environment.build.srcDir}/maps/m${mapXZ}.jm2`;
         if (!fs.existsSync(file)) {
             continue;
         }
@@ -220,7 +220,7 @@ export async function collectMapModelFlags(modelFlags) {
 }
 
 export async function packMaps(cache, modelFlags) {
-    if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps`)) {
+    if (!fs.existsSync(`${Environment.build.srcDir}/maps`)) {
         return false;
     }
 
@@ -234,15 +234,15 @@ export async function packMaps(cache, modelFlags) {
         maps.push(name);
     }
 
-    const rebuildMapArchive = shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/map.pack`, 'data/pack/main_file_cache.idx4');
+    const rebuildMapArchive = shouldBuildFile(`${Environment.build.srcDir}/pack/map.pack`, 'data/pack/main_file_cache.idx4');
     const needsMapHydration = rebuildMapArchive || cache.count(4) === 0;
     const artifactName = 'maps';
     const clientStore = openArtifactStore('maps-client', rebuildMapArchive);
     const serverStore = openArtifactStore('maps-server', rebuildMapArchive);
     const artifactManifest = loadArtifactManifest(artifactName, rebuildMapArchive);
     let artifactManifestDirty = false;
-    const toolChanged = didFileSetChange('data/pack/.stamps/map-tools.txt', [Environment.IS_BUN ? __filename : import.meta.filename]);
-    const needsAnyMapPackWork = rebuildMapArchive || shouldBuild(`${Environment.BUILD_SRC_DIR}/maps`, '.jm2', getArtifactManifestPath(artifactName)) || toolChanged;
+    const toolChanged = didFileSetChange('data/pack/.stamps/map-tools.txt', [Environment.runtime.isBun ? __filename : import.meta.filename]);
+    const needsAnyMapPackWork = rebuildMapArchive || shouldBuild(`${Environment.build.srcDir}/maps`, '.jm2', getArtifactManifestPath(artifactName)) || toolChanged;
 
     if (rebuildMapArchive) {
         cache.clearArchive(4);
@@ -257,7 +257,7 @@ export async function packMaps(cache, modelFlags) {
     let NpcType = null;
     for (const name of maps) {
         const mapXZ = name.slice(1);
-        const file = `${Environment.BUILD_SRC_DIR}/maps/m${mapXZ}.jm2`;
+        const file = `${Environment.build.srcDir}/maps/m${mapXZ}.jm2`;
 
         if (!fs.existsSync(file)) {
             printWarning(`missing map m${mapXZ}`);

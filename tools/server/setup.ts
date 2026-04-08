@@ -3,55 +3,81 @@ import fs from 'fs';
 
 import { confirm, input, number, password, select } from '@inquirer/prompts';
 
-// ----
+import { createDefaultWorldConfig, loadWorldConfig, saveWorldConfig, type WorldConfig } from '#/util/WorldConfig.js';
+
+let config: WorldConfig = loadWorldConfig();
+
+function persistConfig() {
+    saveWorldConfig(config);
+}
+
+function resetConfig() {
+    config = createDefaultWorldConfig();
+    persistConfig();
+}
 
 function setWebPort(port: number) {
-    fs.appendFileSync('.env', `WEB_PORT=${port}\n`);
+    config.web.port = port;
+    persistConfig();
 }
 
 function setNodeId(id: number) {
-    fs.appendFileSync('.env', `NODE_ID=${id + 9}\n`);
+    config.node.id = id + 9;
+    persistConfig();
 }
 
 function setNodePort(port: number) {
-    fs.appendFileSync('.env', `NODE_PORT=${port}\n`);
+    config.node.port = port;
+    persistConfig();
 }
 
 function setNodeMembers(state: boolean) {
-    fs.appendFileSync('.env', `NODE_MEMBERS=${state}\n`);
+    config.node.members = state;
+    persistConfig();
 }
 
 function setNodeXpRate(rate: number) {
-    fs.appendFileSync('.env', `NODE_XPRATE=${rate}\n`);
+    config.node.xpRate = rate;
+    persistConfig();
 }
 
 function setNodeProduction(state: boolean) {
-    fs.appendFileSync('.env', `NODE_PRODUCTION=${state}\n`);
-    fs.appendFileSync('.env', `NODE_DEBUG=${!state}\n`);
+    config.node.production = state;
+    config.node.debug = !state;
+    persistConfig();
 }
 
 function setLoginServer(state: boolean, host?: string, port?: number) {
-    if (host && port) {
-        fs.appendFileSync('.env', `LOGIN_SERVER=${state}\nLOGIN_HOST=${host}\nLOGIN_PORT=${port}\n`);
-    } else {
-        fs.appendFileSync('.env', `LOGIN_SERVER=${state}\n`);
+    config.login.enabled = state;
+
+    if (typeof host === 'string' && typeof port === 'number') {
+        config.login.host = host;
+        config.login.port = port;
     }
+
+    persistConfig();
 }
 
 function setFriendServer(state: boolean, host?: string, port?: number) {
-    if (host && port) {
-        fs.appendFileSync('.env', `FRIEND_SERVER=${state}\nFRIEND_HOST=${host}\nFRIEND_PORT=${port}\n`);
-    } else {
-        fs.appendFileSync('.env', `FRIEND_SERVER=${state}\n`);
+    config.friend.enabled = state;
+
+    if (typeof host === 'string' && typeof port === 'number') {
+        config.friend.host = host;
+        config.friend.port = port;
     }
+
+    persistConfig();
 }
 
 function setLoggerServer(state: boolean, host?: string, port?: number) {
-    if (host && port) {
-        fs.appendFileSync('.env', `LOGGER_SERVER=${state}\nLOGGER_HOST=${host}\nLOGGER_PORT=${port}\n`);
-    } else {
-        fs.appendFileSync('.env', `LOGGER_SERVER=${state}\n`);
+    config.logger.enabled = state;
+
+    if (typeof host === 'string' && typeof port === 'number') {
+        config.logger.host = host;
+        config.logger.port = port;
     }
+
+    persistConfig();
 }
 
 function setLocalSupportServers() {
@@ -61,24 +87,33 @@ function setLocalSupportServers() {
 }
 
 function setDbBackend(backend: 'sqlite' | 'mysql') {
-    fs.appendFileSync('.env', `DB_BACKEND=${backend}\n`);
+    config.db.backend = backend;
+    persistConfig();
 }
 
 function setDatabase(host: string, port: number, name: string, user: string, pass: string) {
-    fs.appendFileSync('.env', `DATABASE_URL=mysql://${user}:${pass}@${host}:${port}/${name}\n`);
-    fs.appendFileSync('.env', `DB_HOST=${host}\nDB_PORT=${port}\nDB_NAME=${name}\nDB_USER=${user}\nDB_PASS=${pass}\n`);
+    config.db.host = host;
+    config.db.port = port;
+    config.db.name = name;
+    config.db.user = user;
+    config.db.pass = pass;
+    persistConfig();
 }
 
 function setWebsiteRegistration(state: boolean) {
-    fs.appendFileSync('.env', `WEBSITE_REGISTRATION=${state}\n`);
+    config.website.registration = state;
+    persistConfig();
 }
 
-// ----
+function setEasyStartup(state: boolean) {
+    config.easyStartup = state;
+    persistConfig();
+}
 
 async function promptWebPort() {
     const port = await number({
         message: 'Set http port',
-        default: 80,
+        default: config.web.port,
         required: true
     });
 
@@ -88,7 +123,7 @@ async function promptWebPort() {
 async function promptNodeId() {
     const id = await number({
         message: 'Set world ID',
-        default: 1,
+        default: Math.max(1, config.node.id - 9),
         required: true
     });
 
@@ -98,7 +133,7 @@ async function promptNodeId() {
 async function promptNodePort() {
     const port = await number({
         message: 'Set world port',
-        default: 43594,
+        default: config.node.port,
         required: true
     });
 
@@ -108,7 +143,7 @@ async function promptNodePort() {
 async function promptNodeMembers() {
     const choice = await confirm({
         message: 'Enable members content',
-        default: true
+        default: config.node.members
     });
 
     setNodeMembers(choice);
@@ -117,7 +152,7 @@ async function promptNodeMembers() {
 async function promptNodeXpRate() {
     const rate = await number({
         message: 'Set world XP rate',
-        default: 1,
+        default: config.node.xpRate,
         required: true
     });
 
@@ -127,7 +162,7 @@ async function promptNodeXpRate() {
 async function promptNodeProduction() {
     const choice = await confirm({
         message: 'Enable production mode',
-        default: false
+        default: config.node.production
     });
 
     setNodeProduction(choice);
@@ -142,12 +177,12 @@ async function promptLogin() {
     if (choice) {
         const host = await input({
             message: 'Host address',
-            default: 'localhost'
+            default: config.login.host
         });
 
         const port = await number({
             message: 'Host port',
-            default: 43500,
+            default: config.login.port,
             required: true
         });
 
@@ -166,12 +201,12 @@ async function promptFriend() {
     if (choice) {
         const host = await input({
             message: 'Host address',
-            default: 'localhost'
+            default: config.friend.host
         });
 
         const port = await number({
             message: 'Host port',
-            default: 45099,
+            default: config.friend.port,
             required: true
         });
 
@@ -190,12 +225,12 @@ async function promptLogger() {
     if (choice) {
         const host = await input({
             message: 'Host address',
-            default: 'localhost'
+            default: config.logger.host
         });
 
         const port = await number({
             message: 'Host port',
-            default: 43501,
+            default: config.logger.port,
             required: true
         });
 
@@ -208,23 +243,23 @@ async function promptLogger() {
 async function promptDatabase() {
     const host = await input({
         message: 'Database host address',
-        default: 'localhost'
+        default: config.db.host
     });
 
     const port = await number({
         message: 'Database host port',
-        default: 3306,
+        default: config.db.port,
         required: true
     });
 
     const name = await input({
         message: 'Database name',
-        default: 'lostcity'
+        default: config.db.name
     });
 
     const user = await input({
         message: 'Database user account',
-        default: 'lostcity'
+        default: config.db.user
     });
 
     const pass = await password({
@@ -243,14 +278,17 @@ async function promptWebsiteRegistration() {
     setWebsiteRegistration(!autoregister);
 }
 
-// ----
+function runMigration(command: string) {
+    child_process.execSync(command, {
+        stdio: 'inherit'
+    });
+}
 
 async function startup() {
     while (true) {
         const choices = [];
 
         if (fs.existsSync('data/pack')) {
-            // quickstart script should run this before starting the server. exits and continues starting the world
             choices.push({
                 name: 'Continue startup',
                 value: 'continue'
@@ -319,14 +357,12 @@ async function startup() {
 }
 
 async function configureDev() {
-    // we don't actually have to do anything because it's good OOTB :)
-    fs.copyFileSync('.env.example', '.env');
+    resetConfig();
     process.exit(0);
 }
 
 async function configureDevStack() {
-    fs.copyFileSync('.env.example', '.env');
-    fs.appendFileSync('.env', '\n## SETUP SCRIPT\n');
+    resetConfig();
 
     setWebsiteRegistration(false);
     setNodeProduction(false);
@@ -356,46 +392,38 @@ async function configureDevStack() {
     }
 
     setLocalSupportServers();
-
-    fs.appendFileSync('.env', 'EASY_STARTUP=true\n');
+    setEasyStartup(true);
 
     if (backend === 'sqlite') {
-        child_process.execSync('bun run sqlite:migrate', {
-            stdio: 'inherit'
-        });
-    } else if (backend === 'mysql') {
-        child_process.execSync('bun run db:migrate', {
-            stdio: 'inherit'
-        });
+        runMigration('bun run sqlite:migrate');
+    } else {
+        runMigration('bun run db:migrate');
     }
 
     process.exit(0);
 }
 
 async function configureSingle() {
-    fs.copyFileSync('.env.example', '.env');
-    fs.appendFileSync('.env', '\n## SETUP SCRIPT\n');
+    resetConfig();
 
     setNodeProduction(true);
 
     await promptNodeId();
     await promptNodeXpRate();
     await promptNodeMembers();
-    fs.appendFileSync('.env', 'DB_BACKEND=sqlite\n');
+
+    setDbBackend('sqlite');
     await promptWebsiteRegistration();
 
     setLocalSupportServers();
+    setEasyStartup(true);
 
-    fs.appendFileSync('.env', 'EASY_STARTUP=true\n');
-    child_process.execSync('bun run sqlite:migrate', {
-        stdio: 'inherit'
-    });
+    runMigration('bun run sqlite:migrate');
     process.exit(0);
 }
 
 async function configureMulti() {
-    fs.copyFileSync('.env.example', '.env');
-    fs.appendFileSync('.env', '\n## SETUP SCRIPT\n');
+    resetConfig();
 
     setWebsiteRegistration(true);
     setNodeProduction(true);
@@ -403,6 +431,7 @@ async function configureMulti() {
     await promptNodeId();
     await promptNodeXpRate();
     await promptNodeMembers();
+
     setDbBackend('mysql');
     await promptDatabase();
     await promptLogin();
@@ -410,9 +439,7 @@ async function configureMulti() {
     await promptFriend();
     await promptLogger();
 
-    child_process.execSync('bun run db:migrate', {
-        stdio: 'inherit'
-    });
+    runMigration('bun run db:migrate');
 
     process.exit(0);
 }

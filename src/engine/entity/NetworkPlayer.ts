@@ -1,5 +1,3 @@
-import 'dotenv/config';
-
 import * as rsbuf from '#/network/rsbuf/index.js';
 
 import InvType from '#/cache/config/InvType.js';

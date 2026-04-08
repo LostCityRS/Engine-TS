@@ -9,14 +9,14 @@ import { shouldBuild, shouldBuildFile, shouldBuildFileAny } from '#tools/pack/Pa
 
 export function shouldRebuildInterfacePack() {
     return (
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.constant', 'data/pack/client/interface') ||
-        shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.if', 'data/pack/client/interface') ||
-        shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/interface.pack`, 'data/pack/client/interface') ||
-        shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/obj.pack`, 'data/pack/client/interface') ||
-        shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/varp.pack`, 'data/pack/client/interface') ||
-        shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/varbit.pack`, 'data/pack/client/interface') ||
-        shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/seq.pack`, 'data/pack/client/interface') ||
-        shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/model.pack`, 'data/pack/client/interface') ||
+        shouldBuild(`${Environment.build.srcDir}/scripts`, '.constant', 'data/pack/client/interface') ||
+        shouldBuild(`${Environment.build.srcDir}/scripts`, '.if', 'data/pack/client/interface') ||
+        shouldBuildFile(`${Environment.build.srcDir}/pack/interface.pack`, 'data/pack/client/interface') ||
+        shouldBuildFile(`${Environment.build.srcDir}/pack/obj.pack`, 'data/pack/client/interface') ||
+        shouldBuildFile(`${Environment.build.srcDir}/pack/varp.pack`, 'data/pack/client/interface') ||
+        shouldBuildFile(`${Environment.build.srcDir}/pack/varbit.pack`, 'data/pack/client/interface') ||
+        shouldBuildFile(`${Environment.build.srcDir}/pack/seq.pack`, 'data/pack/client/interface') ||
+        shouldBuildFile(`${Environment.build.srcDir}/pack/model.pack`, 'data/pack/client/interface') ||
         shouldBuildFileAny('tools/pack/interface', 'data/pack/client/interface') ||
         shouldBuildFile('tools/pack/Parse.ts', 'data/pack/client/interface')
     );
@@ -33,7 +33,7 @@ export function packClientInterface(cache: FileStream, modelFlags: number[]) {
         const jag = Jagfile.new(true);
         const { client, server } = packInterface(modelFlags);
 
-        if (Environment.BUILD_VERIFY && !Packet.checkcrc(client.data, 0, client.pos, 2041671134)) {
+        if (Environment.build.verify && !Packet.checkcrc(client.data, 0, client.pos, 2041671134)) {
             throw new Error('.if checksum mismatch!\nYou can disable this safety check by setting BUILD_VERIFY=false');
         }
 

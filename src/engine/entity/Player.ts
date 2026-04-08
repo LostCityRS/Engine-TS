@@ -1,5 +1,3 @@
-import 'dotenv/config';
-
 import { PlayerInfoProt, Visibility } from '#/network/rsbuf/index.js';
 import { CollisionFlag, CollisionType } from '#/engine/routefinder/index.js';
 
@@ -422,7 +420,7 @@ export default class Player extends PathingEntity {
             1,
             EntityLifeCycle.FOREVER,
             BlockWalk.NPC,
-            Environment.NODE_CLIENT_ROUTEFINDER ? MoveStrategy.NAIVE : MoveStrategy.SMART,
+            Environment.node.clientRoutefinder ? MoveStrategy.NAIVE : MoveStrategy.SMART,
             PlayerInfoProt.FACE_COORD,
             PlayerInfoProt.FACE_ENTITY
         );
@@ -505,7 +503,7 @@ export default class Player extends PathingEntity {
         this.write(new ChatFilterSettings(this.publicChat, this.privateChat, this.tradeDuel));
 
         // todo: exact order
-        if (Environment.FRIEND_SERVER) {
+        if (Environment.friend.enabled) {
             this.write(new FriendlistLoaded(1));
         } else {
             this.write(new FriendlistLoaded(2));
@@ -1122,7 +1120,7 @@ export default class Player extends PathingEntity {
         const opTrigger = this.getOpTrigger();
         const apTrigger = this.getApTrigger();
 
-        if (!Environment.NODE_PRODUCTION && !opTrigger && !apTrigger) {
+        if (!Environment.node.production && !opTrigger && !apTrigger) {
             let debugname = '_';
             if (this.target instanceof Npc) {
                 const type = NpcType.get(this.target.type);
@@ -1264,7 +1262,7 @@ export default class Player extends PathingEntity {
                 return;
             }
 
-            if (Environment.NODE_CLIENT_ROUTEFINDER && !followOp) {
+            if (Environment.node.clientRoutefinder && !followOp) {
                 this.processWalktrigger();
             }
 
@@ -1825,7 +1823,7 @@ export default class Player extends PathingEntity {
             return;
         }
 
-        const multi = allowMulti ? Environment.NODE_XPRATE : 1;
+        const multi = allowMulti ? Environment.node.xpRate : 1;
         this.stats[stat] += xp * multi;
 
         // cap to 200m, this is represented as "2 billion" because we use 32-bit signed integers and divide by 10 to give us a decimal point
@@ -2276,7 +2274,7 @@ export default class Player extends PathingEntity {
         const lastIp = 2130706433; // 127.0.0.1
         const daysSinceLogin: number = (Number(nextDate - lastDate) / (1000 * 60 * 60 * 24)) | 0;
         const daysSinceRecoveriesChanged = 201; // hide :)
-        const warnMembersInNonMembers: boolean = !Environment.NODE_MEMBERS && this.members;
+        const warnMembersInNonMembers: boolean = !Environment.node.members && this.members;
 
         this.write(new LastLoginInfo(lastIp, daysSinceLogin, daysSinceRecoveriesChanged, this.messageCount, warnMembersInNonMembers));
         this.lastLoginTime = nextDate;

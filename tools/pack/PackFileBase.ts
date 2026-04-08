@@ -39,7 +39,7 @@ export class PackFile {
             if (this.validator !== null) {
                 this.validator(this, ...this.validatorArgs);
             } else {
-                this.load(`${Environment.BUILD_SRC_DIR}/pack/${this.type}.pack`);
+                this.load(`${Environment.build.srcDir}/pack/${this.type}.pack`);
             }
         } catch (err) {
             if (err instanceof Error) {
@@ -119,7 +119,7 @@ export class PackFile {
 
     save() {
         writeFileIfChanged(
-            `${Environment.BUILD_SRC_DIR}/pack/${this.type}.pack`,
+            `${Environment.build.srcDir}/pack/${this.type}.pack`,
             Array.from(this.pack.entries())
                 .sort((a, b) => a[0] - b[0])
                 .map(([id, name]) => `${id}=${name}`)

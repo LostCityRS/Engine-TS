@@ -49,18 +49,18 @@ export default class GameMap {
     }
 
     init(): void {
-        if (!fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps`)) {
+        if (!fs.existsSync(`${Environment.build.srcDir}/maps`)) {
             return;
         }
 
         printDebug('Loading game map');
 
-        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`)) {
-            this.loadCsvMap(this.multimap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').split(/\r?\n/));
+        if (fs.existsSync(`${Environment.build.srcDir}/maps/multiway.csv`)) {
+            this.loadCsvMap(this.multimap, fs.readFileSync(`${Environment.build.srcDir}/maps/multiway.csv`, 'ascii').split(/\r?\n/));
         }
 
-        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`)) {
-            this.loadCsvMap(this.freemap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').split(/\r?\n/));
+        if (fs.existsSync(`${Environment.build.srcDir}/maps/free2play.csv`)) {
+            this.loadCsvMap(this.freemap, fs.readFileSync(`${Environment.build.srcDir}/maps/free2play.csv`, 'ascii').split(/\r?\n/));
         }
 
         const zipPath = 'data/pack/.cache/maps-server.zip';
@@ -96,7 +96,7 @@ export default class GameMap {
             }
         }
 
-        printDebug(`${World.getTotalNpcs()}/${Environment.NODE_MAX_NPCS} static NPCs added`);
+        printDebug(`${World.getTotalNpcs()}/${Environment.node.maxNpcs} static NPCs added`);
     }
 
     isMulti(coord: number): boolean {
@@ -426,7 +426,7 @@ export function reachedObj(level: number, srcX: number, srcZ: number, destX: num
 }
 
 export function canTravel(level: number, x: number, z: number, offsetX: number, offsetZ: number, size: number, extraFlag: number, collision: CollisionType): boolean {
-    if (!Environment.NODE_MEMBERS && !World.gameMap.isFreeToPlay(x + offsetX, z + offsetZ)) {
+    if (!Environment.node.members && !World.gameMap.isFreeToPlay(x + offsetX, z + offsetZ)) {
         return false;
     }
     return rsmod.canTravel(level, x, z, offsetX, offsetZ, size, extraFlag, collision);
