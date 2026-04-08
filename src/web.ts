@@ -14,6 +14,7 @@ import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import NullClientSocket from '#/server/NullClientSocket.js';
 import WSClientSocket from '#/server/ws/WSClientSocket.js';
 import Environment from '#/util/Environment.js';
+import { createDefaultWorldConfig, loadWorldConfig, normalizeWorldConfig, saveWorldConfig } from '#/util/WorldConfig.js';
 import OnDemand from '#/engine/OnDemand.js';
 import { tryParseInt } from '#/util/TryParse.js';
 
@@ -77,6 +78,15 @@ function fileExists(filePath: string): boolean {
     } catch {
         return false;
     }
+}
+
+function jsonResponse(value: unknown, status: number = 200): Response {
+    return new Response(JSON.stringify(value, null, 2), {
+        status,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
 }
 
 async function handleWebRequest(req: Request): Promise<Response> {
@@ -193,19 +203,54 @@ async function handleWebRequest(req: Request): Promise<Response> {
 
 async function handleManagementRequest(req: Request): Promise<Response> {
     const url = new URL(req.url);
+    const method = req.method ?? 'GET';
+
+    if (method === 'GET' && url.pathname === '/setup') {
+        return new Response(await ejs.renderFile('view/setup.ejs'), {
+            headers: {
+                'Content-Type': 'text/html'
+            }
+        });
+    }
+
+    if (url.pathname === '/setup/config') {
+        if (method === 'GET') {
+            return jsonResponse({
+                config: loadWorldConfig(),
+                defaults: createDefaultWorldConfig(),
+                path: 'data/config/world.json'
+            });
+        }
+
+        if (method === 'PUT') {
+            let payload: unknown;
+            try {
+                payload = await req.json();
+            } catch {
+                return jsonResponse({ error: 'Invalid JSON payload' }, 400);
+            }
+
+            const config = normalizeWorldConfig(payload);
+            saveWorldConfig(config);
+
+            return jsonResponse({
+                config,
+                restartRequired: true
+            });
+        }
+
+        return new Response(null, {
+            status: 405,
+            headers: {
+                Allow: 'GET, PUT'
+            }
+        });
+    }
 
     if (url.pathname === '/prometheus') {
         return new Response(await register.metrics(), {
             headers: {
                 'Content-Type': register.contentType
-            }
-        });
-    }
-
-    if (url.pathname === '/memory') {
-        return new Response(JSON.stringify(World.getMemorySnapshot(), null, 2), {
-            headers: {
-                'Content-Type': 'application/json'
             }
         });
     }

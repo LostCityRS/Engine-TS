@@ -31,6 +31,9 @@ bun start
 
 \* *use `--single-branch` when you don't need to track the commit history of all versions*
 
+Open [http://localhost:8898/setup](http://localhost:8898/setup) to configure world settings.
+This page reads and writes `data/config/world.json` through the management server.
+
 ### Client
 
 [Client-Java](https://github.com/LostCityRS/Client-Java) is available for all versions. This is a research project to decompile and understand the original code. It has minor fixes for OS and Java compatibility.

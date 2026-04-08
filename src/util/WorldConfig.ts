@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 
-import { WalkTriggerSetting } from '#/engine/entity/WalkTriggerSetting.js';
 import { tryParseBoolean, tryParseInt, tryParseString } from '#/util/TryParse.js';
 
 export interface WorldConfig {
@@ -24,20 +23,12 @@ export interface WorldConfig {
         autoSubscribeMembers: boolean;
         xpRate: number;
         production: boolean;
-        submitInput: boolean;
-        limitBytesPerTrackingSession: number;
         minimumWealthValueEvent: number;
         debug: boolean;
         debugProfile: boolean;
-        debugMemory: boolean;
-        debugMemoryRate: number;
-        debugSocket: boolean;
         clientRoutefinder: boolean;
-        walkTriggerSetting: number;
         profile: string;
-        maxPlayers: number;
         maxConnected: number;
-        maxNpcs: number;
         debugProcChar: string;
         wsOnDemand: boolean;
         hopTime: number;
@@ -66,14 +57,7 @@ export interface WorldConfig {
         user: string;
         pass: string;
         name: string;
-        logger: {
-            host: string;
-            port: number;
-            user: string;
-            pass: string;
-            name: string;
-        };
-        kyselyVerbose: boolean;
+        verbose: boolean;
     };
     build: {
         verbose: boolean;
@@ -114,20 +98,12 @@ export function createDefaultWorldConfig(): WorldConfig {
             autoSubscribeMembers: true,
             xpRate: 1,
             production: false,
-            submitInput: false,
-            limitBytesPerTrackingSession: 50_000,
             minimumWealthValueEvent: 10,
             debug: true,
             debugProfile: false,
-            debugMemory: false,
-            debugMemoryRate: 100,
-            debugSocket: false,
             clientRoutefinder: true,
-            walkTriggerSetting: WalkTriggerSetting.PLAYERPACKET,
             profile: 'main',
-            maxPlayers: 2047,
             maxConnected: 1000,
-            maxNpcs: 16383,
             debugProcChar: '~',
             wsOnDemand: false,
             hopTime: 45000,
@@ -156,14 +132,7 @@ export function createDefaultWorldConfig(): WorldConfig {
             user: 'root',
             pass: 'password',
             name: 'lostcity',
-            logger: {
-                host: '',
-                port: 0,
-                user: '',
-                pass: '',
-                name: ''
-            },
-            kyselyVerbose: false
+            verbose: false
         },
         build: {
             verbose: false,
@@ -206,6 +175,17 @@ function mergeConfig<T>(defaults: T, value: unknown): T {
     }
 
     return defaults;
+}
+
+export function normalizeWorldConfig(value: unknown): WorldConfig {
+    const config = mergeConfig(createDefaultWorldConfig(), value);
+
+    // Legacy compatibility: accept db.kyselyVerbose from older world.json files.
+    if (isObject(value) && isObject(value.db) && !('verbose' in value.db)) {
+        config.db.verbose = tryParseBoolean((value.db as Record<string, unknown>).kyselyVerbose as string | boolean | undefined | null, config.db.verbose);
+    }
+
+    return config;
 }
 
 function parseLegacyEnvFile(filePath: string): Record<string, string> {
@@ -258,20 +238,12 @@ function migrateFromLegacyEnv(defaults: WorldConfig, env: Record<string, string>
     config.node.autoSubscribeMembers = tryParseBoolean(env.NODE_AUTO_SUBSCRIBE_MEMBERS, config.node.autoSubscribeMembers);
     config.node.xpRate = tryParseInt(env.NODE_XPRATE, config.node.xpRate);
     config.node.production = tryParseBoolean(env.NODE_PRODUCTION, config.node.production);
-    config.node.submitInput = tryParseBoolean(env.NODE_SUBMIT_INPUT, config.node.submitInput);
-    config.node.limitBytesPerTrackingSession = tryParseInt(env.NODE_MAX_BYTES_PER_TRACKING_SESSION ?? env.NODE_LIMIT_BYTES_PER_TRACKING_SESSION, config.node.limitBytesPerTrackingSession);
     config.node.minimumWealthValueEvent = tryParseInt(env.NODE_MINIMUM_WEALTH_VALUE_EVENT, config.node.minimumWealthValueEvent);
     config.node.debug = tryParseBoolean(env.NODE_DEBUG, config.node.debug);
     config.node.debugProfile = tryParseBoolean(env.NODE_DEBUG_PROFILE, config.node.debugProfile);
-    config.node.debugMemory = tryParseBoolean(env.NODE_DEBUG_MEMORY, config.node.debugMemory);
-    config.node.debugMemoryRate = tryParseInt(env.NODE_DEBUG_MEMORY_RATE, config.node.debugMemoryRate);
-    config.node.debugSocket = tryParseBoolean(env.NODE_DEBUG_SOCKET, config.node.debugSocket);
     config.node.clientRoutefinder = tryParseBoolean(env.NODE_CLIENT_ROUTEFINDER, config.node.clientRoutefinder);
-    config.node.walkTriggerSetting = tryParseInt(env.NODE_WALKTRIGGER_SETTING, config.node.walkTriggerSetting);
     config.node.profile = tryParseString(env.NODE_PROFILE, config.node.profile);
-    config.node.maxPlayers = tryParseInt(env.NODE_MAX_PLAYERS, config.node.maxPlayers);
     config.node.maxConnected = tryParseInt(env.NODE_MAX_CONNECTED, config.node.maxConnected);
-    config.node.maxNpcs = tryParseInt(env.NODE_MAX_NPCS, config.node.maxNpcs);
     config.node.debugProcChar = tryParseString(env.NODE_DEBUGPROC_CHAR, config.node.debugProcChar);
     config.node.wsOnDemand = tryParseBoolean(env.NODE_WS_ONDEMAND, config.node.wsOnDemand);
     config.node.hopTime = tryParseInt(env.NODE_HOP_TIME, tryParseInt(env.NODE_MAX_NPCS, config.node.hopTime));
@@ -296,12 +268,7 @@ function migrateFromLegacyEnv(defaults: WorldConfig, env: Record<string, string>
     config.db.user = tryParseString(env.DB_USER, config.db.user);
     config.db.pass = tryParseString(env.DB_PASS, config.db.pass);
     config.db.name = tryParseString(env.DB_NAME, config.db.name);
-    config.db.logger.host = tryParseString(env.DB_LOGGER_HOST, config.db.logger.host);
-    config.db.logger.port = tryParseInt(env.DB_LOGGER_PORT, config.db.logger.port);
-    config.db.logger.user = tryParseString(env.DB_LOGGER_USER, config.db.logger.user);
-    config.db.logger.pass = tryParseString(env.DB_LOGGER_PASS, config.db.logger.pass);
-    config.db.logger.name = tryParseString(env.DB_LOGGER_NAME, config.db.logger.name);
-    config.db.kyselyVerbose = tryParseBoolean(env.KYSELY_VERBOSE, config.db.kyselyVerbose);
+    config.db.verbose = tryParseBoolean(env.KYSELY_VERBOSE, config.db.verbose);
 
     config.build.verbose = tryParseBoolean(env.BUILD_VERBOSE, config.build.verbose);
     config.build.startup = tryParseBoolean(env.BUILD_STARTUP, config.build.startup);
@@ -332,7 +299,7 @@ export function loadWorldConfig(): WorldConfig {
         try {
             const raw = fs.readFileSync(worldConfigPath, 'utf8');
             const parsed = JSON.parse(raw);
-            return mergeConfig(defaults, parsed);
+            return normalizeWorldConfig(parsed);
         } catch (error) {
             if (error instanceof Error) {
                 console.warn(`[Config] Failed to parse ${worldConfigPath}: ${error.message}. Using defaults.`);

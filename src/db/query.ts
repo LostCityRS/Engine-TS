@@ -45,7 +45,7 @@ function logVerbose(event: LogEvent) {
 
 export const db = new Kysely<DB>({
     dialect,
-    log: Environment.db.kyselyVerbose ? logVerbose : []
+    log: Environment.db.verbose ? logVerbose : []
 });
 
 export function toDbDate(date: Date | string | number) {

@@ -96,7 +96,7 @@ export default class GameMap {
             }
         }
 
-        printDebug(`${World.getTotalNpcs()}/${Environment.node.maxNpcs} static NPCs added`);
+        printDebug(`${World.getTotalNpcs()}/${Environment.runtime.maxNpcs} static NPCs added`);
     }
 
     isMulti(coord: number): boolean {

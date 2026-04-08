@@ -92,7 +92,6 @@ import {
 import Environment from '#/util/Environment.js';
 import { fromBase37, toBase37, toSafeName } from '#/util/JString.js';
 import LinkList from '#/datastruct/LinkList.js';
-import Linkable from '#/datastruct/Linkable.js';
 import { printDebug, printError, printInfo } from '#/util/Logger.js';
 import OnDemand from './OnDemand.js';
 import { createRuntimeWorker } from '#/util/RuntimeWorker.js';
@@ -116,8 +115,8 @@ class World {
     private loggerThread = createRuntimeWorker(new URL('../server/logger/LoggerThread.ts', import.meta.url));
     private devThread: Worker | null = null;
 
-    private static readonly PLAYERS: number = Environment.node.maxPlayers;
-    private static readonly NPCS: number = Environment.node.maxNpcs;
+    private static readonly PLAYERS: number = 2047;
+    private static readonly NPCS: number = Environment.runtime.maxNpcs;
 
     private static readonly TICKRATE: number = 600; // ms (0.6s) - DO NOT CHANGE. This is only exposed for condensing time while testing long-running operations.
 
@@ -130,8 +129,8 @@ class World {
     private static readonly AFK_CHANCE1: number = 1 / (120 / 5); // 1/24 - 4% chance every 5 mins: avg 1 event every 2 hrs
     private static readonly AFK_CHANCE2: number = 1 / (60 / 5); // 1/12 - 8% chance every 5 mins: avg 1 event every 1 hr while "aggro zone" hasn't changed
 
-    private static readonly TIMEOUT_NO_CONNECTION: number = Environment.node.debugSocket ? 60000 : 50; // 30s with no connection (16 ticks in osrs)
-    private static readonly TIMEOUT_NO_RESPONSE: number = Environment.node.debugSocket ? 60000 : 100; // 60s without any response
+    private static readonly TIMEOUT_NO_CONNECTION: number = 50; // 30s with no connection (16 ticks in osrs)
+    private static readonly TIMEOUT_NO_RESPONSE: number = 100; // 60s without any response
 
     // the game/zones map
     readonly gameMap: GameMap = new GameMap(Environment.node.members);
@@ -177,89 +176,6 @@ class World {
 
     loginAddressAttempts: TTLCache<string, number> = new TTLCache({ ttl: 60000 });
     loginDeviceAttempts: TTLCache<string, number> = new TTLCache({ ttl: 15000 });
-
-    private countLinks<T extends Linkable>(list: LinkList<T>): number {
-        let count = 0;
-        for (const _ of list.all()) {
-            count++;
-        }
-        return count;
-    }
-
-    getMemorySnapshot() {
-        const usage = process.memoryUsage();
-
-        return {
-            timestamp: Date.now(),
-            tick: this.currentTick,
-            runtime: {
-                pid: process.pid,
-                platform: process.platform,
-                bun: process.versions.bun ?? null,
-                node: process.versions.node ?? null,
-                liveReload: !Environment.node.production && Environment.build.liveReload
-            },
-            memory: {
-                rss: usage.rss,
-                heapTotal: usage.heapTotal,
-                heapUsed: usage.heapUsed,
-                external: usage.external,
-                arrayBuffers: usage.arrayBuffers
-            },
-            world: {
-                players: this.getTotalPlayers(),
-                npcs: this.getTotalNpcs(),
-                invs: this.invs.size,
-                newPlayers: this.newPlayers.size,
-                loginRequests: this.loginRequests.size,
-                logoutRequests: this.logoutRequests.size,
-                zonesTracking: this.zonesTracking.size,
-                locObjTracker: this.countLinks(this.locObjTracker),
-                queue: this.countLinks(this.queue),
-                npcEventQueue: this.countLinks(this.npcEventQueue),
-                objDelayedQueue: this.countLinks(this.objDelayedQueue),
-                sessionLogs: this.sessionLogs.length,
-                wealthTransactionGroup: this.wealthTransactionGroup.size,
-                wealthTransactions: this.wealthTransactions.length
-            },
-            map: {
-                zones: this.gameMap.getTotalZones(),
-                locs: this.gameMap.getTotalLocs(),
-                objs: this.gameMap.getTotalObjs()
-            },
-            ondemand: {
-                urgentRequests: OnDemand.urgentRequests.length,
-                extraRequests: OnDemand.extraRequests.length,
-                ingameRequests: OnDemand.ingameRequests.length
-            }
-        };
-    }
-
-    private logMemorySnapshot(): void {
-        const snapshot = this.getMemorySnapshot();
-        const toMb = (bytes: number) => Math.round((bytes / 1024 / 1024) * 10) / 10;
-
-        printInfo(
-            [
-                `[mem] tick=${snapshot.tick}`,
-                `rss=${toMb(snapshot.memory.rss)}MB`,
-                `heapUsed=${toMb(snapshot.memory.heapUsed)}MB`,
-                `heapTotal=${toMb(snapshot.memory.heapTotal)}MB`,
-                `external=${toMb(snapshot.memory.external)}MB`,
-                `arrayBuffers=${toMb(snapshot.memory.arrayBuffers)}MB`,
-                `players=${snapshot.world.players}`,
-                `npcs=${snapshot.world.npcs}`,
-                `locObjTracker=${snapshot.world.locObjTracker}`,
-                `queue=${snapshot.world.queue}`,
-                `npcEventQueue=${snapshot.world.npcEventQueue}`,
-                `objDelayedQueue=${snapshot.world.objDelayedQueue}`,
-                `zonesTracking=${snapshot.world.zonesTracking}`,
-                `loginRequests=${snapshot.world.loginRequests}`,
-                `logoutRequests=${snapshot.world.logoutRequests}`,
-                `ondemand=${snapshot.ondemand.urgentRequests}/${snapshot.ondemand.extraRequests}/${snapshot.ondemand.ingameRequests}`
-            ].join(' ')
-        );
-    }
 
     constructor() {
         this.loginThread.on('message', msg => {
@@ -581,10 +497,6 @@ class World {
                 printDebug(
                     `${this.cycleStats[WorldStat.WORLD]} ms world | ${this.cycleStats[WorldStat.CLIENT_IN]} ms client in | ${this.cycleStats[WorldStat.NPC]} ms npcs | ${this.cycleStats[WorldStat.PLAYER]} ms players | ${this.cycleStats[WorldStat.LOGOUT]} ms logout | ${this.cycleStats[WorldStat.LOGIN]} ms login | ${this.cycleStats[WorldStat.ZONE]} ms zones | ${this.cycleStats[WorldStat.CLIENT_OUT]} ms client out | ${this.cycleStats[WorldStat.CLEANUP]} ms cleanup`
                 );
-            }
-
-            if (Environment.node.debugMemory && tick % Math.max(1, Environment.node.debugMemoryRate) === 0) {
-                this.logMemorySnapshot();
             }
 
             this.currentTick++;
