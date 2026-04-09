@@ -242,7 +242,7 @@ const ServerOps: CommandHandlers = {
                         return;
                     }
                 }
-            } else if (layer === LocLayer.GROUND_DECOR) {
+            } else if (layer === LocLayer.GROUND_DECOR || layer === LocLayer.WALL_DECOR) {
                 if (loc.x === coord.x && loc.z === coord.z) {
                     state.pushInt(1);
                     return;
