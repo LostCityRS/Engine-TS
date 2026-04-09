@@ -212,10 +212,10 @@ const ServerOps: CommandHandlers = {
 
     [ScriptOpcode.MAP_LOCADDUNSAFE]: state => {
         const coord: CoordGrid = check(state.popInt(), CoordValid);
-        // check all neighboring zones for big locs that bleed over...
+        // check south and west neighboring zones for big locs that bleed over...
         // Maybe theres a smarter way to do this?
-        for (let x = -8; x <= 8; x += 8) {
-            for (let z = -8; z <= 8; z += 8) {
+        for (let x = -8; x <= 0; x += 8) {
+            for (let z = -8; z <= 0; z += 8) {
                 for (const loc of World.gameMap.getZone(coord.x + x, coord.z + z, coord.level).getAllLocsUnsafe()) {
                     const type = check(loc.type, LocTypeValid);
 
@@ -244,8 +244,8 @@ const ServerOps: CommandHandlers = {
 
     [ScriptOpcode.MAP_LOC]: state => {
         const coord: CoordGrid = check(state.popInt(), CoordValid);
-        for (let x = -8; x <= 8; x += 8) {
-            for (let z = -8; z <= 8; z += 8) {
+        for (let x = -8; x <= 0; x += 8) {
+            for (let z = -8; z <= 0; z += 8) {
                 for (const loc of World.gameMap.getZone(coord.x + x, coord.z + z, coord.level).getAllLocsSafe()) {
                     const type = check(loc.type, LocTypeValid);
 
