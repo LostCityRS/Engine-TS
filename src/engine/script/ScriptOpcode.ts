@@ -52,6 +52,7 @@ export const enum ScriptOpcode {
     MAP_INDOORS,
     MAP_LIVE,
     MAP_LOCADDUNSAFE, // official
+    MAP_LOC,
     MAP_MEMBERS, // official
     MAP_MULTIWAY, // official
     MAP_PLAYERCOUNT, // official, see giant dwarf cutscene
@@ -444,7 +445,7 @@ export const enum ScriptOpcode {
     CONSOLE = 10000,
     ERROR,
     GETTIMESPENT, // custom: used to profile script execution (current duration)
-    TIMESPENT, // custom: used to profile script execution (record start time)
+    TIMESPENT // custom: used to profile script execution (record start time)
 }
 
 export const ScriptOpcodeMap: Map<string, number> = new Map([
@@ -499,6 +500,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['MAP_INDOORS', ScriptOpcode.MAP_INDOORS],
     ['MAP_LIVE', ScriptOpcode.MAP_LIVE],
     ['MAP_LOCADDUNSAFE', ScriptOpcode.MAP_LOCADDUNSAFE],
+    ['MAP_LOC', ScriptOpcode.MAP_LOC],
     ['MAP_MEMBERS', ScriptOpcode.MAP_MEMBERS],
     ['MAP_MULTIWAY', ScriptOpcode.MAP_MULTIWAY],
     ['MAP_PLAYERCOUNT', ScriptOpcode.MAP_PLAYERCOUNT],
@@ -863,9 +865,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['CONSOLE', ScriptOpcode.CONSOLE],
     ['ERROR', ScriptOpcode.ERROR],
     ['GETTIMESPENT', ScriptOpcode.GETTIMESPENT],
-    ['TIMESPENT', ScriptOpcode.TIMESPENT],
+    ['TIMESPENT', ScriptOpcode.TIMESPENT]
 ]);
 
-export const ScriptOpcodeNameMap: Map<number, string> = new Map(
-    Array.from(ScriptOpcodeMap.entries()).map(([key, value]) => [value, key])
-);
+export const ScriptOpcodeNameMap: Map<number, string> = new Map(Array.from(ScriptOpcodeMap.entries()).map(([key, value]) => [value, key]));
