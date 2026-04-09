@@ -212,40 +212,30 @@ const ServerOps: CommandHandlers = {
 
     [ScriptOpcode.MAP_LOCADDUNSAFE]: state => {
         const coord: CoordGrid = check(state.popInt(), CoordValid);
+        // check all neighboring zones for big locs that bleed over...
+        // Maybe theres a smarter way to do this?
+        for (let x = -8; x <= 8; x += 8) {
+            for (let z = -8; z <= 8; z += 8) {
+                for (const loc of World.gameMap.getZone(coord.x + x, coord.z + z, coord.level).getAllLocsUnsafe()) {
+                    const type = check(loc.type, LocTypeValid);
 
-        for (const loc of World.gameMap.getZone(coord.x, coord.z, coord.level).getAllLocsUnsafe()) {
-            const type = check(loc.type, LocTypeValid);
-
-            if (type.active !== 1) {
-                continue;
-            }
-
-            const layer = loc.layer;
-
-            if (!loc.isActive && layer === LocLayer.WALL) {
-                continue;
-            }
-
-            if (layer === LocLayer.WALL) {
-                if (loc.x === coord.x && loc.z === coord.z) {
-                    state.pushInt(1);
-                    return;
-                }
-            } else if (layer === LocLayer.GROUND) {
-                const width = loc.angle === LocAngle.NORTH || loc.angle === LocAngle.SOUTH ? loc.length : loc.width;
-                const length = loc.angle === LocAngle.NORTH || loc.angle === LocAngle.SOUTH ? loc.width : loc.length;
-                for (let index = 0; index < width * length; index++) {
-                    const deltaX = loc.x + (index % width);
-                    const deltaZ = loc.z + ((index / width) | 0);
-                    if (deltaX === coord.x && deltaZ === coord.z) {
-                        state.pushInt(1);
-                        return;
+                    if (type.active !== 1) {
+                        continue;
                     }
-                }
-            } else if (layer === LocLayer.GROUND_DECOR || layer === LocLayer.WALL_DECOR) {
-                if (loc.x === coord.x && loc.z === coord.z) {
-                    state.pushInt(1);
-                    return;
+
+                    if (!loc.isActive && loc.layer === LocLayer.WALL) {
+                        continue;
+                    }
+                    const width = loc.angle === LocAngle.NORTH || loc.angle === LocAngle.SOUTH ? loc.length : loc.width;
+                    const length = loc.angle === LocAngle.NORTH || loc.angle === LocAngle.SOUTH ? loc.width : loc.length;
+                    for (let index = 0; index < width * length; index++) {
+                        const deltaX = loc.x + (index % width);
+                        const deltaZ = loc.z + ((index / width) | 0);
+                        if (deltaX === coord.x && deltaZ === coord.z) {
+                            state.pushInt(1);
+                            return;
+                        }
+                    }
                 }
             }
         }
