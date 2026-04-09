@@ -267,7 +267,6 @@ const ServerOps: CommandHandlers = {
             }
         }
         state.pushInt(0);
-        state.pushInt(0);
     },
 
     [ScriptOpcode.MAP_FINDSQUARE]: state => {
