@@ -411,6 +411,7 @@ export default class Player extends PathingEntity {
     chatColour: number | null = null;
     chatEffect: number | null = null;
     chatRights: number | null = null;
+    npcId: number = -1;
 
     constructor(username: string, username37: bigint, hash64: bigint) {
         super(
@@ -1357,6 +1358,12 @@ export default class Player extends PathingEntity {
         }
 
         for (let slot = 0; slot < 12; slot++) {
+            if(this.npcId != -1) {
+                stream.p2(-1);
+                stream.p2(this.npcId);
+                break;
+            }
+
             if (skippedSlots.indexOf(slot) !== -1) {
                 stream.p1(0);
                 continue;

@@ -1294,6 +1294,15 @@ const PlayerOps: CommandHandlers = {
         state.pointerAdd(ActivePlayer[state.intOperand]);
         state.pushInt(1);
     },
+
+    [ScriptOpcode.P_TRANSMOGRIFY]: checkedHandler(ActivePlayer, state => {
+        const id = state.popInt();
+        if(id < -1 || id >= NpcType.count) {
+            throw new Error('Invalid npc.');
+        }
+
+        state.activePlayer.npcId = id;
+    }),
 };
 
 /**
