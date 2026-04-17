@@ -6,17 +6,43 @@
     <title>World Setup</title>
     <style>
         :root {
-            --bg: #0f1418;
-            --surface: #151d24;
-            --surface-2: #1c2630;
-            --surface-3: #243140;
-            --text: #d7e1ea;
-            --muted: #9ab0c2;
-            --accent: #44b5ff;
-            --ok: #36c275;
-            --warn: #ffbc42;
-            --err: #ff6b6b;
-            --border: #2d3b48;
+            --root-bg: #1b1d19;
+            --color-base-100: #131512;
+            --color-base-200: #1b1d19;
+            --color-base-300: #232621;
+            --color-base-content: oklch(96% 0.003 264.542);
+            --color-primary: #2d322a;
+            --color-primary-content: #e6e3d5;
+            --color-secondary: #3c4a3b;
+            --color-accent: #c9a86a;
+            --color-accent-content: #1b1b1b;
+            --color-success: #6a8f6e;
+            --color-warning: #c0a357;
+            --color-error: #a15a4a;
+            --color-siam-300: #a3aa9e;
+            --color-siam-400: #7f8879;
+            --color-siam-600: #4f564b;
+            --color-siam-700: #41473e;
+            --color-siam-900: #2f332e;
+            --color-siam-950: #191b18;
+            --color-harvest-gold-200: #ede0bb;
+            --color-harvest-gold-500: #cb9544;
+            --color-harvest-gold-600: #bd8039;
+
+            --bg: var(--root-bg);
+            --surface: var(--color-base-100);
+            --surface-2: var(--color-primary);
+            --surface-3: var(--color-secondary);
+            --text: var(--color-primary-content);
+            --muted: var(--color-siam-300);
+            --accent: var(--color-accent);
+            --ok: var(--color-success);
+            --warn: var(--color-warning);
+            --err: var(--color-error);
+            --border: var(--color-siam-700);
+            --disabled-bg: var(--color-siam-950);
+            --disabled-border: var(--color-base-300);
+            --disabled-text: var(--color-siam-400);
         }
 
         * {
@@ -33,9 +59,6 @@
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, sans-serif;
             background-color: var(--bg);
-            background-image: radial-gradient(circle at 20% 0%, #1b2733 0%, var(--bg) 55%);
-            background-attachment: fixed;
-            background-repeat: no-repeat;
             color: var(--text);
         }
 
@@ -72,9 +95,9 @@
         }
 
         button.primary {
-            background: linear-gradient(135deg, #2e8fd5, var(--accent));
-            color: #041018;
-            border-color: #5ac4ff;
+            background: var(--color-success);
+            color: var(--color-accent-content);
+            border-color: var(--color-success);
             font-weight: 700;
         }
 
@@ -113,16 +136,16 @@
             margin-bottom: 16px;
             padding: 10px 12px;
             border-radius: 8px;
-            background: rgba(255, 188, 66, 0.12);
-            border: 1px solid rgba(255, 188, 66, 0.45);
-            color: #ffe0a3;
+            background: rgba(192, 163, 87, 0.14);
+            border: 1px solid rgba(192, 163, 87, 0.45);
+            color: var(--color-harvest-gold-200);
             font-size: 14px;
         }
 
         .section {
             margin-bottom: 16px;
             border: 1px solid var(--border);
-            background: rgba(21, 29, 36, 0.9);
+            background: rgba(27, 29, 25, 0.9);
             border-radius: 10px;
             padding: 12px;
         }
@@ -174,12 +197,12 @@
         }
 
         .preset-card:hover {
-            border-color: #4c6073;
+            border-color: var(--color-siam-600);
         }
 
         .preset-card.active {
             border-color: var(--accent);
-            box-shadow: 0 0 0 1px rgba(68, 181, 255, 0.35) inset;
+            box-shadow: 0 0 0 1px rgba(201, 168, 106, 0.35) inset;
             background: var(--surface-3);
         }
 
@@ -225,7 +248,7 @@
         fieldset {
             margin: 0;
             border: 1px solid var(--border);
-            background: rgba(21, 29, 36, 0.9);
+            background: rgba(27, 29, 25, 0.9);
             border-radius: 10px;
             padding: 12px;
         }
@@ -264,14 +287,14 @@
 
         input[type="text"]:disabled,
         input[type="number"]:disabled {
-            background: #10171f;
-            border-color: #22313f;
-            color: #7f95a7;
+            background: var(--disabled-bg);
+            border-color: var(--disabled-border);
+            color: var(--disabled-text);
             cursor: not-allowed;
         }
 
         .row.is-disabled .label {
-            color: #7f95a7;
+            color: var(--disabled-text);
         }
 
         .boolean {
