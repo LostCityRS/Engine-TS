@@ -111,10 +111,6 @@ async function handleWebRequest(req: Request): Promise<Response> {
             return new Response(Buffer.from(OnDemand.cache.read(0, 7)!));
         } else if (url.pathname.startsWith('/sounds')) {
             return new Response(Buffer.from(OnDemand.cache.read(0, 8)!));
-        } else if (url.pathname.startsWith('/ondemand.zip')) {
-            return streamFile('data/pack/ondemand.zip', 'application/octet-stream');
-        } else if (url.pathname.startsWith('/build')) {
-            return streamFile('data/pack/server/build', 'application/octet-stream');
         } else if (url.pathname === '/rs2.cgi') {
             const plugin = tryParseInt(url.searchParams.get('plugin'), 0);
             const lowmem = tryParseInt(url.searchParams.get('lowmem'), 0);
@@ -366,11 +362,7 @@ async function startNodeWeb(): Promise<void> {
                     if (client.state === 0) {
                         World.onClientData(client);
                     } else if (client.state === 2) {
-                        if (Environment.node.wsOnDemand) {
-                            OnDemand.onClientData(client);
-                        } else {
-                            client.terminate();
-                        }
+                        OnDemand.onClientData(client);
                     }
                 } catch (_) {
                     ws.terminate();
@@ -444,11 +436,7 @@ async function startBunWeb(): Promise<void> {
                     if (client.state === 0) {
                         World.onClientData(client);
                     } else if (client.state === 2) {
-                        if (Environment.node.wsOnDemand) {
-                            OnDemand.onClientData(client);
-                        } else {
-                            client.terminate();
-                        }
+                        OnDemand.onClientData(client);
                     }
                 } catch (_) {
                     ws.terminate();

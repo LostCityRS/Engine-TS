@@ -1,9 +1,6 @@
 import { parentPort } from 'worker_threads';
 
-import * as fflate from 'fflate';
-
 import FileStream from '#/io/FileStream.js';
-import Packet from '#/io/Packet.js';
 import Environment from '#/util/Environment.js';
 
 import { ModelPack, revalidatePack } from '#tools/pack/PackFile.js';
@@ -18,7 +15,7 @@ import { packClientMedia } from '#tools/pack/sprite/media.js';
 import { packClientTexture } from '#tools/pack/sprite/textures.js';
 import { packClientTitle } from '#tools/pack/sprite/title.js';
 import { loadCachedModelFlags, packClientVersionList, shouldRebuildVersionListPack } from '#tools/pack/versionlist/pack.js';
-import { clearFsCache, fileExists, writeFileIfChanged } from '#tools/pack/FsCache.js';
+import { clearFsCache, fileExists } from '#tools/pack/FsCache.js';
 import { shouldBuild, shouldBuildFileAny, shouldBuildFileList } from '#tools/pack/PackFile.js';
 
 const COMPILER_DIRECT_SOURCE_EXTENSIONS = ['.constant', '.dbrow', '.dbtable', '.inv', '.param', '.varbit', '.varn', '.varp', '.vars'];
@@ -117,10 +114,6 @@ function shouldRebuildModelFlagSources() {
     );
 }
 
-function shouldRebuildOndemandZip() {
-    return shouldBuildFileList(['data/pack/main_file_cache.dat', 'data/pack/main_file_cache.idx1', 'data/pack/main_file_cache.idx2', 'data/pack/main_file_cache.idx3', 'data/pack/main_file_cache.idx4'], 'data/pack/ondemand.zip');
-}
-
 export async function packAll(modelFlags: number[]) {
     if (parentPort) {
         parentPort.postMessage({
@@ -176,27 +169,6 @@ export async function packAll(modelFlags: number[]) {
     }
 
     packClientVersionList(cache, modelFlags); // relies on additional flags set during packMaps
-
-    const build = Packet.alloc(0);
-    build.p4(Date.now() / 1000);
-    build.save('data/pack/server/build');
-
-    if (shouldRebuildOndemandZip()) {
-        const zipPack: Record<string, Uint8Array> = {};
-        for (let archive = 1; archive <= 4; archive++) {
-            const count = cache.count(archive);
-            for (let file = 0; file < count; file++) {
-                const data = cache.read(archive, file);
-                if (!data) {
-                    continue;
-                }
-
-                zipPack[`${archive}.${file}`] = data;
-            }
-        }
-        const zip = fflate.zipSync(zipPack, { level: 0 });
-        writeFileIfChanged('data/pack/ondemand.zip', zip);
-    }
 
     if (parentPort) {
         parentPort.postMessage({

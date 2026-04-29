@@ -30,7 +30,6 @@ export interface WorldConfig {
         profile: string;
         maxConnected: number;
         debugProcChar: string;
-        wsOnDemand: boolean;
         hopTime: number;
         rateLimitAddressLogin: number;
         rateLimitDeviceLogin: number;
@@ -105,7 +104,6 @@ export function createDefaultWorldConfig(): WorldConfig {
             profile: 'main',
             maxConnected: 1000,
             debugProcChar: '~',
-            wsOnDemand: false,
             hopTime: 45000,
             rateLimitAddressLogin: 30,
             rateLimitDeviceLogin: 5
@@ -245,7 +243,6 @@ function migrateFromLegacyEnv(defaults: WorldConfig, env: Record<string, string>
     config.node.profile = tryParseString(env.NODE_PROFILE, config.node.profile);
     config.node.maxConnected = tryParseInt(env.NODE_MAX_CONNECTED, config.node.maxConnected);
     config.node.debugProcChar = tryParseString(env.NODE_DEBUGPROC_CHAR, config.node.debugProcChar);
-    config.node.wsOnDemand = tryParseBoolean(env.NODE_WS_ONDEMAND, config.node.wsOnDemand);
     config.node.hopTime = tryParseInt(env.NODE_HOP_TIME, tryParseInt(env.NODE_MAX_NPCS, config.node.hopTime));
     config.node.rateLimitAddressLogin = tryParseInt(env.NODE_RATELIMIT_ADDRESS_LOGIN, config.node.rateLimitAddressLogin);
     config.node.rateLimitDeviceLogin = tryParseInt(env.NODE_RATELIMIT_DEVICE_LOGIN, config.node.rateLimitDeviceLogin);
