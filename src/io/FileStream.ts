@@ -223,6 +223,14 @@ export default class FileStream {
         this.packed[archive] = [];
     }
 
+    close(): void {
+        this.dat.close();
+
+        for (const idx of this.idx) {
+            idx.close();
+        }
+    }
+
     has(archive: number, file: number): boolean {
         if (!this.dat) {
             return false;

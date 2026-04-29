@@ -205,6 +205,8 @@ class World {
     }
 
     reload(clearInvs: boolean = true): void {
+        OnDemand.reloadCache();
+
         VarPlayerType.load('data/pack');
         VarBitType.load('data/pack');
         ParamType.load('data/pack');

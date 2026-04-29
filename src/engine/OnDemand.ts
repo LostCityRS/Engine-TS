@@ -18,6 +18,10 @@ type OnDemandClientClosed = {
     clientId: string;
 };
 
+type OnDemandReloadCache = {
+    type: 'reload_cache';
+};
+
 type OnDemandWorkerMessage =
     | {
           type: 'chunk';
@@ -29,7 +33,7 @@ type OnDemandWorkerMessage =
           clientId: string;
       };
 
-type OnDemandWorkerRequest = OnDemandRequest | OnDemandClientClosed;
+type OnDemandWorkerRequest = OnDemandRequest | OnDemandClientClosed | OnDemandReloadCache;
 
 type WorkerWithTransfers = Worker & {
     postMessage(value: OnDemandWorkerRequest): void;
@@ -44,6 +48,14 @@ class OnDemand {
 
     cycle() {
         this.startWorker();
+    }
+
+    reloadCache() {
+        this.cache.close();
+        this.cache = new FileStream('data/pack');
+        this.worker?.postMessage({
+            type: 'reload_cache'
+        });
     }
 
     onClientData(client: ClientSocket) {

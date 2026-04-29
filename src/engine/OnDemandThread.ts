@@ -17,7 +17,11 @@ type OnDemandClientClosed = {
     clientId: string;
 };
 
-type OnDemandMessage = OnDemandRequest | OnDemandClientClosed;
+type OnDemandReloadCache = {
+    type: 'reload_cache';
+};
+
+type OnDemandMessage = OnDemandRequest | OnDemandClientClosed | OnDemandReloadCache;
 
 type PendingRequest = {
     clientId: string;
@@ -54,7 +58,7 @@ const MAX_BYTES_PER_CLIENT_SLICE = 8000;
 const MAX_CHUNKS_PER_CLIENT_SLICE = 16;
 const MAX_PUMP_MS = 8;
 
-const cache = new FileStream('data/pack', false, true);
+let cache = new FileStream('data/pack', false, true);
 const clients: Map<string, ClientQueue> = new Map();
 const roundRobin: string[] = [];
 
@@ -66,6 +70,11 @@ parentPort.on('message', (msg: OnDemandMessage) => {
     try {
         if (msg.type === 'client_closed') {
             deleteClient(msg.clientId);
+            return;
+        }
+
+        if (msg.type === 'reload_cache') {
+            reloadCache();
             return;
         }
 
@@ -117,6 +126,11 @@ function enqueue(msg: OnDemandRequest) {
     client.pendingCount++;
     scheduleClient(client);
     schedulePump();
+}
+
+function reloadCache() {
+    cache.close();
+    cache = new FileStream('data/pack', false, true);
 }
 
 function getClient(clientId: string): ClientQueue {
