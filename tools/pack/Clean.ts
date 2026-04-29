@@ -20,6 +20,8 @@ rmIfExists(`${Environment.build.srcDir}/pack/mesanim.pack`);
 rmIfExists(`${Environment.build.srcDir}/pack/dbrow.pack`);
 rmIfExists(`${Environment.build.srcDir}/pack/dbtable.pack`);
 rmIfExists(`${Environment.build.srcDir}/pack/hunt.pack`);
+rmIfExists(`${Environment.build.srcDir}/pack/varn.pack`);
+rmIfExists(`${Environment.build.srcDir}/pack/vars.pack`);
 
 // these get rebuilt anyways but since we're here...
 rmIfExists('data/symbols/');
