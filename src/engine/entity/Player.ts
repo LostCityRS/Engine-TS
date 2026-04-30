@@ -1327,8 +1327,6 @@ export default class Player extends PathingEntity {
         stream.p1(0xFF); // prayer icon?
         stream.p1(0xFF); // skull icon?
 
-        // todo: transmog support - write first "slot" with -1, followed by npc ID
-
         const skippedSlots = [];
 
         let worn = this.getInventory(this.appearanceInv);
