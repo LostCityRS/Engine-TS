@@ -157,6 +157,7 @@ export const enum ScriptOpcode {
     P_STOPACTION, // official
     P_TELEJUMP, // official
     P_TELEPORT,
+    P_TRANSMOGRIFY,
     P_WALK, // official
     PLAYERMEMBER, // official
     PROJANIM_PL, // todo: take active_player
@@ -606,6 +607,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['P_STOPACTION', ScriptOpcode.P_STOPACTION],
     ['P_TELEJUMP', ScriptOpcode.P_TELEJUMP],
     ['P_TELEPORT', ScriptOpcode.P_TELEPORT],
+    ['P_TRANSMOGRIFY', ScriptOpcode.P_TRANSMOGRIFY],
     ['P_WALK', ScriptOpcode.P_WALK],
     ['PLAYERMEMBER', ScriptOpcode.PLAYERMEMBER],
     ['PROJANIM_NPC', ScriptOpcode.PROJANIM_NPC],
