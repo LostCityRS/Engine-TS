@@ -95,6 +95,14 @@ export default class GameMap {
         return this.zonemap.zoneByIndex(zoneIndex);
     }
 
+    addZone(zone: Zone): Zone {
+        return this.zonemap.addZone(zone);
+    }
+
+    removeZone(index: number): boolean {
+        return this.zonemap.removeZone(index);
+    }
+
     getZoneGrid(level: number): ZoneGrid {
         return this.zonemap.grid(level);
     }

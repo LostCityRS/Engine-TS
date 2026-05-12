@@ -41,6 +41,15 @@ export default class ZoneMap {
         return zone;
     }
 
+    addZone(zone: Zone): Zone {
+        this.zones.set(zone.index, zone);
+        return zone;
+    }
+
+    removeZone(index: number): boolean {
+        return this.zones.delete(index);
+    }
+
     grid(level: number): ZoneGrid {
         let grid: ZoneGrid | undefined = this.grids.get(level);
         if (typeof grid == 'undefined') {

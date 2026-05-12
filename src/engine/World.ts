@@ -52,6 +52,7 @@ import { PlayerStat } from '#/engine/entity/PlayerStat.js';
 import { SessionLog } from '#/engine/entity/tracking/SessionLog.js';
 import { WealthTransactionEvent, WealthEvent } from '#/engine/entity/tracking/WealthEvent.js';
 import GameMap, { changeLocCollision, changeNpcCollision, changePlayerCollision } from '#/engine/GameMap.js';
+import InstanceController from '#/engine/InstanceController.js';
 import { Inventory } from '#/engine/Inventory.js';
 import ScriptPointer from '#/engine/script/ScriptPointer.js';
 import ScriptProvider from '#/engine/script/ScriptProvider.js';
@@ -134,6 +135,9 @@ class World {
 
     // the game/zones map
     readonly gameMap: GameMap = new GameMap(Environment.NODE_MEMBERS);
+
+    // instance management
+    readonly instances: InstanceController = new InstanceController();
 
     // shared inventories (shops)
     readonly invs: Set<Inventory> = new Set();
@@ -908,11 +912,13 @@ class World {
 
                 player.client.state = 1;
 
-                player.client.send(Uint8Array.from([
-                    2,
-                    Math.min(player.staffModLevel, 2),
-                    1 // mouse tracking can only be enabled on login
-                ]));
+                player.client.send(
+                    Uint8Array.from([
+                        2,
+                        Math.min(player.staffModLevel, 2),
+                        1 // mouse tracking can only be enabled on login
+                    ])
+                );
 
                 const remote = player.client.remoteAddress;
                 if (remote.indexOf('.') !== -1) {
@@ -1877,10 +1883,7 @@ class World {
             } else if (reply === 10) {
                 // hop timer
                 const { remaining } = msg;
-                client.send(Uint8Array.from([
-                    21,
-                    Math.min(255, remaining! / 1000)
-                ]));
+                client.send(Uint8Array.from([21, Math.min(255, remaining! / 1000)]));
                 client.close();
                 return;
             }
@@ -2145,7 +2148,7 @@ class World {
             client.send(seed.data);
         } else if (client.opcode === 16 || client.opcode === 18) {
             let rev = World.loginBuf.g1();
-            if (rev === 0xFF) {
+            if (rev === 0xff) {
                 rev = World.loginBuf.g2();
             }
             if (rev !== Environment.ENGINE_REVISION) {
