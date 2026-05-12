@@ -67,7 +67,7 @@ export default class Npc extends PathingEntity {
     huntrange: number = 0;
 
     nextPatrolPoint: number = 0;
-    patrolDelayTicksRemaining: number = 0;
+    patrolDelayTicksRemaining: number = -1;
     resetOnRevert: boolean = true;
 
     stuckCounter: number = 0;
@@ -376,8 +376,9 @@ export default class Npc extends PathingEntity {
     }
 
     clearPatrol() {
+        this.nextPatrolPoint = 0;
         this.stuckCounter = 0;
-        this.patrolDelayTicksRemaining = 0;
+        this.patrolDelayTicksRemaining = -1;
     }
 
     blockWalkFlag(): CollisionFlag {
@@ -712,7 +713,8 @@ export default class Npc extends PathingEntity {
 
         const onSpawn = this.x === this.startX && this.z === this.startZ && this.level === this.startLevel;
 
-        if (this.stuckCounter++ >= 500) {
+        // Npc should teleport 501 ticks after its last movement
+        if (this.stuckCounter++ > 500) {
             if (!onSpawn) {
                 this.teleport(this.startX, this.startZ, this.startLevel);
             }
@@ -729,38 +731,37 @@ export default class Npc extends PathingEntity {
             return;
         }
 
-        const patrolDelay = type.patrolDelay[this.nextPatrolPoint] ?? 0;
         let dest = CoordGrid.unpackCoord(patrolPoints[this.nextPatrolPoint]);
-
-        this.updateMovement();
-        if (this.x === dest.x && this.z === dest.z) {
-            if (this.patrolDelayTicksRemaining <= 0) {
-                this.patrolDelayTicksRemaining = patrolDelay;
-            }
-
-            if (this.patrolDelayTicksRemaining > 0) {
-                this.patrolDelayTicksRemaining--;
-                this.stuckCounter = 0;
-                return;
-            }
-
-            this.nextPatrolPoint = (this.nextPatrolPoint + 1) % patrolPoints.length;
-            this.patrolDelayTicksRemaining = 0;
-            this.stuckCounter = 0;
-            dest = CoordGrid.unpackCoord(patrolPoints[this.nextPatrolPoint]);
-            this.queueWaypoint(dest.x, dest.z);
-            return;
-        }
 
         if (!this.hasWaypoints() && !this.target) {
             // requeue waypoints in cases where an npc was interacting and the interaction has been cleared
             this.queueWaypoint(dest.x, dest.z);
         }
 
-        if (this.stuckCounter++ >= 30) {
+        // Npc should teleport 32 ticks after its last movement
+        if (this.stuckCounter++ > 30) {
             this.teleport(dest.x, dest.z, dest.level);
             this.stuckCounter = 0;
         }
+
+        if (this.x === dest.x && this.z === dest.z) {
+            // If patrol delay is unitialized, set it to next patroldelay
+            if (this.patrolDelayTicksRemaining < 0) {
+                const patrolDelay = type.patrolDelay[this.nextPatrolPoint] ?? 0;
+                this.patrolDelayTicksRemaining = patrolDelay;
+            }
+
+            if (this.patrolDelayTicksRemaining-- > 0) {
+                return;
+            }
+
+            this.nextPatrolPoint = (this.nextPatrolPoint + 1) % patrolPoints.length;
+            this.patrolDelayTicksRemaining = -1;
+            dest = CoordGrid.unpackCoord(patrolPoints[this.nextPatrolPoint]);
+            this.queueWaypoint(dest.x, dest.z);
+        }
+
+        this.updateMovement();
     }
 
     private playerEscapeMode(): void {
