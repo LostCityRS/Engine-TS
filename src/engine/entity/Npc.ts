@@ -738,8 +738,10 @@ export default class Npc extends PathingEntity {
             this.queueWaypoint(dest.x, dest.z);
         }
 
+        this.stuckCounter++;
+
         // Npc should teleport 32 ticks after its last movement, or if it needs to change floors
-        if (this.stuckCounter++ > 30 || this.level !== dest.level) {
+        if (this.stuckCounter >= 32 || this.level !== dest.level) {
             this.teleport(dest.x, dest.z, dest.level);
             this.stuckCounter = 0;
         }
