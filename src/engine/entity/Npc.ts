@@ -738,8 +738,8 @@ export default class Npc extends PathingEntity {
             this.queueWaypoint(dest.x, dest.z);
         }
 
-        // Npc should teleport 32 ticks after its last movement
-        if (this.stuckCounter++ > 30) {
+        // Npc should teleport 32 ticks after its last movement, or if it needs to change floors
+        if (this.stuckCounter++ > 30 || this.level !== dest.level) {
             this.teleport(dest.x, dest.z, dest.level);
             this.stuckCounter = 0;
         }
@@ -751,14 +751,12 @@ export default class Npc extends PathingEntity {
                 this.patrolDelayTicksRemaining = patrolDelay;
             }
 
-            if (this.patrolDelayTicksRemaining-- > 0) {
-                return;
+            if (this.patrolDelayTicksRemaining-- <= 0) {
+                this.nextPatrolPoint = (this.nextPatrolPoint + 1) % patrolPoints.length;
+                this.patrolDelayTicksRemaining = -1;
+                dest = CoordGrid.unpackCoord(patrolPoints[this.nextPatrolPoint]);
+                this.queueWaypoint(dest.x, dest.z);
             }
-
-            this.nextPatrolPoint = (this.nextPatrolPoint + 1) % patrolPoints.length;
-            this.patrolDelayTicksRemaining = -1;
-            dest = CoordGrid.unpackCoord(patrolPoints[this.nextPatrolPoint]);
-            this.queueWaypoint(dest.x, dest.z);
         }
 
         this.updateMovement();
