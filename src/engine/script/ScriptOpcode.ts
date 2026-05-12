@@ -426,6 +426,9 @@ export const enum ScriptOpcode {
     COS_DEG, // custom
     ATAN2_DEG, // custom
     ABS, // custom
+    DATE_MINUTES, // derived
+    DATE_RUNEDAY, // derived
+
 
     // Struct ops (4700-4799)
     STRUCT_PARAM = 4700,
@@ -851,6 +854,8 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['COS_DEG', ScriptOpcode.COS_DEG],
     ['ATAN2_DEG', ScriptOpcode.ATAN2_DEG],
     ['ABS', ScriptOpcode.ABS],
+    ['DATE_MINUTES', ScriptOpcode.DATE_MINUTES],
+    ['DATE_RUNEDAY', ScriptOpcode.DATE_RUNEDAY],
 
     ['STRUCT_PARAM', ScriptOpcode.STRUCT_PARAM],
 
