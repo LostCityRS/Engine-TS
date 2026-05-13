@@ -7,7 +7,7 @@ import RebuildNormal from '#/network/game/server/model/RebuildNormal.js';
 import RebuildRegion, { type RegionTemplate } from '#/network/game/server/model/RebuildRegion.js';
 
 export default class BuildArea {
-    // TODO: Enable once REBUILD_REGION payload has been verified against the 377 client.
+    // Dynamic rebuild currently enabled for instance zones.
     private static readonly ENABLE_REGION_REBUILD_SKELETON: boolean = true;
 
     // constructor
@@ -132,17 +132,17 @@ export default class BuildArea {
 
                     templates.push({
                         level: zone.level,
-                        zoneX: zone.x >> 3,
-                        zoneZ: zone.z >> 3,
+                        zoneX: zone.x,
+                        zoneZ: zone.z,
                         sourceLevel: zone.source.level,
-                        sourceZoneX: zone.source.x >> 3,
-                        sourceZoneZ: zone.source.z >> 3,
+                        sourceZoneX: zone.source.x,
+                        sourceZoneZ: zone.source.z,
                         rotation: zone.rotation
                     });
                 }
             }
         }
 
-        return new RebuildRegion(zoneX, zoneZ, templates);
+        return new RebuildRegion(zoneX, zoneZ, templates, this.player.x, this.player.z, this.player.level);
     }
 }

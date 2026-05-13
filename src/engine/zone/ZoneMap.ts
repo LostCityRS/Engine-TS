@@ -24,17 +24,19 @@ export default class ZoneMap {
 
     zone(x: number, z: number, level: number): Zone {
         const zoneIndex: number = ZoneMap.zoneIndex(x, z, level);
-        const zone: Zone | undefined = this.zones.get(zoneIndex);
+        let zone: Zone | undefined = this.zones.get(zoneIndex);
         if (typeof zone == 'undefined') {
-            throw new Error(`Zone not initialized at x=${x}, z=${z}, level=${level}`);
+            zone = new Zone(zoneIndex);
+            this.zones.set(zoneIndex, zone);
         }
         return zone;
     }
 
     zoneByIndex(index: number): Zone {
-        const zone: Zone | undefined = this.zones.get(index);
+        let zone: Zone | undefined = this.zones.get(index);
         if (typeof zone == 'undefined') {
-            throw new Error(`Zone not initialized at index=${index}`);
+            zone = new Zone(index);
+            this.zones.set(index, zone);
         }
         return zone;
     }

@@ -80,7 +80,8 @@ const RegionOps: CommandHandlers = {
             throw new Error(`region_getcoord zOffset out of range: ${zOffset}. Expected 0..127.`);
         }
 
-        state.pushInt(CoordGrid.packCoord(state.activeRegion.level + levelOffset, state.activeRegion.x + xOffset, state.activeRegion.z + zOffset));
+        const coord = CoordGrid.packCoord(state.activeRegion.level + levelOffset, state.activeRegion.x + xOffset, state.activeRegion.z + zOffset);
+        state.pushInt(coord);
     }),
 
     [ScriptOpcode.REGION_FINDBYCOORD]: state => {

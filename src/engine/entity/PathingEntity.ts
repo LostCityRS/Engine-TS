@@ -1,6 +1,7 @@
 import { CollisionFlag, CollisionType } from '#/engine/routefinder/index.js';
 
 import LocType from '#/cache/config/LocType.js';
+import NpcType from '#/cache/config/NpcType.js';
 import { CoordGrid } from '#/engine/CoordGrid.js';
 import { BlockWalk } from '#/engine/entity/BlockWalk.js';
 import Entity from '#/engine/entity/Entity.js';
@@ -262,22 +263,27 @@ export default abstract class PathingEntity extends Entity {
     }
 
     teleJump(x: number, z: number, level: number): void {
-        this.teleport(x, z, level);
+        if (!this.teleport(x, z, level)) {
+            return;
+        }
         this.moveSpeed = MoveSpeed.INSTANT;
         this.jump = true;
     }
 
-    teleport(x: number, z: number, level: number): void {
+    teleport(x: number, z: number, level: number): boolean {
         if (isNaN(level)) {
             level = 0;
         }
         level = Math.max(0, Math.min(level, 3));
 
-        if (!isZoneAllocated(level, x, z) && (!(this instanceof Player) || this.staffModLevel < 3)) {
+        const allocated: boolean = isZoneAllocated(level, x, z);
+        const initialized: boolean = World.gameMap.hasZone(x, z, level);
+        if (!allocated || !initialized) {
+            console.error(`[Teleport] Invalid teleport for ${this.constructor.name} from (${this.x}, ${this.z}, L${this.level}) to (${x}, ${z}, L${level}) allocated=${allocated} initialized=${initialized}`);
             if (this instanceof Player) {
                 this.messageGame('Invalid teleport!');
             }
-            return;
+            return false;
         }
 
         const previousX: number = this.x;
@@ -299,6 +305,8 @@ export default abstract class PathingEntity extends Entity {
             this.moveSpeed = MoveSpeed.INSTANT;
             this.jump = true;
         }
+
+        return true;
     }
 
     /**

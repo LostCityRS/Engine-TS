@@ -42,12 +42,7 @@ export default class InstanceZone extends Zone {
     }
 
     private copyLocsWithRotation(sourceZone: Zone, rotation: 0 | 1 | 2 | 3): void {
-        // Iterate through permanent locs only (DESPAWN lifecycle)
         for (const sourceLoc of sourceZone.getAllLocsSafe()) {
-            if (sourceLoc.lifecycle !== EntityLifeCycle.DESPAWN) {
-                continue;
-            }
-
             // Extract base properties (before any runtime changes)
             const baseType = sourceLoc.baseType;
             const baseShape = sourceLoc.baseShape;
@@ -55,11 +50,11 @@ export default class InstanceZone extends Zone {
             let width = sourceLoc.width;
             let length = sourceLoc.length;
 
-            // Get zone-relative coordinates (within 0-7 range)
-            const zoneX = sourceZone.x >> 3;
-            const zoneZ = sourceZone.z >> 3;
-            const locX = (sourceLoc.x >> 3) - zoneX;
-            const locZ = (sourceLoc.z >> 3) - zoneZ;
+            // Get zone-relative tile coordinates (0-7 range).
+            // sourceZone.x is already in zone-index units (tile >> 3), so shift left to
+            // get the absolute tile base of the zone's SW corner.
+            const locX = sourceLoc.x - (sourceZone.x << 3);
+            const locZ = sourceLoc.z - (sourceZone.z << 3);
 
             // Rotate position and dimensions
             let rotatedX = locX;
@@ -80,24 +75,31 @@ export default class InstanceZone extends Zone {
                 [width, length] = [length, width];
             }
 
+            // Skip any loc whose rotated base tile falls outside the 8×8 zone footprint.
+            // Without this, World.addLoc would reach ZoneMap.zone() which auto-creates a
+            // plain Zone outside the instance boundary.
+            if (rotatedX < 0 || rotatedX > 7 || rotatedZ < 0 || rotatedZ > 7) {
+                continue;
+            }
+
             // Rotate angle
             const rotatedAngle = ((baseAngle + rotation) & 0x3) as 0 | 1 | 2 | 3;
 
-            // Compute absolute coordinates in instance zone
-            const instanceZoneX = this.x >> 3;
-            const instanceZoneZ = this.z >> 3;
-            const absoluteX = ((instanceZoneX + rotatedX) << 3) | (sourceLoc.x & 0x7);
-            const absoluteZ = ((instanceZoneZ + rotatedZ) << 3) | (sourceLoc.z & 0x7);
+            // Compute absolute coordinates in instance zone.
+            // this.x is zone-index (tile >> 3), so shift left to get the tile base.
+            const absoluteX = (this.x << 3) + rotatedX;
+            const absoluteZ = (this.z << 3) + rotatedZ;
 
             // Create new Loc with rotated properties
-            const newLoc = new Loc(this.level, absoluteX, absoluteZ, width, length, EntityLifeCycle.DESPAWN, baseType, baseShape, rotatedAngle);
+            const newLoc = new Loc(this.level, absoluteX, absoluteZ, width, length, sourceLoc.lifecycle, baseType, baseShape, rotatedAngle);
 
-            // Try to add the loc; catch errors if zone is uninitialized
-            try {
+            if (sourceLoc.lifecycle === EntityLifeCycle.DESPAWN) {
+                // Preserve dynamic loc semantics when the source loc is runtime-spawned.
                 World.addLoc(newLoc, 0);
-            } catch (_: unknown) {
-                // Silently skip locs that land in uninitialized zones
-                // This can happen if a loc extends beyond the allocated instance grid
+            } else {
+                // Instance rebuilds already make the client infer unchanged static locs from cache.
+                // Copy them directly into the instance zone so server-side interaction lookup works.
+                this.addStaticLoc(newLoc);
             }
         }
     }

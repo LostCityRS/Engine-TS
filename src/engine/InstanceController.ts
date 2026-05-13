@@ -3,6 +3,8 @@ import { isZoneAllocated } from '#/engine/GameMap.js';
 import routeFinder from '#/engine/routefinder/index.js';
 import World from '#/engine/World.js';
 import InstanceZone from '#/engine/zone/InstanceZone.js';
+import ZoneMap from '#/engine/zone/ZoneMap.js';
+import { printDebug } from '#/util/Logger.js';
 
 type InstanceRecord = {
     sw: CoordGrid;
@@ -55,9 +57,10 @@ export default class InstanceController {
                 for (let north: number = 0; north < zonesNorth; north++) {
                     const x: number = (baseX + east) << 3;
                     const z: number = (baseZ + north) << 3;
-                    const zoneIndex: number = CoordGrid.packCoord(level, x, z);
+                    const zoneIndex: number = ZoneMap.zoneIndex(x, z, level);
                     const zone: InstanceZone = new InstanceZone(zoneIndex);
                     World.gameMap.addZone(zone);
+                    routeFinder.allocateIfAbsent(x, z, level);
                 }
             }
         }
@@ -78,6 +81,12 @@ export default class InstanceController {
 
         if (targetZone instanceof InstanceZone) {
             targetZone.copyFromZone(sourceZone, rotation);
+            printDebug(`[Instance] Zone copy complete: src=(${source.x},${source.z},L${source.level}) -> dst=(${target.x},${target.z},L${target.level}) rot=${rotation} locs=${targetZone.totalLocs}`);
+            for (const loc of targetZone.getAllLocsSafe()) {
+                printDebug(`  [Loc] type=${loc.type} at (${loc.x},${loc.z},L${loc.level}) shape=${loc.shape} angle=${loc.angle} active=${loc.isActive}`);
+            }
+        } else {
+            printDebug(`[Instance] ERROR: Target zone is not InstanceZone, it's ${targetZone.constructor.name}`);
         }
     }
 
@@ -191,9 +200,9 @@ export default class InstanceController {
                 for (let north: number = 0; north < instance.zonesNorth; north++) {
                     const x: number = instance.sw.x + (east << 3);
                     const z: number = instance.sw.z + (north << 3);
-                    World.gameMap.removeZone(CoordGrid.packCoord(level, x, z));
+                    World.gameMap.removeZone(ZoneMap.zoneIndex(x, z, level));
                     // Clean up collision data for this zone
-                    routeFinder.collisionFlags.deallocateIfPresent(x, z, level);
+                    routeFinder.deallocateIfPresent(x, z, level);
                 }
             }
         }
