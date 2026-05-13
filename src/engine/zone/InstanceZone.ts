@@ -95,7 +95,7 @@ export default class InstanceZone extends Zone {
             // Try to add the loc; catch errors if zone is uninitialized
             try {
                 World.addLoc(newLoc, 0);
-            } catch (_: any) {
+            } catch (_: unknown) {
                 // Silently skip locs that land in uninitialized zones
                 // This can happen if a loc extends beyond the allocated instance grid
             }
