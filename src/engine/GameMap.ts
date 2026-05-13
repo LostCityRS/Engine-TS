@@ -49,32 +49,40 @@ export default class GameMap {
             return;
         }
 
-        printDebug('Loading game map');
+        // Allow zones to be auto-created during map loading
+        this.zonemap.beginInitialization();
 
-        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`)) {
-            this.loadCsvMap(this.multimap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').split(/\r?\n/));
+        try {
+            printDebug('Loading game map');
+
+            if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`)) {
+                this.loadCsvMap(this.multimap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').split(/\r?\n/));
+            }
+
+            if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`)) {
+                this.loadCsvMap(this.freemap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').split(/\r?\n/));
+            }
+
+            const path: string = 'data/pack/server/maps/';
+            const maps: string[] = fs.readdirSync(path).filter(x => x[0] === 'm');
+            for (let index: number = 0; index < maps.length; index++) {
+                const [mx, mz] = maps[index].substring(1).split('_').map(Number);
+                const mapsquareX: number = mx << 6;
+                const mapsquareZ: number = mz << 6;
+
+                this.loadNpcs(Packet.load(`${path}n${mx}_${mz}`), mapsquareX, mapsquareZ);
+                this.loadObjs(Packet.load(`${path}o${mx}_${mz}`), mapsquareX, mapsquareZ);
+                // collision
+                const lands: Int8Array = new Int8Array(GameMap.MAPSQUARE); // 4 * 64 * 64 size is guaranteed for lands
+                this.loadGround(lands, Packet.load(`${path}m${mx}_${mz}`), mapsquareX, mapsquareZ);
+                this.loadLocations(lands, Packet.load(`${path}l${mx}_${mz}`), mapsquareX, mapsquareZ);
+            }
+
+            printDebug(`${World.getTotalNpcs()}/${Environment.NODE_MAX_NPCS} static NPCs added`);
+        } finally {
+            // Lock down zone creation after map is fully loaded
+            this.zonemap.endInitialization();
         }
-
-        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`)) {
-            this.loadCsvMap(this.freemap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').split(/\r?\n/));
-        }
-
-        const path: string = 'data/pack/server/maps/';
-        const maps: string[] = fs.readdirSync(path).filter(x => x[0] === 'm');
-        for (let index: number = 0; index < maps.length; index++) {
-            const [mx, mz] = maps[index].substring(1).split('_').map(Number);
-            const mapsquareX: number = mx << 6;
-            const mapsquareZ: number = mz << 6;
-
-            this.loadNpcs(Packet.load(`${path}n${mx}_${mz}`), mapsquareX, mapsquareZ);
-            this.loadObjs(Packet.load(`${path}o${mx}_${mz}`), mapsquareX, mapsquareZ);
-            // collision
-            const lands: Int8Array = new Int8Array(GameMap.MAPSQUARE); // 4 * 64 * 64 size is guaranteed for lands
-            this.loadGround(lands, Packet.load(`${path}m${mx}_${mz}`), mapsquareX, mapsquareZ);
-            this.loadLocations(lands, Packet.load(`${path}l${mx}_${mz}`), mapsquareX, mapsquareZ);
-        }
-
-        printDebug(`${World.getTotalNpcs()}/${Environment.NODE_MAX_NPCS} static NPCs added`);
     }
 
     isMulti(coord: number): boolean {
@@ -87,11 +95,32 @@ export default class GameMap {
     }
 
     getZone(x: number, z: number, level: number): Zone {
-        return this.zonemap.zone(x, z, level);
+        return this.zonemap.getZone(x, z, level);
     }
 
     getZoneIndex(zoneIndex: number): Zone {
-        return this.zonemap.zoneByIndex(zoneIndex);
+        return this.zonemap.getZoneByIndex(zoneIndex);
+    }
+
+    /**
+     * Get a zone if it exists, or null if it hasn't been created.
+     */
+    getZoneIfExists(x: number, z: number, level: number): Zone | null {
+        return this.zonemap.getZoneIfExists(x, z, level);
+    }
+
+    /**
+     * Create a new zone during world startup. Should only be called from init().
+     */
+    createZone(x: number, z: number, level: number): Zone {
+        return this.zonemap.createZone(x, z, level);
+    }
+
+    /**
+     * Create a new InstanceZone. Should only be called during instance creation.
+     */
+    createInstanceZone(zoneIndex: number): Zone {
+        return this.zonemap.createInstanceZone(zoneIndex);
     }
 
     hasZone(x: number, z: number, level: number): boolean {

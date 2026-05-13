@@ -58,8 +58,7 @@ export default class InstanceController {
                     const x: number = (baseX + east) << 3;
                     const z: number = (baseZ + north) << 3;
                     const zoneIndex: number = ZoneMap.zoneIndex(x, z, level);
-                    const zone: InstanceZone = new InstanceZone(zoneIndex);
-                    World.gameMap.addZone(zone);
+                    World.gameMap.createInstanceZone(zoneIndex);
                     routeFinder.allocateIfAbsent(x, z, level);
                 }
             }

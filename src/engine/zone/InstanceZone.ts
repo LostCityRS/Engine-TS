@@ -75,13 +75,6 @@ export default class InstanceZone extends Zone {
                 [width, length] = [length, width];
             }
 
-            // Skip any loc whose rotated base tile falls outside the 8×8 zone footprint.
-            // Without this, World.addLoc would reach ZoneMap.zone() which auto-creates a
-            // plain Zone outside the instance boundary.
-            if (rotatedX < 0 || rotatedX > 7 || rotatedZ < 0 || rotatedZ > 7) {
-                continue;
-            }
-
             // Rotate angle
             const rotatedAngle = ((baseAngle + rotation) & 0x3) as 0 | 1 | 2 | 3;
 
@@ -90,6 +83,12 @@ export default class InstanceZone extends Zone {
             const absoluteX = (this.x << 3) + rotatedX;
             const absoluteZ = (this.z << 3) + rotatedZ;
 
+            if (!World.gameMap.hasZone(absoluteX, absoluteZ, this.level)) {
+                throw new Error(`Instance loc out of bounds: source=(${sourceLoc.x},${sourceLoc.z},L${sourceLoc.level}) rotated=(${absoluteX},${absoluteZ},L${this.level}) has no destination zone`);
+            }
+
+            const destinationZone = World.gameMap.getZone(absoluteX, absoluteZ, this.level);
+
             // Create new Loc with rotated properties
             const newLoc = new Loc(this.level, absoluteX, absoluteZ, width, length, sourceLoc.lifecycle, baseType, baseShape, rotatedAngle);
 
@@ -97,9 +96,8 @@ export default class InstanceZone extends Zone {
                 // Preserve dynamic loc semantics when the source loc is runtime-spawned.
                 World.addLoc(newLoc, 0);
             } else {
-                // Instance rebuilds already make the client infer unchanged static locs from cache.
-                // Copy them directly into the instance zone so server-side interaction lookup works.
-                this.addStaticLoc(newLoc);
+                // Static locs stay attached to the zone that owns their rotated base tile.
+                destinationZone.addStaticLoc(newLoc);
             }
         }
     }
