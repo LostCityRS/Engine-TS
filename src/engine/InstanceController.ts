@@ -1,5 +1,6 @@
 import { CoordGrid } from '#/engine/CoordGrid.js';
 import { isZoneAllocated } from '#/engine/GameMap.js';
+import routeFinder from '#/engine/routefinder/index.js';
 import World from '#/engine/World.js';
 import InstanceZone from '#/engine/zone/InstanceZone.js';
 
@@ -55,7 +56,7 @@ export default class InstanceController {
                     const x: number = (baseX + east) << 3;
                     const z: number = (baseZ + north) << 3;
                     const zoneIndex: number = CoordGrid.packCoord(level, x, z);
-                    const zone: InstanceZone = new InstanceZone(zoneIndex, { level, x, z }, 0);
+                    const zone: InstanceZone = new InstanceZone(zoneIndex);
                     World.gameMap.addZone(zone);
                 }
             }
@@ -63,6 +64,21 @@ export default class InstanceController {
 
         this.incrementSlotPointer();
         return sw;
+    }
+
+    copyZone(instanceSw: CoordGrid, instanceOffset: CoordGrid, source: CoordGrid, rotation: 0 | 1 | 2 | 3): void {
+        const target: CoordGrid = {
+            level: instanceSw.level + instanceOffset.level,
+            x: instanceSw.x + (instanceOffset.x << 3),
+            z: instanceSw.z + (instanceOffset.z << 3)
+        };
+
+        const targetZone = World.gameMap.getZone(target.x, target.z, target.level);
+        const sourceZone = World.gameMap.getZone(source.x, source.z, source.level);
+
+        if (targetZone instanceof InstanceZone) {
+            targetZone.copyFromZone(sourceZone, rotation);
+        }
     }
 
     isInstanceEmpty(instance: InstanceRecord): boolean {
@@ -73,7 +89,7 @@ export default class InstanceController {
                     const x: number = instance.sw.x + (east << 3);
                     const z: number = instance.sw.z + (north << 3);
                     const zone = World.gameMap.getZone(x, z, level);
-                    for (const player of zone.getAllPlayersUnsafe()) {
+                    if (zone.hasPlayers()) {
                         return false;
                     }
                 }
@@ -147,13 +163,15 @@ export default class InstanceController {
 
     // Remove every zone belonging to this instance footprint from the world map.
     private deleteInstance(instance: InstanceRecord): void {
-        // Remove each zone in the instance footprint from the live zone map.
+        // Remove each zone in the instance footprint from the live zone map and collision data.
         for (let level: number = 0; level < instance.floors; level++) {
             for (let east: number = 0; east < instance.zonesEast; east++) {
                 for (let north: number = 0; north < instance.zonesNorth; north++) {
                     const x: number = instance.sw.x + (east << 3);
                     const z: number = instance.sw.z + (north << 3);
                     World.gameMap.removeZone(CoordGrid.packCoord(level, x, z));
+                    // Clean up collision data for this zone
+                    routeFinder.collisionFlags.deallocateIfPresent(x, z, level);
                 }
             }
         }

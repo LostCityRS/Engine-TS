@@ -31,12 +31,24 @@ export default class Loc extends NonPathingEntity {
         return this.currentInfo & 0x3fff;
     }
 
+    get baseType(): number {
+        return this.baseInfo & 0x3fff;
+    }
+
     get shape(): number {
         return (this.currentInfo >> 14) & 0x1f;
     }
 
+    get baseShape(): number {
+        return (this.baseInfo >> 14) & 0x1f;
+    }
+
     get angle(): number {
         return (this.currentInfo >> 19) & 0x3;
+    }
+
+    get baseAngle(): number {
+        return (this.baseInfo >> 19) & 0x3;
     }
 
     get layer(): number {

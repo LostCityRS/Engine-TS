@@ -24,21 +24,23 @@ export default class ZoneMap {
 
     zone(x: number, z: number, level: number): Zone {
         const zoneIndex: number = ZoneMap.zoneIndex(x, z, level);
-        let zone: Zone | undefined = this.zones.get(zoneIndex);
+        const zone: Zone | undefined = this.zones.get(zoneIndex);
         if (typeof zone == 'undefined') {
-            zone = new Zone(zoneIndex);
-            this.zones.set(zoneIndex, zone);
+            throw new Error(`Zone not initialized at x=${x}, z=${z}, level=${level}`);
         }
         return zone;
     }
 
     zoneByIndex(index: number): Zone {
-        let zone: Zone | undefined = this.zones.get(index);
+        const zone: Zone | undefined = this.zones.get(index);
         if (typeof zone == 'undefined') {
-            zone = new Zone(index);
-            this.zones.set(index, zone);
+            throw new Error(`Zone not initialized at index=${index}`);
         }
         return zone;
+    }
+
+    hasZone(x: number, z: number, level: number): boolean {
+        return this.zones.has(ZoneMap.zoneIndex(x, z, level));
     }
 
     addZone(zone: Zone): Zone {

@@ -9,6 +9,10 @@ export default class DoublyLinkList<T extends DoublyLinkable> {
         this.sentinel.prev2 = this.sentinel;
     }
 
+    isEmpty(): boolean {
+        return this.sentinel.next2 === this.sentinel;
+    }
+
     addTail(node: T): void {
         if (node.prev2) {
             node.unlink2();

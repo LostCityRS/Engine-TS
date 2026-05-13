@@ -32,7 +32,6 @@ import LinkList from '#/datastruct/LinkList.js';
 import ServerGameProtRepository from '#/network/game/server/ServerGameProtRepository.js';
 import DoublyLinkList from '#/datastruct/DoublyLinkList.js';
 
-
 export default class Zone {
     private static readonly SIZE: number = 8 * 8;
     private static readonly LOCS: number = this.SIZE << 2;
@@ -74,6 +73,10 @@ export default class Zone {
 
     get totalObjs(): number {
         return this.objsCount;
+    }
+
+    hasPlayers(): boolean {
+        return !this.players.isEmpty();
     }
 
     enter(entity: PathingEntity): void {

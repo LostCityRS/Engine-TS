@@ -233,4 +233,29 @@ export default class CollisionEngine {
             this.remove(x, z, y, mask);
         }
     }
+
+    /**
+     * Get the collision flags for an entire zone.
+     * Returns null if the zone is not allocated.
+     * @param x The x coordinate (absolute world position).
+     * @param z The z coordinate (absolute world position).
+     * @param y The level (0-3).
+     * @returns A copy of the zone's collision flags, or null if not allocated.
+     */
+    getZone(x: number, z: number, y: number): Uint32Array | null {
+        const zone = this.zones.get(CollisionEngine.zoneIndex(x, z, y));
+        return zone ? new Uint32Array(zone) : null;
+    }
+
+    /**
+     * Set collision flags for an entire zone.
+     * @param x The x coordinate (absolute world position).
+     * @param z The z coordinate (absolute world position).
+     * @param y The level (0-3).
+     * @param flags The 64-element collision flag array (8x8 zone).
+     */
+    setZone(x: number, z: number, y: number, flags: Uint32Array): void {
+        const zone = this.allocateIfAbsentByIndex(CollisionEngine.zoneIndex(x, z, y));
+        zone.set(flags);
+    }
 }

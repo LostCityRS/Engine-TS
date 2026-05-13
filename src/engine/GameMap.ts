@@ -94,6 +94,10 @@ export default class GameMap {
         return this.zonemap.zoneByIndex(zoneIndex);
     }
 
+    hasZone(x: number, z: number, level: number): boolean {
+        return this.zonemap.hasZone(x, z, level);
+    }
+
     addZone(zone: Zone): Zone {
         return this.zonemap.addZone(zone);
     }
