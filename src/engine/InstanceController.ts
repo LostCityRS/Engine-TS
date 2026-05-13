@@ -33,6 +33,7 @@ export default class InstanceController {
 
     createInstance(floors: number, zonesEast: number, zonesNorth: number): CoordGrid {
         // Reclaim all stale instance slots, then find the next available slot pointer.
+        printDebug(`[Instance] createInstance request floors=${floors}, zonesEast=${zonesEast}, zonesNorth=${zonesNorth}, nextPointer=${this.nextInstancePointer}`);
         this.clearStaleInstances();
         this.findNextSlot();
 
@@ -42,6 +43,7 @@ export default class InstanceController {
         const baseX: number = 101 + slotX * 3;
         const baseZ: number = 1 + slotZ * 3;
         const sw: CoordGrid = { level: 0, x: baseX << 3, z: baseZ << 3 };
+        printDebug(`[Instance] selected slot pointer=${this.nextInstancePointer}, slot=(${slotX},${slotZ}), sw=(${sw.x},${sw.z},L0)`);
 
         // Keep the instance metadata so we can later detect when it becomes empty again.
         this.instances.push({
@@ -58,6 +60,13 @@ export default class InstanceController {
                     const x: number = (baseX + east) << 3;
                     const z: number = (baseZ + north) << 3;
                     const zoneIndex: number = ZoneMap.zoneIndex(x, z, level);
+
+                    const existingZone: boolean = World.gameMap.hasZone(x, z, level);
+                    const allocatedCollision: boolean = isZoneAllocated(level, x, z);
+                    if (existingZone || allocatedCollision) {
+                        printDebug(`[Instance] WARNING: creating instance zone where state already exists index=${zoneIndex} coord=(${x},${z},L${level}) existingZone=${existingZone} allocatedCollision=${allocatedCollision}`);
+                    }
+
                     World.gameMap.createInstanceZone(zoneIndex);
                     routeFinder.allocateIfAbsent(x, z, level);
                 }
@@ -147,13 +156,15 @@ export default class InstanceController {
         }
     }
 
-    // Find the next pointer that is both unoccupied by records and unallocated on the map.
+    // Find the next pointer using SW-zone occupancy as the canonical slot marker.
     private findNextSlot(): void {
         // Track occupied slots from active instance records to skip them during probing.
         const occupiedSlots: Set<number> = new Set();
         for (const instance of this.instances) {
             occupiedSlots.add(this.getSlotPointer(instance.sw));
         }
+
+        printDebug(`[Instance] findNextSlot start: nextPointer=${this.nextInstancePointer}, activeInstances=${this.instances.length}, occupiedSlots=${occupiedSlots.size}`);
 
         for (let attempts: number = 0; attempts < InstanceController.TOTAL_INSTANCES; attempts++) {
             const pointer: number = (this.nextInstancePointer + attempts) % InstanceController.TOTAL_INSTANCES;
@@ -165,11 +176,18 @@ export default class InstanceController {
             const slotZ: number = Math.trunc(pointer / InstanceController.INSTANCES_PER_ROW);
             const swX: number = (101 + slotX * 3) << 3;
             const swZ: number = (1 + slotZ * 3) << 3;
+            const allocated: boolean = isZoneAllocated(0, swX, swZ);
+            const hasZone: boolean = World.gameMap.hasZone(swX, swZ, 0);
 
-            if (isZoneAllocated(0, swX, swZ)) {
+            // If this slot's SW zone is occupied, the slot is considered in use.
+            if (allocated || hasZone) {
+                if (attempts < 10) {
+                    printDebug(`[Instance] slot ${pointer} blocked: sw=(${swX},${swZ},L0) allocated=${allocated} hasZone=${hasZone}`);
+                }
                 continue;
             }
 
+            printDebug(`[Instance] slot ${pointer} available: sw=(${swX},${swZ},L0)`);
             this.nextInstancePointer = pointer;
             return;
         }
