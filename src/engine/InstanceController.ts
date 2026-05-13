@@ -99,6 +99,28 @@ export default class InstanceController {
         return true;
     }
 
+    /**
+     * Find an instance that contains the given coordinate.
+     * @param coord The coordinate to search for.
+     * @returns The instance record if found, null otherwise.
+     */
+    findInstanceByCoord(coord: CoordGrid): InstanceRecord | null {
+        for (const instance of this.instances) {
+            // Check if coord falls within this instance's footprint
+            if (
+                coord.level >= instance.sw.level &&
+                coord.level < instance.sw.level + instance.floors &&
+                coord.x >= instance.sw.x &&
+                coord.x < instance.sw.x + (instance.zonesEast << 3) &&
+                coord.z >= instance.sw.z &&
+                coord.z < instance.sw.z + (instance.zonesNorth << 3)
+            ) {
+                return instance;
+            }
+        }
+        return null;
+    }
+
     // ---
     // Private methods
     // ---

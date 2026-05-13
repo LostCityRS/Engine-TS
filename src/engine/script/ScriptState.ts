@@ -103,6 +103,16 @@ export default class ScriptState {
     _activeObj2: Obj | null = null;
 
     /**
+     * The primary active region, represented by the instance southwest coord.
+     */
+    _activeRegion: CoordGrid | null = null;
+
+    /**
+     * The secondary active region, represented by the instance southwest coord.
+     */
+    _activeRegion2: CoordGrid | null = null;
+
+    /**
      * Used for string splitting operations with split_init and related commands.
      */
     splitPages: string[][] = [];
@@ -303,6 +313,38 @@ export default class ScriptState {
             this._activeObj = obj;
         } else {
             this._activeObj2 = obj;
+        }
+    }
+
+    /**
+     * Gets the active region. Automatically checks the operand to determine primary and secondary.
+     */
+    get activeRegion() {
+        const region = this.intOperand === 0 ? this._activeRegion : this._activeRegion2;
+        if (region === null) {
+            throw new Error('Attempt to access null active_region');
+        }
+        return region;
+    }
+
+    // gets the secondary region from the perspective of the command (.command returns region1)
+    get activeRegion2() {
+        const region = this.intOperand === 0 ? this._activeRegion2 : this._activeRegion;
+        if (region === null) {
+            throw new Error('Attempt to access null active_region');
+        }
+        return region;
+    }
+
+    /**
+     * Sets the active region. Automatically checks the operand to determine primary and secondary.
+     * @param region The region southwest coord to set.
+     */
+    set activeRegion(region: CoordGrid) {
+        if (this.intOperand === 0) {
+            this._activeRegion = region;
+        } else {
+            this._activeRegion2 = region;
         }
     }
 
