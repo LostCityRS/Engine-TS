@@ -232,6 +232,7 @@ export const enum ScriptOpcode {
     NPC_HUNT,
     NPC_HUNTALL, // official
     NPC_INRANGE,
+    NPC_DESTINATION, // official
     NPC_NAME,
     NPC_PARAM, // official
     NPC_QUEUE, // official
@@ -684,6 +685,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['NPC_HUNT', ScriptOpcode.NPC_HUNT],
     ['NPC_HUNTALL', ScriptOpcode.NPC_HUNTALL],
     ['NPC_INRANGE', ScriptOpcode.NPC_INRANGE],
+    ['NPC_DESTINATION', ScriptOpcode.NPC_DESTINATION],
     ['NPC_NAME', ScriptOpcode.NPC_NAME],
     ['NPC_PARAM', ScriptOpcode.NPC_PARAM],
     ['NPC_QUEUE', ScriptOpcode.NPC_QUEUE],

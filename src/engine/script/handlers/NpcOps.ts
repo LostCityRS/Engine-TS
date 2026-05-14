@@ -18,7 +18,22 @@ import { ScriptOpcode } from '#/engine/script/ScriptOpcode.js';
 import ScriptPointer, { ActiveNpc, ActivePlayer, checkedHandler } from '#/engine/script/ScriptPointer.js';
 import { CommandHandlers } from '#/engine/script/ScriptRunner.js';
 import ScriptState from '#/engine/script/ScriptState.js';
-import { CategoryTypeValid, check, CoordValid, DurationValid, HitTypeValid, HuntTypeValid, HuntVisValid, NpcModeValid, NpcStatValid, NpcTypeValid, NumberNotNull, ParamTypeValid, QueueValid, SpotAnimTypeValid } from '#/engine/script/ScriptValidators.js';
+import {
+    CategoryTypeValid,
+    check,
+    CoordValid,
+    DurationValid,
+    HitTypeValid,
+    HuntTypeValid,
+    HuntVisValid,
+    NpcModeValid,
+    NpcStatValid,
+    NpcTypeValid,
+    NumberNotNull,
+    ParamTypeValid,
+    QueueValid,
+    SpotAnimTypeValid
+} from '#/engine/script/ScriptValidators.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
 
@@ -555,6 +570,14 @@ const NpcOps: CommandHandlers = {
     }),
     [ScriptOpcode.NPC_INRANGE]: checkedHandler(ActiveNpc, state => {
         state.pushInt(state.activeNpc.targetWithinMaxRange() ? 1 : 0);
+    }),
+
+    [ScriptOpcode.NPC_DESTINATION]: checkedHandler(ActiveNpc, state => {
+        if (!state.activeNpc.hasWaypoints()) {
+            state.pushInt(state.activeNpc.coord);
+            return;
+        }
+        state.pushInt(state.activeNpc.waypoints[0]);
     })
 };
 
