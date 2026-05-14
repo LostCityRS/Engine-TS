@@ -103,12 +103,23 @@ export default class ScriptState {
     _activeObj2: Obj | null = null;
 
     /**
-     * The primary active region, represented by the instance southwest coord.
+     * The primary active region, represented by instance uid.
+     */
+    _activeRegionUid: number = -1;
+
+    /**
+     * The secondary active region, represented by instance uid.
+     */
+    _activeRegionUid2: number = -1;
+
+    /**
+     * Cached southwest coord for the primary active region.
+     * Kept for compatibility with region operations that use tile offsets.
      */
     _activeRegion: CoordGrid | null = null;
 
     /**
-     * The secondary active region, represented by the instance southwest coord.
+     * Cached southwest coord for the secondary active region.
      */
     _activeRegion2: CoordGrid | null = null;
 
@@ -345,6 +356,28 @@ export default class ScriptState {
             this._activeRegion = region;
         } else {
             this._activeRegion2 = region;
+        }
+    }
+
+    /**
+     * Gets the active region uid. Automatically checks the operand to determine primary and secondary.
+     */
+    get activeRegionUid() {
+        const uid = this.intOperand === 0 ? this._activeRegionUid : this._activeRegionUid2;
+        if (uid < 0) {
+            throw new Error('Attempt to access null active_region_uid');
+        }
+        return uid;
+    }
+
+    /**
+     * Sets the active region uid. Automatically checks the operand to determine primary and secondary.
+     */
+    set activeRegionUid(uid: number) {
+        if (this.intOperand === 0) {
+            this._activeRegionUid = uid;
+        } else {
+            this._activeRegionUid2 = uid;
         }
     }
 

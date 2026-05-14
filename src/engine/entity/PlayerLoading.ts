@@ -11,7 +11,7 @@ import { fromBase37, toBase37 } from '#/util/JString.js';
 
 export class PlayerLoading {
     public static readonly SAV_MAGIC: number = 0x2004;
-    public static readonly SAV_VERSION: number = 7;
+    public static readonly SAV_VERSION: number = 9;
 
     static verify(sav: Packet) {
         if (sav.g2() !== PlayerLoading.SAV_MAGIC) {
@@ -158,6 +158,32 @@ export class PlayerLoading {
         // last login info
         if (version >= 6) {
             player.lastLoginTime = sav.g8();
+        }
+
+        // persistent overworld fallback tile for instance logout/login recovery
+        if (version >= 9) {
+            player.previousOverworldX = sav.g2();
+            player.previousOverworldZ = sav.g2();
+            player.previousOverworldLevel = sav.g1();
+            player.hasPreviousOverworldTile = sav.g1() === 1;
+        } else if (version >= 8) {
+            player.previousOverworldX = sav.g2();
+            player.previousOverworldZ = sav.g2();
+            player.previousOverworldLevel = sav.g1();
+            const legacyDefaultFallback = player.previousOverworldX === 3094 && player.previousOverworldZ === 3106 && player.previousOverworldLevel === 0;
+            player.hasPreviousOverworldTile = !legacyDefaultFallback && !Player.isInstanceX(player.previousOverworldX);
+        } else if (!Player.isInstanceX(player.x)) {
+            player.previousOverworldX = player.x;
+            player.previousOverworldZ = player.z;
+            player.previousOverworldLevel = player.level;
+            player.hasPreviousOverworldTile = true;
+        }
+
+        // Only relocate on login: if saved in an instance, return to last known overworld tile.
+        if (Player.isInstanceX(player.x) && player.hasPreviousOverworldTile && !Player.isInstanceX(player.previousOverworldX)) {
+            player.x = player.previousOverworldX;
+            player.z = player.previousOverworldZ;
+            player.level = player.previousOverworldLevel;
         }
 
         player.combatLevel = player.getCombatLevel();

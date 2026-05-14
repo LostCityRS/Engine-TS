@@ -65,6 +65,9 @@ export const enum ScriptOpcode {
     REGION_SET,
     REGION_GETCOORD,
     REGION_FINDBYCOORD,
+    REGION_UID,
+    REGION_FINDBYUID,
+    REGION_SETEXITCOORD,
 
     // Player ops (2000-2499)
     AFK_EVENT = 2000,
@@ -520,6 +523,9 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['REGION_SET', ScriptOpcode.REGION_SET],
     ['REGION_GETCOORD', ScriptOpcode.REGION_GETCOORD],
     ['REGION_FINDBYCOORD', ScriptOpcode.REGION_FINDBYCOORD],
+    ['REGION_UID', ScriptOpcode.REGION_UID],
+    ['REGION_FINDBYUID', ScriptOpcode.REGION_FINDBYUID],
+    ['REGION_SETEXITCOORD', ScriptOpcode.REGION_SETEXITCOORD],
 
     ['AFK_EVENT', ScriptOpcode.AFK_EVENT],
     ['ALLOWDESIGN', ScriptOpcode.ALLOWDESIGN],

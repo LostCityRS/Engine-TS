@@ -276,6 +276,27 @@ export default abstract class PathingEntity extends Entity {
         }
         level = Math.max(0, Math.min(level, 3));
 
+        const previousX: number = this.x;
+        const previousZ: number = this.z;
+        const previousLevel: number = this.level;
+
+        if (this instanceof Player) {
+            const movingToInstance: boolean = Player.isInstanceX(x);
+            if (movingToInstance) {
+                const targetInstance = World.instances.findInstanceByTile(level, x, z);
+                if (targetInstance?.exitCoord) {
+                    this.previousOverworldX = targetInstance.exitCoord.x;
+                    this.previousOverworldZ = targetInstance.exitCoord.z;
+                    this.previousOverworldLevel = targetInstance.exitCoord.level;
+                } else {
+                    this.previousOverworldX = previousX;
+                    this.previousOverworldZ = previousZ;
+                    this.previousOverworldLevel = previousLevel;
+                }
+                this.hasPreviousOverworldTile = true;
+            }
+        }
+
         const allocated: boolean = isZoneAllocated(level, x, z);
         const initialized: boolean = World.gameMap.hasZone(x, z, level);
         if (!allocated || !initialized) {
@@ -286,9 +307,6 @@ export default abstract class PathingEntity extends Entity {
             return false;
         }
 
-        const previousX: number = this.x;
-        const previousZ: number = this.z;
-        const previousLevel: number = this.level;
         this.x = x;
         this.z = z;
         this.level = level;

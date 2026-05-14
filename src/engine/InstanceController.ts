@@ -7,10 +7,12 @@ import ZoneMap from '#/engine/zone/ZoneMap.js';
 import { printDebug } from '#/util/Logger.js';
 
 type InstanceRecord = {
+    uid: number;
     sw: CoordGrid;
     floors: number;
     zonesEast: number;
     zonesNorth: number;
+    exitCoord: CoordGrid | null;
 };
 
 export default class InstanceController {
@@ -42,15 +44,18 @@ export default class InstanceController {
         const slotZ: number = Math.trunc(this.nextInstancePointer / InstanceController.INSTANCES_PER_ROW);
         const baseX: number = 101 + slotX * 3;
         const baseZ: number = 1 + slotZ * 3;
+        const uid: number = this.nextInstancePointer;
         const sw: CoordGrid = { level: 0, x: baseX << 3, z: baseZ << 3 };
-        printDebug(`[Instance] selected slot pointer=${this.nextInstancePointer}, slot=(${slotX},${slotZ}), sw=(${sw.x},${sw.z},L0)`);
+        printDebug(`[Instance] selected slot pointer=${uid}, slot=(${slotX},${slotZ}), sw=(${sw.x},${sw.z},L0)`);
 
         // Keep the instance metadata so we can later detect when it becomes empty again.
         this.instances.push({
+            uid,
             sw,
             floors,
             zonesEast,
-            zonesNorth
+            zonesNorth,
+            exitCoord: null
         });
 
         // Materialize the instance zones directly into the game's zone map.
@@ -122,16 +127,22 @@ export default class InstanceController {
      * @returns The instance record if found, null otherwise.
      */
     findInstanceByCoord(coord: CoordGrid): InstanceRecord | null {
+        return this.findInstanceByTile(coord.level, coord.x, coord.z);
+    }
+
+    findInstanceByTile(level: number, x: number, z: number): InstanceRecord | null {
         for (const instance of this.instances) {
-            // Check if coord falls within this instance's footprint
-            if (
-                coord.level >= instance.sw.level &&
-                coord.level < instance.sw.level + instance.floors &&
-                coord.x >= instance.sw.x &&
-                coord.x < instance.sw.x + (instance.zonesEast << 3) &&
-                coord.z >= instance.sw.z &&
-                coord.z < instance.sw.z + (instance.zonesNorth << 3)
-            ) {
+            // Check if tile falls within this instance's footprint
+            if (level >= instance.sw.level && level < instance.sw.level + instance.floors && x >= instance.sw.x && x < instance.sw.x + (instance.zonesEast << 3) && z >= instance.sw.z && z < instance.sw.z + (instance.zonesNorth << 3)) {
+                return instance;
+            }
+        }
+        return null;
+    }
+
+    findInstanceByUid(uid: number): InstanceRecord | null {
+        for (const instance of this.instances) {
+            if (instance.uid === uid) {
                 return instance;
             }
         }
@@ -161,7 +172,7 @@ export default class InstanceController {
         // Track occupied slots from active instance records to skip them during probing.
         const occupiedSlots: Set<number> = new Set();
         for (const instance of this.instances) {
-            occupiedSlots.add(this.getSlotPointer(instance.sw));
+            occupiedSlots.add(instance.uid);
         }
 
         printDebug(`[Instance] findNextSlot start: nextPointer=${this.nextInstancePointer}, activeInstances=${this.instances.length}, occupiedSlots=${occupiedSlots.size}`);
@@ -198,15 +209,6 @@ export default class InstanceController {
     // Move pointer forward by one slot and wrap around at capacity.
     private incrementSlotPointer(): void {
         this.nextInstancePointer = (this.nextInstancePointer + 1) % InstanceController.TOTAL_INSTANCES;
-    }
-
-    // Convert a recorded southwest coordinate back into its slot index.
-    private getSlotPointer(sw: CoordGrid): number {
-        const zoneX: number = sw.x >> 3;
-        const zoneZ: number = sw.z >> 3;
-        const slotX: number = Math.trunc((zoneX - 101) / 3);
-        const slotZ: number = Math.trunc((zoneZ - 1) / 3);
-        return slotZ * InstanceController.INSTANCES_PER_ROW + slotX;
     }
 
     // Remove every zone belonging to this instance footprint from the world map.

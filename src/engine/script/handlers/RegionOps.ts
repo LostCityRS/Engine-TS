@@ -28,7 +28,13 @@ const RegionOps: CommandHandlers = {
         }
 
         const sw = World.instances.createInstance(levels, zonesEast, zonesNorth);
+        const instance = World.instances.findInstanceByCoord(sw);
+        if (!instance) {
+            throw new Error('region_create failed to resolve created instance uid');
+        }
+
         state.activeRegion = sw;
+        state.activeRegionUid = instance.uid;
         state.pointerAdd(ActiveRegion[secondary]);
         state.pushInt(CoordGrid.packCoord(sw.level, sw.x, sw.z));
     },
@@ -91,12 +97,42 @@ const RegionOps: CommandHandlers = {
 
         if (instance) {
             state.activeRegion = instance.sw;
+            state.activeRegionUid = instance.uid;
             state.pointerAdd(ActiveRegion[secondary]);
             state.pushInt(1);
         } else {
             state.pushInt(0);
         }
-    }
+    },
+
+    [ScriptOpcode.REGION_UID]: checkedHandler(ActiveRegion, state => {
+        state.pushInt(state.activeRegionUid);
+    }),
+
+    [ScriptOpcode.REGION_FINDBYUID]: state => {
+        const uid: number = state.popInt();
+        const secondary: number = state.intOperand;
+        const instance = World.instances.findInstanceByUid(uid);
+
+        if (instance) {
+            state.activeRegion = instance.sw;
+            state.activeRegionUid = instance.uid;
+            state.pointerAdd(ActiveRegion[secondary]);
+            state.pushInt(1);
+        } else {
+            state.pushInt(0);
+        }
+    },
+
+    [ScriptOpcode.REGION_SETEXITCOORD]: checkedHandler(ActiveRegion, state => {
+        const exitCoord: CoordGrid = check(state.popInt(), CoordValid);
+        const instance = World.instances.findInstanceByCoord(state.activeRegion);
+        if (!instance) {
+            throw new Error('region_setexitcoord requires active_region to reference a valid instance');
+        }
+
+        instance.exitCoord = { level: exitCoord.level, x: exitCoord.x, z: exitCoord.z };
+    })
 };
 
 export default RegionOps;
