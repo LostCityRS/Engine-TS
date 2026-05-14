@@ -125,6 +125,11 @@ export default abstract class PathingEntity extends Entity {
     abstract defaultMoveSpeed(): MoveSpeed;
 
     /**
+     * Hook for entity-specific logic when tile/level changes are applied.
+     */
+    protected onTileUpdated(_previousX: number, _previousZ: number, _previousLevel: number): void {}
+
+    /**
      * Process movement function for a PathingEntity to use.
      * Checks for if this PathingEntity has any waypoints to move towards.
      * Handles force movement. Validates and moves depending on if this
@@ -162,8 +167,10 @@ export default abstract class PathingEntity extends Entity {
      * @param previousLevel Their previous recorded level position before movement. This one is important for teleport.
      */
     private refreshZonePresence(previousX: number, previousZ: number, previousLevel: number): void {
+        const moved: boolean = this.x != previousX || this.z !== previousZ || this.level !== previousLevel;
+
         // only update collision map when the entity moves.
-        if (this.x != previousX || this.z !== previousZ || this.level !== previousLevel) {
+        if (moved) {
             // update collision map
             // players and npcs both can change this collision
             switch (this.blockWalk) {
@@ -224,6 +231,7 @@ export default abstract class PathingEntity extends Entity {
         this.focus(CoordGrid.fine(moveX, this.width), CoordGrid.fine(moveZ, this.length), false);
         this.stepsTaken++;
         this.refreshZonePresence(previousX, previousZ, this.level);
+        this.onTileUpdated(previousX, previousZ, this.level);
 
         if (this.waypointIndex !== -1) {
             const coord: CoordGrid = CoordGrid.unpackCoord(this.waypoints[this.waypointIndex]);
@@ -315,6 +323,7 @@ export default abstract class PathingEntity extends Entity {
         const moveZ: number = CoordGrid.moveZ(this.z, dir);
         this.focus(CoordGrid.fine(moveX, this.width), CoordGrid.fine(moveZ, this.length), false);
         this.refreshZonePresence(previousX, previousZ, previousLevel);
+        this.onTileUpdated(previousX, previousZ, previousLevel);
         this.lastStepX = this.x - 1;
         this.lastStepZ = this.z;
         this.tele = true;
