@@ -103,12 +103,16 @@ export default class InstanceZone extends Zone {
     }
 
     private copyCollisionWithRotation(sourceZone: Zone, rotation: 0 | 1 | 2 | 3): void {
-        const sourceCollision = routeFinder.collisionFlags.getZone(sourceZone.index & 0x7ff, (sourceZone.index >> 11) & 0x7ff, (sourceZone.index >> 22) & 0x3);
+        const sourceBaseX = sourceZone.x << 3;
+        const sourceBaseZ = sourceZone.z << 3;
+        const sourceCollision = routeFinder.collisionFlags.getZone(sourceBaseX, sourceBaseZ, sourceZone.level);
         if (!sourceCollision) {
             return; // No collision to copy
         }
 
         const destCollision = new Uint32Array(64);
+        const destBaseX = this.x << 3;
+        const destBaseZ = this.z << 3;
 
         // Iterate through the 8x8 zone and apply rotation transformations
         for (let srcIdx = 0; srcIdx < 64; srcIdx++) {
@@ -144,7 +148,64 @@ export default class InstanceZone extends Zone {
         }
 
         // Write rotated collision data to destination zone
-        routeFinder.collisionFlags.setZone(this.index & 0x7ff, (this.index >> 11) & 0x7ff, (this.index >> 22) & 0x3, destCollision);
+        routeFinder.collisionFlags.setZone(destBaseX, destBaseZ, this.level, destCollision);
+
+        // Copying a single 8x8 can miss the mirrored half of edge walls.
+        // Emit outward-facing mirrors onto adjacent tiles so crossing the zone boundary
+        // is blocked consistently even when neighboring zones are not copied.
+        this.mirrorOutboundEdgeWalls(destCollision, destBaseX, destBaseZ, this.level);
+    }
+
+    private mirrorOutboundEdgeWalls(destCollision: Uint32Array, destBaseX: number, destBaseZ: number, level: number): void {
+        const mirror = (flags: number, sourceMask: number, dstX: number, dstZ: number, mirrorMask: number): void => {
+            if (flags & sourceMask && World.gameMap.hasZone(dstX, dstZ, level)) {
+                routeFinder.collisionFlags.add(dstX, dstZ, level, mirrorMask);
+            }
+        };
+
+        for (let localZ = 0; localZ < 8; localZ++) {
+            const westFlags = destCollision[localZ << 3];
+            mirror(westFlags, CollisionFlag.WALL_WEST, destBaseX - 1, destBaseZ + localZ, CollisionFlag.WALL_EAST);
+            mirror(westFlags, CollisionFlag.WALL_WEST_PROJ_BLOCKER, destBaseX - 1, destBaseZ + localZ, CollisionFlag.WALL_EAST_PROJ_BLOCKER);
+            mirror(westFlags, CollisionFlag.WALL_WEST_ROUTE_BLOCKER, destBaseX - 1, destBaseZ + localZ, CollisionFlag.WALL_EAST_ROUTE_BLOCKER);
+
+            const eastFlags = destCollision[7 | (localZ << 3)];
+            mirror(eastFlags, CollisionFlag.WALL_EAST, destBaseX + 8, destBaseZ + localZ, CollisionFlag.WALL_WEST);
+            mirror(eastFlags, CollisionFlag.WALL_EAST_PROJ_BLOCKER, destBaseX + 8, destBaseZ + localZ, CollisionFlag.WALL_WEST_PROJ_BLOCKER);
+            mirror(eastFlags, CollisionFlag.WALL_EAST_ROUTE_BLOCKER, destBaseX + 8, destBaseZ + localZ, CollisionFlag.WALL_WEST_ROUTE_BLOCKER);
+        }
+
+        for (let localX = 0; localX < 8; localX++) {
+            const southFlags = destCollision[localX];
+            mirror(southFlags, CollisionFlag.WALL_SOUTH, destBaseX + localX, destBaseZ - 1, CollisionFlag.WALL_NORTH);
+            mirror(southFlags, CollisionFlag.WALL_SOUTH_PROJ_BLOCKER, destBaseX + localX, destBaseZ - 1, CollisionFlag.WALL_NORTH_PROJ_BLOCKER);
+            mirror(southFlags, CollisionFlag.WALL_SOUTH_ROUTE_BLOCKER, destBaseX + localX, destBaseZ - 1, CollisionFlag.WALL_NORTH_ROUTE_BLOCKER);
+
+            const northFlags = destCollision[localX | (7 << 3)];
+            mirror(northFlags, CollisionFlag.WALL_NORTH, destBaseX + localX, destBaseZ + 8, CollisionFlag.WALL_SOUTH);
+            mirror(northFlags, CollisionFlag.WALL_NORTH_PROJ_BLOCKER, destBaseX + localX, destBaseZ + 8, CollisionFlag.WALL_SOUTH_PROJ_BLOCKER);
+            mirror(northFlags, CollisionFlag.WALL_NORTH_ROUTE_BLOCKER, destBaseX + localX, destBaseZ + 8, CollisionFlag.WALL_SOUTH_ROUTE_BLOCKER);
+        }
+
+        const southWestFlags = destCollision[0];
+        mirror(southWestFlags, CollisionFlag.WALL_SOUTH_WEST, destBaseX - 1, destBaseZ - 1, CollisionFlag.WALL_NORTH_EAST);
+        mirror(southWestFlags, CollisionFlag.WALL_SOUTH_WEST_PROJ_BLOCKER, destBaseX - 1, destBaseZ - 1, CollisionFlag.WALL_NORTH_EAST_PROJ_BLOCKER);
+        mirror(southWestFlags, CollisionFlag.WALL_SOUTH_WEST_ROUTE_BLOCKER, destBaseX - 1, destBaseZ - 1, CollisionFlag.WALL_NORTH_EAST_ROUTE_BLOCKER);
+
+        const southEastFlags = destCollision[7];
+        mirror(southEastFlags, CollisionFlag.WALL_SOUTH_EAST, destBaseX + 8, destBaseZ - 1, CollisionFlag.WALL_NORTH_WEST);
+        mirror(southEastFlags, CollisionFlag.WALL_SOUTH_EAST_PROJ_BLOCKER, destBaseX + 8, destBaseZ - 1, CollisionFlag.WALL_NORTH_WEST_PROJ_BLOCKER);
+        mirror(southEastFlags, CollisionFlag.WALL_SOUTH_EAST_ROUTE_BLOCKER, destBaseX + 8, destBaseZ - 1, CollisionFlag.WALL_NORTH_WEST_ROUTE_BLOCKER);
+
+        const northWestFlags = destCollision[7 << 3];
+        mirror(northWestFlags, CollisionFlag.WALL_NORTH_WEST, destBaseX - 1, destBaseZ + 8, CollisionFlag.WALL_SOUTH_EAST);
+        mirror(northWestFlags, CollisionFlag.WALL_NORTH_WEST_PROJ_BLOCKER, destBaseX - 1, destBaseZ + 8, CollisionFlag.WALL_SOUTH_EAST_PROJ_BLOCKER);
+        mirror(northWestFlags, CollisionFlag.WALL_NORTH_WEST_ROUTE_BLOCKER, destBaseX - 1, destBaseZ + 8, CollisionFlag.WALL_SOUTH_EAST_ROUTE_BLOCKER);
+
+        const northEastFlags = destCollision[7 | (7 << 3)];
+        mirror(northEastFlags, CollisionFlag.WALL_NORTH_EAST, destBaseX + 8, destBaseZ + 8, CollisionFlag.WALL_SOUTH_WEST);
+        mirror(northEastFlags, CollisionFlag.WALL_NORTH_EAST_PROJ_BLOCKER, destBaseX + 8, destBaseZ + 8, CollisionFlag.WALL_SOUTH_WEST_PROJ_BLOCKER);
+        mirror(northEastFlags, CollisionFlag.WALL_NORTH_EAST_ROUTE_BLOCKER, destBaseX + 8, destBaseZ + 8, CollisionFlag.WALL_SOUTH_WEST_ROUTE_BLOCKER);
     }
 
     private rotateCollisionFlags(flags: number, rotation: 0 | 1 | 2 | 3): number {
