@@ -277,7 +277,10 @@ export class NetworkPlayer extends Player {
 
         // update active zones
         for (const zoneIndex of activeZones) {
-            const zone: Zone = World.gameMap.getZoneIndex(zoneIndex);
+            const zone: Zone | null = World.gameMap.getZoneIndexIfExists(zoneIndex);
+            if (!zone) {
+                continue;
+            }
             if (!loadedZones.has(zone.index)) {
                 zone.writeFullFollows(this);
             }

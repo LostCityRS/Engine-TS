@@ -5,6 +5,7 @@ import { EntityLifeCycle } from '#/engine/entity/EntityLifeCycle.js';
 import Loc from '#/engine/entity/Loc.js';
 import World from '#/engine/World.js';
 import Zone from '#/engine/zone/Zone.js';
+import ZoneMap from '#/engine/zone/ZoneMap.js';
 
 export default class InstanceZone extends Zone {
     source: CoordGrid;
@@ -158,7 +159,7 @@ export default class InstanceZone extends Zone {
 
     private mirrorOutboundEdgeWalls(destCollision: Uint32Array, destBaseX: number, destBaseZ: number, level: number): void {
         const mirror = (flags: number, sourceMask: number, dstX: number, dstZ: number, mirrorMask: number): void => {
-            if (flags & sourceMask && World.gameMap.hasZone(dstX, dstZ, level)) {
+            if (flags & sourceMask && this.ensureMirrorDestinationZone(dstX, dstZ, level)) {
                 routeFinder.collisionFlags.add(dstX, dstZ, level, mirrorMask);
             }
         };
@@ -206,6 +207,21 @@ export default class InstanceZone extends Zone {
         mirror(northEastFlags, CollisionFlag.WALL_NORTH_EAST, destBaseX + 8, destBaseZ + 8, CollisionFlag.WALL_SOUTH_WEST);
         mirror(northEastFlags, CollisionFlag.WALL_NORTH_EAST_PROJ_BLOCKER, destBaseX + 8, destBaseZ + 8, CollisionFlag.WALL_SOUTH_WEST_PROJ_BLOCKER);
         mirror(northEastFlags, CollisionFlag.WALL_NORTH_EAST_ROUTE_BLOCKER, destBaseX + 8, destBaseZ + 8, CollisionFlag.WALL_SOUTH_WEST_ROUTE_BLOCKER);
+    }
+
+    private ensureMirrorDestinationZone(x: number, z: number, level: number): boolean {
+        if (World.gameMap.hasZone(x, z, level)) {
+            return true;
+        }
+
+        // Only materialize mirror destinations that are within an active instance footprint.
+        if (!World.instances.findInstanceByTile(level, x, z)) {
+            return false;
+        }
+
+        World.gameMap.createInstanceZone(ZoneMap.zoneIndex(x, z, level));
+        routeFinder.allocateIfAbsent(x, z, level);
+        return true;
     }
 
     private rotateCollisionFlags(flags: number, rotation: 0 | 1 | 2 | 3): number {

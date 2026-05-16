@@ -39,36 +39,62 @@ export default class ZoneMap {
     }
 
     /**
-     * Get an existing zone, or auto-create it if needed.
-     * TODO: Once all code paths are audited, enforce zone pre-creation when not initializing.
-     * Currently zones auto-create to maintain compatibility during refactor.
+     * Check if zone map is currently initializing (during map load).
+     */
+    isInitializingMap(): boolean {
+        return this.isInitializing;
+    }
+
+    /**
+     * Get an existing zone, or auto-create it during initialization.
+     * After initialization completes, zones must be pre-created or use getZoneIfExists().
+     * @throws Error if zone doesn't exist and initialization is complete.
      */
     getZone(x: number, z: number, level: number): Zone {
         const zoneIndex: number = ZoneMap.zoneIndex(x, z, level);
         let zone: Zone | undefined = this.zones.get(zoneIndex);
 
         if (typeof zone === 'undefined') {
-            // Auto-create zone on demand (TODO: enforce pre-creation after refactor)
-            zone = new Zone(zoneIndex);
-            this.zones.set(zoneIndex, zone);
+            if (this.isInitializing) {
+                // Auto-create zone only during initialization
+                zone = new Zone(zoneIndex);
+                this.zones.set(zoneIndex, zone);
+            } else {
+                // Enforce zone pre-creation after initialization
+                throw new Error(`Zone does not exist at (${x}, ${z}, L${level}). Zones must be pre-created during world startup.`);
+            }
         }
         return zone;
     }
 
     /**
-     * Get an existing zone by index, or auto-create it if needed.
-     * TODO: Once all code paths are audited, enforce zone pre-creation when not initializing.
-     * Currently zones auto-create to maintain compatibility during refactor.
+     * Get an existing zone by index, or auto-create it during initialization.
+     * After initialization completes, zones must be pre-created or use getZoneIfExists().
+     * @throws Error if zone doesn't exist and initialization is complete.
      */
     getZoneByIndex(index: number): Zone {
         let zone: Zone | undefined = this.zones.get(index);
 
         if (typeof zone === 'undefined') {
-            // Auto-create zone on demand (TODO: enforce pre-creation after refactor)
-            zone = new Zone(index);
-            this.zones.set(index, zone);
+            if (this.isInitializing) {
+                // Auto-create zone only during initialization
+                zone = new Zone(index);
+                this.zones.set(index, zone);
+            } else {
+                // Enforce zone pre-creation after initialization
+                const unpacked = ZoneMap.unpackIndex(index);
+                throw new Error(`Zone does not exist at (${unpacked.x}, ${unpacked.z}, L${unpacked.level}). Zones must be pre-created during world startup.`);
+            }
         }
         return zone;
+    }
+
+    /**
+     * Get an existing zone by index, or null if it doesn't exist.
+     * Use this only for optional zone lookups where missing zones are expected.
+     */
+    getZoneByIndexIfExists(index: number): Zone | null {
+        return this.zones.get(index) ?? null;
     }
 
     /**

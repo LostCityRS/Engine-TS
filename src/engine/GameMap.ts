@@ -102,6 +102,10 @@ export default class GameMap {
         return this.zonemap.getZoneByIndex(zoneIndex);
     }
 
+    getZoneIndexIfExists(zoneIndex: number): Zone | null {
+        return this.zonemap.getZoneByIndexIfExists(zoneIndex);
+    }
+
     /**
      * Get a zone if it exists, or null if it hasn't been created.
      */
@@ -125,6 +129,10 @@ export default class GameMap {
 
     hasZone(x: number, z: number, level: number): boolean {
         return this.zonemap.hasZone(x, z, level);
+    }
+
+    isInitializing(): boolean {
+        return this.zonemap.isInitializingMap();
     }
 
     addZone(zone: Zone): Zone {

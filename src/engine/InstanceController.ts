@@ -25,30 +25,46 @@ export default class InstanceController {
     static readonly INSTANCE_SIZE_TILES: number = 128;
     static readonly INSTANCE_GAP_TILES: number = 64;
     static readonly INSTANCE_SW_STRIDE_TILES: number = InstanceController.INSTANCE_SIZE_TILES + InstanceController.INSTANCE_GAP_TILES;
+    static readonly MAX_MISSING_SOURCE_ZONE_LOGS: number = 5;
+    static readonly DEBUG_INSTANCE_COPY_VERBOSE: boolean = false;
 
     nextInstancePointer: number = 0;
     readonly instances: InstanceRecord[] = [];
+    private missingSourceZoneLogCount: number = 0;
 
     // ---
     // Public methods
     // ---
 
+    /**
+     * Create a new instance record and reserve a slot in the global instance grid.
+     * This exists to give scripts a stable instance identity/footprint first,
+     * while zones are materialized lazily as each chunk is copied in.
+     */
     createInstance(floors: number, zonesEast: number, zonesNorth: number): CoordGrid {
+        this.missingSourceZoneLogCount = 0;
+
         // Reclaim all stale instance slots, then find the next available slot pointer.
-        printDebug(`[Instance] createInstance request floors=${floors}, zonesEast=${zonesEast}, zonesNorth=${zonesNorth}, nextPointer=${this.nextInstancePointer}`);
+        if (InstanceController.DEBUG_INSTANCE_COPY_VERBOSE) {
+            printDebug(`[Instance] createInstance request floors=${floors}, zonesEast=${zonesEast}, zonesNorth=${zonesNorth}, nextPointer=${this.nextInstancePointer}`);
+        }
         this.clearStaleInstances();
         this.findNextSlot();
 
         // Instances are laid out in a fixed grid of 128x128 tiles, with a 64-tile buffer between them.
         const slotX: number = this.nextInstancePointer % InstanceController.INSTANCES_PER_ROW;
         const slotZ: number = Math.trunc(this.nextInstancePointer / InstanceController.INSTANCES_PER_ROW);
-        const baseX: number = 101 + slotX * 3;
-        const baseZ: number = 1 + slotZ * 3;
+        const firstMapsquareX: number = InstanceController.FIRST_INSTANCE_SW_MAPSQUARE >> 8;
+        const firstMapsquareZ: number = InstanceController.FIRST_INSTANCE_SW_MAPSQUARE & 0xff;
+        const baseTileX: number = (firstMapsquareX << 6) + slotX * InstanceController.INSTANCE_SW_STRIDE_TILES;
+        const baseTileZ: number = (firstMapsquareZ << 6) + slotZ * InstanceController.INSTANCE_SW_STRIDE_TILES;
         const uid: number = this.nextInstancePointer;
-        const sw: CoordGrid = { level: 0, x: baseX << 3, z: baseZ << 3 };
-        printDebug(`[Instance] selected slot pointer=${uid}, slot=(${slotX},${slotZ}), sw=(${sw.x},${sw.z},L0)`);
+        const sw: CoordGrid = { level: 0, x: baseTileX, z: baseTileZ };
+        if (InstanceController.DEBUG_INSTANCE_COPY_VERBOSE) {
+            printDebug(`[Instance] selected slot pointer=${uid}, slot=(${slotX},${slotZ}), sw=(${sw.x},${sw.z},L0)`);
+        }
 
-        // Keep the instance metadata so we can later detect when it becomes empty again.
+        // Keep only the instance metadata here; zones are materialized lazily when copied from the overworld.
         this.instances.push({
             uid,
             sw,
@@ -58,51 +74,67 @@ export default class InstanceController {
             exitCoord: null
         });
 
-        // Materialize the instance zones directly into the game's zone map.
-        for (let level: number = 0; level < floors; level++) {
-            for (let east: number = 0; east < zonesEast; east++) {
-                for (let north: number = 0; north < zonesNorth; north++) {
-                    const x: number = (baseX + east) << 3;
-                    const z: number = (baseZ + north) << 3;
-                    const zoneIndex: number = ZoneMap.zoneIndex(x, z, level);
-
-                    const existingZone: boolean = World.gameMap.hasZone(x, z, level);
-                    const allocatedCollision: boolean = isZoneAllocated(level, x, z);
-                    if (existingZone || allocatedCollision) {
-                        printDebug(`[Instance] WARNING: creating instance zone where state already exists index=${zoneIndex} coord=(${x},${z},L${level}) existingZone=${existingZone} allocatedCollision=${allocatedCollision}`);
-                    }
-
-                    World.gameMap.createInstanceZone(zoneIndex);
-                    routeFinder.allocateIfAbsent(x, z, level);
-                }
-            }
-        }
-
         this.incrementSlotPointer();
         return sw;
     }
 
+    /**
+     * Copy one source zone into a destination chunk of an existing instance.
+     * This is purposed to be the single controlled path for lazy instance chunk
+     * creation, bounds enforcement, and source->instance template assignment.
+     */
     copyZone(instanceSw: CoordGrid, instanceOffset: CoordGrid, source: CoordGrid, rotation: 0 | 1 | 2 | 3): void {
+        const instance = this.instances.find(candidate => candidate.sw.level === instanceSw.level && candidate.sw.x === instanceSw.x && candidate.sw.z === instanceSw.z);
+        if (!instance) {
+            throw new Error(`copyZone failed: instance not found at sw=(${instanceSw.x}, ${instanceSw.z}, L${instanceSw.level})`);
+        }
+
+        if (instanceOffset.level < 0 || instanceOffset.level >= instance.floors || instanceOffset.x < 0 || instanceOffset.x >= instance.zonesEast || instanceOffset.z < 0 || instanceOffset.z >= instance.zonesNorth) {
+            throw new Error(
+                `copyZone out of bounds: offset=(${instanceOffset.x}, ${instanceOffset.z}, L${instanceOffset.level}) size=(${instance.zonesEast}, ${instance.zonesNorth}, floors=${instance.floors}) sw=(${instanceSw.x}, ${instanceSw.z}, L${instanceSw.level})`
+            );
+        }
+
         const target: CoordGrid = {
             level: instanceSw.level + instanceOffset.level,
             x: instanceSw.x + (instanceOffset.x << 3),
             z: instanceSw.z + (instanceOffset.z << 3)
         };
 
-        const targetZone = World.gameMap.getZone(target.x, target.z, target.level);
-        const sourceZone = World.gameMap.getZone(source.x, source.z, source.level);
+        const targetZone = this.ensureInstanceZone(target.x, target.z, target.level);
+        const sourceZone = World.gameMap.getZoneIfExists(source.x, source.z, source.level);
 
-        if (targetZone instanceof InstanceZone) {
-            targetZone.copyFromZone(sourceZone, rotation);
+        if (!sourceZone) {
+            // Keep template metadata so client rebuild can still draw this chunk,
+            // even when the source zone is not materialized server-side.
+            targetZone.source = { level: source.level, x: source.x >> 3, z: source.z >> 3 };
+            targetZone.rotation = rotation;
+
+            if (InstanceController.DEBUG_INSTANCE_COPY_VERBOSE) {
+                if (this.missingSourceZoneLogCount < InstanceController.MAX_MISSING_SOURCE_ZONE_LOGS) {
+                    printDebug(`[Instance] copyZone skipped: source zone missing src=(${source.x},${source.z},L${source.level}) -> dst=(${target.x},${target.z},L${target.level})`);
+                } else if (this.missingSourceZoneLogCount === InstanceController.MAX_MISSING_SOURCE_ZONE_LOGS) {
+                    printDebug('[Instance] copyZone: additional missing source-zone logs suppressed for this instance creation');
+                }
+            }
+            this.missingSourceZoneLogCount++;
+            return;
+        }
+
+        targetZone.copyFromZone(sourceZone, rotation);
+        if (InstanceController.DEBUG_INSTANCE_COPY_VERBOSE) {
             printDebug(`[Instance] Zone copy complete: src=(${source.x},${source.z},L${source.level}) -> dst=(${target.x},${target.z},L${target.level}) rot=${rotation} locs=${targetZone.totalLocs}`);
             for (const loc of targetZone.getAllLocsSafe()) {
                 printDebug(`  [Loc] type=${loc.type} at (${loc.x},${loc.z},L${loc.level}) shape=${loc.shape} angle=${loc.angle} active=${loc.isActive}`);
             }
-        } else {
-            printDebug(`[Instance] ERROR: Target zone is not InstanceZone, it's ${targetZone.constructor.name}`);
         }
     }
 
+    /**
+     * Check whether an instance has any players in currently materialized zones.
+     * This exists to support reclaiming empty instances and avoid accumulating
+     * stale zones/collision state.
+     */
     isInstanceEmpty(instance: InstanceRecord): boolean {
         // Any player in any zone covered by this instance means the instance is still in use.
         for (let level: number = 0; level < instance.floors; level++) {
@@ -110,8 +142,8 @@ export default class InstanceController {
                 for (let north: number = 0; north < instance.zonesNorth; north++) {
                     const x: number = instance.sw.x + (east << 3);
                     const z: number = instance.sw.z + (north << 3);
-                    const zone = World.gameMap.getZone(x, z, level);
-                    if (zone.hasPlayers()) {
+                    const zone = World.gameMap.getZoneIfExists(x, z, level);
+                    if (zone && zone.hasPlayers()) {
                         return false;
                     }
                 }
@@ -122,14 +154,18 @@ export default class InstanceController {
     }
 
     /**
-     * Find an instance that contains the given coordinate.
-     * @param coord The coordinate to search for.
-     * @returns The instance record if found, null otherwise.
+     * Resolve an instance by absolute coordinate.
+     * This exists for callers that start from packed/world coordinates and need
+     * to recover instance context.
      */
     findInstanceByCoord(coord: CoordGrid): InstanceRecord | null {
         return this.findInstanceByTile(coord.level, coord.x, coord.z);
     }
 
+    /**
+     * Resolve an instance by raw level/x/z tile values.
+     * This is the core containment test used by teleport/login/instance checks.
+     */
     findInstanceByTile(level: number, x: number, z: number): InstanceRecord | null {
         for (const instance of this.instances) {
             // Check if tile falls within this instance's footprint
@@ -140,6 +176,11 @@ export default class InstanceController {
         return null;
     }
 
+    /**
+     * Resolve an instance by its stable uid.
+     * This exists because script/runtime flows store uid handles and need
+     * deterministic lookup.
+     */
     findInstanceByUid(uid: number): InstanceRecord | null {
         for (const instance of this.instances) {
             if (instance.uid === uid) {
@@ -153,7 +194,11 @@ export default class InstanceController {
     // Private methods
     // ---
 
-    // Remove all stale instances before selecting the next slot.
+    /**
+     * Reclaim all stale instance records that no longer contain players.
+     * This is purposed to keep slot reuse and cleanup opportunistic during
+     * instance creation.
+     */
     private clearStaleInstances(): void {
         // Walk backward so removals do not disturb the remaining indices.
         for (let index: number = this.instances.length - 1; index >= 0; index--) {
@@ -167,7 +212,11 @@ export default class InstanceController {
         }
     }
 
-    // Find the next pointer using SW-zone occupancy as the canonical slot marker.
+    /**
+     * Select the next free slot pointer in the instance grid.
+     * This exists to prevent slot collisions and keep instance placement
+     * deterministic.
+     */
     private findNextSlot(): void {
         // Track occupied slots from active instance records to skip them during probing.
         const occupiedSlots: Set<number> = new Set();
@@ -175,7 +224,9 @@ export default class InstanceController {
             occupiedSlots.add(instance.uid);
         }
 
-        printDebug(`[Instance] findNextSlot start: nextPointer=${this.nextInstancePointer}, activeInstances=${this.instances.length}, occupiedSlots=${occupiedSlots.size}`);
+        if (InstanceController.DEBUG_INSTANCE_COPY_VERBOSE) {
+            printDebug(`[Instance] findNextSlot start: nextPointer=${this.nextInstancePointer}, activeInstances=${this.instances.length}, occupiedSlots=${occupiedSlots.size}`);
+        }
 
         for (let attempts: number = 0; attempts < InstanceController.TOTAL_INSTANCES; attempts++) {
             const pointer: number = (this.nextInstancePointer + attempts) % InstanceController.TOTAL_INSTANCES;
@@ -185,20 +236,24 @@ export default class InstanceController {
 
             const slotX: number = pointer % InstanceController.INSTANCES_PER_ROW;
             const slotZ: number = Math.trunc(pointer / InstanceController.INSTANCES_PER_ROW);
-            const swX: number = (101 + slotX * 3) << 3;
-            const swZ: number = (1 + slotZ * 3) << 3;
+            const firstMapsquareX: number = InstanceController.FIRST_INSTANCE_SW_MAPSQUARE >> 8;
+            const firstMapsquareZ: number = InstanceController.FIRST_INSTANCE_SW_MAPSQUARE & 0xff;
+            const swX: number = (firstMapsquareX << 6) + slotX * InstanceController.INSTANCE_SW_STRIDE_TILES;
+            const swZ: number = (firstMapsquareZ << 6) + slotZ * InstanceController.INSTANCE_SW_STRIDE_TILES;
             const allocated: boolean = isZoneAllocated(0, swX, swZ);
             const hasZone: boolean = World.gameMap.hasZone(swX, swZ, 0);
 
             // If this slot's SW zone is occupied, the slot is considered in use.
             if (allocated || hasZone) {
-                if (attempts < 10) {
+                if (InstanceController.DEBUG_INSTANCE_COPY_VERBOSE && attempts < 10) {
                     printDebug(`[Instance] slot ${pointer} blocked: sw=(${swX},${swZ},L0) allocated=${allocated} hasZone=${hasZone}`);
                 }
                 continue;
             }
 
-            printDebug(`[Instance] slot ${pointer} available: sw=(${swX},${swZ},L0)`);
+            if (InstanceController.DEBUG_INSTANCE_COPY_VERBOSE) {
+                printDebug(`[Instance] slot ${pointer} available: sw=(${swX},${swZ},L0)`);
+            }
             this.nextInstancePointer = pointer;
             return;
         }
@@ -206,13 +261,22 @@ export default class InstanceController {
         throw new Error('[InstanceController] No available instance slots found.');
     }
 
-    // Move pointer forward by one slot and wrap around at capacity.
+    /**
+     * Advance the slot pointer with wrap-around.
+     * This is purposed to keep scanning fair across the fixed-capacity
+     * instance grid.
+     */
     private incrementSlotPointer(): void {
         this.nextInstancePointer = (this.nextInstancePointer + 1) % InstanceController.TOTAL_INSTANCES;
     }
 
-    // Remove every zone belonging to this instance footprint from the world map.
+    /**
+     * Tear down all materialized zones and collision in the instance footprint.
+     * This exists so slot reuse cannot leak world-state from prior instances.
+     */
     private deleteInstance(instance: InstanceRecord): void {
+        printDebug(`[Instance] deleting instance uid=${instance.uid} sw=(${instance.sw.x},${instance.sw.z},L${instance.sw.level}) floors=${instance.floors} size=${instance.zonesEast}x${instance.zonesNorth}`);
+
         // Remove each zone in the instance footprint from the live zone map and collision data.
         for (let level: number = 0; level < instance.floors; level++) {
             for (let east: number = 0; east < instance.zonesEast; east++) {
@@ -225,5 +289,29 @@ export default class InstanceController {
                 }
             }
         }
+
+        printDebug(`[Instance] deleted instance uid=${instance.uid}`);
+    }
+
+    /**
+     * Ensure a destination instance zone exists and has collision storage allocated.
+     * This exists because chunks are created lazily and copy operations need a
+     * safe one-stop materializer.
+     */
+    private ensureInstanceZone(x: number, z: number, level: number): InstanceZone {
+        const zoneIndex: number = ZoneMap.zoneIndex(x, z, level);
+        const existingZone = World.gameMap.getZoneIfExists(x, z, level);
+
+        if (!existingZone) {
+            const zone = World.gameMap.createInstanceZone(zoneIndex) as InstanceZone;
+            routeFinder.allocateIfAbsent(x, z, level);
+            return zone;
+        }
+
+        if (!(existingZone instanceof InstanceZone)) {
+            throw new Error(`Instance zone collision at (${x}, ${z}, L${level})`);
+        }
+
+        return existingZone;
     }
 }

@@ -190,8 +190,15 @@ export default abstract class PathingEntity extends Entity {
         }
 
         if (CoordGrid.zone(previousX) !== CoordGrid.zone(this.x) || CoordGrid.zone(previousZ) !== CoordGrid.zone(this.z) || previousLevel != this.level) {
-            World.gameMap.getZone(previousX, previousZ, previousLevel).leave(this);
-            World.gameMap.getZone(this.x, this.z, this.level).enter(this);
+            const previousZone = World.gameMap.getZoneIfExists(previousX, previousZ, previousLevel);
+            const currentZone = World.gameMap.getZoneIfExists(this.x, this.z, this.level);
+
+            if (previousZone && previousZone !== currentZone) {
+                previousZone.leave(this);
+            }
+            if (currentZone && previousZone !== currentZone) {
+                currentZone.enter(this);
+            }
         }
     }
 
@@ -224,8 +231,16 @@ export default abstract class PathingEntity extends Entity {
         }
         const previousX: number = this.x;
         const previousZ: number = this.z;
-        this.x = CoordGrid.moveX(this.x, dir);
-        this.z = CoordGrid.moveZ(this.z, dir);
+        const nextX: number = CoordGrid.moveX(this.x, dir);
+        const nextZ: number = CoordGrid.moveZ(this.z, dir);
+
+        // After map initialization, entities must not move into zones that were never allocated.
+        if (!World.gameMap.getZoneIfExists(nextX, nextZ, this.level)) {
+            return -1;
+        }
+
+        this.x = nextX;
+        this.z = nextZ;
         const moveX: number = CoordGrid.moveX(this.x, dir);
         const moveZ: number = CoordGrid.moveZ(this.z, dir);
         this.focus(CoordGrid.fine(moveX, this.width), CoordGrid.fine(moveZ, this.length), false);

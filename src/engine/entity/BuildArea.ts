@@ -104,7 +104,7 @@ export default class BuildArea {
     private isInstanceBuildArea(): boolean {
         const zoneX: number = CoordGrid.zone(this.player.x) << 3;
         const zoneZ: number = CoordGrid.zone(this.player.z) << 3;
-        const zone = World.gameMap.getZone(zoneX, zoneZ, this.player.level);
+        const zone = World.gameMap.getZoneIfExists(zoneX, zoneZ, this.player.level);
         return zone instanceof InstanceZone;
     }
 
