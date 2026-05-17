@@ -251,7 +251,7 @@ export function runServerCompiler() {
 
     VarNpcType.load('data/pack');
     for (let id = 0; id <= varnInfo.max; id++) {
-        if (typeof varpInfo.map[id] === 'undefined') {
+        if (typeof varnInfo.map[id] === 'undefined') {
             continue;
         }
 
