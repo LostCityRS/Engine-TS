@@ -126,7 +126,7 @@ export default class BuildArea {
                     }
 
                     const zone = World.gameMap.getZone(currentX, currentZ, level);
-                    if (!(zone instanceof InstanceZone)) {
+                    if (!(zone instanceof InstanceZone) || !zone.hasAssignedTemplate) {
                         continue;
                     }
 

@@ -107,8 +107,7 @@ export default class InstanceController {
         if (!sourceZone) {
             // Keep template metadata so client rebuild can still draw this chunk,
             // even when the source zone is not materialized server-side.
-            targetZone.source = { level: source.level, x: source.x >> 3, z: source.z >> 3 };
-            targetZone.rotation = rotation;
+            targetZone.assignTemplate(source, rotation);
 
             if (InstanceController.DEBUG_INSTANCE_COPY_VERBOSE) {
                 if (this.missingSourceZoneLogCount < InstanceController.MAX_MISSING_SOURCE_ZONE_LOGS) {
@@ -138,11 +137,12 @@ export default class InstanceController {
     isInstanceEmpty(instance: InstanceRecord): boolean {
         // Any player in any zone covered by this instance means the instance is still in use.
         for (let level: number = 0; level < instance.floors; level++) {
+            const actualLevel: number = instance.sw.level + level;
             for (let east: number = 0; east < instance.zonesEast; east++) {
                 for (let north: number = 0; north < instance.zonesNorth; north++) {
                     const x: number = instance.sw.x + (east << 3);
                     const z: number = instance.sw.z + (north << 3);
-                    const zone = World.gameMap.getZoneIfExists(x, z, level);
+                    const zone = World.gameMap.getZoneIfExists(x, z, actualLevel);
                     if (zone && zone.hasPlayers()) {
                         return false;
                     }
@@ -279,13 +279,29 @@ export default class InstanceController {
 
         // Remove each zone in the instance footprint from the live zone map and collision data.
         for (let level: number = 0; level < instance.floors; level++) {
+            const actualLevel: number = instance.sw.level + level;
             for (let east: number = 0; east < instance.zonesEast; east++) {
                 for (let north: number = 0; north < instance.zonesNorth; north++) {
                     const x: number = instance.sw.x + (east << 3);
                     const z: number = instance.sw.z + (north << 3);
-                    World.gameMap.removeZone(ZoneMap.zoneIndex(x, z, level));
+                    const zone = World.gameMap.getZoneIfExists(x, z, actualLevel);
+                    if (zone) {
+                        for (const npc of Array.from(zone.getAllNpcsUnsafe(true))) {
+                            World.removeNpc(npc, -1);
+                        }
+
+                        for (const loc of Array.from(zone.getAllLocsUnsafe(true))) {
+                            World.removeLoc(loc, 0);
+                        }
+
+                        for (const obj of Array.from(zone.getAllObjsUnsafe(true))) {
+                            World.removeObj(obj, 0);
+                        }
+                    }
+
+                    World.gameMap.removeZone(ZoneMap.zoneIndex(x, z, actualLevel));
                     // Clean up collision data for this zone
-                    routeFinder.deallocateIfPresent(x, z, level);
+                    routeFinder.deallocateIfPresent(x, z, actualLevel);
                 }
             }
         }

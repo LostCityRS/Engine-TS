@@ -18,6 +18,10 @@ export default class InstanceZone extends Zone {
         this.rotation = 0;
     }
 
+    get hasAssignedTemplate(): boolean {
+        return this.copiedFrom;
+    }
+
     /**
      * Copy entities (locations, objects, collision) from the source zone into this instance zone,
      * applying the specified rotation transformation.
@@ -26,14 +30,7 @@ export default class InstanceZone extends Zone {
      * @param rotation The rotation to apply (0, 1, 2, or 3).
      */
     copyFromZone(sourceZone: Zone, rotation: 0 | 1 | 2 | 3): void {
-        if (this.copiedFrom) {
-            throw new Error('InstanceZone has already been copied from a source');
-        }
-
-        // Update source and rotation metadata
-        this.source = { level: sourceZone.level, x: sourceZone.x, z: sourceZone.z };
-        this.rotation = rotation;
-        this.copiedFrom = true;
+        this.assignSource(sourceZone.level, sourceZone.x, sourceZone.z, rotation);
 
         // Copy collision data with rotation applied
         this.copyCollisionWithRotation(sourceZone, rotation);
@@ -42,14 +39,35 @@ export default class InstanceZone extends Zone {
         this.copyLocsWithRotation(sourceZone, rotation);
     }
 
+    /**
+     * Record template metadata without copying locs or collision.
+     * This exists for missing-source copies, which still consume the single
+     * allowed assignment for the destination instance zone.
+     */
+    assignTemplate(source: CoordGrid, rotation: 0 | 1 | 2 | 3): void {
+        this.assignSource(source.level, source.x >> 3, source.z >> 3, rotation);
+    }
+
+    private assignSource(sourceLevel: number, sourceZoneX: number, sourceZoneZ: number, rotation: 0 | 1 | 2 | 3): void {
+        if (this.copiedFrom) {
+            throw new Error('InstanceZone has already been copied from a source');
+        }
+
+        this.source = { level: sourceLevel, x: sourceZoneX, z: sourceZoneZ };
+        this.rotation = rotation;
+        this.copiedFrom = true;
+    }
+
     private copyLocsWithRotation(sourceZone: Zone, rotation: 0 | 1 | 2 | 3): void {
         for (const sourceLoc of sourceZone.getAllLocsSafe()) {
             // Extract base properties (before any runtime changes)
             const baseType = sourceLoc.baseType;
             const baseShape = sourceLoc.baseShape;
             const baseAngle = sourceLoc.baseAngle;
-            let width = sourceLoc.width;
-            let length = sourceLoc.length;
+            const sourceWidth = sourceLoc.width;
+            const sourceLength = sourceLoc.length;
+            let width = sourceWidth;
+            let length = sourceLength;
 
             // Get zone-relative tile coordinates (0-7 range).
             // sourceZone.x is already in zone-index units (tile >> 3), so shift left to
@@ -62,17 +80,17 @@ export default class InstanceZone extends Zone {
             let rotatedZ = locZ;
             if (rotation === 1) {
                 // 90° CW
-                rotatedX = 7 - locZ;
+                rotatedX = 8 - locZ - sourceLength;
                 rotatedZ = locX;
                 [width, length] = [length, width];
             } else if (rotation === 2) {
                 // 180°
-                rotatedX = 7 - locX;
-                rotatedZ = 7 - locZ;
+                rotatedX = 8 - locX - sourceWidth;
+                rotatedZ = 8 - locZ - sourceLength;
             } else if (rotation === 3) {
                 // 270° CW
                 rotatedX = locZ;
-                rotatedZ = 7 - locX;
+                rotatedZ = 8 - locX - sourceWidth;
                 [width, length] = [length, width];
             }
 
@@ -111,9 +129,9 @@ export default class InstanceZone extends Zone {
             return; // No collision to copy
         }
 
-        const destCollision = new Uint32Array(64);
         const destBaseX = this.x << 3;
         const destBaseZ = this.z << 3;
+        const destCollision = routeFinder.collisionFlags.getZone(destBaseX, destBaseZ, this.level) ?? new Uint32Array(64);
 
         // Iterate through the 8x8 zone and apply rotation transformations
         for (let srcIdx = 0; srcIdx < 64; srcIdx++) {
@@ -145,7 +163,7 @@ export default class InstanceZone extends Zone {
 
             const dstIdx = dstX | (dstZ << 3);
             const rotatedFlags = this.rotateCollisionFlags(srcFlags, rotation);
-            destCollision[dstIdx] = rotatedFlags;
+            destCollision[dstIdx] |= rotatedFlags;
         }
 
         // Write rotated collision data to destination zone
