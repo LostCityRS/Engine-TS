@@ -6,21 +6,11 @@ tsconfig.tsbuildinfo
 data/pack/
 data/src/
 data/unpack/
-
-data/players/
-data/symbols/
-
 dump/
 
+data/players/
+
 node_modules/
-
-# keep these precompiled files out of the repo
-bz2.dll
-JagCompress.jar
-RuneScriptCompiler.jar
-PreloadedDirs.ts
-
-*.bz2
 
 db.sqlite
 db.sqlite-journal
