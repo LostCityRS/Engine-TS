@@ -1,4 +1,5 @@
 import DbTableType from '#/cache/config/DbTableType.js';
+import { CoordGrid } from '#/engine/CoordGrid.js';
 import Entity from '#/engine/entity/Entity.js';
 import Loc from '#/engine/entity/Loc.js';
 import Npc from '#/engine/entity/Npc.js';
