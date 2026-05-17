@@ -6,12 +6,9 @@ tsconfig.tsbuildinfo
 data/pack/
 data/src/
 data/unpack/
+dump/
 
 data/players/
-
-data/config/world.json
-
-dump/
 
 node_modules/
 
