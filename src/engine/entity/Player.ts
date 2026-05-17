@@ -2101,6 +2101,7 @@ export default class Player extends PathingEntity {
     }
 
     exactMove(startX: number, startZ: number, endX: number, endZ: number, startCycle: number, endCycle: number, direction: number) {
+        this.teleport(endX, endZ, this.level);
         this.exactStartX = startX;
         this.exactStartZ = startZ;
         this.exactEndX = endX;
@@ -2109,13 +2110,6 @@ export default class Player extends PathingEntity {
         this.exactMoveEnd = endCycle;
         this.exactMoveFacing = direction;
         this.masks |= PlayerInfoProt.EXACT_MOVE;
-
-        // todo: interpolate over time? instant teleport? verify with true tile on osrs
-        this.x = endX;
-        this.z = endZ;
-        this.lastStepX = this.x - 1;
-        this.lastStepZ = this.z;
-        this.tele = true;
     }
 
     setTab(com: number, tab: number) {
