@@ -66,12 +66,11 @@ export default class Npc extends PathingEntity {
     huntTarget: Entity | null = null;
     huntrange: number = 0;
 
-    nextPatrolTick: number = -1;
     nextPatrolPoint: number = 0;
-    delayedPatrol: boolean = false;
+    patrolDelayTicksRemaining: number = -1;
     resetOnRevert: boolean = true;
 
-    wanderCounter: number = 0;
+    stuckCounter: number = 0;
 
     heroPoints: HeroPoints = new HeroPoints(16); // be sure to reset when stats are recovered/reset
 
@@ -100,7 +99,7 @@ export default class Npc extends PathingEntity {
         this.targetOp = npcType.defaultmode;
         this.huntMode = npcType.huntmode;
         this.huntrange = npcType.huntrange;
-        this.wanderCounter = 0;
+        this.stuckCounter = 0;
     }
 
     // ---
@@ -364,7 +363,7 @@ export default class Npc extends PathingEntity {
         const moved = this.lastTickX !== this.x || this.lastTickZ !== this.z;
         if (moved) {
             this.lastMovement = World.currentTick + 1;
-            this.wanderCounter = 0;
+            this.stuckCounter = 0;
         }
         return moved;
     }
@@ -377,7 +376,9 @@ export default class Npc extends PathingEntity {
     }
 
     clearPatrol() {
-        this.nextPatrolTick = -1;
+        this.nextPatrolPoint = 0;
+        this.stuckCounter = 0;
+        this.patrolDelayTicksRemaining = -1;
     }
 
     blockWalkFlag(): CollisionFlag {
@@ -712,41 +713,55 @@ export default class Npc extends PathingEntity {
 
         const onSpawn = this.x === this.startX && this.z === this.startZ && this.level === this.startLevel;
 
-        if (this.wanderCounter++ >= 500) {
+        // Npc should teleport 501 ticks after its last movement
+        if (this.stuckCounter++ > 500) {
             if (!onSpawn) {
                 this.teleport(this.startX, this.startZ, this.startLevel);
             }
-            this.wanderCounter = 0;
+            this.stuckCounter = 0;
         }
     }
 
     private patrolMode(): void {
         const type = NpcType.get(this.type);
         const patrolPoints = type.patrolCoord;
-        const patrolDelay = type.patrolDelay[this.nextPatrolPoint];
+
+        if (patrolPoints.length === 0) {
+            this.updateMovement();
+            return;
+        }
+
         let dest = CoordGrid.unpackCoord(patrolPoints[this.nextPatrolPoint]);
 
-        this.updateMovement();
         if (!this.hasWaypoints() && !this.target) {
             // requeue waypoints in cases where an npc was interacting and the interaction has been cleared
             this.queueWaypoint(dest.x, dest.z);
         }
-        if (!(this.x === dest.x && this.z === dest.z) && this.nextPatrolTick > -1 && World.currentTick >= this.nextPatrolTick) {
+
+        this.stuckCounter++;
+
+        // Npc should teleport 32 ticks after its last movement, or if it needs to change floors
+        if (this.stuckCounter >= 32 || this.level !== dest.level) {
             this.teleport(dest.x, dest.z, dest.level);
-        }
-        if (this.x === dest.x && this.z === dest.z && !this.delayedPatrol) {
-            this.nextPatrolTick = World.currentTick + patrolDelay;
-            this.delayedPatrol = true;
-        }
-        if (this.nextPatrolTick > World.currentTick) {
-            return;
+            this.stuckCounter = 0;
         }
 
-        this.nextPatrolPoint = (this.nextPatrolPoint + 1) % patrolPoints.length;
-        this.nextPatrolTick = World.currentTick + 30; // 30 ticks until we force the npc to the next patrol coord
-        this.delayedPatrol = false;
-        dest = CoordGrid.unpackCoord(patrolPoints[this.nextPatrolPoint]); // recalc dest
-        this.queueWaypoint(dest.x, dest.z);
+        if (this.x === dest.x && this.z === dest.z) {
+            // If patrol delay is unitialized, set it to next patroldelay
+            if (this.patrolDelayTicksRemaining < 0) {
+                const patrolDelay = type.patrolDelay[this.nextPatrolPoint] ?? 0;
+                this.patrolDelayTicksRemaining = patrolDelay;
+            }
+
+            if (this.patrolDelayTicksRemaining-- <= 0) {
+                this.nextPatrolPoint = (this.nextPatrolPoint + 1) % patrolPoints.length;
+                this.patrolDelayTicksRemaining = -1;
+                dest = CoordGrid.unpackCoord(patrolPoints[this.nextPatrolPoint]);
+                this.queueWaypoint(dest.x, dest.z);
+            }
+        }
+
+        this.updateMovement();
     }
 
     private playerEscapeMode(): void {
@@ -838,8 +853,8 @@ export default class Npc extends PathingEntity {
     private aiMode(): void {
         const type: NpcType = NpcType.get(this.type);
 
-        // Reset the wander timer if Npc runs its aimode
-        this.wanderCounter = 0;
+        // Reset the stuck timer if Npc runs its aimode
+        this.stuckCounter = 0;
 
         // Try to interact before moving, include op Obj and Loc
         if (this.tryInteract(true)) {
