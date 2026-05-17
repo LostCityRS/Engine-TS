@@ -668,6 +668,11 @@ class World {
     private processNpcEventQueue(): void {
         for (const request of this.npcEventQueue.all()) {
             const npc = request.npc;
+            if (request.type === NpcEventType.SPAWN && (!npc.isActive || npc.nid === -1 || this.getNpc(npc.nid) !== npc)) {
+                request.unlink();
+                continue;
+            }
+
             if (!npc.delayed) {
                 request.unlink();
                 const state = ScriptRunner.init(request.script, npc);
