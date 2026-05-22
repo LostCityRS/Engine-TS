@@ -45,7 +45,6 @@ import ScriptRunner from '#/engine/script/ScriptRunner.js';
 import ScriptState from '#/engine/script/ScriptState.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
-import InstanceZone from '#/engine/zone/InstanceZone.js';
 import Packet from '#/io/Packet.js';
 import ChatFilterSettings from '#/network/game/server/model/ChatFilterSettings.js';
 import HintArrow from '#/network/game/server/model/HintArrow.js';
@@ -573,13 +572,10 @@ export default class Player extends PathingEntity {
         const currentZoneX = (this.x >> 3) << 3;
         const currentZoneZ = (this.z >> 3) << 3;
 
-        const previousTriggerZone = this.resolveTriggerZoneBase(previousZoneX, previousZoneZ, previousLevel);
-        const currentTriggerZone = this.resolveTriggerZoneBase(currentZoneX, currentZoneZ, this.level);
-
-        const previousMapZoneX = (previousTriggerZone.x >> 6) << 6;
-        const previousMapZoneZ = (previousTriggerZone.z >> 6) << 6;
-        const currentMapZoneX = (currentTriggerZone.x >> 6) << 6;
-        const currentMapZoneZ = (currentTriggerZone.z >> 6) << 6;
+        const previousMapZoneX = (previousZoneX >> 6) << 6;
+        const previousMapZoneZ = (previousZoneZ >> 6) << 6;
+        const currentMapZoneX = (currentZoneX >> 6) << 6;
+        const currentMapZoneZ = (currentZoneZ >> 6) << 6;
 
         const mapZoneBoundaryChanged: boolean = initialLogin || (previousX >> 6) << 6 !== (this.x >> 6) << 6 || (previousZ >> 6) << 6 !== (this.z >> 6) << 6;
         const mapZoneChanged: boolean = initialLogin || (mapZoneBoundaryChanged && (previousMapZoneX !== currentMapZoneX || previousMapZoneZ !== currentMapZoneZ));
@@ -604,29 +600,12 @@ export default class Player extends PathingEntity {
                     this.write(new SetMultiway(nowIsMulti));
                 }
 
-                this.triggerZoneExit(previousTriggerZone.level, previousTriggerZone.x, previousTriggerZone.z);
+                this.triggerZoneExit(previousLevel, previousZoneX, previousZoneZ);
             }
 
-            this.triggerZone(currentTriggerZone.level, currentTriggerZone.x, currentTriggerZone.z);
-            this.lastZone = CoordGrid.packCoord(currentTriggerZone.level, currentTriggerZone.x, currentTriggerZone.z);
+            this.triggerZone(this.level, currentZoneX, currentZoneZ);
+            this.lastZone = CoordGrid.packCoord(this.level, currentZoneX, currentZoneZ);
         }
-    }
-
-    private resolveTriggerZoneBase(zoneX: number, zoneZ: number, level: number): CoordGrid {
-        const zone = World.gameMap.getZoneIfExists(zoneX, zoneZ, level);
-        if (zone instanceof InstanceZone) {
-            return {
-                level: zone.source.level,
-                x: zone.source.x << 3,
-                z: zone.source.z << 3
-            };
-        }
-
-        return {
-            level,
-            x: zoneX,
-            z: zoneZ
-        };
     }
 
     onReconnect() {
