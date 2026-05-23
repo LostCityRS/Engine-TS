@@ -1,24 +1,43 @@
-// https://github.com/dylanblokhuis/kysely-bun-sqlite
-import { Database, SQLiteError } from 'bun:sqlite';
-import { CompiledQuery, DatabaseConnection, Driver, QueryResult } from 'kysely';
-import { BunSqliteDialectConfig } from './BunSqliteDialectConfig.js';
-import { sleep } from 'bun';
+import { setTimeout as sleep } from 'node:timers/promises';
+import type { DatabaseSync, SQLInputValue } from 'node:sqlite';
 
-export class BunSqliteDriver implements Driver {
-    readonly #config: BunSqliteDialectConfig;
+import { CompiledQuery, type DatabaseConnection, type Driver, type QueryResult } from 'kysely';
+
+import type { NodeSqliteDialectConfig } from './NodeSqliteDialectConfig.js';
+
+type NodeSqliteError = Error & {
+    code?: string;
+    errcode?: number;
+    errstr?: string;
+};
+
+function isSqliteBusyError(err: unknown): err is NodeSqliteError {
+    return typeof err === 'object' && err !== null && (err as NodeSqliteError).code === 'ERR_SQLITE_ERROR' && (err as NodeSqliteError).errcode === 5;
+}
+
+function isSqliteError(err: unknown): err is NodeSqliteError {
+    return typeof err === 'object' && err !== null && (err as NodeSqliteError).code === 'ERR_SQLITE_ERROR';
+}
+
+function bindParameters(parameters: readonly unknown[]): SQLInputValue[] {
+    return parameters as SQLInputValue[];
+}
+
+export class NodeSqliteDriver implements Driver {
+    readonly #config: NodeSqliteDialectConfig;
     readonly #connectionMutex = new ConnectionMutex();
 
-    #db?: Database;
+    #db?: DatabaseSync;
     #connection?: DatabaseConnection;
 
-    constructor(config: BunSqliteDialectConfig) {
+    constructor(config: NodeSqliteDialectConfig) {
         this.#config = { ...config };
     }
 
     async init(): Promise<void> {
         this.#db = this.#config.database;
 
-        this.#connection = new BunSqliteConnection(this.#db);
+        this.#connection = new NodeSqliteConnection(this.#db);
 
         if (this.#config.onCreateConnection) {
             await this.#config.onCreateConnection(this.#connection);
@@ -53,10 +72,10 @@ export class BunSqliteDriver implements Driver {
     }
 }
 
-class BunSqliteConnection implements DatabaseConnection {
-    readonly #db: Database;
+class NodeSqliteConnection implements DatabaseConnection {
+    readonly #db: DatabaseSync;
 
-    constructor(db: Database) {
+    constructor(db: DatabaseSync) {
         this.#db = db;
     }
 
@@ -65,27 +84,26 @@ class BunSqliteConnection implements DatabaseConnection {
             try {
                 const { sql, parameters } = compiledQuery;
                 const stmt = this.#db.prepare(sql);
+                const bind = bindParameters(parameters);
 
-                if (stmt.columnNames.length > 0) {
-                    return Promise.resolve({
-                        rows: stmt.all(parameters as any) as O[]
-                    });
+                if (stmt.columns().length > 0) {
+                    return {
+                        rows: stmt.all(...bind) as O[]
+                    };
                 }
 
-                const results = stmt.run(parameters as any);
+                const results = stmt.run(...bind);
 
-                return Promise.resolve({
+                return {
                     insertId: BigInt(results.lastInsertRowid),
                     numAffectedRows: BigInt(results.changes),
                     rows: []
-                });
+                };
             } catch (err) {
-                if (err instanceof SQLiteError && err.errno === 5) {
-                    // database is locked, retry
+                if (isSqliteBusyError(err)) {
                     await sleep(100);
                     continue;
-                } else if (err instanceof SQLiteError) {
-                    // query error
+                } else if (isSqliteError(err)) {
                     console.error(err.message);
                     break;
                 } else {
@@ -96,22 +114,19 @@ class BunSqliteConnection implements DatabaseConnection {
         }
 
         console.warn('executeQuery failed');
-        return Promise.resolve({
+        return {
             insertId: 0n,
             numAffectedRows: 0n,
             rows: []
-        });
+        };
     }
 
     async *streamQuery<R>(compiledQuery: CompiledQuery): AsyncIterableIterator<QueryResult<R>> {
         const { sql, parameters } = compiledQuery;
         const stmt = this.#db.prepare(sql);
+        const bind = bindParameters(parameters);
 
-        if (!('iterator' in stmt)) {
-            throw new Error('bun:sqlite supports streaming in 1.1.31 or above. Please upgrade to use streaming.');
-        }
-
-        for await (const row of stmt.iterate(parameters as any)) {
+        for (const row of stmt.iterate(...bind)) {
             yield { rows: [row as R] };
         }
     }

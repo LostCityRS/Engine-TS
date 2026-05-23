@@ -18,10 +18,8 @@ import { createDefaultWorldConfig, loadWorldConfig, normalizeWorldConfig, saveWo
 import OnDemand from '#/engine/OnDemand.js';
 import { tryParseInt } from '#/util/TryParse.js';
 
-export type WebSocketData = {
-    client: WSClientSocket;
-    origin: string | null;
-    remoteAddress: string;
+type NodeRequestInit = RequestInit & {
+    duplex?: 'half';
 };
 
 const MIME_TYPES = new Map<string, string>();
@@ -254,7 +252,7 @@ async function handleManagementRequest(req: Request): Promise<Response> {
     return new Response(null, { status: 404 });
 }
 
-function createNodeRequest(req: IncomingMessage, fallbackPort: number): Request {
+function createRequest(req: IncomingMessage, fallbackPort: number): Request {
     const method = req.method ?? 'GET';
     const url = new URL(req.url ?? '/', `http://${req.headers.host ?? `localhost:${fallbackPort}`}`);
     const headers = new Headers();
@@ -277,15 +275,17 @@ function createNodeRequest(req: IncomingMessage, fallbackPort: number): Request 
         return new Request(url, { method, headers });
     }
 
-    return new Request(url, {
+    const init: NodeRequestInit = {
         method,
         headers,
         body: Readable.toWeb(req) as ReadableStream,
         duplex: 'half'
-    });
+    };
+
+    return new Request(url, init);
 }
 
-async function writeNodeResponse(res: ServerResponse, response: Response): Promise<void> {
+async function writeResponse(res: ServerResponse, response: Response): Promise<void> {
     res.statusCode = response.status;
     response.headers.forEach((value, key) => {
         res.setHeader(key, value);
@@ -303,11 +303,11 @@ async function writeNodeResponse(res: ServerResponse, response: Response): Promi
     });
 }
 
-async function startNodeWeb(): Promise<void> {
+export async function startWeb(): Promise<void> {
     const server = http.createServer(async (req, res) => {
         try {
-            const response = await handleWebRequest(createNodeRequest(req, Environment.web.port));
-            await writeNodeResponse(res, response);
+            const response = await handleWebRequest(createRequest(req, Environment.web.port));
+            await writeResponse(res, response);
         } catch (err) {
             console.error(err);
             res.statusCode = 500;
@@ -389,77 +389,11 @@ async function startNodeWeb(): Promise<void> {
     });
 }
 
-async function startBunWeb(): Promise<void> {
-    Bun.serve<WebSocketData, never>({
-        port: Environment.web.port,
-        async fetch(req, server) {
-            const url = new URL(req.url ?? `http://${req.headers.get('host')}`);
-
-            if (req.method === 'GET' && url.pathname === '/') {
-                const upgraded = server.upgrade(req, {
-                    data: {
-                        client: new WSClientSocket(),
-                        origin: req.headers.get('origin'),
-                        remoteAddress: server.requestIP(req)?.address ?? 'unknown'
-                    }
-                });
-
-                if (upgraded) {
-                    return undefined;
-                }
-
-                return new Response(null, { status: 404 });
-            }
-
-            return handleWebRequest(req);
-        },
-        websocket: {
-            maxPayloadLength: 2000,
-            open(ws) {
-                if (Environment.web.allowedOrigin && ws.data.origin !== Environment.web.allowedOrigin) {
-                    ws.terminate();
-                    return;
-                }
-
-                ws.data.client.init(ws, ws.data.remoteAddress ?? ws.remoteAddress);
-            },
-            message(ws, message: Buffer<ArrayBuffer>) {
-                try {
-                    const { client } = ws.data;
-                    if (client.state === -1 || client.remaining <= 0) {
-                        client.terminate();
-                        return;
-                    }
-
-                    client.buffer(message);
-
-                    if (client.state === 0) {
-                        World.onClientData(client);
-                    } else if (client.state === 2) {
-                        OnDemand.onClientData(client);
-                    }
-                } catch (_) {
-                    ws.terminate();
-                }
-            },
-            close(ws) {
-                const { client } = ws.data;
-                client.state = -1;
-
-                if (client.player) {
-                    client.player.addSessionLog(LoggerEventType.ENGINE, 'WS socket closed');
-                    client.player.client = new NullClientSocket();
-                }
-            }
-        }
-    });
-}
-
-async function startNodeManagementWeb(): Promise<void> {
+export async function startManagementWeb(): Promise<void> {
     const server = http.createServer(async (req, res) => {
         try {
-            const response = await handleManagementRequest(createNodeRequest(req, Environment.web.managementPort));
-            await writeNodeResponse(res, response);
+            const response = await handleManagementRequest(createRequest(req, Environment.web.managementPort));
+            await writeResponse(res, response);
         } catch (err) {
             console.error(err);
             res.statusCode = 500;
@@ -470,29 +404,4 @@ async function startNodeManagementWeb(): Promise<void> {
     await new Promise<void>(resolve => {
         server.listen(Environment.web.managementPort, '0.0.0.0', () => resolve());
     });
-}
-
-async function startBunManagementWeb(): Promise<void> {
-    Bun.serve({
-        port: Environment.web.managementPort,
-        fetch(req) {
-            return handleManagementRequest(req);
-        }
-    });
-}
-
-export async function startWeb() {
-    if (Environment.runtime.isBun) {
-        await startBunWeb();
-    } else {
-        await startNodeWeb();
-    }
-}
-
-export async function startManagementWeb() {
-    if (Environment.runtime.isBun) {
-        await startBunManagementWeb();
-    } else {
-        await startNodeManagementWeb();
-    }
 }
