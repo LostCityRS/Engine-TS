@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 import http, { type IncomingMessage, type ServerResponse } from 'http';
+import path from 'path';
 import { Readable } from 'stream';
 import type { ReadableStream as NodeReadableStream } from 'stream/web';
 
@@ -7,7 +8,7 @@ import ejs from 'ejs';
 import { register } from 'prom-client';
 
 import Environment from '#/util/Environment.js';
-import { createDefaultWorldConfig, loadWorldConfig, normalizeWorldConfig, saveWorldConfig } from '#/util/WorldConfig.js';
+import { createDefaultWorldConfig, getDatabaseUrl, loadWorldConfig, normalizeWorldConfig, saveWorldConfig } from '#/util/WorldConfig.js';
 import { printInfo } from '#/util/Logger.js';
 import kleur from 'kleur';
 
@@ -49,11 +50,11 @@ function tailLines(value: string, count: number): string {
     return lines.slice(Math.max(0, lines.length - count)).join('\n');
 }
 
-async function runProcess(command: string, args: string[]): Promise<{ code: number; output: string }> {
+async function runProcess(command: string, args: string[], env: NodeJS.ProcessEnv = process.env): Promise<{ code: number; output: string }> {
     return await new Promise((resolve, reject) => {
         const child = spawn(command, args, {
             cwd: process.cwd(),
-            env: process.env,
+            env,
             stdio: ['ignore', 'pipe', 'pipe']
         });
 
@@ -73,12 +74,21 @@ async function runProcess(command: string, args: string[]): Promise<{ code: numb
 }
 
 async function runSetupMigration(backend: string): Promise<void> {
-    const script = backend === 'sqlite' ? 'sqlite:migrate' : 'db:migrate';
-    const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-    const args = ['run', script];
+    const config = loadWorldConfig();
+    const schema = backend === 'sqlite' ? 'prisma/singleworld/schema.prisma' : 'prisma/multiworld/schema.prisma';
+    const prismaCli = path.join(process.cwd(), 'node_modules', 'prisma', 'build', 'index.js');
+    const command = process.execPath;
+    const args = [prismaCli, 'migrate', 'deploy', '--schema', schema];
+    let env = process.env;
+    if (backend !== 'sqlite') {
+        env = {
+            ...process.env,
+            DATABASE_URL: getDatabaseUrl(config)
+        };
+    }
 
-    printInfo(`Running ${script}...`);
-    const result = await runProcess(command, args);
+    printInfo(`Running ${backend === 'sqlite' ? 'sqlite:migrate' : 'db:migrate'}...`);
+    const result = await runProcess(command, args, env);
 
     if (result.code !== 0) {
         const tail = tailLines(result.output, 40);
