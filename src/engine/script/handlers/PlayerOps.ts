@@ -729,8 +729,31 @@ const PlayerOps: CommandHandlers = {
     }),
 
     [ScriptOpcode.IF_SETTEXT]: checkedHandler(ActivePlayer, state => {
-        const text = state.popString();
+        let text = state.popString();
         const com = check(state.popInt(), NumberNotNull);
+
+        if (text.indexOf('\\n') !== -1 && text.indexOf('@') !== -1) {
+            const lines = text.split('\\n');
+            let savedCol: string | null = null;
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i];
+                if (i > 0 && savedCol !== null && line.length > 0) {
+                    line = savedCol + line;
+                    lines[i] = line;
+                }
+
+                for (let j = 0; j + 4 < line.length; j++) {
+                    if (line.charAt(j) === '@' && line.charAt(j + 4) === '@') {
+                        const col = line.substring(j + 1, j + 4);
+                        if (col !== 'str') {
+                            savedCol = line.substring(j, j + 5);
+                        }
+                        j += 4;
+                    }
+                }
+            }
+            text = lines.join('\\n');
+        }
 
         state.activePlayer.write(new IfSetText(com, text));
     }),

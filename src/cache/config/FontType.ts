@@ -129,6 +129,7 @@ export default class FontType {
         }
 
         const lines: string[] = [];
+        let savedCol: string | null = null;
         while (str.length > 0) {
             // check if the string even needs to be broken up
             const width = this.stringWidth(str);
@@ -154,8 +155,28 @@ export default class FontType {
                 }
             }
 
-            lines.push(str.substring(0, splitIndex));
+            const line = str.substring(0, splitIndex);
+            lines.push(line);
+
+            // save color
+            if (line.indexOf('@') !== -1) {
+                for (let i = 0; i + 4 < line.length; i++) {
+                    if (line.charAt(i) === '@' && i + 4 < line.length && line.charAt(i + 4) === '@') {
+                        const col = line.substring(i + 1, i + 4);
+                        if (col !== 'str') {
+                            savedCol = line.substring(i, i + 5);
+                        }
+                        i += 4;
+                    }
+                }
+            }
+
             str = str.substring(splitIndex + 1);
+
+            // apply saved color
+            if (savedCol !== null && str.length > 0) {
+                str = savedCol + str;
+            }
         }
         return lines;
     }
