@@ -16,7 +16,7 @@
     "db:migrate": "tsx tools/server/prisma-multi.ts migrate deploy",
     "db:reset": "tsx tools/server/prisma-multi.ts migrate reset --force",
     "db:schema": "tsx tools/server/prisma-multi.ts migrate dev",
-    "dev": "tsx --watch src/app.ts",
+    "dev": "tsx watch src/app.ts",
     "friend": "tsx src/friend.ts",
     "lint": "eslint --no-warn-ignored src tools",
     "logger": "tsx src/logger.ts",
