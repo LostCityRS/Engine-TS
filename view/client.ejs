@@ -65,13 +65,14 @@
         }
 
         #controls {
-            margin-top: 3px;
-            margin-bottom: 10px;
+            margin-top: .5vh;
+            margin-bottom: .5vh;
+            height: 2vh;
         }
 
         #controls > a, #controls select, #controls optgroup, #controls optgroup > option {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 12px;
+            font-size: 1.5vh;
         }
 
         @keyframes blink {
@@ -147,6 +148,9 @@
             document.getElementById('controls').style.display = 'none';
             document.getElementById('hide-message').style.display = '';
 
+            let size = localStorage.getItem('canvasSize');
+            if (size === 'auto') { document.getElementById('canvas').style.height = '93vh'; }
+
             countDown = 0;
             hideMessage();
 
@@ -159,6 +163,8 @@
         function hideMessage() {
             if (countDown >= countDownMax) {
                 document.getElementById('hide-message').style.display = 'none';
+                let size = localStorage.getItem('canvasSize');
+                if (size) { setSize(size); }
                 return;
             }
 
@@ -174,6 +180,9 @@
             document.getElementById('controls').style.display = '';
             document.getElementById('hide-message').style.display = 'none';
 
+            let size = localStorage.getItem('canvasSize');
+            if (size) { setSize(size); }
+
             localStorage.removeItem('hideControls');
         }
 
@@ -181,7 +190,13 @@
             if ((e.ctrlKey || e.metaKey) && e.altKey) {
                 if (e.code === 'KeyI') {
                     e.preventDefault();
-                    showControls();
+                    let controls = localStorage.getItem('hideControls');
+                    if (controls) {
+                        showControls();
+                    }
+                    else {
+                        hideControls();
+                    }
                 }
             }
         });
@@ -229,8 +244,13 @@
                     canvas.style.maxWidth = 'none';
                     break;
                 case 'auto':
-                    canvas.style.width = '100%';
-                    canvas.style.height = 'auto';
+                    canvas.style.width = 'auto';
+                    if (document.getElementById('controls').style.display !== 'none'){
+                        canvas.style.height = '97vh';
+                    }
+                    else{
+                        canvas.style.height = '100vh';
+                    }
                     break;
             }
             document.getElementById('size').value = size;
