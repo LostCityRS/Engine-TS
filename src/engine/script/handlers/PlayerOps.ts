@@ -738,14 +738,28 @@ const PlayerOps: CommandHandlers = {
             for (let i = 0; i < lines.length; i++) {
                 let line = lines[i];
                 if (i > 0 && savedCol !== null && line.length > 0) {
-                    line = savedCol + line;
+                    const strIndex = line.indexOf('@str@');
+                    if (strIndex !== -1) {
+                        if (line.substring(strIndex + 5, strIndex + 10) !== '@bla@') {
+                            line = line.substring(0, strIndex + 5) + '@bla@' + line.substring(strIndex + 5);
+                        }
+                        savedCol = null;
+                    } else {
+                        line = savedCol + line;
+                    }
                     lines[i] = line;
                 }
 
                 for (let j = 0; j + 4 < line.length; j++) {
                     if (line.charAt(j) === '@' && line.charAt(j + 4) === '@') {
                         const col = line.substring(j + 1, j + 4);
-                        if (col !== 'str') {
+                        if (col === 'str') {
+                            savedCol = null;
+                            if (line.substring(j + 5, j + 10) === '@bla@') {
+                                j += 9;
+                                continue;
+                            }
+                        } else {
                             savedCol = line.substring(j, j + 5);
                         }
                         j += 4;

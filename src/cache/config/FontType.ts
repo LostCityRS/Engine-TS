@@ -163,7 +163,13 @@ export default class FontType {
                 for (let i = 0; i + 4 < line.length; i++) {
                     if (line.charAt(i) === '@' && i + 4 < line.length && line.charAt(i + 4) === '@') {
                         const col = line.substring(i + 1, i + 4);
-                        if (col !== 'str') {
+                        if (col === 'str') {
+                            savedCol = null;
+                            if (line.substring(i + 5, i + 10) === '@bla@') {
+                                i += 9;
+                                continue;
+                            }
+                        } else {
                             savedCol = line.substring(i, i + 5);
                         }
                         i += 4;
@@ -174,8 +180,16 @@ export default class FontType {
             str = str.substring(splitIndex + 1);
 
             // apply saved color
-            if (savedCol !== null && str.length > 0) {
-                str = savedCol + str;
+            if (savedCol !== null && str.length > 0 && str.charAt(0) !== '|') {
+                const strIndex = str.indexOf('@str@');
+                if (strIndex !== -1) {
+                    if (str.substring(strIndex + 5, strIndex + 10) !== '@bla@') {
+                        str = str.substring(0, strIndex + 5) + '@bla@' + str.substring(strIndex + 5);
+                    }
+                    savedCol = null;
+                } else {
+                    str = savedCol + str;
+                }
             }
         }
         return lines;
