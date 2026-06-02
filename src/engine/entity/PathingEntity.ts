@@ -7,7 +7,6 @@ import Entity from '#/engine/entity/Entity.js';
 import { EntityLifeCycle } from '#/engine/entity/EntityLifeCycle.js';
 import { Interaction } from '#/engine/entity/Interaction.js';
 import Loc from '#/engine/entity/Loc.js';
-import { AllowRepath } from './AllowRepath.js';
 import { MoveRestrict } from '#/engine/entity/MoveRestrict.js';
 import { MoveSpeed } from '#/engine/entity/MoveSpeed.js';
 import { MoveStrategy } from '#/engine/entity/MoveStrategy.js';
@@ -54,7 +53,6 @@ export default abstract class PathingEntity extends Entity {
     lastInt: number = -1; // resume_p_countdialog, ai_queue
     lastCrawl: boolean = false;
     lastMovement: number = 0;
-    allowRepath: AllowRepath = AllowRepath.BEFOREDEST;
 
     walktrigger: number = -1;
     walktriggerArg: number = 0; // used for npcs
@@ -255,7 +253,6 @@ export default abstract class PathingEntity extends Entity {
     queueWaypoint(x: number, z: number): void {
         this.waypoints[0] = CoordGrid.packCoord(0, x, z); // level doesn't matter here
         this.waypointIndex = 0;
-        this.setAllowRepath(AllowRepath.BEFOREDEST);
     }
 
     /**
@@ -269,11 +266,6 @@ export default abstract class PathingEntity extends Entity {
             index++;
         }
         this.waypointIndex = index;
-        this.setAllowRepath(AllowRepath.BEFOREDEST);
-    }
-
-    setAllowRepath(value: AllowRepath) {
-        this.allowRepath = value;
     }
 
     clearWaypoints(): void {
@@ -539,11 +531,6 @@ export default abstract class PathingEntity extends Entity {
             this.targetSubject.type = target.type;
         } else {
             this.targetSubject.type = -1;
-        }
-
-        if (interaction === Interaction.SCRIPT) {
-            // Allow repath
-            this.allowRepath = AllowRepath.BEFOREDEST;
         }
 
         this.focus(CoordGrid.fine(target.x, target.width), CoordGrid.fine(target.z, target.length), target instanceof NonPathingEntity && interaction === Interaction.ENGINE);

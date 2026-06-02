@@ -22,7 +22,6 @@ import { EntityTimer, PlayerTimerType } from '#/engine/entity/EntityTimer.js';
 import HeroPoints from '#/engine/entity/HeroPoints.js';
 import Loc from '#/engine/entity/Loc.js';
 import { ModalState } from '#/engine/entity/ModalState.js';
-import { AllowRepath } from './AllowRepath.js';
 import { MoveSpeed } from '#/engine/entity/MoveSpeed.js';
 import { MoveStrategy } from '#/engine/entity/MoveStrategy.js';
 import { isClientConnected } from '#/engine/entity/NetworkPlayer.js';
@@ -1075,7 +1074,7 @@ export default class Player extends PathingEntity {
                 return;
             }
 
-            if (this.isLastWaypoint() && this.allowRepath === AllowRepath.BEFOREDEST) {
+            if (this.isLastWaypoint()) {
                 this.naivePathToTarget();
             }
         } else if (this.isLastWaypoint()) {
