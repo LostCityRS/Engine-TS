@@ -1,4 +1,4 @@
-import { LocLayer, LocAngle } from '@2004scape/rsmod-pathfinder';
+import { LocLayer, LocAngle } from '#/engine/routefinder/index.js';
 
 import SpotanimType from '#/cache/config/SpotanimType.js';
 import { CoordGrid } from '#/engine/CoordGrid.js';
@@ -33,7 +33,9 @@ const ServerOps: CommandHandlers = {
         let count = 0;
         for (let x = Math.floor(from.x / 8); x <= Math.ceil(to.x / 8); x++) {
             for (let z = Math.floor(from.z / 8); z <= Math.ceil(to.z / 8); z++) {
-                for (const player of World.gameMap.getZone(x << 3, z << 3, from.level).getAllPlayersSafe()) {
+                const zone = World.gameMap.getZoneIfExists(x << 3, z << 3, from.level);
+                if (!zone) continue;
+                for (const player of zone.getAllPlayersSafe()) {
                     if (player.x >= from.x && player.x <= to.x && player.z >= from.z && player.z <= to.z) {
                         count++;
                     }
@@ -212,7 +214,12 @@ const ServerOps: CommandHandlers = {
     [ScriptOpcode.MAP_LOCADDUNSAFE]: state => {
         const coord: CoordGrid = check(state.popInt(), CoordValid);
 
-        for (const loc of World.gameMap.getZone(coord.x, coord.z, coord.level).getAllLocsUnsafe()) {
+        const zone = World.gameMap.getZoneIfExists(coord.x, coord.z, coord.level);
+        if (!zone) {
+            return;
+        }
+
+        for (const loc of zone.getAllLocsUnsafe()) {
             const type = check(loc.type, LocTypeValid);
 
             if (type.active !== 1) {

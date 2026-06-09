@@ -61,6 +61,13 @@ export const enum ScriptOpcode {
     SEQLENGTH, // official
     SPOTANIM_MAP,
     WORLD_DELAY, // official
+    REGION_CREATE = 1022,
+    REGION_SET,
+    REGION_GETCOORD,
+    REGION_FINDBYCOORD,
+    REGION_UID,
+    REGION_FINDBYUID,
+    REGION_SETEXITCOORD,
 
     // Player ops (2000-2499)
     AFK_EVENT = 2000,
@@ -451,7 +458,7 @@ export const enum ScriptOpcode {
     CONSOLE = 10000,
     ERROR,
     GETTIMESPENT, // custom: used to profile script execution (current duration)
-    TIMESPENT, // custom: used to profile script execution (record start time)
+    TIMESPENT // custom: used to profile script execution (record start time)
 }
 
 export const ScriptOpcodeMap: Map<string, number> = new Map([
@@ -515,6 +522,13 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['SEQLENGTH', ScriptOpcode.SEQLENGTH],
     ['SPOTANIM_MAP', ScriptOpcode.SPOTANIM_MAP],
     ['WORLD_DELAY', ScriptOpcode.WORLD_DELAY],
+    ['REGION_CREATE', ScriptOpcode.REGION_CREATE],
+    ['REGION_SET', ScriptOpcode.REGION_SET],
+    ['REGION_GETCOORD', ScriptOpcode.REGION_GETCOORD],
+    ['REGION_FINDBYCOORD', ScriptOpcode.REGION_FINDBYCOORD],
+    ['REGION_UID', ScriptOpcode.REGION_UID],
+    ['REGION_FINDBYUID', ScriptOpcode.REGION_FINDBYUID],
+    ['REGION_SETEXITCOORD', ScriptOpcode.REGION_SETEXITCOORD],
 
     ['AFK_EVENT', ScriptOpcode.AFK_EVENT],
     ['ALLOWDESIGN', ScriptOpcode.ALLOWDESIGN],
@@ -876,9 +890,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['CONSOLE', ScriptOpcode.CONSOLE],
     ['ERROR', ScriptOpcode.ERROR],
     ['GETTIMESPENT', ScriptOpcode.GETTIMESPENT],
-    ['TIMESPENT', ScriptOpcode.TIMESPENT],
+    ['TIMESPENT', ScriptOpcode.TIMESPENT]
 ]);
 
-export const ScriptOpcodeNameMap: Map<number, string> = new Map(
-    Array.from(ScriptOpcodeMap.entries()).map(([key, value]) => [value, key])
-);
+export const ScriptOpcodeNameMap: Map<number, string> = new Map(Array.from(ScriptOpcodeMap.entries()).map(([key, value]) => [value, key]));

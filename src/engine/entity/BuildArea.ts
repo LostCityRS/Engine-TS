@@ -1,16 +1,21 @@
 import { CoordGrid } from '#/engine/CoordGrid.js';
 import Player from '#/engine/entity/Player.js';
 import World from '#/engine/World.js';
+import InstanceZone from '#/engine/zone/InstanceZone.js';
 import ZoneMap from '#/engine/zone/ZoneMap.js';
 import RebuildNormal from '#/network/game/server/model/RebuildNormal.js';
+import RebuildRegion, { type RegionTemplate } from '#/network/game/server/model/RebuildRegion.js';
 
 export default class BuildArea {
+    // Dynamic rebuild currently enabled for instance zones.
+    private static readonly ENABLE_REGION_REBUILD_SKELETON: boolean = true;
+
     // constructor
     readonly player: Player;
     readonly loadedZones: Set<number>;
     readonly activeZones: Set<number>;
     readonly mapsquares: Set<number>;
-    
+
     lastBuild: number = -1;
 
     constructor(player: Player) {
@@ -83,12 +88,61 @@ export default class BuildArea {
                 }
             }
 
-            this.player.write(new RebuildNormal(zoneX, zoneZ, this.mapsquares));
+            if (BuildArea.ENABLE_REGION_REBUILD_SKELETON && this.isInstanceBuildArea()) {
+                this.player.write(this.buildRegionSkeletonMessage(zoneX, zoneZ));
+            } else {
+                this.player.write(new RebuildNormal(zoneX, zoneZ, this.mapsquares));
+            }
 
             this.player.originX = this.player.x;
             this.player.originZ = this.player.z;
             this.loadedZones.clear();
             this.lastBuild = World.currentTick; // DO NOT DELETE THIS NO MATTER WHAT ??
         }
+    }
+
+    private isInstanceBuildArea(): boolean {
+        const zoneX: number = CoordGrid.zone(this.player.x) << 3;
+        const zoneZ: number = CoordGrid.zone(this.player.z) << 3;
+        const zone = World.gameMap.getZoneIfExists(zoneX, zoneZ, this.player.level);
+        return zone instanceof InstanceZone;
+    }
+
+    private buildRegionSkeletonMessage(zoneX: number, zoneZ: number): RebuildRegion {
+        const templates: RegionTemplate[] = [];
+
+        const minZoneX: number = zoneX - 6;
+        const maxZoneX: number = zoneX + 6;
+        const minZoneZ: number = zoneZ - 6;
+        const maxZoneZ: number = zoneZ + 6;
+
+        for (let level = 0; level < 4; level++) {
+            for (let currentZoneX: number = minZoneX; currentZoneX <= maxZoneX; currentZoneX++) {
+                for (let currentZoneZ: number = minZoneZ; currentZoneZ <= maxZoneZ; currentZoneZ++) {
+                    const currentX: number = currentZoneX << 3;
+                    const currentZ: number = currentZoneZ << 3;
+                    if (!World.gameMap.hasZone(currentX, currentZ, level)) {
+                        continue;
+                    }
+
+                    const zone = World.gameMap.getZone(currentX, currentZ, level);
+                    if (!(zone instanceof InstanceZone) || !zone.hasAssignedTemplate) {
+                        continue;
+                    }
+
+                    templates.push({
+                        level: zone.level,
+                        zoneX: zone.x,
+                        zoneZ: zone.z,
+                        sourceLevel: zone.source.level,
+                        sourceZoneX: zone.source.x,
+                        sourceZoneZ: zone.source.z,
+                        rotation: zone.rotation
+                    });
+                }
+            }
+        }
+
+        return new RebuildRegion(zoneX, zoneZ, templates);
     }
 }

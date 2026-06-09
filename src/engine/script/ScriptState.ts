@@ -1,4 +1,5 @@
 import DbTableType from '#/cache/config/DbTableType.js';
+import { CoordGrid } from '#/engine/CoordGrid.js';
 import Entity from '#/engine/entity/Entity.js';
 import Loc from '#/engine/entity/Loc.js';
 import Npc from '#/engine/entity/Npc.js';
@@ -101,6 +102,27 @@ export default class ScriptState {
 
     _activeObj: Obj | null = null;
     _activeObj2: Obj | null = null;
+
+    /**
+     * The primary active region, represented by instance uid.
+     */
+    _activeRegionUid: number = -1;
+
+    /**
+     * The secondary active region, represented by instance uid.
+     */
+    _activeRegionUid2: number = -1;
+
+    /**
+     * Cached southwest coord for the primary active region.
+     * Kept for compatibility with region operations that use tile offsets.
+     */
+    _activeRegion: CoordGrid | null = null;
+
+    /**
+     * Cached southwest coord for the secondary active region.
+     */
+    _activeRegion2: CoordGrid | null = null;
 
     /**
      * Used for string splitting operations with split_init and related commands.
@@ -303,6 +325,60 @@ export default class ScriptState {
             this._activeObj = obj;
         } else {
             this._activeObj2 = obj;
+        }
+    }
+
+    /**
+     * Gets the active region. Automatically checks the operand to determine primary and secondary.
+     */
+    get activeRegion() {
+        const region = this.intOperand === 0 ? this._activeRegion : this._activeRegion2;
+        if (region === null) {
+            throw new Error('Attempt to access null active_region');
+        }
+        return region;
+    }
+
+    // gets the secondary region from the perspective of the command (.command returns region1)
+    get activeRegion2() {
+        const region = this.intOperand === 0 ? this._activeRegion2 : this._activeRegion;
+        if (region === null) {
+            throw new Error('Attempt to access null active_region');
+        }
+        return region;
+    }
+
+    /**
+     * Sets the active region. Automatically checks the operand to determine primary and secondary.
+     * @param region The region southwest coord to set.
+     */
+    set activeRegion(region: CoordGrid) {
+        if (this.intOperand === 0) {
+            this._activeRegion = region;
+        } else {
+            this._activeRegion2 = region;
+        }
+    }
+
+    /**
+     * Gets the active region uid. Automatically checks the operand to determine primary and secondary.
+     */
+    get activeRegionUid() {
+        const uid = this.intOperand === 0 ? this._activeRegionUid : this._activeRegionUid2;
+        if (uid < 0) {
+            throw new Error('Attempt to access null active_region_uid');
+        }
+        return uid;
+    }
+
+    /**
+     * Sets the active region uid. Automatically checks the operand to determine primary and secondary.
+     */
+    set activeRegionUid(uid: number) {
+        if (this.intOperand === 0) {
+            this._activeRegionUid = uid;
+        } else {
+            this._activeRegionUid2 = uid;
         }
     }
 

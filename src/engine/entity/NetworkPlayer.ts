@@ -23,7 +23,6 @@ import IfOpenSide from '#/network/game/server/model/IfOpenSide.js';
 import Logout from '#/network/game/server/model/Logout.js';
 import NpcInfo from '#/network/game/server/model/NpcInfo.js';
 import PlayerInfo from '#/network/game/server/model/PlayerInfo.js';
-import SetMultiway from '#/network/game/server/model/SetMultiway.js';
 import UpdateInvFull from '#/network/game/server/model/UpdateInvFull.js';
 import UpdateRunEnergy from '#/network/game/server/model/UpdateRunEnergy.js';
 import UpdateRunWeight from '#/network/game/server/model/UpdateRunWeight.js';
@@ -67,12 +66,7 @@ export class NetworkPlayer extends Player {
         this.restrictedLimit = 0;
 
         const bytesStart = this.client.in.pos;
-        while (
-            this.userLimit < ClientGameProtCategory.USER_EVENT.limit &&
-            this.clientLimit < ClientGameProtCategory.CLIENT_EVENT.limit &&
-            this.restrictedLimit < ClientGameProtCategory.RESTRICTED_EVENT.limit &&
-            this.read()
-        ) {
+        while (this.userLimit < ClientGameProtCategory.USER_EVENT.limit && this.clientLimit < ClientGameProtCategory.CLIENT_EVENT.limit && this.restrictedLimit < ClientGameProtCategory.RESTRICTED_EVENT.limit && this.read()) {
             // empty
         }
         const bytesRead = bytesStart - this.client.in.pos;
@@ -258,39 +252,8 @@ export class NetworkPlayer extends Player {
             info.unlink();
         }
 
-        // map zone changed
-        const mapZone = CoordGrid.packCoord(0, (this.x >> 6) << 6, (this.z >> 6) << 6);
-        if (this.lastMapZone !== mapZone) {
-            // map zone triggers
-            if (this.lastMapZone !== -1) {
-                const { x, z } = CoordGrid.unpackCoord(this.lastMapZone);
-                this.triggerMapzoneExit(x, z);
-            }
-
-            this.triggerMapzone((this.x >> 6) << 6, (this.z >> 6) << 6);
-            this.lastMapZone = mapZone;
-        }
-
-        // zone changed
-        const zone = CoordGrid.packCoord(this.level, (this.x >> 3) << 3, (this.z >> 3) << 3);
-        if (this.lastZone !== zone) {
-            this.buildArea.rebuildZones();
-
-            // zone triggers
-            const lastWasMulti = World.gameMap.isMulti(this.lastZone);
-            const nowIsMulti = World.gameMap.isMulti(zone);
-            if (lastWasMulti != nowIsMulti) {
-                this.write(new SetMultiway(nowIsMulti));
-            }
-
-            if (this.lastZone !== -1) {
-                const { level, x, z } = CoordGrid.unpackCoord(this.lastZone);
-                this.triggerZoneExit(level, x, z);
-            }
-
-            this.triggerZone(this.level, (this.x >> 3) << 3, (this.z >> 3) << 3);
-            this.lastZone = zone;
-        }
+        // map/zone transition triggers are now queued from tile updates
+        // (movement/teleport/login path), not from client-out update.
     }
 
     updatePlayers() {
@@ -314,7 +277,10 @@ export class NetworkPlayer extends Player {
 
         // update active zones
         for (const zoneIndex of activeZones) {
-            const zone: Zone = World.gameMap.getZoneIndex(zoneIndex);
+            const zone: Zone | null = World.gameMap.getZoneIndexIfExists(zoneIndex);
+            if (!zone) {
+                continue;
+            }
             if (!loadedZones.has(zone.index)) {
                 zone.writeFullFollows(this);
             }

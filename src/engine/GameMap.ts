@@ -1,7 +1,6 @@
 import fs from 'fs';
 
-import { CollisionFlag, CollisionType, LocAngle, LocLayer } from '@2004scape/rsmod-pathfinder';
-import * as rsmod from '@2004scape/rsmod-pathfinder';
+import rsmod, { CollisionFlag, CollisionType, LocAngle, LocLayer } from '#/engine/routefinder/index.js';
 
 import LocType from '#/cache/config/LocType.js';
 import NpcType from '#/cache/config/NpcType.js';
@@ -50,32 +49,40 @@ export default class GameMap {
             return;
         }
 
-        printDebug('Loading game map');
+        // Allow zones to be auto-created during map loading
+        this.zonemap.beginInitialization();
 
-        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`)) {
-            this.loadCsvMap(this.multimap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').split(/\r?\n/));
+        try {
+            printDebug('Loading game map');
+
+            if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`)) {
+                this.loadCsvMap(this.multimap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/multiway.csv`, 'ascii').split(/\r?\n/));
+            }
+
+            if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`)) {
+                this.loadCsvMap(this.freemap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').split(/\r?\n/));
+            }
+
+            const path: string = 'data/pack/server/maps/';
+            const maps: string[] = fs.readdirSync(path).filter(x => x[0] === 'm');
+            for (let index: number = 0; index < maps.length; index++) {
+                const [mx, mz] = maps[index].substring(1).split('_').map(Number);
+                const mapsquareX: number = mx << 6;
+                const mapsquareZ: number = mz << 6;
+
+                this.loadNpcs(Packet.load(`${path}n${mx}_${mz}`), mapsquareX, mapsquareZ);
+                this.loadObjs(Packet.load(`${path}o${mx}_${mz}`), mapsquareX, mapsquareZ);
+                // collision
+                const lands: Int8Array = new Int8Array(GameMap.MAPSQUARE); // 4 * 64 * 64 size is guaranteed for lands
+                this.loadGround(lands, Packet.load(`${path}m${mx}_${mz}`), mapsquareX, mapsquareZ);
+                this.loadLocations(lands, Packet.load(`${path}l${mx}_${mz}`), mapsquareX, mapsquareZ);
+            }
+
+            printDebug(`${World.getTotalNpcs()}/${Environment.NODE_MAX_NPCS} static NPCs added`);
+        } finally {
+            // Lock down zone creation after map is fully loaded
+            this.zonemap.endInitialization();
         }
-
-        if (fs.existsSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`)) {
-            this.loadCsvMap(this.freemap, fs.readFileSync(`${Environment.BUILD_SRC_DIR}/maps/free2play.csv`, 'ascii').split(/\r?\n/));
-        }
-
-        const path: string = 'data/pack/server/maps/';
-        const maps: string[] = fs.readdirSync(path).filter(x => x[0] === 'm');
-        for (let index: number = 0; index < maps.length; index++) {
-            const [mx, mz] = maps[index].substring(1).split('_').map(Number);
-            const mapsquareX: number = mx << 6;
-            const mapsquareZ: number = mz << 6;
-
-            this.loadNpcs(Packet.load(`${path}n${mx}_${mz}`), mapsquareX, mapsquareZ);
-            this.loadObjs(Packet.load(`${path}o${mx}_${mz}`), mapsquareX, mapsquareZ);
-            // collision
-            const lands: Int8Array = new Int8Array(GameMap.MAPSQUARE); // 4 * 64 * 64 size is guaranteed for lands
-            this.loadGround(lands, Packet.load(`${path}m${mx}_${mz}`), mapsquareX, mapsquareZ);
-            this.loadLocations(lands, Packet.load(`${path}l${mx}_${mz}`), mapsquareX, mapsquareZ);
-        }
-
-        printDebug(`${World.getTotalNpcs()}/${Environment.NODE_MAX_NPCS} static NPCs added`);
     }
 
     isMulti(coord: number): boolean {
@@ -83,16 +90,69 @@ export default class GameMap {
         return this.multimap.has(ZoneMap.zoneIndex(pos.x, pos.z, pos.level));
     }
 
+    isMultiZone(zoneIndex: number): boolean {
+        return this.multimap.has(zoneIndex);
+    }
+
+    setMultiZone(zoneIndex: number, multi: boolean): void {
+        if (multi) {
+            this.multimap.add(zoneIndex);
+        } else {
+            this.multimap.delete(zoneIndex);
+        }
+    }
+
     isFreeToPlay(x: number, z: number): boolean {
         return this.freemap.has(ZoneMap.zoneIndex(x, z, 0)); // level does not matter here.
     }
 
     getZone(x: number, z: number, level: number): Zone {
-        return this.zonemap.zone(x, z, level);
+        return this.zonemap.getZone(x, z, level);
     }
 
     getZoneIndex(zoneIndex: number): Zone {
-        return this.zonemap.zoneByIndex(zoneIndex);
+        return this.zonemap.getZoneByIndex(zoneIndex);
+    }
+
+    getZoneIndexIfExists(zoneIndex: number): Zone | null {
+        return this.zonemap.getZoneByIndexIfExists(zoneIndex);
+    }
+
+    /**
+     * Get a zone if it exists, or null if it hasn't been created.
+     */
+    getZoneIfExists(x: number, z: number, level: number): Zone | null {
+        return this.zonemap.getZoneIfExists(x, z, level);
+    }
+
+    /**
+     * Create a new zone during world startup. Should only be called from init().
+     */
+    createZone(x: number, z: number, level: number): Zone {
+        return this.zonemap.createZone(x, z, level);
+    }
+
+    /**
+     * Create a new InstanceZone. Should only be called during instance creation.
+     */
+    createInstanceZone(zoneIndex: number): Zone {
+        return this.zonemap.createInstanceZone(zoneIndex);
+    }
+
+    hasZone(x: number, z: number, level: number): boolean {
+        return this.zonemap.hasZone(x, z, level);
+    }
+
+    isInitializing(): boolean {
+        return this.zonemap.isInitializingMap();
+    }
+
+    addZone(zone: Zone): Zone {
+        return this.zonemap.addZone(zone);
+    }
+
+    removeZone(index: number): boolean {
+        return this.zonemap.removeZone(index);
     }
 
     getZoneGrid(level: number): ZoneGrid {
@@ -260,7 +320,9 @@ export default class GameMap {
                     changeLocCollision(shape, angle, type.blockrange, length, width, type.active, absoluteX, absoluteZ, actualLevel, true);
                 }
 
-                this.getZone(absoluteX, absoluteZ, actualLevel).addStaticLoc(new Loc(actualLevel, absoluteX, absoluteZ, width, length, EntityLifeCycle.RESPAWN, locId, shape, angle));
+                if (type.active === 1) {
+                    this.getZone(absoluteX, absoluteZ, actualLevel).addStaticLoc(new Loc(actualLevel, absoluteX, absoluteZ, width, length, EntityLifeCycle.RESPAWN, locId, shape, angle));
+                }
             }
             locIdOffset = packet.gsmarts();
         }

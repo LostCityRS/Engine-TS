@@ -15,6 +15,8 @@ const enum ScriptPointer {
     ActiveLoc2,
     ActiveObj,
     ActiveObj2,
+    ActiveRegion,
+    ActiveRegion2,
     _LAST
 }
 
@@ -29,13 +31,16 @@ export const ScriptPointerNameMap: Map<number, string> = new Map([
     [ScriptPointer.ActiveLoc2, 'ActiveLoc2'],
     [ScriptPointer.ActiveObj, 'ActiveObj'],
     [ScriptPointer.ActiveObj2, 'ActiveObj2'],
-    [ScriptPointer._LAST, '_LAST'],
+    [ScriptPointer.ActiveRegion, 'ActiveRegion'],
+    [ScriptPointer.ActiveRegion2, 'ActiveRegion2'],
+    [ScriptPointer._LAST, '_LAST']
 ]);
 
 export const ActiveNpc: ScriptPointer[] = [ScriptPointer.ActiveNpc, ScriptPointer.ActiveNpc2];
 export const ActiveLoc: ScriptPointer[] = [ScriptPointer.ActiveLoc, ScriptPointer.ActiveLoc2];
 export const ActiveObj: ScriptPointer[] = [ScriptPointer.ActiveObj, ScriptPointer.ActiveObj2];
 export const ActivePlayer: ScriptPointer[] = [ScriptPointer.ActivePlayer, ScriptPointer.ActivePlayer2];
+export const ActiveRegion: ScriptPointer[] = [ScriptPointer.ActiveRegion, ScriptPointer.ActiveRegion2];
 export const ProtectedActivePlayer: ScriptPointer[] = [ScriptPointer.ProtectedActivePlayer, ScriptPointer.ProtectedActivePlayer2];
 
 /**

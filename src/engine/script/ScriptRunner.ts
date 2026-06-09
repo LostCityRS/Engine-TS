@@ -17,6 +17,7 @@ import NumberOps from '#/engine/script/handlers/NumberOps.js';
 import ObjConfigOps from '#/engine/script/handlers/ObjConfigOps.js';
 import ObjOps from '#/engine/script/handlers/ObjOps.js';
 import PlayerOps from '#/engine/script/handlers/PlayerOps.js';
+import RegionOps from '#/engine/script/handlers/RegionOps.js';
 import ServerOps from '#/engine/script/handlers/ServerOps.js';
 import StringOps from '#/engine/script/handlers/StringOps.js';
 import StructOps from '#/engine/script/handlers/StructOps.js';
@@ -39,6 +40,7 @@ export default class ScriptRunner {
         // Language required opcodes
         ...CoreOps,
         ...ServerOps,
+        ...RegionOps,
         ...PlayerOps,
         ...NpcOps,
         ...LocOps,
