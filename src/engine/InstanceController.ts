@@ -297,10 +297,16 @@ export default class InstanceController {
 
                         for (const loc of Array.from(zone.getAllLocsUnsafe(true))) {
                             World.removeLoc(loc, 0);
+                            // removeLoc early-returns for inactive (respawn-pending) locs without clearing
+                            // their pending lifecycle event. Clear it explicitly so an orphaned event can't
+                            // later fire turn()/addLoc into this removed zone (zone-does-not-exist warning +
+                            // negative-lifecycle-tick error).
+                            loc.setLifeCycle(-1);
                         }
 
                         for (const obj of Array.from(zone.getAllObjsUnsafe(true))) {
                             World.removeObj(obj, 0);
+                            obj.setLifeCycle(-1);
                         }
                     }
 
