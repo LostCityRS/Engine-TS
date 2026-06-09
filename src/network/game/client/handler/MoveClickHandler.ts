@@ -23,8 +23,13 @@ export default class MoveClickHandler extends ClientGameMessageHandler<MoveClick
             return false;
         }
 
-        // Clear previous interaction
-        player.clearPendingAction();
+        // Clear previous interaction — but not for op-click moves.
+        // A MOVE_OPCLICK is always paired with a following op packet that clears+sets
+        // the interaction itself. Clearing here would drop the target in the gap when
+        // the per-tick user packet limit splits the pair across ticks.
+        if (!message.opClick) {
+            player.clearPendingAction();
+        }
 
         // Handle ctrl run
         if (player.runenergy < 100 && message.ctrlHeld === 1) {
