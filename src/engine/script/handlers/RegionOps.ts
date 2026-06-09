@@ -2,17 +2,13 @@ import { CoordGrid } from '#/engine/CoordGrid.js';
 import { ScriptOpcode } from '#/engine/script/ScriptOpcode.js';
 import { ActiveRegion, checkedHandler } from '#/engine/script/ScriptPointer.js';
 import { CommandHandlers } from '#/engine/script/ScriptRunner.js';
-import { check, CoordValid, NumberPositive } from '#/engine/script/ScriptValidators.js';
+import { check, CoordValid } from '#/engine/script/ScriptValidators.js';
 import World from '#/engine/World.js';
 
 const RegionOps: CommandHandlers = {
     [ScriptOpcode.REGION_CREATE]: state => {
         const secondary: number = state.intOperand;
         const [levels, zonesEast, zonesNorth] = state.popInts(3);
-
-        check(levels, NumberPositive);
-        check(zonesEast, NumberPositive);
-        check(zonesNorth, NumberPositive);
 
         if (levels < 1 || levels > 4) {
             throw new Error(`region_create levels out of range: ${levels}. Expected 1..4.`);
@@ -42,11 +38,7 @@ const RegionOps: CommandHandlers = {
     [ScriptOpcode.REGION_SET]: checkedHandler(ActiveRegion, state => {
         const [destLevel, destEast, destNorth, sourceCoord, rotation] = state.popInts(5);
 
-        check(destLevel, NumberPositive);
-        check(destEast, NumberPositive);
-        check(destNorth, NumberPositive);
         const source: CoordGrid = check(sourceCoord, CoordValid);
-        check(rotation, NumberPositive);
 
         if (destLevel < 0 || destLevel > 3) {
             throw new Error(`region_set destLevel out of range: ${destLevel}. Expected 0..3.`);
@@ -69,10 +61,6 @@ const RegionOps: CommandHandlers = {
 
     [ScriptOpcode.REGION_GETCOORD]: checkedHandler(ActiveRegion, state => {
         const [levelOffset, xOffset, zOffset] = state.popInts(3);
-
-        check(levelOffset, NumberPositive);
-        check(xOffset, NumberPositive);
-        check(zOffset, NumberPositive);
 
         if (levelOffset < 0 || levelOffset > 3) {
             throw new Error(`region_getcoord levelOffset out of range: ${levelOffset}. Expected 0..3.`);
@@ -126,7 +114,7 @@ const RegionOps: CommandHandlers = {
 
     [ScriptOpcode.REGION_SETEXITCOORD]: checkedHandler(ActiveRegion, state => {
         const exitCoord: CoordGrid = check(state.popInt(), CoordValid);
-        const instance = World.instances.findInstanceByCoord(state.activeRegion);
+        const instance = World.instances.findInstanceByUid(state.activeRegionUid);
         if (!instance) {
             throw new Error('region_setexitcoord requires active_region to reference a valid instance');
         }

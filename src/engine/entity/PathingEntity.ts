@@ -20,6 +20,7 @@ import { canTravel, changeNpcCollision, changePlayerCollision, findNaivePath, fi
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
 import Environment from '#/util/Environment.js';
+import { printError } from '#/util/Logger.js';
 
 type TargetSubject = {
     type: number;
@@ -326,7 +327,7 @@ export default abstract class PathingEntity extends Entity {
         const allocated: boolean = isZoneAllocated(level, x, z);
         const initialized: boolean = World.gameMap.hasZone(x, z, level);
         if (!allocated || !initialized) {
-            console.error(`[Teleport] Invalid teleport for ${this.constructor.name} from (${this.x}, ${this.z}, L${this.level}) to (${x}, ${z}, L${level}) allocated=${allocated} initialized=${initialized}`);
+            printError(`[Teleport] Invalid teleport for ${this.constructor.name} from (${this.x}, ${this.z}, L${this.level}) to (${x}, ${z}, L${level}) allocated=${allocated} initialized=${initialized}`);
             if (this instanceof Player) {
                 this.messageGame('Invalid teleport!');
             }

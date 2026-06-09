@@ -19,10 +19,7 @@ export default class RebuildRegion extends ServerGameMessage {
     constructor(
         readonly zoneX: number,
         readonly zoneZ: number,
-        readonly templates: RegionTemplate[],
-        readonly localX: number,
-        readonly localZ: number,
-        readonly rebuildLevel: number
+        readonly templates: RegionTemplate[]
     ) {
         super();
     }

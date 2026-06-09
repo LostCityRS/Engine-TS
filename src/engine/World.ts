@@ -133,6 +133,9 @@ class World {
     private static readonly TIMEOUT_NO_CONNECTION: number = Environment.NODE_DEBUG_SOCKET ? 60000 : 50; // 30s with no connection (16 ticks in osrs)
     private static readonly TIMEOUT_NO_RESPONSE: number = Environment.NODE_DEBUG_SOCKET ? 60000 : 100; // 60s without any response
 
+    // Lumbridge — failsafe spawn when a player has no valid destination (e.g. logged in inside an instance).
+    private static readonly DEFAULT_SPAWN = { x: 3222, z: 3222, level: 0 };
+
     // the game/zones map
     readonly gameMap: GameMap = new GameMap(Environment.NODE_MEMBERS);
 
@@ -959,9 +962,9 @@ class World {
                     player.level = player.previousOverworldLevel;
                 } else {
                     printWarning(`[World] Player login: player ${player.username} was in an instance with no valid previous tile, teleporting to Lumbridge failsafe`);
-                    player.x = 3222;
-                    player.z = 3222;
-                    player.level = 0;
+                    player.x = World.DEFAULT_SPAWN.x;
+                    player.z = World.DEFAULT_SPAWN.z;
+                    player.level = World.DEFAULT_SPAWN.level;
                 }
             }
 
@@ -970,9 +973,9 @@ class World {
                 zone.enter(player);
             } else {
                 printWarning(`[World] Player login: zone does not exist at (${player.x}, ${player.z}, L${player.level}), teleporting to default spawn`);
-                player.x = 3222;
-                player.z = 3222;
-                player.level = 0;
+                player.x = World.DEFAULT_SPAWN.x;
+                player.z = World.DEFAULT_SPAWN.z;
+                player.level = World.DEFAULT_SPAWN.level;
                 const defaultZone = this.gameMap.getZone(player.x, player.z, player.level);
                 defaultZone.enter(player);
             }

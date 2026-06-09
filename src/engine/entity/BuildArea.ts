@@ -143,6 +143,6 @@ export default class BuildArea {
             }
         }
 
-        return new RebuildRegion(zoneX, zoneZ, templates, this.player.x, this.player.z, this.player.level);
+        return new RebuildRegion(zoneX, zoneZ, templates);
     }
 }
