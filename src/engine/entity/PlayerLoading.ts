@@ -179,12 +179,8 @@ export class PlayerLoading {
             player.hasPreviousOverworldTile = true;
         }
 
-        // Only relocate on login: if saved in an instance, return to last known overworld tile.
-        if (Player.isInstanceX(player.x) && player.hasPreviousOverworldTile && !Player.isInstanceX(player.previousOverworldX)) {
-            player.x = player.previousOverworldX;
-            player.z = player.previousOverworldZ;
-            player.level = player.previousOverworldLevel;
-        }
+        // Note: relocating a player out of an instance on login is handled in one place — World
+        // login (Player.isInstanceX → instance exit, else Lumbridge). Not duplicated here.
 
         player.combatLevel = player.getCombatLevel();
 

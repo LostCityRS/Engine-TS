@@ -101,11 +101,12 @@ export function getExpByLevel(level: number) {
 }
 
 export default class Player extends PathingEntity {
-    // Instance tiles are hosted in a low-x reserved band; overworld tiles are outside this threshold.
-    static readonly INSTANCE_X_THRESHOLD: number = 2048;
+    // Instances are hosted in the reserved east band beginning at m101 (tile x = 101<<6 = 6464);
+    // overworld tiles are west of this. Must match InstanceController.FIRST_INSTANCE_SW_MAPSQUARE.
+    static readonly INSTANCE_X_THRESHOLD: number = 6464;
 
     static isInstanceX(x: number): boolean {
-        return x < Player.INSTANCE_X_THRESHOLD;
+        return x >= Player.INSTANCE_X_THRESHOLD;
     }
 
     static readonly DESIGN_BODY_COLORS: number[][] = [

@@ -949,18 +949,16 @@ class World {
             player.tele = true;
             player.moveClickRequest = false;
 
-            const loginInstance = this.instances.findInstanceByTile(player.level, player.x, player.z);
-            if (loginInstance) {
-                const exitCoord = loginInstance.exitCoord;
-                const hasValidExit = exitCoord && this.gameMap.hasZone(exitCoord.x, exitCoord.z, exitCoord.level);
-
-                if (hasValidExit && exitCoord) {
-                    printWarning(`[World] Player login: player ${player.username} was in an instance, moving to exit at (${exitCoord.x}, ${exitCoord.z}, L${exitCoord.level})`);
-                    player.x = exitCoord.x;
-                    player.z = exitCoord.z;
-                    player.level = exitCoord.level;
+            // A player must never log in inside an instance (single x-band check, independent of
+            // whether that instance is still built, torn down, or replaced). Return them to the
+            // previous overworld tile captured on instance entry, else Lumbridge failsafe.
+            if (Player.isInstanceX(player.x)) {
+                if (player.hasPreviousOverworldTile && !Player.isInstanceX(player.previousOverworldX)) {
+                    player.x = player.previousOverworldX;
+                    player.z = player.previousOverworldZ;
+                    player.level = player.previousOverworldLevel;
                 } else {
-                    printWarning(`[World] Player login: player ${player.username} was in an instance with invalid exit, teleporting to Lumbridge failsafe`);
+                    printWarning(`[World] Player login: player ${player.username} was in an instance with no valid previous tile, teleporting to Lumbridge failsafe`);
                     player.x = 3222;
                     player.z = 3222;
                     player.level = 0;
