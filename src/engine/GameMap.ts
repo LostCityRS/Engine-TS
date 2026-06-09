@@ -90,6 +90,18 @@ export default class GameMap {
         return this.multimap.has(ZoneMap.zoneIndex(pos.x, pos.z, pos.level));
     }
 
+    isMultiZone(zoneIndex: number): boolean {
+        return this.multimap.has(zoneIndex);
+    }
+
+    setMultiZone(zoneIndex: number, multi: boolean): void {
+        if (multi) {
+            this.multimap.add(zoneIndex);
+        } else {
+            this.multimap.delete(zoneIndex);
+        }
+    }
+
     isFreeToPlay(x: number, z: number): boolean {
         return this.freemap.has(ZoneMap.zoneIndex(x, z, 0)); // level does not matter here.
     }

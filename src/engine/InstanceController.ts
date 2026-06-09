@@ -101,6 +101,11 @@ export default class InstanceController {
             z: instanceSw.z + (instanceOffset.z << 3)
         };
 
+        // Multiway is a per-zone flag independent of whether the source Zone is materialized, so
+        // propagate it here to cover both the copyFromZone and assignTemplate paths. SET (add/delete)
+        // so a reused slot copying a non-multi source clears any stale multi flag.
+        World.gameMap.setMultiZone(ZoneMap.zoneIndex(target.x, target.z, target.level), World.gameMap.isMultiZone(ZoneMap.zoneIndex(source.x, source.z, source.level)));
+
         const targetZone = this.ensureInstanceZone(target.x, target.z, target.level);
         const sourceZone = World.gameMap.getZoneIfExists(source.x, source.z, source.level);
 
@@ -302,6 +307,8 @@ export default class InstanceController {
                     World.gameMap.removeZone(ZoneMap.zoneIndex(x, z, actualLevel));
                     // Clean up collision data for this zone
                     routeFinder.deallocateIfPresent(x, z, actualLevel);
+                    // Clear any multiway flag so a reused slot starts clean
+                    World.gameMap.setMultiZone(ZoneMap.zoneIndex(x, z, actualLevel), false);
                 }
             }
         }
