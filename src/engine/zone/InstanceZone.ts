@@ -7,6 +7,11 @@ import World from '#/engine/World.js';
 import Zone from '#/engine/zone/Zone.js';
 import ZoneMap from '#/engine/zone/ZoneMap.js';
 
+// Live-entity position collision (set by changeNpc/changePlayer). This is transient
+// world state, not part of a zone's static loc/floor/wall template, so it must not be
+// copied into an instance — only loc/wall/floor/roof collision should transfer.
+const ENTITY_COLLISION_MASK = CollisionFlag.NPC | CollisionFlag.PLAYER;
+
 export default class InstanceZone extends Zone {
     source: CoordGrid;
     rotation: 0 | 1 | 2 | 3;
@@ -163,7 +168,7 @@ export default class InstanceZone extends Zone {
 
             const dstIdx = dstX | (dstZ << 3);
             const rotatedFlags = this.rotateCollisionFlags(srcFlags, rotation);
-            destCollision[dstIdx] |= rotatedFlags;
+            destCollision[dstIdx] |= rotatedFlags & ~ENTITY_COLLISION_MASK;
         }
 
         // Write rotated collision data to destination zone

@@ -1319,6 +1319,18 @@ class World {
         }
         zone.enter(npc);
 
+        // Apply spawn collision (mirrors removeNpc). Safe now that instance zone copies
+        // strip NPC/PLAYER flags, so this no longer conflicts with template collision.
+        switch (npc.blockWalk) {
+            case BlockWalk.NPC:
+                changeNpcCollision(npc.width, npc.x, npc.z, npc.level, true);
+                break;
+            case BlockWalk.ALL:
+                changeNpcCollision(npc.width, npc.x, npc.z, npc.level, true);
+                changePlayerCollision(npc.width, npc.x, npc.z, npc.level, true);
+                break;
+        }
+
         npc.resetEntity(true);
         npc.playAnimation(-1, 0);
 
