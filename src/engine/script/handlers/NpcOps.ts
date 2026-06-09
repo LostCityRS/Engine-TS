@@ -18,7 +18,7 @@ import { ScriptOpcode } from '#/engine/script/ScriptOpcode.js';
 import ScriptPointer, { ActiveNpc, ActivePlayer, checkedHandler } from '#/engine/script/ScriptPointer.js';
 import { CommandHandlers } from '#/engine/script/ScriptRunner.js';
 import ScriptState from '#/engine/script/ScriptState.js';
-import { CategoryTypeValid, check, CoordValid, DurationValid, HitTypeValid, HuntTypeValid, HuntVisValid, NpcModeValid, NpcStatValid, NpcTypeValid, NumberNotNull, ParamTypeValid, QueueValid, SpotAnimTypeValid } from '#/engine/script/ScriptValidators.js';
+import { CategoryTypeValid, check, CoordValid, DurationValid, DurationValidZeroOk, HitTypeValid, HuntTypeValid, HuntVisValid, NpcModeValid, NpcStatValid, NpcTypeValid, NumberNotNull, ParamTypeValid, QueueValid, SpotAnimTypeValid } from '#/engine/script/ScriptValidators.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
 
@@ -44,7 +44,8 @@ const NpcOps: CommandHandlers = {
 
         const position: CoordGrid = check(coord, CoordValid);
         const npcType: NpcType = check(id, NpcTypeValid);
-        check(duration, DurationValid);
+        // Inside an instance, duration 0 is allowed and means "permanent" (no lifecycle event).
+        check(duration, CoordGrid.isInstanceX(position.x) ? DurationValidZeroOk : DurationValid);
 
         const npc = new Npc(position.level, position.x, position.z, npcType.size, npcType.size, EntityLifeCycle.DESPAWN, World.getNextNid(), npcType.id, npcType.moverestrict, npcType.blockwalk);
         World.addNpc(npc, duration);

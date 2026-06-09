@@ -955,8 +955,8 @@ class World {
             // A player must never log in inside an instance (single x-band check, independent of
             // whether that instance is still built, torn down, or replaced). Return them to the
             // previous overworld tile captured on instance entry, else Lumbridge failsafe.
-            if (Player.isInstanceX(player.x)) {
-                if (player.hasPreviousOverworldTile && !Player.isInstanceX(player.previousOverworldX)) {
+            if (CoordGrid.isInstanceX(player.x)) {
+                if (player.hasPreviousOverworldTile && !CoordGrid.isInstanceX(player.previousOverworldX)) {
                     player.x = player.previousOverworldX;
                     player.z = player.previousOverworldZ;
                     player.level = player.previousOverworldLevel;
@@ -1342,7 +1342,8 @@ class World {
             this.npcEventQueue.addTail(new NpcEventRequest(NpcEventType.SPAWN, script, npc));
         }
 
-        if (duration > -1) {
+        // duration 0 (instances only) means permanent: skip setLifeCycle so lifecycleTick stays at its -1 default.
+        if (duration > 0) {
             npc.setLifeCycle(duration);
         }
     }

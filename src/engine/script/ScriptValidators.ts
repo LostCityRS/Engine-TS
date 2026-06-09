@@ -107,6 +107,8 @@ export const LocTypeValid: ScriptValidator<number, LocType> = new ScriptInputCon
 export const LocAngleValid: ScriptValidator<number, LocAngle> = new ScriptInputRangeValidator(LocAngle.WEST, LocAngle.SOUTH, 'LocAngle');
 export const LocShapeValid: ScriptValidator<number, LocShape> = new ScriptInputRangeValidator(LocShape.WALL_STRAIGHT, LocShape.GROUND_DECOR, 'LocShape');
 export const DurationValid: ScriptValidator<number, number> = new ScriptInputRangeValidator(1, 2147483647, 'Duration');
+// Allows duration 0 ("permanent" / no lifecycle event). Only used inside instances; see loc_add/npc_add/loc_change.
+export const DurationValidZeroOk: ScriptValidator<number, number> = new ScriptInputRangeValidator(0, 2147483647, 'Duration');
 export const CoordValid: ScriptValidator<number, CoordGrid> = new ScriptInputCoordValidator(0, 2147483647, 'Coord');
 export const ParamTypeValid: ScriptValidator<number, ParamType> = new ScriptInputConfigTypeValidator(ParamType.get, (input: number) => input >= 0 && input < ParamType.count, 'Param');
 export const NpcTypeValid: ScriptValidator<number, NpcType> = new ScriptInputConfigTypeValidator(NpcType.get, (input: number) => input >= 0 && input < NpcType.count, 'Npc');

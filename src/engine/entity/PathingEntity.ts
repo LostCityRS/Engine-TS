@@ -305,13 +305,13 @@ export default abstract class PathingEntity extends Entity {
         const previousLevel: number = this.level;
 
         if (this instanceof Player) {
-            const movingToInstance: boolean = Player.isInstanceX(x);
+            const movingToInstance: boolean = CoordGrid.isInstanceX(x);
             // Only capture the return tile when entering an instance FROM the overworld. Entering an
             // instance from another instance must NOT overwrite the original overworld tile, and the
             // stored tile must always be an overworld location.
-            if (movingToInstance && !Player.isInstanceX(previousX)) {
+            if (movingToInstance && !CoordGrid.isInstanceX(previousX)) {
                 const targetInstance = World.instances.findInstanceByTile(level, x, z);
-                if (targetInstance?.exitCoord && !Player.isInstanceX(targetInstance.exitCoord.x)) {
+                if (targetInstance?.exitCoord && !CoordGrid.isInstanceX(targetInstance.exitCoord.x)) {
                     this.previousOverworldX = targetInstance.exitCoord.x;
                     this.previousOverworldZ = targetInstance.exitCoord.z;
                     this.previousOverworldLevel = targetInstance.exitCoord.level;

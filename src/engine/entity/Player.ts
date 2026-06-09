@@ -101,14 +101,6 @@ export function getExpByLevel(level: number) {
 }
 
 export default class Player extends PathingEntity {
-    // Instances are hosted in the reserved east band beginning at m101 (tile x = 101<<6 = 6464);
-    // overworld tiles are west of this. Must match InstanceController.FIRST_INSTANCE_SW_MAPSQUARE.
-    static readonly INSTANCE_X_THRESHOLD: number = 6464;
-
-    static isInstanceX(x: number): boolean {
-        return x >= Player.INSTANCE_X_THRESHOLD;
-    }
-
     static readonly DESIGN_BODY_COLORS: number[][] = [
         [6798, 107, 10283, 16, 4797, 7744, 5799, 4634, 33697, 22433, 2983, 54193],
         [8741, 12, 64030, 43162, 7735, 8404, 1701, 38430, 24094, 10153, 56621, 4783, 1341, 16578, 35003, 25239],
@@ -522,7 +514,7 @@ export default class Player extends PathingEntity {
         // - runenergy
         // - reset anims
         // - social
-        if (!Player.isInstanceX(this.x)) {
+        if (!CoordGrid.isInstanceX(this.x)) {
             this.previousOverworldX = this.x;
             this.previousOverworldZ = this.z;
             this.previousOverworldLevel = this.level;

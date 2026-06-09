@@ -1,6 +1,7 @@
 import 'dotenv/config';
 
 import InvType from '#/cache/config/InvType.js';
+import { CoordGrid } from '#/engine/CoordGrid.js';
 import { NetworkPlayer } from '#/engine/entity/NetworkPlayer.js';
 import Player, { getExpByLevel, getLevelByExp } from '#/engine/entity/Player.js';
 import { PlayerStat } from '#/engine/entity/PlayerStat.js';
@@ -171,8 +172,8 @@ export class PlayerLoading {
             player.previousOverworldZ = sav.g2();
             player.previousOverworldLevel = sav.g1();
             const legacyDefaultFallback = player.previousOverworldX === 3094 && player.previousOverworldZ === 3106 && player.previousOverworldLevel === 0;
-            player.hasPreviousOverworldTile = !legacyDefaultFallback && !Player.isInstanceX(player.previousOverworldX);
-        } else if (!Player.isInstanceX(player.x)) {
+            player.hasPreviousOverworldTile = !legacyDefaultFallback && !CoordGrid.isInstanceX(player.previousOverworldX);
+        } else if (!CoordGrid.isInstanceX(player.x)) {
             player.previousOverworldX = player.x;
             player.previousOverworldZ = player.z;
             player.previousOverworldLevel = player.level;
@@ -180,7 +181,7 @@ export class PlayerLoading {
         }
 
         // Note: relocating a player out of an instance on login is handled in one place — World
-        // login (Player.isInstanceX → instance exit, else Lumbridge). Not duplicated here.
+        // login (CoordGrid.isInstanceX → previous overworld tile, else Lumbridge). Not duplicated here.
 
         player.combatLevel = player.getCombatLevel();
 

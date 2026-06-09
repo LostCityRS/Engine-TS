@@ -21,6 +21,11 @@ export const CoordGrid = {
     mapsquare: (pos: number) => pos >> 6,
     local: (pos: number, origin: number) => pos - (CoordGrid.zoneCenter(origin) << 3),
 
+    // Instances are hosted in the reserved east band beginning at m101 (tile x = 101<<6 = 6464);
+    // overworld tiles are west of this. Must match InstanceController.FIRST_INSTANCE_SW_MAPSQUARE.
+    INSTANCE_X_THRESHOLD: 6464,
+    isInstanceX: (x: number): boolean => x >= CoordGrid.INSTANCE_X_THRESHOLD,
+
     face: (srcX: number, srcZ: number, dstX: number, dstZ: number) => {
         if (srcX == dstX) {
             if (srcZ > dstZ) {
