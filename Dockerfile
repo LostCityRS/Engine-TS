@@ -20,4 +20,4 @@ COPY --from=build public public
 COPY --from=build data data
 COPY --from=build view view
 
-ENTRYPOINT ["node", "out/src/app.js"]
+ENTRYPOINT ["node", "--conditions=production", "out/src/app.js"]
