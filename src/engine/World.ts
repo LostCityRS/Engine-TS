@@ -72,7 +72,7 @@ import { FriendsServerOpcodes } from '#/server/friend/FriendServer.js';
 import { FriendThreadMessage } from '#/server/friend/FriendThread.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import { filteredEventTypes, groupedEventTypes } from '#/server/logger/WealthEventType.js';
-import { type GenericLoginThreadResponse, isPlayerLoginResponse, isPlayerLogoutResponse } from '#/server/login/index.d.js';
+import { type GenericLoginThreadResponse, isPlayerLoginResponse, isPlayerLogoutResponse } from '#/server/login/index.js';
 import {
     trackCycleBandwidthInBytes,
     trackCycleBandwidthOutBytes,
@@ -109,9 +109,9 @@ type LogoutRequest = {
 };
 
 class World {
-    private loginThread = new Worker(new URL('../server/login/LoginThread.ts', import.meta.url));
-    private friendThread = new Worker(new URL('../server/friend/FriendThread.ts', import.meta.url));
-    private loggerThread = new Worker(new URL('../server/logger/LoggerThread.ts', import.meta.url));
+    private loginThread = new Worker(new URL('../server/login/LoginThread.js', import.meta.url));
+    private friendThread = new Worker(new URL('../server/friend/FriendThread.js', import.meta.url));
+    private loggerThread = new Worker(new URL('../server/logger/LoggerThread.js', import.meta.url));
     private devThread: Worker | null = null;
 
     private static readonly PLAYERS: number = 2047;
@@ -1740,7 +1740,7 @@ class World {
     }
 
     private createDevThread() {
-        this.devThread = new Worker(new URL('../cache/DevThread.ts', import.meta.url));
+        this.devThread = new Worker(new URL('../cache/DevThread.js', import.meta.url));
 
         this.devThread.on('message', msg => {
             try {
