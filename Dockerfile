@@ -3,6 +3,7 @@ COPY package.json package-lock.json .
 RUN npm ci
 COPY . .
 RUN npm run compile
+RUN npm run sqlite:migrate
 
 
 FROM node:lts-slim
@@ -14,6 +15,7 @@ RUN npm ci --omit dev --ignore-scripts
 
 # build output
 COPY --from=build out out
+COPY --from=build db.sqlite db.sqlite
 
 # local non-node dependencies
 COPY --from=build public public
