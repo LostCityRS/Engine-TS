@@ -51,7 +51,7 @@ import { EntityQueueState, PlayerQueueType } from '#/engine/entity/PlayerQueueRe
 import { PlayerStat } from '#/engine/entity/PlayerStat.js';
 import { SessionLog } from '#/engine/entity/tracking/SessionLog.js';
 import { WealthTransactionEvent, WealthEvent } from '#/engine/entity/tracking/WealthEvent.js';
-import GameMap, { changeLocCollision, changeNpcCollision, changePlayerCollision } from '#/engine/GameMap.js';
+import GameMap, { changeLocCollision, changeNpcCollision, changeBlockCollision, changePlayerOccCollision } from '#/engine/GameMap.js';
 import { Inventory } from '#/engine/Inventory.js';
 import ScriptPointer from '#/engine/script/ScriptPointer.js';
 import ScriptProvider from '#/engine/script/ScriptProvider.js';
@@ -1271,7 +1271,7 @@ class World {
                 break;
             case BlockWalk.ALL:
                 changeNpcCollision(npc.width, npc.x, npc.z, npc.level, true);
-                changePlayerCollision(npc.width, npc.x, npc.z, npc.level, true);
+                changeBlockCollision(npc.width, npc.x, npc.z, npc.level, true);
                 break;
         }
 
@@ -1302,7 +1302,7 @@ class World {
                 break;
             case BlockWalk.ALL:
                 changeNpcCollision(npc.width, npc.x, npc.z, npc.level, false);
-                changePlayerCollision(npc.width, npc.x, npc.z, npc.level, false);
+                changeBlockCollision(npc.width, npc.x, npc.z, npc.level, false);
                 break;
         }
 
@@ -1596,6 +1596,7 @@ class World {
         delete this.players[player.slot];
         player.unlink();
         changeNpcCollision(player.width, player.x, player.z, player.level, false);
+        changePlayerOccCollision(player.width, player.x, player.z, player.level, false);
         player.cleanup();
 
         player.isActive = false;

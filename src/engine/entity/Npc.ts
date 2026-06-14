@@ -384,19 +384,19 @@ export default class Npc extends PathingEntity {
     blockWalkFlag(): CollisionFlag {
         const type: NpcType = NpcType.get(this.type);
         if (type.moverestrict === MoveRestrict.NORMAL) {
-            return CollisionFlag.NPC;
+            return (CollisionFlag.BLOCK_NPC_AND_PLAYERS | CollisionFlag.NPC_OCC | CollisionFlag.PLAYER_OCC) as CollisionFlag;
         } else if (type.moverestrict === MoveRestrict.BLOCKED) {
             return CollisionFlag.OPEN;
         } else if (type.moverestrict === MoveRestrict.BLOCKED_NORMAL) {
-            return CollisionFlag.NPC;
+            return (CollisionFlag.BLOCK_NPC_AND_PLAYERS | CollisionFlag.NPC_OCC | CollisionFlag.PLAYER_OCC) as CollisionFlag;
         } else if (type.moverestrict === MoveRestrict.INDOORS) {
-            return CollisionFlag.NPC;
+            return (CollisionFlag.BLOCK_NPC_AND_PLAYERS | CollisionFlag.NPC_OCC | CollisionFlag.PLAYER_OCC) as CollisionFlag;
         } else if (type.moverestrict === MoveRestrict.OUTDOORS) {
-            return CollisionFlag.NPC;
+            return (CollisionFlag.BLOCK_NPC_AND_PLAYERS | CollisionFlag.NPC_OCC | CollisionFlag.PLAYER_OCC) as CollisionFlag;
         } else if (type.moverestrict === MoveRestrict.NOMOVE) {
             return CollisionFlag.NULL;
         } else if (type.moverestrict === MoveRestrict.PASSTHRU) {
-            return CollisionFlag.OPEN;
+            return (CollisionFlag.BLOCK_NPC_AND_PLAYERS | CollisionFlag.NPC_OCC) as CollisionFlag;
         }
         return CollisionFlag.NULL;
     }
