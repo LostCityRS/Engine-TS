@@ -108,7 +108,14 @@ const ServerOps: CommandHandlers = {
     },
 
     [ScriptOpcode.SEQLENGTH]: state => {
-        state.pushInt(check(state.popInt(), SeqTypeValid).duration);
+        const seq = check(state.popInt(), SeqTypeValid);
+
+        // play-once (loops == -1): strip the final-frame hold delay. looping (loops >= 0): keep it.
+        let length = seq.duration;
+        if (seq.loops < 0 && seq.delay !== null && seq.delay[seq.frameCount - 1] > 0) {
+            length -= seq.delay[seq.frameCount - 1];
+        }
+        state.pushInt(length);
     },
 
     [ScriptOpcode.COORDX]: state => {
