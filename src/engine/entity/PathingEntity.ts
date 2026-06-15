@@ -15,7 +15,7 @@ import Npc from '#/engine/entity/Npc.js';
 import { NpcMode } from '#/engine/entity/NpcMode.js';
 import Obj from '#/engine/entity/Obj.js';
 import Player from '#/engine/entity/Player.js';
-import { canTravel, changeNpcCollision, changePlayerCollision, findPath, findPathToEntity, findPathToLoc, isApproached, isZoneAllocated, reachedEntity, reachedLoc, reachedObj, findNaivePath } from '#/engine/GameMap.js';
+import { canTravel, changeNpcCollision, changeBlockCollision, changePlayerOccCollision, findPath, findPathToEntity, findPathToLoc, isApproached, isZoneAllocated, reachedEntity, reachedLoc, reachedObj, findNaivePath } from '#/engine/GameMap.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import World from '#/engine/World.js';
 import NpcType from '#/cache/config/NpcType.js';
@@ -169,8 +169,14 @@ export default abstract class PathingEntity extends Entity {
             case BlockWalk.ALL:
                 changeNpcCollision(this.width, previousX, previousZ, previousLevel, false);
                 changeNpcCollision(this.width, this.x, this.z, this.level, true);
-                changePlayerCollision(this.width, previousX, previousZ, previousLevel, false);
-                changePlayerCollision(this.width, this.x, this.z, this.level, true);
+                changeBlockCollision(this.width, previousX, previousZ, previousLevel, false);
+                changeBlockCollision(this.width, this.x, this.z, this.level, true);
+                break;
+            case BlockWalk.PLAYER:
+                // player owns PLAYER_OCC; clear both markers on the old tile, set only PLAYER_OCC on the new
+                changeNpcCollision(this.width, previousX, previousZ, previousLevel, false);
+                changePlayerOccCollision(this.width, previousX, previousZ, previousLevel, false);
+                changePlayerOccCollision(this.width, this.x, this.z, this.level, true);
                 break;
         }
         this.lastStepX = previousX;
