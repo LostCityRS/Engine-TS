@@ -6,13 +6,23 @@
     "node": ">=24"
   },
   "imports": {
-    "#3rdparty/*": "./src/3rdparty/*",
-    "#/*": "./src/*",
-    "#tools/*": "./tools/*"
+    "#3rdparty/*": {
+      "production": "./out/src/3rdparty/*",
+      "default": "./src/3rdparty/*"
+    },
+    "#/*": {
+      "production": "./out/src/*",
+      "default": "./src/*"
+    },
+    "#tools/*": {
+      "production": "./out/tools/*",
+      "default": "./tools/*"
+    }
   },
   "scripts": {
     "build": "tsx tools/pack/Build.ts",
     "clean": "tsx tools/pack/Clean.ts",
+    "compile": "npx -p typescript tsc && npx tsc-alias && cp -r src/3rdparty out/src",
     "db:migrate": "tsx tools/server/prisma-multi.ts migrate deploy",
     "db:reset": "tsx tools/server/prisma-multi.ts migrate reset --force",
     "db:schema": "tsx tools/server/prisma-multi.ts migrate dev",
@@ -27,7 +37,8 @@
     "sqlite:migrate": "prisma migrate deploy --schema prisma/singleworld/schema.prisma",
     "sqlite:reset": "prisma migrate reset --force --schema prisma/singleworld/schema.prisma",
     "sqlite:schema": "prisma migrate dev --schema prisma/singleworld/schema.prisma",
-    "start": "npm install && tsx src/app.ts"
+    "start": "npm install && tsx src/app.ts",
+    "start:compiled": "node --conditions=production out/src/app.js"
   },
   "lint-staged": {
     "*.{js,ts}": [
@@ -64,6 +75,7 @@
     "prettier": "3.8.3",
     "prisma": "6.19.3",
     "prisma-kysely": "2.3.0",
+    "tsc-alias": "^1.8.17",
     "tsx": "4.22.3",
     "typescript-eslint": "8.60.0"
   },
