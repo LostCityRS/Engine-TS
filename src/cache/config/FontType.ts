@@ -181,11 +181,12 @@ export default class FontType {
 
             // apply saved color
             if (savedCol !== null && str.length > 0 && str.charAt(0) !== '|') {
-                const strIndex = str.indexOf('@str@');
-                if (strIndex !== -1) {
-                    if (str.substring(strIndex + 5, strIndex + 10) !== '@bla@') {
-                        str = str.substring(0, strIndex + 5) + '@bla@' + str.substring(strIndex + 5);
+                if (str.startsWith('@str@')) {
+                    if (!str.startsWith('@str@@bla@')) {
+                        str = '@str@@bla@' + str.substring(5);
                     }
+                    savedCol = null;
+                } else if (str.charAt(0) === '@' && str.length >= 5 && str.charAt(4) === '@') {
                     savedCol = null;
                 } else {
                     str = savedCol + str;
