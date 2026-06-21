@@ -840,7 +840,8 @@ const ScriptOpcodePointers: {
     },
     [ScriptOpcode.OBJ_FIND]: {
         set: ['active_obj'],
-        set2: ['active_obj2']
+        set2: ['active_obj2'],
+        conditional: true
     },
     [ScriptOpcode.OBJ_FINDALLZONE]: {
         set: ['find_obj'],
