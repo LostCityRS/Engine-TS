@@ -707,13 +707,13 @@ class World {
                 }
                 // - engine queue
                 player.processEngineQueue();
-                // Update target facing
-                player.setFaceEntity();
                 // - interactions
                 // - movement
                 player.processInteraction();
-                // experimental: reorient during the player's own turn (moved out of processInfo).
+                // Reorient toward the target and update the face-entity mask together, after movement
+                // (mirrors Npc.turn()).
                 player.reorient();
+                player.setFaceEntity();
 
                 // - run energy
                 player.updateEnergy();
@@ -986,7 +986,7 @@ class World {
 
         // TODO: benchmark this?
         for (const player of this.playerLoop.all()) {
-            // experimental: reorient() moved into the player's turn (processPlayers).
+            // reorient() runs in the player's turn (processPlayers), not here.
             player.buildArea.rebuildNormal(); // set origin before compute player is why this is above.
 
             const appearance = player.masks & PlayerInfoProt.APPEARANCE ? player.generateAppearance() : (player.appearanceBuf ?? player.generateAppearance());
@@ -1039,7 +1039,7 @@ class World {
         }
 
         for (const npc of this.npcs) {
-            // experimental: reorient() moved into Npc.turn().
+            // reorient() runs in Npc.turn(), not here.
             rsbuf.computeNpc(
                 npc.x,
                 npc.level,

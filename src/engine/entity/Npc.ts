@@ -179,8 +179,8 @@ export default class Npc extends PathingEntity {
         this.processQueue();
         // Movement-Interactions
         this.processMovementInteraction();
-        // experimental: reorient toward the target during the npc's own turn (moved out of the post-movement
-        // processInfo sweep) so an npc that didn't take a turn this tick keeps its spawn orientation.
+        // Reorient toward the target during the npc's own turn (not the post-movement processInfo sweep),
+        // so an npc that didn't take a turn this tick keeps its spawn orientation. Paired with setFaceEntity below.
         this.reorient();
         // Update target facing
         this.setFaceEntity();

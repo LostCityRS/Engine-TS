@@ -366,8 +366,8 @@ export default abstract class PathingEntity extends Entity {
             // Try to focus back on a possible target because they move.
             this.focus(CoordGrid.fine(target.x, target.width), CoordGrid.fine(target.z, target.length), false);
         } else if (this.targetX !== -1 && this.stepsTaken === 0) {
-            // Non-pathing target (loc/obj): face it once we've stopped. experimental: client=true here --
-            // setInteraction no longer ships the face-coord mask, so this turn-time reorient does.
+            // Non-pathing target (loc/obj): face it once we've stopped. client=true here -- setInteraction
+            // no longer ships the face-coord mask, so this turn-time reorient does.
             this.focus(this.targetX, this.targetZ, true);
             this.targetX = -1;
             this.targetZ = -1;
@@ -532,9 +532,9 @@ export default abstract class PathingEntity extends Entity {
             this.targetSubject.type = -1;
         }
 
-        // experimental: setting an interaction no longer focus()es here -- facing only changes during the
-        // entity's own turn (in reorient(), called from Npc.turn / processPlayers). For non-pathing targets
-        // we still record targetX/Z for that turn-time reorient to consume.
+        // Setting an interaction no longer focus()es here -- facing only changes during the entity's own
+        // turn (in reorient(), called from Npc.turn / processPlayers). For non-pathing targets we still
+        // record targetX/Z for that turn-time reorient to consume.
         if (target instanceof NonPathingEntity) {
             this.targetX = CoordGrid.fine(target.x, target.width);
             this.targetZ = CoordGrid.fine(target.z, target.length);
