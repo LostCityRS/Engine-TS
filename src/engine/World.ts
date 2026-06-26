@@ -712,6 +712,8 @@ class World {
                 // - interactions
                 // - movement
                 player.processInteraction();
+                // experimental: reorient during the player's own turn (moved out of processInfo).
+                player.reorient();
 
                 // - run energy
                 player.updateEnergy();
@@ -984,7 +986,7 @@ class World {
 
         // TODO: benchmark this?
         for (const player of this.playerLoop.all()) {
-            player.reorient();
+            // experimental: reorient() moved into the player's turn (processPlayers).
             player.buildArea.rebuildNormal(); // set origin before compute player is why this is above.
 
             const appearance = player.masks & PlayerInfoProt.APPEARANCE ? player.generateAppearance() : (player.appearanceBuf ?? player.generateAppearance());
@@ -1037,7 +1039,7 @@ class World {
         }
 
         for (const npc of this.npcs) {
-            npc.reorient();
+            // experimental: reorient() moved into Npc.turn().
             rsbuf.computeNpc(
                 npc.x,
                 npc.level,
