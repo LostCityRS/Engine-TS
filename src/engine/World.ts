@@ -707,13 +707,14 @@ class World {
                 }
                 // - engine queue
                 player.processEngineQueue();
+                // Update target facing -- marks the FACE_ENTITY mask the same tick the op set the target
+                // (the op runs before this in processClientsIn), before processInteraction can clear it.
+                player.setFaceEntity();
                 // - interactions
                 // - movement
                 player.processInteraction();
-                // Reorient toward the target and update the face-entity mask together, after movement
-                // (mirrors Npc.turn()).
+                // Reorient during the player's own turn (not processInfo).
                 player.reorient();
-                player.setFaceEntity();
 
                 // - run energy
                 player.updateEnergy();
