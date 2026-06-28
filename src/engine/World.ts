@@ -707,11 +707,16 @@ class World {
                 }
                 // - engine queue
                 player.processEngineQueue();
-                // Update target facing
+                // Face the interaction target -- both halves, the same tick the op set the target (the op ran
+                // in processClientsIn) and before processInteraction can clear it: the FACE_ENTITY mask, plus
+                // the serverside faceAngle toward a pathing target (for new observers).
                 player.setFaceEntity();
+                player.reorientEntity();
                 // - interactions
                 // - movement
                 player.processInteraction();
+                // After movement: face a loc/obj target if we walked over and held still (needs stepsTaken).
+                player.reorient();
 
                 // - run energy
                 player.updateEnergy();
@@ -984,7 +989,7 @@ class World {
 
         // TODO: benchmark this?
         for (const player of this.playerLoop.all()) {
-            player.reorient();
+            // facing (reorientEntity/reorient) runs in the player's turn (processPlayers), not here.
             player.buildArea.rebuildNormal(); // set origin before compute player is why this is above.
 
             const appearance = player.masks & PlayerInfoProt.APPEARANCE ? player.generateAppearance() : (player.appearanceBuf ?? player.generateAppearance());
@@ -1037,7 +1042,7 @@ class World {
         }
 
         for (const npc of this.npcs) {
-            npc.reorient();
+            // facing (reorientEntity/reorient) runs in Npc.turn(), not here.
             rsbuf.computeNpc(
                 npc.x,
                 npc.level,
