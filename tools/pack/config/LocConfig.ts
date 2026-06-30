@@ -326,30 +326,8 @@ export function packLocConfigs(configs: Map<string, ConfigLine[]>, modelFlags: n
 
             const models: LocModelShape[] = [];
             for (let i = 0; i < srcModels.length; i++) {
-                let directReference = ModelPack.getByName(srcModels[i]) !== -1;
-                for (let shape = 0; shape <= 22; shape++) {
-                    if (shape === 10) {
-                        continue;
-                    }
-
-                    if (ModelPack.getByName(`${srcModels[i]}${LocShapeSuffix[shape]}`) !== -1) {
-                        directReference = false;
-                        break;
-                    }
-                }
-
-                if (directReference) {
-                    // if a model directly points to a shape, we are forcing that shape to appear as centrepiece_straight
-                    const forceModelId = ModelPack.getByName(srcModels[i]);
-                    if (forceModelId !== -1) {
-                        modelFlags[forceModelId] |= 0x4;
-                        models.push({ model: forceModelId, shape: LocShapeSuffix._8 });
-                        continue;
-                    }
-                }
-
                 // centrepiece_straight comes first in their data, so we check it first
-                const modelId = ModelPack.getByName(`${srcModels[i]}_8`);
+                const modelId = ModelPack.getByName(srcModels[i]);
 
                 if (modelId !== -1) {
                     modelFlags[modelId] |= 0x4;

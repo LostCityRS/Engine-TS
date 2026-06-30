@@ -12,14 +12,14 @@ function renameModel(id: number, shape: number) {
         model = model.substring(0, model.length - 3);
     }
 
-    if (model.endsWith(LocShapeSuffix[shape])) {
+    if (shape !== LocShapeSuffix._8 && model.endsWith(LocShapeSuffix[shape])) {
         model = model.substring(0, model.length - 2);
     }
 
     return model;
 }
 
-type LocModelShape = { model: number, shape: number };
+type LocModelShape = { model: number; shape: number };
 export type LocModels = { models: LocModelShape[] };
 
 export function unpackLocModels(config: ConfigIdx, id: number): LocModels {
@@ -259,7 +259,7 @@ export function unpackLocConfig(config: ConfigIdx, id: number): string[] {
             const contrast = dat.g1b();
             def.push(`contrast=${contrast}`);
         } else if (code >= 30 && code < 35) {
-            const index = (code - 30) + 1;
+            const index = code - 30 + 1;
             const op = dat.gjstr();
             def.push(`op${index}=${op}`);
         } else if (code === 40) {

@@ -256,10 +256,11 @@ function unpackModelNames(type: string, unpack: UnpackModelImpl, config: Jagfile
                 continue;
             }
 
-            let name = `${debugname}${LocShapeSuffix[shape]}`;
+            const suffix = shape === LocShapeSuffix._8 ? '' : LocShapeSuffix[shape];
+            let name = `${debugname}${suffix}`;
             let i = 2;
             while (ModelPack.getByName(name) !== -1) {
-                name = `${debugname}i${i}${LocShapeSuffix[shape]}`;
+                name = `${debugname}i${i}${suffix}`;
                 i++;
             }
 
