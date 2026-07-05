@@ -583,7 +583,8 @@ const PlayerOps: CommandHandlers = {
         const [stat, low, high] = state.popInts(3);
 
         const level = state.activePlayer.levels[stat];
-        const value = Math.floor((low * (99 - level)) / 98) + Math.floor((high * (level - 1)) / 98) + 1;
+        const clampedLevel = Math.min(level, 99);
+        const value = Math.floor((low * (99 - clampedLevel)) / 98) + Math.floor((high * (clampedLevel - 1)) / 98) + 1;
         const chance = Math.floor(JavaRandom.nextDouble() * 256);
 
         state.pushInt(value > chance ? 1 : 0);
