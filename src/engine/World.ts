@@ -916,7 +916,8 @@ class World {
                 } else if (remote.indexOf(':') !== -1) {
                     // IPv6 - site prefix determines the bucket
                     const hextets = remote.split(':');
-                    const bucket = parseInt(hextets[2], 16) % 256;
+                    const prefix = parseInt(hextets[2], 16);
+                    const bucket = Number.isNaN(prefix) ? 0 : prefix % 256;
                     this.playerLoop.add(BigInt(bucket), player);
                 }
             } else {
