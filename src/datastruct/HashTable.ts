@@ -42,17 +42,13 @@ export default class HashTable<T extends Linkable> {
         value.key = key;
     }
 
-    findnext(node: Linkable): T | null {
-        return node.next?.key !== 0n ? node.next as T : null;
-    }
-
     *all(): IterableIterator<T> {
         for (let bucket = 0; bucket < this.bucketCount; bucket++) {
-            let node = this.findnext(this.buckets[bucket]);
+            const sentinel: T = this.buckets[bucket];
 
-            while (node !== null) {
-                // need to store the next node early in case it's removed while iterating
-                const next = this.findnext(node);
+            for (let node: T = sentinel.next as T; node !== sentinel; ) {
+                // store the next node early in case it's removed while iterating
+                const next: T = node.next as T;
                 yield node;
                 node = next;
             }
