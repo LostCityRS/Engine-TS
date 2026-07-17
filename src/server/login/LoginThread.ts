@@ -4,7 +4,7 @@ import { parentPort } from 'worker_threads';
 import { LoginClient } from '#/server/login/LoginClient.js';
 import Environment from '#/util/Environment.js';
 
-import { type GenericLoginThreadResponse } from './index.d.js';
+import { type GenericLoginThreadResponse } from './index.js';
 import { trackLoginAttempts, trackLoginTime } from './LoginMetrics.js';
 
 const client = new LoginClient(Environment.node.id);

@@ -105,7 +105,7 @@ class OnDemand {
             return this.worker;
         }
 
-        const worker = new Worker(new URL('./OnDemandThread.ts', import.meta.url)) as WorkerWithTransfers;
+        const worker = new Worker(new URL('./OnDemandThread.js', import.meta.url)) as WorkerWithTransfers;
         this.worker = worker;
 
         worker.on('message', (msg: OnDemandWorkerMessage) => this.onWorkerMessage(msg));

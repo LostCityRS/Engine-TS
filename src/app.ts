@@ -28,9 +28,9 @@ if (OnDemand.cache.count(0) !== 9 || OnDemand.cache.count(2) === 0 || !fs.exists
 }
 
 if (Environment.easyStartup) {
-    new Worker(new URL('./login.ts', import.meta.url));
-    new Worker(new URL('./friend.ts', import.meta.url));
-    new Worker(new URL('./logger.ts', import.meta.url));
+    new Worker(new URL('./login.js', import.meta.url));
+    new Worker(new URL('./friend.js', import.meta.url));
+    new Worker(new URL('./logger.js', import.meta.url));
 }
 
 await World.start();
