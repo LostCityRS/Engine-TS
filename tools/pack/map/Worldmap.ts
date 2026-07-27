@@ -8,6 +8,7 @@ import NpcType from '#/cache/config/NpcType.js';
 import { CoordGrid } from '#/engine/CoordGrid.js';
 import Jagfile from '#/io/Jagfile.js';
 import Packet from '#/io/Packet.js';
+import ColorConversion from '#/util/ColorConversion.js';
 import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
 import { convertImage } from '#tools/pack/PixPack.js';
@@ -602,9 +603,20 @@ export async function packWorldmap() {
         [0x00a0c011, 0x0039300b], // debugname=mm_town_overlay overlay=true occlude=true rgb=0x544217
     ];
 
+    // refColors is a dump taken from a reference client, so it only covers the
+    // floors that existed when it was taken. A content pack that adds floors
+    // runs off the end of it; those get a pair derived from their own colour
+    // instead, which is approximate but keeps every listed index in range.
     for (let i = 0; i < FloType.configs.length; i++) {
-        floorcol.p4(refColors[i][0]);
-        floorcol.p4(refColors[i][1]);
+        if (i < refColors.length) {
+            floorcol.p4(refColors[i][0]);
+            floorcol.p4(refColors[i][1]);
+            continue;
+        }
+
+        const rgb = FloType.configs[i]?.rgb ?? 0;
+        floorcol.p4(ColorConversion.rgb24toHsl16(rgb));
+        floorcol.p4(rgb);
     }
 
     // ----
