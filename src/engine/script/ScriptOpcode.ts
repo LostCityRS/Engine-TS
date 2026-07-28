@@ -153,6 +153,7 @@ export const enum ScriptOpcode {
     P_PAUSEBUTTON, // official
     P_PREVENTLOGOUT,
     P_RUN, // todo: real command name?
+    P_TEMPRUN, // todo: real command name?
     P_STOPACTION, // official
     P_TELEJUMP, // official
     P_TELEPORT,
@@ -604,6 +605,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['P_PAUSEBUTTON', ScriptOpcode.P_PAUSEBUTTON],
     ['P_PREVENTLOGOUT', ScriptOpcode.P_PREVENTLOGOUT],
     ['P_RUN', ScriptOpcode.P_RUN],
+    ['P_TEMPRUN', ScriptOpcode.P_TEMPRUN],
     ['P_STOPACTION', ScriptOpcode.P_STOPACTION],
     ['P_TELEJUMP', ScriptOpcode.P_TELEJUMP],
     ['P_TELEPORT', ScriptOpcode.P_TELEPORT],
