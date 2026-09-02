@@ -241,7 +241,7 @@ async function startManagementWeb(): Promise<void> {
     });
 
     await new Promise<void>(resolve => {
-        server.listen(Environment.web.managementPort, '0.0.0.0', () => resolve());
+        server.listen(Environment.web.managementPort, Environment.web.host, () => resolve());
     });
 }
 

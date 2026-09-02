@@ -9,6 +9,7 @@ export interface WorldConfig {
         registration: boolean;
     };
     web: {
+        host: string;
         port: number;
         allowedOrigin: string;
         managementPort: number;
@@ -83,6 +84,7 @@ export function createDefaultWorldConfig(): WorldConfig {
             registration: true
         },
         web: {
+            host: '0.0.0.0',
             port: process.platform === 'win32' || process.platform === 'darwin' ? 80 : 8888,
             allowedOrigin: '',
             managementPort: 8898
