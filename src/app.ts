@@ -39,7 +39,10 @@ const tcpServer = new TcpServer();
 tcpServer.start();
 
 await startWeb();
-await startManagementWeb();
+
+if (Environment.management.enabled) {
+    await startManagementWeb();
+}
 
 register.setDefaultLabels({ nodeId: Environment.node.id });
 collectDefaultMetrics({ register });
