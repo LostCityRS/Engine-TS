@@ -11,7 +11,7 @@ export default class MessagePublicHandler extends ClientGameMessageHandler<Messa
     handle(message: MessagePublic, player: Player): boolean {
         const { colour, effect, input } = message;
 
-        if (player.socialProtect || colour < 0 || colour > 11 || effect < 0 || effect > 2 || input.length > 100) {
+        if (player.socialProtect || colour < 0 || colour > 11 || effect < 0 || effect > 5 || input.length > 100) {
             return false;
         }
 
