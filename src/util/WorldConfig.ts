@@ -48,6 +48,8 @@ export interface WorldConfig {
         enabled: boolean;
         host: string;
         port: number;
+        logPublicChat: boolean;
+        logPrivateChat: boolean;
     };
     logger: {
         enabled: boolean;
@@ -126,7 +128,9 @@ export function createDefaultWorldConfig(): WorldConfig {
         friend: {
             enabled: false,
             host: 'localhost',
-            port: 45099
+            port: 45099,
+            logPublicChat: true,
+            logPrivateChat: true
         },
         logger: {
             enabled: false,
