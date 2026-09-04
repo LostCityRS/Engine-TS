@@ -9,9 +9,14 @@ export interface WorldConfig {
         registration: boolean;
     };
     web: {
+        host: string;
         port: number;
         allowedOrigin: string;
-        managementPort: number;
+    };
+    management: {
+        enabled: boolean;
+        host: string;
+        port: number;
     };
     engine: {
         revision: number;
@@ -43,6 +48,8 @@ export interface WorldConfig {
         enabled: boolean;
         host: string;
         port: number;
+        logPublicChat: boolean;
+        logPrivateChat: boolean;
     };
     logger: {
         enabled: boolean;
@@ -83,9 +90,14 @@ export function createDefaultWorldConfig(): WorldConfig {
             registration: true
         },
         web: {
+            host: '0.0.0.0',
             port: process.platform === 'win32' || process.platform === 'darwin' ? 80 : 8888,
-            allowedOrigin: '',
-            managementPort: 8898
+            allowedOrigin: ''
+        },
+        management: {
+            enabled: true,
+            host: '0.0.0.0',
+            port: 8898
         },
         engine: {
             revision: 274
@@ -116,7 +128,9 @@ export function createDefaultWorldConfig(): WorldConfig {
         friend: {
             enabled: false,
             host: 'localhost',
-            port: 45099
+            port: 45099,
+            logPublicChat: true,
+            logPrivateChat: true
         },
         logger: {
             enabled: false,
@@ -226,7 +240,7 @@ function migrateFromLegacyEnv(defaults: WorldConfig, env: Record<string, string>
 
     config.web.port = tryParseInt(env.WEB_PORT, config.web.port);
     config.web.allowedOrigin = tryParseString(env.WEB_ALLOWED_ORIGIN, config.web.allowedOrigin);
-    config.web.managementPort = tryParseInt(env.WEB_MANAGEMENT_PORT, config.web.managementPort);
+    config.management.port = tryParseInt(env.WEB_MANAGEMENT_PORT, config.management.port);
 
     config.engine.revision = tryParseInt(env.ENGINE_REVISION, config.engine.revision);
 

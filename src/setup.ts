@@ -231,7 +231,7 @@ async function writeResponse(res: ServerResponse, response: Response): Promise<v
 async function startManagementWeb(): Promise<void> {
     const server = http.createServer(async (req, res) => {
         try {
-            const response = await handleManagementRequest(createNodeRequest(req, Environment.web.managementPort));
+            const response = await handleManagementRequest(createNodeRequest(req, Environment.management.port));
             await writeResponse(res, response);
         } catch (err) {
             console.error(err);
@@ -241,7 +241,7 @@ async function startManagementWeb(): Promise<void> {
     });
 
     await new Promise<void>(resolve => {
-        server.listen(Environment.web.managementPort, '0.0.0.0', () => resolve());
+        server.listen(Environment.management.port, Environment.management.host, () => resolve());
     });
 }
 
@@ -272,7 +272,7 @@ function tryOpenBrowser(url: string): void {
 
 await startManagementWeb();
 
-const setupUrl = `http://localhost:${Environment.web.managementPort}/setup`;
+const setupUrl = `http://localhost:${Environment.management.port}/setup`;
 tryOpenBrowser(setupUrl);
 
 console.log(kleur.green().bold('Continue setup') + kleur.white().bold(`: Visit ${setupUrl}`));

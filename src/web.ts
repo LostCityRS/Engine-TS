@@ -302,7 +302,7 @@ fastify.register(FastifyStatic, {
 });
 
 export async function startWeb() {
-    await fastify.listen({ port: Environment.web.port, host: '0.0.0.0' });
+    await fastify.listen({ port: Environment.web.port, host: Environment.web.host });
 }
 
 // management routes
@@ -344,5 +344,5 @@ management.put('/setup/config', async req => {
 });
 
 export async function startManagementWeb() {
-    await management.listen({ port: Environment.web.managementPort, host: '0.0.0.0' });
+    await management.listen({ port: Environment.management.port, host: Environment.management.host });
 }
