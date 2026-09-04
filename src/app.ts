@@ -28,9 +28,15 @@ if (OnDemand.cache.count(0) !== 9 || OnDemand.cache.count(2) === 0 || !fs.exists
 }
 
 if (Environment.easyStartup) {
-    new Worker(new URL('./login.ts', import.meta.url));
-    new Worker(new URL('./friend.ts', import.meta.url));
-    new Worker(new URL('./logger.ts', import.meta.url));
+    if (Environment.login.enabled) {
+        new Worker(new URL('./login.ts', import.meta.url));
+    }
+    if (Environment.friend.enabled) {
+        new Worker(new URL('./friend.ts', import.meta.url));
+    }
+    if (Environment.logger.enabled) {
+        new Worker(new URL('./logger.ts', import.meta.url));
+    }
 }
 
 await World.start();
