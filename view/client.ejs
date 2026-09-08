@@ -10,6 +10,8 @@
     <style>
         html {
             touch-action: manipulation;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         }
 
         body,
@@ -17,22 +19,13 @@
         p {
             font-family: Arial, Helvetica, sans-serif;
             font-size: 12px;
-            color: white;
+            color: inherit;
         }
 
         body {
             margin: 0px 0px;
             overflow: auto;
             background-color: black;
-        }
-
-        center {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
         }
 
         #game {
@@ -74,11 +67,29 @@
         }
 
         #controls {
+            position: sticky;
+            left: 0;
+            width: 765px;
+            max-width: 100vw;
+            box-sizing: border-box;
+            padding-left: 32px;
+            padding-right: 76px;
             font-family: Arial, Helvetica, sans-serif;
             margin-top: .5vh;
             margin-bottom: .5vh;
-            height: max(2vh, 24px); /* Minimum height of 24px */
-            font-size: max(1.5vh, 12px); /* Minimum font size of 12px */
+            margin-left: auto;
+            margin-right: auto;
+            min-height: 32px;
+            font-size: 16px;
+            line-height: 32px;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+
+        #controls a,
+        #controls select {
+            font-size: inherit;
+            line-height: inherit;
         }
 
         #hide-message {
@@ -104,14 +115,77 @@
         }
 
         select {
+            -webkit-appearance: none;
+            appearance: none;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
             text-decoration: none;
             background-color: black;
+            background-image:
+                linear-gradient(45deg, transparent 50%, #04A800 50%),
+                linear-gradient(135deg, #04A800 50%, transparent 50%);
+            background-position:
+                calc(100% - 0.45em) center,
+                calc(100% - 0.15em) center;
+            background-repeat: no-repeat;
+            background-size: 0.3em 0.3em;
             color: #04A800;
             border: none;
+            border-radius: 0;
+            margin: 0;
+            padding-right: 0.9em;
+            vertical-align: baseline;
+        }
+
+        option,
+        optgroup {
+            font-family: inherit;
+            font-size: inherit;
         }
 
         #mobilekeyboard-container {
             display: none;
+        }
+
+        #control-dropdowns {
+            display: inline-flex;
+            gap: 1.2em;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        #control-fullscreen,
+        #control-icons {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+        }
+
+        #control-fullscreen {
+            left: 0;
+        }
+
+        #control-icons {
+            right: 0;
+        }
+
+        .icon-control {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            color: #04A800;
+            vertical-align: -0.2em;
+        }
+
+        .icon-control svg {
+            display: block;
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
         }
     </style>
 
@@ -154,6 +228,10 @@
                     element.msRequestFullscreen();
                 }
             }
+        }
+
+        function openWorldMap() {
+            window.open("/worldmap", "World Map", "scrollbars,resizable,width=800,height=600");
         }
 
         function saveScreenshot() {
@@ -208,7 +286,7 @@
         }
 
         document.addEventListener('keydown', function (e) {
-            if ((e.ctrlKey || e.metaKey) && e.altKey) {
+            if (((e.ctrlKey || e.metaKey) && e.altKey) || (e.getModifierState && e.getModifierState("AltGraph"))) {
                 if (e.code === 'KeyI') {
                     e.preventDefault();
                     let controls = localStorage.getItem('hideControls');
@@ -218,6 +296,12 @@
                     else {
                         hideControls();
                     }
+                } else if (e.code === 'KeyM') {
+                    e.preventDefault();
+                    openWorldMap();
+                } else if (e.code === 'KeyS') {
+                    e.preventDefault();
+                    document.getElementById('screenshot').click();
                 }
             }
         });
@@ -252,6 +336,17 @@
             alert('Please reload the page to apply the changes.');
         }
 
+        function syncControlsWidth() {
+            const canvas = document.getElementById('canvas');
+            const controls = document.getElementById('controls');
+            controls.style.width = Math.min(canvas.getBoundingClientRect().width, window.innerWidth) + 'px';
+        }
+
+        function reservedHeightFor(element) {
+            const style = getComputedStyle(element);
+            return Math.ceil(element.offsetHeight + parseFloat(style.marginTop) + parseFloat(style.marginBottom));
+        }
+
         function setSize(size) {
             let canvas = document.getElementById('canvas');
             if (size == null) { size = document.getElementById('size').value; }
@@ -274,15 +369,14 @@
 
                     if (controlsVisible) {
                         // Reserve space for controls with minimum height
-                        reservedHeight = Math.max(window.innerHeight * 0.05, 32 + 8); // Increased buffer
+                        reservedHeight = reservedHeightFor(document.getElementById('controls')) + 1;
                     } else if (timerVisible) {
-                        // Reserve space for timer with minimum height  
-                        reservedHeight = Math.max(window.innerHeight * 0.05, 32 + 8); // Increased buffer
+                        reservedHeight = reservedHeightFor(document.getElementById('hide-message')) + 1;
                     } else {
                         reservedHeight = 0;
                     }
 
-                    const availableHeight = window.innerHeight - reservedHeight;
+                    const availableHeight = Math.floor(window.innerHeight - reservedHeight);
                     const availableWidth = window.innerWidth;
 
                     // Canvas aspect ratio (765:503)
@@ -295,20 +389,23 @@
                     // Use the smaller scale to ensure it fits in both directions
                     const scale = Math.min(scaleByHeight, scaleByWidth);
 
-                    canvas.style.width = (765 * scale) + 'px';
-                    canvas.style.height = (503 * scale) + 'px';
+                    canvas.style.width = Math.floor(765 * scale) + 'px';
+                    canvas.style.height = Math.floor(503 * scale) + 'px';
                     canvas.style.maxWidth = '100vw';
                     canvas.style.maxHeight = availableHeight + 'px';
                     break;
             }
             document.getElementById('size').value = size;
             localStorage.setItem('canvasSize', size);
+            syncControlsWidth();
         }
 
         window.addEventListener('resize', function () {
             let size = localStorage.getItem('canvasSize');
             if (size === 'auto') {
                 setSize('auto');
+            } else {
+                syncControlsWidth();
             }
         });
 
@@ -340,35 +437,60 @@
             </canvas>
         </div>
 
-        <div class="centered" id="controls">
-            <select id="size" name="size" onchange="setSize();">
-                <optgroup>
-                    <option value="1" id="1">1x Size</option>
-                    <option value="2" id="2">2x Size</option>
-                    <option value="3" id="3">3x Size</option>
-                    <option value="auto" id="auto">Auto Sizing</option>
-                </optgroup>
-            </select> |
-            <select id="filtering" name="filtering" onchange="setFilter('dropdown');">
-                <optgroup>
-                    <option value="auto" id="auto">Auto Scaling</option>
-                    <option value="pixelated" id="pixelated">Pixel Scaling</option>
-                </optgroup>
-            </select> |
-            <span id="mobilekeyboard-container">
-                <select id="mobilekeyboard" name="mobilekeyboard" onchange="setKeyboardChoice();">
-                    <optgroup>
-                        <option value="hybrid" id="hybrid">Hybrid keyboard</option>
-                        <option value="canvas" id="canvas">Canvas keyboard</option>
-                        <option value="native" id="native">Native keyboard</option>
-                    </optgroup>
-                </select> |
+        <div class="centered green" id="controls">
+            <span id="control-fullscreen">
+                <a class="green icon-control" href="#" id="fullscreen" onclick="toggleFullscreen(); return false;" aria-label="Go Fullscreen" title="Go Fullscreen">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21.7092 2.29502C21.8041 2.3904 21.8757 2.50014 21.9241 2.61722C21.9727 2.73425 21.9996 2.8625 22 2.997L22 3V9C22 9.55228 21.5523 10 21 10C20.4477 10 20 9.55228 20 9V5.41421L14.7071 10.7071C14.3166 11.0976 13.6834 11.0976 13.2929 10.7071C12.9024 10.3166 12.9024 9.68342 13.2929 9.29289L18.5858 4H15C14.4477 4 14 3.55228 14 3C14 2.44772 14.4477 2 15 2H20.9998C21.2749 2 21.5242 2.11106 21.705 2.29078L21.7092 2.29502Z"/>
+                        <path d="M10.7071 14.7071L5.41421 20H9C9.55228 20 10 20.4477 10 21C10 21.5523 9.55228 22 9 22H3.00069L2.997 22C2.74301 21.9992 2.48924 21.9023 2.29502 21.7092L2.29078 21.705C2.19595 21.6096 2.12432 21.4999 2.07588 21.3828C2.02699 21.2649 2 21.1356 2 21V15C2 14.4477 2.44772 14 3 14C3.55228 14 4 14.4477 4 15V18.5858L9.29289 13.2929C9.68342 12.9024 10.3166 12.9024 10.7071 13.2929C11.0976 13.6834 11.0976 14.3166 10.7071 14.7071Z"/>
+                    </svg>
+                </a>
             </span>
-            <a class="green" href="#" id="fullscreen" onclick="toggleFullscreen();">Go Fullscreen</a> |
-            <a class="green" href="#" id="screenshot" onclick="saveScreenshot();">Take screenshot</a> |
-            <a class="green" href="#" id="hide" onclick="hideControls();">Hide controls</a>
+            <span id="control-dropdowns">
+                <select id="size" name="size" onchange="setSize();">
+                    <optgroup>
+                        <option value="1" id="1">1x Size</option>
+                        <option value="2" id="2">2x Size</option>
+                        <option value="3" id="3">3x Size</option>
+                        <option value="auto" id="auto">Auto Sizing</option>
+                    </optgroup>
+                </select>
+                <select id="filtering" name="filtering" onchange="setFilter('dropdown');">
+                    <optgroup>
+                        <option value="auto" id="auto">Auto Scaling</option>
+                        <option value="pixelated" id="pixelated">Pixel Scaling</option>
+                    </optgroup>
+                </select>
+                <span id="mobilekeyboard-container">
+                    <select id="mobilekeyboard" name="mobilekeyboard" onchange="setKeyboardChoice();">
+                        <optgroup>
+                            <option value="hybrid" id="hybrid">Hybrid keyboard</option>
+                            <option value="canvas" id="canvas">Canvas keyboard</option>
+                            <option value="native" id="native">Native keyboard</option>
+                        </optgroup>
+                    </select>
+                </span>
+            </span>
+            <span id="control-icons">
+                <a class="green icon-control" href="#" id="worldmap" onclick="openWorldMap();" aria-label="World Map" title="World Map">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                    </svg>
+                </a>
+                <a class="green icon-control" href="#" id="screenshot" onclick="saveScreenshot();" aria-label="Take Screenshot" title="Take Screenshot">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="none" d="M0 0h24v24H0z"/>
+                        <path d="M3 3h2v2H3V3zm4 0h2v2H7V3zm4 0h2v2h-2V3zm4 0h2v2h-2V3zm4 0h2v2h-2V3zm0 4h2v2h-2V7zM3 19h2v2H3v-2zm0-4h2v2H3v-2zm0-4h2v2H3v-2zm0-4h2v2H3V7zm7.667 4l1.036-1.555A1 1 0 0 1 12.535 9h2.93a1 1 0 0 1 .832.445L17.333 11H20a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1h2.667zM9 19h10v-6h-2.737l-1.333-2h-1.86l-1.333 2H9v6zm5-1a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>
+                    </svg>
+                </a>
+                <a class="green icon-control" href="#" id="hide" onclick="hideControls(); return false;" aria-label="Hide Controls" title="Hide Controls">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 18L12 12M12 12L6 6M12 12L18 6M12 12L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+            </span>
         </div>
-        <div id="hide-message" style="display: none;">
+        <div id="hide-message" style="display: none;" onclick="showControls();">
             <p class="green blink">Controls have been hidden press ctrl+alt+i to unhide.</p>
             <p class="green" id="count-down"></p>
         </div>
@@ -398,6 +520,7 @@
         })();
 
         loadSettings();
+        syncControlsWidth();
     </script>
 </body>
 
