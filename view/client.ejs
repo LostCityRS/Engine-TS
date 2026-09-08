@@ -296,6 +296,9 @@
                     else {
                         hideControls();
                     }
+                } else if (e.code === 'KeyM') {
+                    e.preventDefault();
+                    openWorldMap();
                 } else if (e.code === 'KeyS') {
                     e.preventDefault();
                     document.getElementById('screenshot').click();
