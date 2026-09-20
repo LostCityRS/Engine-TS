@@ -344,5 +344,5 @@ management.put('/setup/config', async req => {
 });
 
 export async function startManagementWeb() {
-    await management.listen({ port: Environment.web.managementPort, host: '0.0.0.0' });
+    await management.listen({ port: Environment.management.port, host: '0.0.0.0' });
 }

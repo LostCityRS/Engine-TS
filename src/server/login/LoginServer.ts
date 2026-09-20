@@ -139,7 +139,7 @@ export default class LoginServer {
     }
 
     constructor() {
-        if (Environment.login.enabled && !Environment.easyStartup) {
+        if (Environment.login.enabled && Environment.management.enabled && !Environment.easyStartup) {
             startManagementWeb();
         }
 
