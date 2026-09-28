@@ -47,7 +47,7 @@ import { NpcStat } from '#/engine/entity/NpcStat.js';
 import Obj from '#/engine/entity/Obj.js';
 import Player from '#/engine/entity/Player.js';
 import { PlayerLoading } from '#/engine/entity/PlayerLoading.js';
-import { EntityQueueState, PlayerQueueType } from '#/engine/entity/PlayerQueueRequest.js';
+import { PlayerQueueType } from '#/engine/entity/PlayerQueueRequest.js';
 import { PlayerStat } from '#/engine/entity/PlayerStat.js';
 import { SessionLog } from '#/engine/entity/tracking/SessionLog.js';
 import { WealthTransactionEvent, WealthEvent } from '#/engine/entity/tracking/WealthEvent.js';
@@ -100,6 +100,7 @@ import VarBitType from '#/cache/config/VarBitType.js';
 import FriendlistLoaded from '#/network/game/server/model/FriendlistLoaded.js';
 import HashTable from '#/datastruct/HashTable.js';
 import Midi from '#/cache/midi/Midi.js';
+import { WorldQueue } from '#/engine/WorldQueue.js';
 
 const priv = forge.pki.privateKeyFromPem(fs.readFileSync('data/config/private.pem', 'ascii'));
 
@@ -152,7 +153,7 @@ class World {
     // zones
     readonly zonesTracking: Set<Zone> = new Set();
     readonly locObjTracker: LinkList<LocObjEvent> = new LinkList();
-    readonly queue: LinkList<EntityQueueState> = new LinkList();
+    readonly queue: LinkList<WorldQueue> = new LinkList();
     readonly npcEventQueue: LinkList<NpcEventRequest> = new LinkList();
     readonly objDelayedQueue: LinkList<ObjDelayedRequest> = new LinkList();
 
@@ -533,8 +534,7 @@ class World {
 
         // - world queue
         for (const request of this.queue.all()) {
-            const delay = request.delay--;
-            if (delay > 0) {
+            if (this.currentTick < request.executionTick) {
                 continue;
             }
 
@@ -1247,7 +1247,7 @@ class World {
     }
 
     enqueueScript(script: ScriptState, delay: number = 0): void {
-        this.queue.addTail(new EntityQueueState(script, delay + 1));
+        this.queue.addTail(new WorldQueue(script, this.currentTick + delay + 1));
     }
 
     getInventory(inv: number): Inventory | null {
