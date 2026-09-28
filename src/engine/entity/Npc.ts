@@ -653,9 +653,6 @@ export default class Npc extends PathingEntity {
         if (!this.target) {
             return true;
         }
-        if (this.targetOp === NpcMode.PLAYERFOLLOW) {
-            return true;
-        }
         const type = NpcType.get(this.type);
 
         // OpTrigger maxrange
