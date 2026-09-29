@@ -2204,6 +2204,11 @@ export default class Player extends PathingEntity {
     executeScript(script: ScriptState, protect: boolean = false, force: boolean = false) {
         // printDebug('Executing', script.script.name);
 
+        // clear weakqueue here instead of later so weakqueues added by resumed script
+        // arent dropped in closeModal
+        if (script === this.activeScript && (this.modalState & ModalState.MAIN) === ModalState.NONE) {
+            this.weakQueue.clear();
+        }
         const state = this.runScript(script, protect, force);
         if (state === -1) {
             // printDebug('Script did not run', script.script.name, protect, this.protect);
