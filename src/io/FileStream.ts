@@ -211,6 +211,8 @@ export default class FileStream {
             sector = nextSector;
         }
 
+        this.packed[archive][file] = data;
+
         return true;
     }
 
