@@ -241,10 +241,36 @@ function objName(id: number) {
     return type?.debugname ?? `obj_${id}`;
 }
 
+/**
+ * The name objName would have printed, back to an id.
+ *
+ * A REAL NAME WINS, AND THE obj_<id> FALLBACK IS READ TOO - because objName WRITES it. The cache
+ * holds 11518 objs and the content build names 9640 of them, sparsely: only 17 of the 201 ids
+ * between 8900 and 9100 have a debugname at all. So a character holding one of the unnamed ones
+ * exported as "obj_9013" and then could not be imported back, and the two halves of this tool
+ * disagreed about its own file format.
+ *
+ * That broke every WRITE, not just the ones about items: set, give, rename and delete all go
+ * through fullExport -> fullImport, so the whole save round-trips whatever single field is being
+ * changed. "no such obj: obj_9013" is what `set schema account.staffmodlevel 3` answered on the
+ * live server (2026-11-15) - a rank edit, refused by a bank slot it was not touching, which left
+ * raw sqlite as the only way to change a rank.
+ *
+ * The id is still checked against the loaded table, so a hand-edited JSON naming obj_99999 is
+ * refused rather than written into a save. ObjType.count being 0 is already impossible here:
+ * loadCache fails on an empty cache rather than let this tool read names from nothing.
+ */
 function objId(name: string) {
     const id = ObjType.getId(name);
-    if (id === -1) fail(`no such obj: ${name}`);
-    return id;
+    if (id !== -1) return id;
+
+    const unnamed = /^obj_(\d+)$/.exec(name);
+    if (unnamed) {
+        const fallback = parseInt(unnamed[1], 10);
+        if (fallback >= 0 && fallback < ObjType.count) return fallback;
+    }
+
+    fail(`no such obj: ${name}`);
 }
 
 function saveToJson(player: Player): SaveJson {
