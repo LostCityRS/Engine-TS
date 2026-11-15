@@ -425,6 +425,90 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                 }
 
                 player.executeScript(ScriptRunner.init(script, player, null, params), false);
+            } else if (cmd === 'wipebankother' && STAFF_WORLD) {
+                // custom (2026-11-15) - ::wipebankother <username> [confirm], the other-player half
+                // of ::wipebank (administrator, in the block below).
+                //
+                // OWNER, AND IN THIS BLOCK RATHER THAN THAT ONE. Every other command here can stop
+                // or wreck the world it is run on and is recoverable by restarting it; this one
+                // destroys another player's property and nothing gives it back. An administrator
+                // can already hand out items and rewrite another account's varps, but nothing until
+                // now could delete somebody else's. STAFF_WORLD on top of the rank, like
+                // ::teleother and ::giveother: on an open development world every login is promoted
+                // to 4, so without it this would belong to anyone who connected.
+                //
+                // ONLINE ONLY. The bank lives in the player's loaded inventories, so this reaches
+                // the account only while it is logged in. Wiping an offline bank would mean editing
+                // the save, which is a different job with different risks.
+                // The NAME, not args.length. A trailing space - "::wipebankother " - splits into one
+                // empty argument rather than none, so a length check alone let that through to the
+                // lookup below and answered " is not logged in.", which reads like a bug in the
+                // command. (::teleother and ::giveother check the length; they have the same gap.)
+                const want = args[0] ?? '';
+                if (want.length === 0) {
+                    player.messageGame('Usage: ::wipebankother <username> [confirm]');
+                    return false;
+                }
+
+                const other = World.getPlayerByUsername(want);
+                if (!other) {
+                    player.messageGame(`${want} is not logged in.`);
+                    return false;
+                }
+
+                const otherBank = other.getInventory(InvType.getId('bank'));
+                if (!otherBank) {
+                    return false;
+                }
+
+                const items = otherBank.capacity - otherBank.freeSlotCount;
+                if (items === 0) {
+                    player.messageGame(`${other.displayName}'s bank is already empty.`);
+                    return false;
+                }
+
+                // NOT ONE TYPO AWAY FROM THE WRONG BANK. ::wipebank asks its question in a Yes/No
+                // box, which cannot be done here: the box would open on the player whose items are
+                // going and they would be the one answering it. So the confirmation is the word,
+                // and the command without it reports what it WOULD delete instead of deleting it -
+                // which doubles as the way to read a bank's size before touching it.
+                if (args[1] !== 'confirm') {
+                    player.messageGame(`${other.displayName}'s bank holds ${items} item${items === 1 ? '' : 's'}.`);
+                    player.messageGame(`Type ::wipebankother ${want} confirm to delete all of it. This cannot be undone.`);
+                    return true;
+                }
+
+                // The same two steps as ::teleother, for the same reasons: a modal open on the
+                // target may be the bank grid itself, full of items that are about to stop
+                // existing, and closeModal unbinds it (content's [if_close,bank_main] ->
+                // @closebank) as well as making canAccess answerable. Without the canAccess check
+                // the executeScript below would be refused for a delayed player and the command
+                // would do nothing at all, silently.
+                other.closeModal();
+
+                if (!other.canAccess()) {
+                    player.messageGame(`${want} is busy right now.`);
+                    return false;
+                }
+
+                const wipe = ScriptProvider.getByName('[proc,bank_wipe_force]');
+                if (!wipe) {
+                    // a content build from before bank_wipe.rs2
+                    return false;
+                }
+
+                // Run on the TARGET with protected access, so content's one copy of "what a bank is
+                // made of" does the work for this command as well as for ::wipebank: the list, the
+                // eight tab counts and the viewed tab. The target's own bank PIN is not asked for,
+                // and should not be - this is staff acting on the account, not somebody sitting at
+                // its keyboard.
+                other.executeScript(ScriptRunner.init(wipe, other), true);
+
+                player.messageGame(`Wiped ${other.displayName}'s bank: ${items} items deleted.`);
+                // Said to them because a bank that empties itself with no explanation is a bug
+                // report, and because they are going to notice either way.
+                other.messageGame('Your bank has been emptied by a staff member.');
+                return true;
             } else if (cmd === 'reload') {
                 World.reload();
             } else if (cmd === 'rebuild') {

@@ -318,6 +318,7 @@ jobs:
           case "$n" in
             securityfixes) extra='NODE_PRODUCTION=true NODE_IDLE_LOGOUT_TICKS=20' ;;
             staffrules) extra='NODE_PRODUCTION=true' ;;
+            wipebank) extra='NODE_MIN_STAFF_LEVEL=2' ;;
             *) extra='' ;;
           esac
           rc=0
