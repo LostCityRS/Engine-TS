@@ -192,6 +192,36 @@ try {
             break;
         }
 
+        case 'delete': {
+            const id = Number(positionals[1]);
+            if (!Number.isInteger(id)) {
+                fail('usage: delete <poll id> [--confirm]');
+            }
+            const poll = book.poll(id);
+            if (!poll) {
+                fail(`there is no poll ${id}. "poll.ts list" shows them.`);
+            }
+
+            // The counts are printed BEFORE the warning, because what makes this different from
+            // close is exactly the numbers that are about to stop existing.
+            showResults(book, id);
+
+            const turnout = book.turnout(id);
+            console.log('');
+            console.log(`  DELETE removes the question, its options and ${turnout.total === 1 ? 'the 1 vote' : `all ${turnout.total} votes`}.`);
+            console.log('  There is no undo and no backup - this is not "close", which keeps the');
+            console.log('  results readable. Use close unless you want it gone from the website.');
+
+            if (!confirm) {
+                console.log('\nNothing was changed. Run it again with --confirm to delete it.');
+                break;
+            }
+
+            const lost = book.deletePoll(id);
+            console.log(`\n#${id} is gone, with ${lost === 1 ? 'its 1 vote' : `its ${lost} votes`}. The website has nothing to show for it now.`);
+            break;
+        }
+
         // Not advertised in the usage above: there is no reason to cast a vote from a terminal
         // except to check that the one-vote rule holds on a real file, which is what it is for.
         case 'testvote': {
@@ -225,6 +255,7 @@ try {
                     '  poll.ts new "<question>" "<a>" "<b>" [...]        what it would post',
                     '  poll.ts new ... --confirm                         post it',
                     '  poll.ts close <id> [--confirm]                   stop taking votes',
+                    '  poll.ts delete <id> [--confirm]                  remove it and its votes for good',
                     '',
                     '  --profile <name>                                 default: NODE_PROFILE',
                     '',

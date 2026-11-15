@@ -181,6 +181,33 @@ export default class PollBook {
         return this.db.prepare('SELECT idx, label FROM poll_option WHERE poll_id = ? ORDER BY idx').all(pollId) as unknown as PollOption[];
     }
 
+    /**
+     * Remove a poll and everything about it. Returns the number of votes it threw away.
+     *
+     * THE ONLY IRREVERSIBLE THING IN HERE, and the reason it exists is the one nobody plans for: a
+     * poll posted to check the feature works, which then sits on the website under "Last poll" with
+     * its two test votes for everybody to read. Closing is not removing - closes writes a time and
+     * the page still shows it.
+     *
+     * The votes go with it rather than being left orphaned. A vote row whose poll is gone would
+     * count against nothing and still occupy (poll_id, username), so the account could never vote
+     * on a poll that reused the id - and ids are an AUTOINCREMENT, so one day one would.
+     */
+    deletePoll(id: number): number {
+        this.db.exec('BEGIN IMMEDIATE');
+        try {
+            const votes = Number((this.db.prepare('SELECT COUNT(*) AS n FROM vote WHERE poll_id = ?').get(id) as unknown as { n: number }).n);
+            this.db.prepare('DELETE FROM vote WHERE poll_id = ?').run(id);
+            this.db.prepare('DELETE FROM poll_option WHERE poll_id = ?').run(id);
+            this.db.prepare('DELETE FROM poll WHERE id = ?').run(id);
+            this.db.exec('COMMIT');
+            return votes;
+        } catch (err) {
+            this.db.exec('ROLLBACK');
+            throw err;
+        }
+    }
+
     /** Stop taking votes. Returns false if there is no such poll or it was already closed. */
     closePoll(id: number, now: number = Date.now()): boolean {
         const changed = this.db.prepare('UPDATE poll SET closes = ? WHERE id = ? AND closes IS NULL').run(now, id);
