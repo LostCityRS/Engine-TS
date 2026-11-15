@@ -311,9 +311,94 @@ for (const name of SUSPECTS) {
     }
 }
 
+// ------------------------------------------------------------------ killed with a spell
+//
+// THE DEATH PATH THE PROBE NEVER TRIED, and the reason this section exists. Every scenario above
+// kills with a dragon scimitar, and the four findings came out of a fuzz run whose bots cast 61,617
+// spells - their commonest action by a wide margin. If a magic kill removes a corpse on a different
+// schedule from a melee kill, every measurement above was taken on the wrong weapon.
+//
+// Same shape as the others: one hitpoint, re-issued casts, and the interval between hitpoints
+// reaching 0 and the npc leaving the world.
+
+/** Ticks between hitpoints reaching 0 and removal, killed with fire bolt rather than a blade. */
+function timeToRemovalBySpell(name: string): number | null {
+    if (NpcType.getId(name) === -1) {
+        console.log(`  MISSING ${name} - no such npc, so this probe says nothing about it`);
+        return null;
+    }
+    p.teleport(3222, 3218, 0);
+    H.tick(1);
+    const npc = H.addNpc(name, 3224, 3218);
+    H.tick(1);
+    npc.levels[NpcStat.HITPOINTS] = 1;
+    let zeroAt = -1;
+    for (let t = 0; t < 400; t++) {
+        if (zeroAt === -1 && npc.isActive && t % 8 === 0) {
+            npc.levels[NpcStat.HITPOINTS] = 1;
+            H.castOnNpc(p as never, npc, 'magic:fire_bolt');
+        }
+        H.tick(1);
+        if (zeroAt === -1 && npc.levels[NpcStat.HITPOINTS] === 0) {
+            zeroAt = t;
+        }
+        if (!npc.isActive) {
+            return zeroAt === -1 ? -2 : t - zeroAt;
+        }
+    }
+    return zeroAt === -1 ? null : -1;
+}
+
+console.log('');
+console.log('-- the same npcs again, killed with fire bolt instead of a blade');
+// Runes rather than a staff, so nothing depends on what is in the weapon hand - the scimitar can
+// stay equipped and the only thing that changes between this section and the first is the kill.
+H.give(p as never, 'airrune', 5000);
+H.give(p as never, 'chaosrune', 5000);
+H.give(p as never, 'firerune', 5000);
+H.tick(1);
+const SPELL_TARGETS = [...CONTROLS, ...SUSPECTS];
+for (const name of SPELL_TARGETS) {
+    // MISSING was already reported by the melee pass; counting it again here would report one
+    // absent npc as two problems.
+    if (NpcType.getId(name) === -1) continue;
+    const n = timeToRemovalBySpell(name);
+    if (n === null) {
+        console.log(`  UNTESTED ${name} - fire bolt could not bring it to 0 hitpoints in 400 ticks`);
+        untested++;
+    } else if (n === -1) {
+        console.log(`  FAIL ${name} was STILL in the world 400 ticks after dying to a spell`);
+        bad++;
+    } else if (n === -2) {
+        console.log(`  --   ${name}: died and was removed between two looks, so no interval to report`);
+    } else if (n > worstControl) {
+        // MEASURED AND REPORTED, NOT FAILED, and the distinction is the point.
+        //
+        // A spell kill really does take longer: 5 ticks against melee's 3, byte-identical over two
+        // runs, for goblin, man and mm_monkey_guard. But a fire bolt has a projectile to fly and a
+        // hit to land, so 2 extra ticks may be exactly right, and a sim that calls the correct
+        // answer a failure is red every night for nothing - which is the mistake the first version
+        // of the fuzz gate made, gating on 254 findings that were all normal.
+        //
+        // So this prints the difference and leaves the verdict open. What makes it worth printing
+        // at all: the fuzz run whose four corpse findings started this probe had its bots cast
+        // 61,617 spells, their commonest action by a wide margin, so this is the death path those
+        // findings most likely came through. It is not on its own an explanation - CORPSE_TICKS is
+        // 10 and 5 is well under it, so nothing here would trip the watcher - but it is the first
+        // measured difference between two death paths, and it says where to look next.
+        //
+        // Unexplained, and the next thread to pull: rat and mm_oipuis come back at 3 either way,
+        // so whatever adds the 2 ticks does not add them for every npc.
+        console.log(`  >>>> ${name} took ${n} ticks to leave after a spell kill, against ${worstControl} for a melee kill`);
+    } else {
+        console.log(`  ok   ${name} left ${n} ticks after a spell kill, the same as a melee one`);
+        ok++;
+    }
+}
+
 console.log('');
 // THE DENOMINATOR IS PRINTED, because a probe that skips its subject and exits 0 is the trap
 // quest_garden_run fell into: it aborted at step 6 and reported 4 of 5 passing while 83 checks had
 // never run.
-console.log(`${ok} ok, ${bad} FAIL, ${untested} untested of ${CONTROLS.length + SUSPECTS.length} npcs`);
+console.log(`${ok} ok, ${bad} FAIL, ${untested} untested of ${CONTROLS.length + SUSPECTS.length} npcs across ${4} scenarios`);
 process.exit(bad ? 1 : 0);

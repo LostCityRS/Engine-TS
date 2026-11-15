@@ -10,6 +10,7 @@ import Player from '#/engine/entity/Player.js';
 import World from '#/engine/World.js';
 import LocType from '#/cache/config/LocType.js';
 import NpcType from '#/cache/config/NpcType.js';
+import ParamType from '#/cache/config/ParamType.js';
 import ObjType from '#/cache/config/ObjType.js';
 import Component from '#/cache/config/Component.js';
 import ScriptState from '#/engine/script/ScriptState.js';
@@ -447,12 +448,41 @@ const talk = (name: string, picks: number[]): string => {
 };
 said = talk('blandebir', [1, 1]);
 check('Blandebir walks you through the whole recipe, cider included', [said.includes('Two buckets of water'), said.includes('yeast'), said.includes('apple mush')], [true, true, true]);
+// THE PRICE AS WELL AS THE CURRENCY, and the gap between those two is where a real bug lived.
+// These checks used to establish that Blandebir takes coins and Metarialus takes ectotokens and
+// said nothing whatever about HOW MANY, so when the shop formula moved from per cent to per mille
+// - ~calc_shop_value now ends in scale($int5, 1000, $base_cost) - both keepers kept their old
+// numbers and nothing noticed. Blandebir sold 25gp yeast for 2gp, which Noterazzo's allstock
+// counter bought back at 15gp, and Metarialus charged two tokens where his own comment says five.
+//
+// brewers.rs2 states the intent in as many words: "ale yeast costs 25, so 100 is Blandebir's 25
+// coins and 20 is Metarialus's 5 tokens". That sentence is what these two checks are about.
+//
+// THE MULTIPLIER AND NOT THE QUOTED PRICE, which took two wrong attempts to settle on.
+//
+// Asserting the quoted price exactly fails straight away: on top of the multiplier,
+// ~calc_shop_value subtracts ~price_mod scaled by %shop_haggle, which moves with how far the row's
+// stock sits from its norm, so a full shelf quotes 27 where the multiplier alone says 25. Both are
+// correct. A proportional band round the quoted price is no better, because that haggle term is
+// ADDITIVE IN MULTIPLIER SPACE - the same +80 per mille for both keepers - which is +8% on
+// Blandebir's 1000 and +40% on Metarialus's 200. And an absolute band wide enough for that cannot
+// separate Metarialus's correct 7 from the ~4 he quoted while broken.
+//
+// The multiplier is where the bug lived, so the multiplier is what gets asserted. It carries no
+// haggle, no stock position and no rounding, and it is exactly the number brewers.rs2 is talking
+// about when it says "100 is Blandebir's 25 coins and 20 is Metarialus's 5 tokens" - those two
+// figures on the per-cent scale that ~calc_shop_value no longer uses.
+const sellMultiplier = (npcName: string): number | undefined => {
+    const t = NpcType.get(NpcType.getId(npcName));
+    return t?.params?.get(ParamType.getId('shop_sell_multiplier')) as number | undefined;
+};
+
 said = talk('blandebir', [2]);
-check('  and his counter sells ale yeast for coins', [H.getVar(p, 'shop') !== -1, ObjType.get(H.getVar(p, 'shop_currency')).debugname], [true, 'coins']);
+check('  and his counter sells ale yeast for coins, at par', [H.getVar(p, 'shop') !== -1, ObjType.get(H.getVar(p, 'shop_currency')).debugname, sellMultiplier('blandebir')], [true, 'coins', 1000]);
 p.closeModal();
 H.tick(1);
 said = talk('metarialus', [2]);
-check('while the dead brewer in the cellar takes ectotokens', [H.getVar(p, 'shop') !== -1, ObjType.get(H.getVar(p, 'shop_currency')).debugname], [true, 'ectotoken']);
+check('while the dead brewer in the cellar takes ectotokens, at a fifth of cost', [H.getVar(p, 'shop') !== -1, ObjType.get(H.getVar(p, 'shop_currency')).debugname, sellMultiplier('metarialus')], [true, 'ectotoken', 200]);
 
 console.log('');
 console.log(`${R.ok} ok, ${R.bad} failed`);
