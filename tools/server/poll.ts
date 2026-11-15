@@ -139,6 +139,15 @@ try {
                 fail('usage: new "<question>" "<option>" "<option>" [more options] [--confirm]');
             }
 
+            // FIVE, BECAUSE THAT IS AS WIDE AS THE CLERK CAN ASK. Content's widest menu is
+            // ~p_choice5, so a sixth option would be invisible in game while being perfectly
+            // votable on the website - the same poll giving two different sets of choices
+            // depending on where you answered it. Refused here rather than discovered by a player.
+            // Mirrored as ^poll_max_options in content/scripts/poll/configs/poll.constant.
+            if (labels.length > 5) {
+                fail(`${labels.length} options, and a poll can have at most 5 - the in-game dialogue cannot ask a wider question than that.`);
+            }
+
             const already = book.openPolls();
             if (already.length > 0) {
                 fail(`#${already[0].id} is still open ("${already[0].question}"). Close it first: poll.ts close ${already[0].id} --confirm`);

@@ -552,6 +552,22 @@ export const enum ScriptOpcode {
     // back out again has to ask whether this player is one, not what badge they draw.
     HELPER,
 
+    // Polls (custom, 2026-11-15) - see engine/poll/. APPENDED, for the reason above: these are the
+    // last implicitly numbered ops, and the debug block below is pinned at 10000, so nothing after
+    // them moves.
+    //
+    // The id goes back in on every call rather than each op finding the open poll again. A poll
+    // that closes mid-conversation would otherwise let the question come from one poll and the
+    // options from another; this way the cast is refused against the id the player was shown.
+    POLL_OPEN,
+    POLL_QUESTION,
+    POLL_OPTIONCOUNT,
+    POLL_OPTION,
+    POLL_VOTED,
+    POLL_CAST,
+    POLL_VOTES,
+    POLL_TOTAL,
+
     // Debug ops (10000-11000)
     CONSOLE = 10000,
     ERROR,
@@ -1054,6 +1070,15 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['VOTE_CLAIM', ScriptOpcode.VOTE_CLAIM],
     ['VOTE_OWED', ScriptOpcode.VOTE_OWED],
     ['VOTE_TAKE', ScriptOpcode.VOTE_TAKE],
+
+    ['POLL_OPEN', ScriptOpcode.POLL_OPEN],
+    ['POLL_QUESTION', ScriptOpcode.POLL_QUESTION],
+    ['POLL_OPTIONCOUNT', ScriptOpcode.POLL_OPTIONCOUNT],
+    ['POLL_OPTION', ScriptOpcode.POLL_OPTION],
+    ['POLL_VOTED', ScriptOpcode.POLL_VOTED],
+    ['POLL_CAST', ScriptOpcode.POLL_CAST],
+    ['POLL_VOTES', ScriptOpcode.POLL_VOTES],
+    ['POLL_TOTAL', ScriptOpcode.POLL_TOTAL],
 
     ['CONSOLE', ScriptOpcode.CONSOLE],
     ['ERROR', ScriptOpcode.ERROR],

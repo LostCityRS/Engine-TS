@@ -1152,6 +1152,16 @@ const ScriptOpcodePointers: {
         require: ['active_player']
     },
 
+    // poll_open/question/optioncount/option/votes/total are about the poll and need nobody - the
+    // question and the standings are the same for everyone. These two are about a particular
+    // account: whether it has voted, and casting its one vote.
+    [ScriptOpcode.POLL_VOTED]: {
+        require: ['active_player']
+    },
+    [ScriptOpcode.POLL_CAST]: {
+        require: ['active_player']
+    },
+
     [ScriptOpcode.CLAN_SETNAME]: {
         require: ['active_player']
     },
