@@ -44,7 +44,7 @@ const FAIRY_COMPLETE = 100; // ^fairy_complete, quest_fairy.constant
 // the rings as the map places them: loc name, centre tile, and the code that reaches it.
 // Every coordinate was probed by tools/sim/ringsites.ts, never estimated - see the note in
 // fairy_rings.constant about the three first drafts that were in the wrong place.
-const RINGS = [
+const RINGS: { loc: string; x: number; z: number; code: string; where: string; quest?: string }[] = [
     { loc: '64_fairy_mushroom_ring', x: 2412, z: 4434, code: 'BKS', where: 'Zanaris' },
     { loc: '1_fairy_mushroom_ring', x: 2319, z: 3619, code: 'AKQ', where: 'Piscatoris' },
     { loc: '6_fairy_mushroom_ring', x: 2644, z: 3495, code: 'ALS', where: "McGrubor's Wood" },
@@ -79,10 +79,17 @@ const RINGS = [
     { loc: '50_fairy_mushroom_ring', x: 2440, z: 5146, code: 'BLP', where: 'the TzHaar city' },
     { loc: '52_fairy_mushroom_ring', x: 2629, z: 4677, code: 'BJR', where: "the Fisher King's realm" },
     // READ AS ABSENT TWICE, because Tirannwn does not answer to RuneScape's name for it: it is
-    // here under the Regicide quest's prefix. DLS, the Myreque's cave, was found the same way and
-    // then deliberately removed - see the note in fairy_rings.constant for why.
-    { loc: '53_fairy_mushroom_ring', x: 2200, z: 3120, code: 'DLR', where: 'Isafdar' }
+    // here under the Regicide quest's prefix. DLS, the Myreque's cave, was found the same way.
+    { loc: '53_fairy_mushroom_ring', x: 2200, z: 3120, code: 'DLR', where: 'Isafdar' },
+    // THE ONE CODE WITH A GATE OF ITS OWN. DLS was built, removed because it dropped a player who
+    // had never met the Myreque into their hideout, and brought back once %routequest existed to
+    // gate it on. `quest` here is what the every-code loop below has to finish first, and the
+    // refusal is checked separately - see the gate section at the end.
+    { loc: '55_fairy_mushroom_ring', x: 3500, z: 9810, code: 'DLS', where: "the Myreque's cave", quest: 'routequest' }
 ];
+
+/** In Search of the Myreque, finished: ^route_complete. */
+const ROUTE_COMPLETE = 8;
 
 // the order each dial turns in, which is NOT alphabetical
 const DIALS = ['ADCB', 'ILKJ', 'PSRQ'];
@@ -102,6 +109,18 @@ const PANEL = Component.getId('fairy_rings');
 const panelOpen = (pl: Player) => pl.modalMain === PANEL;
 
 /** Anything the server put on a text component for this player, mesboxes included. */
+/**
+ * The chatbox, which is NOT where textSeen looks. textSeen reads if_settext on interface
+ * components - which is what ~mesbox and the dial panel use - while mes() goes to the message
+ * list. DLS's refusal is a mes(), so asserting it through textSeen compared against an empty
+ * string and failed for a reason that had nothing to do with the gate.
+ */
+const saidTo = (pl: Player) =>
+    H.mesgs
+        .filter(m => m.who === pl.username)
+        .map(m => m.text)
+        .join(' ');
+
 const textSeen = (pl: Player) =>
     H.ifaces
         .filter(f => f.who === pl.username && f.kind === 'text' && f.text)
@@ -281,6 +300,8 @@ for (const r of RINGS) {
     const t = H.makePlayer(`fr_${r.code.toLowerCase()}`, 2412, 4440);
     H.loginOrder(t);
     H.setVarBit(t, 'fairy_farmers_quest', FAIRY_COMPLETE);
+    // A code with its own quest needs that one finished too, or it refuses by design.
+    if (r.quest) H.setVar(t, r.quest, ROUTE_COMPLETE);
     H.setVar(t, 'fairy_ring_dial', 0);
     H.clearLogs();
     useRing(t, RINGS[0]);
@@ -339,7 +360,11 @@ check('the departure has an effect, not just a fade', sparks.length >= 1, true);
 check('and so does the arrival', sparks.length >= 2, true);
 // Height 0 puts it on the ground around the feet. A ring model at head height is a different
 // effect entirely, and the number is the only thing in the call that says which.
-check('...both at ground level', sparks.every(g => g.height === 0), true);
+check(
+    '...both at ground level',
+    sparks.every(g => g.height === 0),
+    true
+);
 check('...a tick apart, so neither is swallowed', sparks.length >= 2 ? sparks[1].tick - sparks[0].tick >= 2 : false, true);
 
 // ---------------------------------------------------------------- a code that goes nowhere
@@ -356,49 +381,7 @@ H.clearLogs();
 H.ifButton(lost, 'fairy_rings:enter_box');
 settle();
 check('AIP does not move anybody', at(lost), stood);
-check(
-    'and the ring says so',
-    /nothing happens/i.test(
-        H.mesgs
-            .filter(m => m.who === lost.username)
-            .map(m => m.text)
-            .join(' ')
-    ),
-    true
-);
-
-// ---------------------------------------------------------------- and DLS really is gone
-//
-// DLS WAS BUILT AND THEN REMOVED, and deleting a ring along with its test would prove nothing at
-// all - the suite would pass either way. So the removal gets its own assertions: no ring stands
-// at the tile any more, and the code now falls through to the ring that hums and does nothing,
-// which is what every unbuilt code does. If anybody re-adds the case without the loc, or the loc
-// without the case, one of these two fails.
-console.log('\nand DLS, which was removed on purpose, goes nowhere');
-check('no ring is left at 3500,9810', H.locsNear('55_fairy_mushroom_ring', 3500, 9810).length, 0);
-
-const gone = H.makePlayer('fr_gone', 2412, 4440);
-H.loginOrder(gone);
-H.setVarBit(gone, 'fairy_farmers_quest', FAIRY_COMPLETE);
-H.setVar(gone, 'fairy_ring_dial', 0);
-H.clearLogs();
-useRing(gone, RINGS[0]);
-dialTo(gone, 'DLS');
-const stoodDls = at(gone);
-H.clearLogs();
-H.ifButton(gone, 'fairy_rings:enter_box');
-settle();
-check('DLS does not move anybody', at(gone), stoodDls);
-check(
-    '...and the ring says so',
-    /nothing happens/i.test(
-        H.mesgs
-            .filter(m => m.who === gone.username)
-            .map(m => m.text)
-            .join(' ')
-    ),
-    true
-);
+check('and the ring says so', /nothing happens/i.test(saidTo(lost)), true);
 
 // ---------------------------------------------------------------- the code is remembered
 console.log('\nand the dial remembers');
@@ -510,8 +493,56 @@ H.setVarBit(zanim, 'fairy_farmers_quest', FAIRY_COMPLETE);
 H.clearLogs();
 H.opLoc(zanim, 2705, 3576, '47_fairy_mushroom_ring', 2);
 settle();
-check('the shortcut animates too', H.anims.some(a => a.who === zanim.username && a.seq === VANISH), true);
+check(
+    'the shortcut animates too',
+    H.anims.some(a => a.who === zanim.username && a.seq === VANISH),
+    true
+);
 check('...and sparkles', H.spotanims.filter(g => g.who === zanim.username && g.spotanim === RING_GFX).length >= 2, true);
+
+// ---------------------------------------------------------------- DLS has a second gate
+//
+// WHY THIS IS ITS OWN SECTION. Every other code in the network is gated on Fairytale Part I and
+// nothing else. DLS lands two tiles from the Myreque's hideout door, and with only that gate it
+// let a player who had never met them walk straight in - which is why it was built, removed, and
+// only brought back once %routequest existed to check. A sim that dialled DLS with every quest
+// finished would prove the ring works and say nothing about the thing that got it deleted.
+//
+// The refusal must also be the SAME LINE an unused code gets, so the ring cannot be used to
+// discover that DLS leads anywhere at all.
+console.log('\nand DLS refuses without In Search of the Myreque');
+const MYREQUE = RINGS.find(r => r.code === 'DLS')!;
+const NOWHERE = 'The ring hums for a moment, and settles. Nothing happens.';
+{
+    const ungated = H.makePlayer('fr_dls_no', 2412, 4440);
+    H.loginOrder(ungated);
+    H.setVarBit(ungated, 'fairy_farmers_quest', FAIRY_COMPLETE);
+    H.setVar(ungated, 'routequest', 0);
+    H.setVar(ungated, 'fairy_ring_dial', 0);
+    H.clearLogs();
+    useRing(ungated, RINGS[0]);
+    dialTo(ungated, 'DLS');
+    H.ifButton(ungated, 'fairy_rings:enter_box');
+    settle();
+    check('the player is still in Zanaris', at(ungated) === `${MYREQUE.x},${MYREQUE.z}`, false);
+    check('...and nowhere near the hideout', ungated.z < 9000, true);
+    check('...and the ring gives nothing away', saidTo(ungated).includes(NOWHERE), true);
+}
+{
+    // ...and with the quest finished it is an ordinary code again.
+    const done = H.makePlayer('fr_dls_yes', 2412, 4440);
+    H.loginOrder(done);
+    H.setVarBit(done, 'fairy_farmers_quest', FAIRY_COMPLETE);
+    H.setVar(done, 'routequest', ROUTE_COMPLETE);
+    H.setVar(done, 'fairy_ring_dial', 0);
+    H.clearLogs();
+    useRing(done, RINGS[0]);
+    dialTo(done, 'DLS');
+    H.ifButton(done, 'fairy_rings:enter_box');
+    settle();
+    check('with the quest it lands at the cave', at(done), `${MYREQUE.x},${MYREQUE.z}`);
+    check('...and does not print the refusal', saidTo(done).includes(NOWHERE), false);
+}
 
 console.log(`\n${ok} ok, ${bad} failed`);
 process.exit(bad > 0 ? 1 : 0);
