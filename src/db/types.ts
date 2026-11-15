@@ -14,6 +14,7 @@ export type account = {
     veteran: Generated<number>;
     helper: Generated<number>;
     members: Generated<number>;
+    xp_rate: Generated<number>;
 };
 export type account_login = {
     account_id: number;

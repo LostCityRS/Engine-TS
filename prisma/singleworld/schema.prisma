@@ -44,6 +44,19 @@ model account {
     // value of this rank is that there is nothing attached to it to abuse.
     helper        Int     @default(0)
     members       Boolean @default(false)
+
+    // custom (2026-11-15) - the experience rate this account chose: 1, 5 or 10. A MIRROR of the
+    // save's `xp_rate` varp, written by the login server on every logout beside the hiscore rows it
+    // derives the same way. Player.xpRate() is still the only thing that decides what a player
+    // earns; this is here so the website can filter a leaderboard by mode without reading a save,
+    // which it has no way to do.
+    //
+    // Beside members/veteran/helper because it is a fact about the ACCOUNT rather than the
+    // character, and because the board query already joins this table for the username. 1 is what
+    // xpRate() returns for a varp never written, so the default matches the engine's own answer.
+    //
+    // An ironman mode, if it comes, is a separate column. Not this one widened.
+    xp_rate       Int     @default(1)
 }
 
 // custom (2026-11-02) - A SAVED LOGIN ON ONE COMPUTER. The client used to keep the player's own

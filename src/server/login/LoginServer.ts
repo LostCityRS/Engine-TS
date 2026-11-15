@@ -111,6 +111,21 @@ const SAVE_FILE_MESSAGES = new Set(['player_login', 'player_logout', 'player_aut
 async function updateHiscores(account: { id: number; staffmodlevel: number; banned_until: string | null } | undefined, player: Player, profile: string) {
     if (!account) return;
 
+    // THE ACCOUNT'S EXPERIENCE RATE, MIRRORED OUT OF THE SAVE (custom, 2026-11-15).
+    //
+    // ABOVE THE RETURNS BELOW ON PURPOSE. Staff and banned accounts leave this function without
+    // writing a hiscore row, and rightly - but their rate is still a true fact about them, and the
+    // player page shows which mode somebody is on whether or not they are ranked. A column that is
+    // only correct for ranked accounts is a column every reader has to remember the exception to.
+    //
+    // ONE STATEMENT, NO READ. The `!=` in the where clause makes it a no-op when nothing has
+    // changed, which is every logout after the first - so this costs a statement that matches no
+    // rows rather than a select on every save.
+    //
+    // The varp is the source and this is the copy; it exists because the WEBSITE cannot open a save
+    // file to find out which board somebody belongs on. See prisma/*/migrations/*_account_xp_rate.
+    await db.updateTable('account').set({ xp_rate: player.xpRate() }).where('id', '=', account.id).where('xp_rate', '!=', player.xpRate()).execute();
+
     // NOBODY WHO CAN HAND THEMSELVES THE SCORE. ::give and ::setstat are in the staffModLevel >= 3
     // block of ClientCheatHandler - "admin commands, potentially destructive for a live economy" -
     // so 3 and above is exactly the set of people who can award themselves an item or a level, and

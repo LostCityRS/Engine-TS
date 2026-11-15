@@ -1,0 +1,24 @@
+-- AlterTable
+-- custom (2026-11-15) - which experience rate this account chose: 1, 5 or 10. Asked for by a
+-- player, who pointed out that the boards mix the modes - and the rate is the one choice that can
+-- never be changed, so a 1x account was ranked against 10x accounts permanently and with no way
+-- out of it.
+--
+-- A MIRROR OF THE SAVE'S `xp_rate` VARP, NOT THE SOURCE. Player.xpRate() reads the varp and is
+-- still the only thing that decides what a player earns; this column exists so the WEBSITE can
+-- filter a leaderboard without opening a save file, which it has no way to do. The login server
+-- rewrites it from the save on every logout, beside the hiscore rows it derives the same way, so
+-- the two cannot drift for longer than one session.
+--
+-- ON THE ACCOUNT RATHER THAN ON EVERY HISCORE ROW. An account has one rate, so putting it on the
+-- rows would repeat it thirty times and have to be set on four separate insert and update paths.
+-- Here it sits beside members, veteran and helper - the other facts about an account rather than
+-- about a character - and the board query already joins this table for the username, so filtering
+-- costs nothing.
+--
+-- 1 BY DEFAULT because that is what xpRate() returns for a varp that was never written: the
+-- authentic rate, which is what the server did before modes existed.
+--
+-- An ironman mode, if it arrives, is a SEPARATE column here. A single "mode" that had quietly come
+-- to mean two things is how you end up with a board nobody can explain.
+ALTER TABLE `account` ADD COLUMN `xp_rate` INTEGER NOT NULL DEFAULT 1;
