@@ -557,6 +557,43 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                 return true;
             }
 
+            // custom (2026-11-15) - ::wipebank, which empties the whole bank instead of making
+            // somebody withdraw and drop a few hundred items by hand. Administrator and up, next
+            // to ::bank, because the alternative was ::~clearinv bank and a debugproc is
+            // owner-only on a live world (the block below) - so an administrator testing on live
+            // had no way to do this at all.
+            //
+            // closeModal FIRST, like ::home. The bank window is a main modal, so it makes
+            // canAccess false and the command would have answered "finish what you are doing" to
+            // somebody who is looking at the bank they want emptied - which is when this gets
+            // typed. Closing it also runs content's [if_close,bank_main] -> @closebank, so the
+            // grid is unbound before anything is deleted out from under it, and it leaves the
+            // chatbox free for the Yes/No confirm.
+            //
+            // The work is content's (interface_bank/scripts/bank_wipe.rs2) for the same reason
+            // ::bank's is: what has to be reset alongside the inv - the eight tab counts, the
+            // viewed tab - is bank interface knowledge and belongs next to the code that
+            // maintains it. protect=true because inv_clear on the bank inv is "$inv requires
+            // protected access" without it.
+            if (cmd === 'wipebank') {
+                player.closeModal();
+
+                if (!player.canAccess()) {
+                    player.messageGame('Please finish what you are doing first.');
+                    return false;
+                }
+
+                const wipebank = ScriptProvider.getByName('[proc,bank_wipe]');
+                if (!wipebank) {
+                    // a content build from before bank_wipe.rs2
+                    return false;
+                }
+
+                // "::wipebank confirm" skips the confirm box - the repeat case while testing.
+                player.executeScript(ScriptRunner.init(wipebank, player, null, [args[0] === 'confirm' ? 1 : 0]), true);
+                return true;
+            }
+
             if (cmd === 'setvar') {
                 // authentic
                 if (args.length < 2) {

@@ -75,6 +75,7 @@ export const CHEATS: Cheat[] = [
     { name: 'coverage', args: '[never|write|clear]', what: "which of the build's triggers have ever run", rank: 3 },
     { name: 'deadops', args: '[list|write|clear]', what: 'options that answered "Nothing interesting happens." - the to-do list', rank: 3 },
     { name: 'bank', what: 'open your bank from anywhere (your bank PIN still applies)', rank: 3 },
+    { name: 'wipebank', args: '[confirm]', what: 'delete everything in your own bank - asks first, unless you type confirm', rank: 3 },
     { name: 'setvar', args: '<variable> <value>', what: 'write one of your own varps or varbits', rank: 3 },
     { name: 'getvar', args: '<variable>', what: 'read one of your own varps or varbits', rank: 3 },
     { name: 'setvarother', args: '<username> <variable> <value>', what: "write a varp on somebody else's account", rank: 3, staffWorld: true },
