@@ -31,6 +31,13 @@
  * a 99 is 130,344,310 in the file - and this converts at the edges, so `set bob save.stats.ATTACK
  * 99` and a JSON that says 13034431 both mean the same thing and both mean what they look like.
  *
+ * "ALREADY LOGGED IN" IS A THIRD PLACE, and the one that catches people out. Neither the database
+ * row nor the save file says whether somebody is online: a separate account_login row holds the
+ * NODE ID of the world they are on, and a session that ended badly leaves it set. The login server
+ * then refuses them before the world ever sees the attempt, so ::kick has nothing to kick.
+ * `logout` clears it. A world restart clears every row for its own node id and is usually the
+ * better fix; see cmdLogout for when it is not.
+ *
  * HISCORES ARE DERIVED, not stored: LoginServer recomputes every row from the save each time the
  * player saves. Editing them is pointless, so this does not - change the stat and the hiscore
  * follows on the player's next logout.
@@ -47,6 +54,7 @@
  *   npx tsx tools/server/account.ts delete bob
  *   npx tsx tools/server/account.ts password bob hunter2
  *   npx tsx tools/server/account.ts deaths bob --days 3
+ *   npx tsx tools/server/account.ts logout bob
  *
  * --profile <name> picks the world profile (default: NODE_PROFILE, or "main").
  */
@@ -820,6 +828,81 @@ async function cmdDelete(username: string) {
     console.log('  to put them back: import the JSON (or move the .deleted- save back), then set a password - the account row is not in the backup.');
 }
 
+/**
+ * Clear a stale "logged in" flag, so somebody the login server believes is already playing can get
+ * back in.
+ *
+ * WHAT GOES WRONG. account_login holds one row per account per profile, and logged_in is the NODE
+ * ID of the world it is on rather than a yes or no - 0 is free. A session that ends without a
+ * clean logout (a crash, a socket dropped mid-login, a world killed rather than stopped) leaves
+ * that number set, and every later attempt is turned away by the LOGIN SERVER with "already logged
+ * in" before the world ever sees it.
+ *
+ * ::kick CANNOT HELP, and it is worth knowing why before reaching for it: kick acts on a player in
+ * the world, and there is no such player - that is the whole problem. The world is empty of them
+ * and the login server will not let them in.
+ *
+ * A RESTART IS THE OTHER FIX, and usually the better one: World startup clears every row carrying
+ * its own node id, so one restart frees everybody stuck on that world at once. This is for when a
+ * restart is not wanted - a live world with people on it - or when the stale row names a world
+ * that is not coming back, such as a dev world from deploy.sh --dev, whose node id the live
+ * world's startup never touches.
+ *
+ * IT CANNOT PUT TWO SESSIONS ON ONE WORLD. World.processLogins scans its own player list for the
+ * same username and refuses with response 5 whatever this table says, so the world is the real
+ * guard against a double login. What this flag alone guards is logging into a DIFFERENT world
+ * while still on one - so on a multi-world setup, clear it only when you know they are not on the
+ * other one.
+ */
+async function cmdLogout(username: string) {
+    const account = await getAccount(username);
+    if (!account) fail(`no account row for ${username} - the login flag lives in the database, not the save file`);
+
+    const rows = await tryDb('the login state', () =>
+        db.selectFrom('account_login').select(['profile', 'logged_in', 'login_time']).where('account_id', '=', account.id).execute()
+    );
+    if (rows === null) return;
+
+    // EVERY PROFILE, not just the one being acted on. The row that is stuck is not always the
+    // live world's: an administrator who was last on a dev world is stuck on THAT profile, and a
+    // command that silently reported "nothing to do" for main would send them hunting.
+    console.log(`  ${username} (account #${account.id})`);
+    if (rows.length === 0) {
+        console.log('    no account_login rows at all - nothing has ever marked them online');
+    }
+    for (const row of rows) {
+        const where = row.logged_in === 0 ? 'free' : `world ${row.logged_in}`;
+        const when = row.login_time ? `, since ${row.login_time}` : '';
+        console.log(`    profile ${row.profile}: ${where}${when}${row.profile === profile ? '   <- this one' : ''}`);
+    }
+
+    const mine = rows.find(row => row.profile === profile);
+    if (!mine || mine.logged_in === 0) {
+        console.log(`  profile ${profile} is already free, so nothing was changed.`);
+        const elsewhere = rows.filter(row => row.logged_in !== 0 && row.profile !== profile);
+        if (elsewhere.length) {
+            console.log(`  but ${elsewhere.map(row => row.profile).join(', ')} still says online - rerun with --profile ${elsewhere[0].profile} to clear that.`);
+        }
+        return;
+    }
+
+    const ok = await tryDb('the login flag', async () => {
+        await db
+            .updateTable('account_login')
+            .set({ logged_in: 0, login_time: null })
+            .where('account_id', '=', account.id)
+            .where('profile', '=', profile)
+            .execute();
+        return true;
+    });
+    if (!ok) return;
+
+    console.log(`  cleared: ${username} was marked on world ${mine.logged_in} for profile ${profile}, now free.`);
+    console.log('  they can log in again straight away - the login server reads this row fresh on every attempt.');
+    console.log('  if they were REALLY still in the world, nothing is broken: the world refuses a second');
+    console.log('  session on the same name by itself, so they would simply be told to try again.');
+}
+
 async function cmdPassword(username: string) {
     const plain = args._[2];
     if (!plain) fail('usage: password <user> <newpassword>');
@@ -979,6 +1062,11 @@ async function main() {
         case 'password':
             if (!username) fail('usage: password <user> <newpassword>');
             await cmdPassword(username);
+            break;
+
+        case 'logout':
+            if (!username) fail('usage: logout <user>   - clears a stale "already logged in", for a session that never ended cleanly');
+            await cmdLogout(username);
             break;
 
         default:
