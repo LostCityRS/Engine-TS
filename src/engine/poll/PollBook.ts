@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { DatabaseSync } from 'node:sqlite';
 
+import { fromBase37, toBase37 } from '#/util/JString.js';
+
 // POLLS (custom, 2026-11-15). A question the owner puts up, and one vote per account on it.
 //
 // WHY ITS OWN DATABASE, rather than the content build or db.sqlite.
@@ -32,6 +34,23 @@ import { DatabaseSync } from 'node:sqlite';
 //
 // ONE WORLD'S POLLS. Two worlds pointed at the same file would each think they owned it, which is
 // written down in the trading post and the vote ledger too.
+
+/**
+ * THE KEY IS A SAFE NAME, and it has to be, because two callers in two languages write this table.
+ *
+ * A base37 round trip: lowercase, underscores for spaces, twelve characters. The same rule as the
+ * site's toSafeName (src/lib/jstring.ts) and the vote ledger, which says why - the ledger lowercases
+ * but never converts spaces, so "Lord Fooby" and "lord_fooby" are different strings for the same
+ * person. In a ledger that costs a misreported figure. Here it would cost the ONE-VOTE RULE: the
+ * game would write `iron_sgt` from player.username and the website would write whatever Discord
+ * had, the primary key would see two different accounts, and the same player would vote twice.
+ *
+ * So every username entering or leaving this class goes through here, rather than trusting either
+ * caller to have normalised first.
+ */
+function safeName(username: string): string {
+    return fromBase37(toBase37(username));
+}
 
 export type PollOption = {
     idx: number;
@@ -175,7 +194,7 @@ export default class PollBook {
      * slip between.
      */
     vote(pollId: number, username: string, idx: number, via: 'game' | 'web', now: number = Date.now()): VoteResult {
-        const who = username.toLowerCase();
+        const who = safeName(username);
 
         const open = this.db.prepare('SELECT 1 AS ok FROM poll WHERE id = ? AND closes IS NULL AND opens <= ?').get(pollId, now);
         if (open === undefined) {
@@ -193,7 +212,7 @@ export default class PollBook {
 
     /** The option this account chose, or -1 if it has not voted on this poll. */
     votedOption(pollId: number, username: string): number {
-        const row = this.db.prepare('SELECT idx FROM vote WHERE poll_id = ? AND username = ?').get(pollId, username.toLowerCase()) as unknown as { idx: number } | undefined;
+        const row = this.db.prepare('SELECT idx FROM vote WHERE poll_id = ? AND username = ?').get(pollId, safeName(username)) as unknown as { idx: number } | undefined;
         return row ? Number(row.idx) : -1;
     }
 
