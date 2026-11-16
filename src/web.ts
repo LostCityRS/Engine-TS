@@ -335,6 +335,19 @@ const natives = {
         s.ws.send(bytes);
     },
 
+    // THE CLIENT SAYING HELLO (2026-11-16). This is how the page gets the library handle, and
+    // through it every static field in BrowserInput. It used to be taken from wsOpen below, which
+    // was fine while a camera drag was the only thing that crossed - nothing is dragged before
+    // there is a game. The keyboard is not like that: no socket is opened until ENTER is pressed,
+    // and the keyboard is what types the name that ENTER is pressed with, so on the login screen
+    // there was no handle and every key collected here sat in its queue for ever. Reported from a
+    // phone: "the keyboard does not type anything". GameShell calls this before it draws anything.
+    async Java_jagex2_client_BrowserInput_browserReady(lib) {
+        if (LIB === null) {
+            LIB = lib;
+        }
+    },
+
     async Java_jagex2_io_WsSocket_wsClose(lib, handle) {
         const s = SOCKETS.get(handle);
         if (!s) return;
