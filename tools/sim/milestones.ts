@@ -15,12 +15,25 @@
 //   * total-level steps announce when they are PASSED, not only when they are landed on exactly;
 //   * ::milestones hides them for the player who ran it and nobody else;
 //   * and a broadcast still reaches a player who has not touched the setting.
+//   * the four experience tiers above 99 (50m/100m/150m/200m) fire once each, nothing fires
+//     between them, and a gain that clears several at once sends only the highest;
+//   * a collection log page announces on the item that COMPLETES it and not before, a page too
+//     small to be a collection stays quiet, and the whole log announces once;
+//   * and NO milestone line is long enough to wrap onto a second chatbox line - measured against
+//     the real font, for every skill, every tier and every page, at the longest name a player can
+//     have. The first version of this file said "200 million Woodcutting experience" and arrived
+//     as two lines, the second of them reading "@bla@maximum." on its own.
 import * as H from './harness.js';
 import Player, { getExpByLevel } from '#/engine/entity/Player.js';
 import { PlayerStatMap } from '#/engine/entity/PlayerStat.js';
 import { MilestoneStore } from '#/engine/MilestoneStore.js';
 import ClientCheatHandler from '#/network/game/client/handler/ClientCheatHandler.js';
 import ClientCheat from '#/network/game/client/model/ClientCheat.js';
+import ObjType from '#/cache/config/ObjType.js';
+import EnumType from '#/cache/config/EnumType.js';
+import FontType from '#/cache/config/FontType.js';
+import DbTableType from '#/cache/config/DbTableType.js';
+import DbRowType from '#/cache/config/DbRowType.js';
 
 await H.boot();
 H.loginOrder();
@@ -212,6 +225,240 @@ const TUTORIAL_COMPLETE = 1000; // ^tutorial_complete, general/configs/quest.con
     H.runProc(arrived, '[proc,milestone_welcome]');
     H.tick(2);
     check('and not again on their next login', broadcasts(), []);
+}
+
+console.log('\n================ THE EXPERIENCE TIERS ABOVE 99');
+
+// Experience is stored x10, so these are the engine's own thresholds (Player.xpMilestones).
+const M50 = 500_000_000;
+const M100 = 1_000_000_000;
+const M200 = 2_000_000_000; // 150m has no constant here: it is only ever crossed by the jump below
+
+/** Put a skill AT a given stored-experience figure, through addXp - the only path with the hook. */
+function xpTo(p: Player, stat: string, xp: number) {
+    const id = PlayerStatMap.get(stat.toUpperCase());
+    if (id === undefined) throw new Error('no such stat: ' + stat);
+    if (xp > p.stats[id]) {
+        p.addXp(id, xp - p.stats[id], false);
+    }
+    H.tick(6);
+}
+const xpLines = (p: Player) => seenBy(p).filter(t => t.includes(' XP@'));
+
+{
+    // ms_first is already 99 Fishing from the section above - 13m experience, a long way short of
+    // the first tier. That is the point: the tiers are the tail AFTER 99.
+    H.clearLogs();
+    xpTo(first, 'fishing', M50 - 10);
+    check('one experience short of 50m announces nothing', xpLines(watcher), []);
+
+    H.clearLogs();
+    xpTo(first, 'fishing', M50);
+    check('50m announces', xpLines(watcher).length, 1);
+    check(
+        '...as the server first, naming the skill and the figure',
+        xpLines(watcher).some(t => t.includes('[Server first!]') && t.includes('50m Fishing XP')),
+        true
+    );
+
+    // THE QUIET STRETCH. 50m to just under 100m is months of play; a tier system that fired on the
+    // way would be the worst offender in the file.
+    H.clearLogs();
+    xpTo(first, 'fishing', M100 - 10);
+    check('the climb from 50m to 100m is silent', xpLines(watcher), []);
+
+    H.clearLogs();
+    xpTo(first, 'fishing', M100);
+    check(
+        '100m announces',
+        xpLines(watcher).some(t => t.includes('100m Fishing XP')),
+        true
+    );
+
+    // ONLY THE HIGHEST TIER A SINGLE GAIN CROSSES. This jump clears 150m and 200m together.
+    H.clearLogs();
+    xpTo(first, 'fishing', M200);
+    check('a jump across two tiers sends one line, not two', xpLines(watcher).length, 1);
+    check(
+        '...and it is the higher of them',
+        xpLines(watcher).some(t => t.includes('200m Fishing XP')),
+        true
+    );
+    // AND THE CAP DOES NOT ANNOUNCE ITSELF AGAIN on every further gain, which is what would happen
+    // if the test were "is it at the cap" rather than "did it just cross".
+    H.clearLogs();
+    first.addXp(PlayerStatMap.get('FISHING')!, 1_000_000, false);
+    H.tick(6);
+    check('experience thrown at a capped skill announces nothing', xpLines(watcher), []);
+
+    // A SECOND PLAYER GETS THE ORDINARY LINE.
+    H.clearLogs();
+    xpTo(second, 'fishing', M50);
+    check('the second player to 50m Fishing is announced', xpLines(watcher).length, 1);
+    check(
+        '...but not as the first',
+        xpLines(watcher).some(t => t.includes('[Server first!]')),
+        false
+    );
+
+    // A FRESH SKILL TAKEN STRAIGHT TO THE CAP - the ::setstat-shaped case. One line.
+    H.clearLogs();
+    xpTo(second, 'runecraft', M200);
+    check('0 to the cap in one gain is one line', xpLines(watcher).length, 1);
+    check(
+        '...the cap, not 50m',
+        xpLines(watcher).some(t => t.includes('200m Runecraft XP')),
+        true
+    );
+}
+
+console.log('\n================ THE COLLECTION LOG: A PAGE, AND THE WHOLE THING');
+
+const objId = (name: string) => {
+    const id = ObjType.getId(name);
+    if (id === -1) throw new Error('no such obj: ' + name);
+    return id;
+};
+/** Log an item the way a drop does, through the real ~collection_log_add. */
+function logItem(p: Player, objName: string) {
+    H.runProc(p, '[proc,collection_log_add]', [objId(objName), 1]);
+    H.tick(2);
+}
+const clogLines = (p: Player) => seenBy(p).filter(t => t.includes('collection log'));
+
+{
+    const hunter = player('ms_clog');
+
+    // GIANT MOLE: three items, so it is announced. The first two must be silent - a page that
+    // announced on partial progress would fire up to 158 times for the clue pages.
+    H.clearLogs();
+    logItem(hunter, 'mole_skin');
+    logItem(hunter, 'mole_claw');
+    check('two of a three-item page announce nothing', clogLines(watcher), []);
+
+    H.clearLogs();
+    logItem(hunter, 'bosspet_giant_mole_item');
+    check('the item that completes the page announces it', clogLines(watcher).length, 1);
+    check(
+        '...naming the page, as the server first',
+        clogLines(watcher).some(t => t.includes('[Server first!]') && t.includes('Giant Mole')),
+        true
+    );
+
+    // AND NOT AGAIN. Re-logging an item already in the log is not a new item, so nothing fires -
+    // this is the whole guard, there is no mark varp behind it.
+    H.clearLogs();
+    logItem(hunter, 'mole_claw');
+    check('an item already logged announces nothing', clogLines(watcher), []);
+
+    // A PAGE TOO SMALL TO BE A COLLECTION. Both of these items are broadcast as rare drops the
+    // instant they fall; "completed the Giants collection log" on top of that is the same news
+    // twice. ^milestone_clog_page_min is 3.
+    H.clearLogs();
+    logItem(hunter, 'hill_giant_club'); // Giants, one item
+    check('a one-item page is not announced', clogLines(watcher), []);
+    H.clearLogs();
+    logItem(hunter, 'dragon_2h_sword'); // Chaos Elemental, two items
+    logItem(hunter, 'dragon_pickaxe');
+    check('a two-item page is not announced', clogLines(watcher), []);
+
+    // THE SECOND PLAYER TO FINISH A PAGE gets the ordinary line.
+    const hunter2 = player('ms_clog2');
+    H.clearLogs();
+    logItem(hunter2, 'mole_skin');
+    logItem(hunter2, 'mole_claw');
+    logItem(hunter2, 'bosspet_giant_mole_item');
+    check('the second player to finish the page is announced', clogLines(watcher).length, 1);
+    check(
+        '...but not as the first',
+        clogLines(watcher).some(t => t.includes('[Server first!]')),
+        false
+    );
+
+    // THE WHOLE LOG. Every item in it, for one player.
+    const completionist = player('ms_clogall');
+    const items = EnumType.getByName('collection_log_items')!;
+    H.clearLogs();
+    for (const item of items.values.values()) {
+        H.runProc(completionist, '[proc,collection_log_add]', [item as number, 1]);
+    }
+    H.tick(4);
+    const all = clogLines(watcher).filter(t => t.includes('entire collection log'));
+    check('completing every item announces the log itself', all.length, 1);
+    check(
+        '...as the server first',
+        all.some(t => t.includes('[Server first!]')),
+        true
+    );
+    // And the pages it is made of announced too, on the way.
+    check('and the pages it is made of announced on the way', clogLines(watcher).filter(t => !t.includes('entire collection log')).length > 20, true);
+}
+
+console.log('\n================ NOT ONE LINE WRAPS');
+
+// EVERY LINE THIS SYSTEM CAN PRODUCE, measured against the font the chatbox uses.
+//
+// Player.wrappedMessageGame splits a broadcast at 456 pixels of FontType 1, and a line over that
+// arrives as two: the first cut mid-sentence, the second starting with a bare colour tag. Every
+// broadcast already in this build fits on one line - all 803 rare drops do - so a milestone that
+// wrapped would be the only one that did not. The first draft of the experience tiers wrapped for
+// every skill, and the check that caught it was this one, not a reading of the file.
+{
+    const font = FontType.get(1);
+    // The widest names a player can have: 12 characters is the limit, and 'W'/'M' are the widest
+    // glyphs. 'Mod ' because a staff name spends four of those characters on the prefix.
+    const NAMES = ['Abcdefghijkl', 'Wwwwwwwwwwww', 'Mod Wwwwwwww'];
+    const skills = [...EnumType.getByName('stat_names')!.values.values()] as string[];
+    const table = DbTableType.getId('collection_log_entry');
+    const pages: string[] = [];
+    for (let id = 0; id < DbRowType.count; id++) {
+        const r = DbRowType.get(id);
+        if (!r || r.tableId !== table) continue;
+        // only the pages big enough to be announced - ^milestone_clog_page_min
+        if ((r.columnValues[1]?.length ?? 0) >= 3) pages.push(r.columnValues[0]?.[0] as string);
+    }
+
+    const bodies: string[] = [];
+    for (const skill of skills) {
+        bodies.push(`is the first to reach level @dre@99 ${skill}@bla@.`, `has reached level @dre@99 ${skill}@bla@.`);
+        for (const n of ['50m', '100m', '150m', '200m']) {
+            bodies.push(`is the first to earn @dre@${n} ${skill} XP@bla@.`, `has earned @dre@${n} ${skill} XP@bla@.`);
+        }
+    }
+    for (const page of pages) {
+        bodies.push(`filled the @dre@${page}@bla@ collection log.`);
+    }
+    bodies.push(
+        'completed the @dre@entire collection log@bla@!',
+        'is the first to master every skill. @dre@Max cape@bla@!',
+        'is the first to reach @dre@2277 total level@bla@.',
+        'is the first to reach @dre@combat level 126@bla@.',
+        'is the first to complete @dre@every quest@bla@.',
+        'has arrived on Death Plateau. Say hello!'
+    );
+
+    let widest = 0;
+    let widestLine = '';
+    const over: string[] = [];
+    for (const body of bodies) {
+        for (const label of ['[Server first!]', '[Milestone]', '[New player]']) {
+            for (const name of NAMES) {
+                const line = `@sh1@@gre@${label}@sh0@@bla@ @cr3@@dbl@${name}@bla@ ${body}`;
+                const width = font.stringWidth(line);
+                if (width > widest) {
+                    widest = width;
+                    widestLine = `${label} ${name} ${body}`;
+                }
+                if (font.split(line, 456).length > 1) over.push(`${label} / ${name} / ${body}`);
+            }
+        }
+    }
+    console.log(`  (${bodies.length} wordings x ${NAMES.length} names x 3 labels; widest ${widest}px of 456)`);
+    console.log(`  widest: ${widestLine}`);
+    if (over.length) {
+        for (const line of over.slice(0, 5)) console.log(`     over: ${line}`);
+    }
+    check('no milestone line wraps onto a second chatbox line', over.length, 0);
 }
 
 console.log(`\n${R.ok} ok, ${R.bad} FAIL`);

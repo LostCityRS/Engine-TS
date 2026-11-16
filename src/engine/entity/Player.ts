@@ -2190,12 +2190,15 @@ export default class Player extends PathingEntity {
         }
 
         const multi = allowMulti ? Environment.NODE_XPRATE * this.xpRate() : 1;
+        const xpBefore = this.stats[stat];
         this.stats[stat] += xp * multi;
 
         // cap to 200m, this is represented as "2 billion" because we use 32-bit signed integers and divide by 10 to give us a decimal point
         if (this.stats[stat] > 2_000_000_000) {
             this.stats[stat] = 2_000_000_000;
         }
+
+        this.checkXpMilestone(stat, xpBefore);
 
         const before = this.baseLevels[stat];
         if (this.levels[stat] === this.baseLevels[stat]) {
@@ -2253,6 +2256,46 @@ export default class Player extends PathingEntity {
         if (this.combatLevel != this.getCombatLevel()) {
             this.combatLevel = this.getCombatLevel();
             this.buildAppearance(this.appearanceInv);
+        }
+    }
+
+    /**
+     * 50m / 100m / 150m / 200m experience in one skill - the milestone announcements above 99.
+     *
+     * WHY THIS IS HERE AND NOT IN CONTENT. Every other milestone in general/scripts/milestones.rs2
+     * hangs off a level-up, and a skill at 99 never changes level again: [advancestat] and
+     * [changestat] both fire on a level change, so past 99 content has no hook left. The only
+     * content-side alternative was a softtimer walking 23 skills a minute for every player on the
+     * world to catch four events in an account's lifetime. addXp already has the number.
+     *
+     * The thresholds live here beside the cap deliberately. Experience is stored x10 - 200m is the
+     * 2,000,000,000 clamp above - so a content constant would have to repeat the x10 and could
+     * drift from the very cap it names.
+     *
+     * Only the HIGHEST tier a single gain crosses is announced, so a jump that clears several (a
+     * ::setstat, an xp rate change) cannot fire four lines at once. The wording is content's:
+     * [proc,milestone_xp] in general/scripts/milestones.rs2 builds the line, because the rank and
+     * XP-mode icons every broadcast carries are ~broadcast_name's and live there.
+     */
+    private static readonly xpMilestones: number[] = [500_000_000, 1_000_000_000, 1_500_000_000, 2_000_000_000];
+
+    private checkXpMilestone(stat: number, xpBefore: number): void {
+        const xpNow = this.stats[stat];
+        if (xpNow < Player.xpMilestones[0] || xpNow === xpBefore) {
+            return;
+        }
+        let tier = -1;
+        for (let i = 0; i < Player.xpMilestones.length; i++) {
+            if (xpBefore < Player.xpMilestones[i] && xpNow >= Player.xpMilestones[i]) {
+                tier = i;
+            }
+        }
+        if (tier === -1) {
+            return;
+        }
+        const script = ScriptProvider.getByName('[proc,milestone_xp]');
+        if (script) {
+            this.enqueueScript(script, PlayerQueueType.ENGINE, 0, [stat, tier]);
         }
     }
 
