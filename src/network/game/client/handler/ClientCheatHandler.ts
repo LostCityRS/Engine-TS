@@ -1073,6 +1073,9 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                     return false;
                 }
 
+                // Before the stat moves, so the milestone this would have caused is already
+                // suppressed when it lands - Player.markMilestonesCheated.
+                player.markMilestonesCheated();
                 player.setLevel(stat, parseInt(args[1]));
             } else if (cmd === 'advancestat') {
                 // authentic
@@ -1087,12 +1090,14 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
                     return false;
                 }
 
+                player.markMilestonesCheated();
                 player.stats[stat] = 0;
                 player.baseLevels[stat] = 1;
                 player.levels[stat] = 1;
                 player.addXp(stat, getExpByLevel(parseInt(args[1])), false);
             } else if (cmd === 'minme') {
                 // like maxme debugproc, but in engine because xp goes down
+                player.markMilestonesCheated();
                 for (let i = 0; i < PlayerStatEnabled.length; i++) {
                     if (i === PlayerStat.HITPOINTS) {
                         player.setLevel(i, 10);

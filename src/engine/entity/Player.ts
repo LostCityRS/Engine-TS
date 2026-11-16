@@ -2295,9 +2295,46 @@ export default class Player extends PathingEntity {
      */
     private static readonly xpMilestones: number[] = [500_000_000, 1_000_000_000, 1_500_000_000, 2_000_000_000];
 
+    /**
+     * %milestone_cheated, resolved once. -2 is "not looked up yet" and -1 "this build has no such
+     * varp", the same two-step World.milestoneVarp uses for the opt-out.
+     */
+    private static cheatedVarp: number = -2;
+
+    milestonesCheated(): boolean {
+        if (Player.cheatedVarp === -2) {
+            Player.cheatedVarp = VarPlayerType.getId('milestone_cheated');
+        }
+        return Player.cheatedVarp !== -1 && this.getVar(Player.cheatedVarp) !== 0;
+    }
+
+    /**
+     * Mark this account as one whose stats were written by a staff command, so no milestone of its
+     * is ever announced again. Called by ::setstat, ::advancestat and ::minme BEFORE they touch a
+     * stat, so the announcement that change would have caused is already suppressed when it lands.
+     *
+     * general/configs/milestones.varp has why this is the whole account rather than the one skill,
+     * and why it does not expire. It is said out loud the first time, because a setting that turns
+     * itself on and never mentions it is a setting nobody knows they have.
+     */
+    markMilestonesCheated(): void {
+        if (this.milestonesCheated() || Player.cheatedVarp === -1) {
+            return;
+        }
+        this.setVar(Player.cheatedVarp, 1);
+        this.messageGame('Your levels were set by a command, so your milestones are no longer announced.');
+    }
+
     private checkXpMilestone(stat: number, xpBefore: number): void {
         const xpNow = this.stats[stat];
         if (xpNow < Player.xpMilestones[0] || xpNow === xpBefore) {
+            return;
+        }
+        // Nothing an account whose stats were set by a staff command does is announced - and the
+        // check is here, before the script is enqueued, rather than at the broadcast: [proc,
+        // milestone_xp] claims the server first before it announces anything, and a silently
+        // burned claim is worse than the announcement it was meant to stop.
+        if (this.milestonesCheated()) {
             return;
         }
         let tier = -1;

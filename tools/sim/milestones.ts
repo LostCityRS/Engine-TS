@@ -19,6 +19,8 @@
 //     between them, and a gain that clears several at once sends only the highest;
 //   * a collection log page announces on the item that COMPLETES it and not before, a page too
 //     small to be a collection stays quiet, and the whole log announces once;
+//   * a staff command that writes stats (::setstat, ::advancestat, ::minme) announces nothing and,
+//     the part that actually matters, does not CLAIM the server first on the way past;
 //   * and NO milestone line is long enough to wrap onto a second chatbox line - measured against
 //     the real font, for every skill, every tier and every page, at the longest name a player can
 //     have. The first version of this file said "200 million Woodcutting experience" and arrived
@@ -392,6 +394,64 @@ const clogLines = (p: Player) => seenBy(p).filter(t => t.includes('collection lo
     );
     // And the pages it is made of announced too, on the way.
     check('and the pages it is made of announced on the way', clogLines(watcher).filter(t => !t.includes('entire collection log')).length > 20, true);
+}
+
+console.log('\n================ A STAFF COMMAND ANNOUNCES NOTHING, AND CLAIMS NOTHING');
+
+// "staff players that use setstat or anything like that shouldn't give a broadcast of a milestone"
+//
+// THE SECOND HALF IS THE ONE WITH TEETH. Suppressing only the broadcast would leave
+// milestone_first() still called, so a staff member testing ::advancestat fishing 99 would take
+// "first to 99 Fishing" away from the world for ever, and nothing would say so - which is worse
+// than the announcement it was meant to stop. So the claim is checked here, not just the silence.
+{
+    // SKILLS NOTHING ABOVE HAS TOUCHED. The first draft asked whether 99 Mining was unclaimed
+    // after this section and got back "ms_send", who had levelled it two sections earlier - a
+    // claim that was nothing to do with the thing under test.
+    const staff = player('ms_staff');
+    staff.staffModLevel = 3; // ::setstat and ::advancestat are administrators and up
+    const cheat = new ClientCheatHandler();
+
+    H.clearLogs();
+    cheat.handle(new ClientCheat('advancestat hunter 99'), staff);
+    H.tick(8);
+    check('::advancestat to 99 announces nothing to anyone', broadcasts(), []);
+    check('and nobody has claimed the first 99 Hunter', MilestoneStore.holderOf('99:Hunter'), null);
+    check('the player is told why, once', H.mesgs.filter(m => m.who === staff.username && m.text.includes('no longer announced')).length, 1);
+
+    // SO THE FIRST IS STILL THERE FOR A PLAYER WHO EARNS IT.
+    H.clearLogs();
+    levelTo(player('ms_earned'), 'hunter', 99);
+    check(
+        'a player who earns it is still the server first',
+        seenBy(watcher).some(t => t.includes('[Server first!]') && t.includes('99 Hunter')),
+        true
+    );
+
+    // AND IT DOES NOT WEAR OFF. Experience earned the ordinary way on a marked account is still
+    // not news: the 99 was set by hand, and a total level built on it was never reached.
+    H.clearLogs();
+    levelTo(staff, 'slayer', 99);
+    check('experience earned later on a marked account is still quiet', broadcasts(), []);
+    check('...and its 99 was not claimed either', MilestoneStore.holderOf('99:Slayer'), null);
+
+    // ::setstat NEVER FIRED A BROADCAST OF ITS OWN (it writes the level without any experience, so
+    // no level-up runs) - but it has to mark the account all the same, or setting a skill to 98 by
+    // hand and then earning the last level would announce a 99 that was one level of work.
+    const sneaky = player('ms_sneaky');
+    sneaky.staffModLevel = 3;
+    cheat.handle(new ClientCheat('setstat construction 98'), sneaky);
+    H.tick(4);
+    H.clearLogs();
+    levelTo(sneaky, 'construction', 99);
+    check('98 set by hand and the last level earned announces nothing', broadcasts(), []);
+    check('...and claims nothing', MilestoneStore.holderOf('99:Construction'), null);
+
+    // AND THE XP TIERS, which are the engine's own check rather than content's.
+    H.clearLogs();
+    xpTo(staff, 'hunter', M200);
+    check('the experience tiers are muted too', broadcasts(), []);
+    check('...and claim nothing', MilestoneStore.holderOf('xp:200m:Hunter'), null);
 }
 
 console.log('\n================ NOT ONE LINE WRAPS');
