@@ -685,7 +685,7 @@ export default class LoginServer {
                             this.loginRequests.delete(safeName);
                         }
                     } else if (type === 'player_logout') {
-                        const { replyTo, username, save } = msg;
+                        const { replyTo, username, save, requestedAt } = msg;
 
                         const raw = Buffer.from(save, 'base64');
                         if (PlayerLoading.verify(new Packet(raw)) && !(await this.wouldResetSaveFile(raw, profile, username))) {
@@ -705,7 +705,40 @@ export default class LoginServer {
                             .selectAll()
                             .executeTakeFirst();
 
-                        if (account?.account_id) {
+                        // A LOGOUT CAN ARRIVE AFTER THE NEXT LOGIN, and clearing the row then
+                        // puts a player who is standing in the game down as gone. World retries
+                        // this message every 15 seconds until it is acknowledged, so a lost or
+                        // slow acknowledgement sends a second copy - and by the time that one is
+                        // read, the player whose connection dropped can be back on. iron_sgt on
+                        // 16 November 2026: logged_in 0, login_time null, logout_time 16:04:29,
+                        // and he was in the game while the row said otherwise. The website's
+                        // activity page counted three players from the world's own gauge and
+                        // could only name two.
+                        //
+                        // THE TEST IS THE LOGIN TIME, not the node: both sessions are the same
+                        // world here, so `logged_in = nodeId` matches either way and would catch
+                        // nothing. The login this logout ends always started before the player
+                        // left, so a login_time AFTER requestedAt belongs to a later session and
+                        // is not ours to clear. The save half of this message has had the
+                        // equivalent guard since it was written - see wouldResetSaveFile, which
+                        // refuses a save that would move the player backwards.
+                        //
+                        // STILL ACKNOWLEDGED EITHER WAY, below: a logout we decline to apply is
+                        // finished business, and answering anything else would have World retry
+                        // it every 15 seconds for ever.
+                        // THE STORED TIME IS UTC WITH NO ZONE ON IT (toDbDate), and `new Date` reads a
+                        // bare 'YYYY-MM-DD HH:MM:SS' as LOCAL time - five hours out on this box.
+                        // Left unsaid, every ordinary logout would have looked like it came from a
+                        // stale session and the whole server would have stayed marked online.
+                        const leftAt = typeof requestedAt === 'number' ? requestedAt : null;
+                        const lastLogin = account?.login_time == null ? NaN : Date.parse(`${account.login_time.replace(' ', 'T')}Z`);
+                        const loggedInSince = leftAt !== null && Number.isFinite(lastLogin) && lastLogin > leftAt;
+
+                        if (loggedInSince) {
+                            console.error(`[Login]: ${username} logged out at ${new Date(leftAt).toISOString()} but has logged in since - leaving the login record alone`);
+                        }
+
+                        if (account?.account_id && !loggedInSince) {
                             await db
                                 .updateTable('account_login')
                                 .set({

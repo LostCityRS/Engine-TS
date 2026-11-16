@@ -77,7 +77,11 @@ export class LoginClient extends InternalClient {
     }
 
     // returns true if the login server acknowledged the logout
-    public async playerLogout(username: string, save: Uint8Array) {
+    //
+    // requestedAt is when the player LEFT, not when this call is made - World retries a logout
+    // every 15 seconds until it is acknowledged, so the two can be minutes apart and the player
+    // can be back on in between.
+    public async playerLogout(username: string, save: Uint8Array, requestedAt?: number) {
         await this.connect();
 
         if (!this.ws || !this.wsr || !this.wsr.checkIfWsLive()) {
@@ -90,7 +94,8 @@ export class LoginClient extends InternalClient {
             nodeTime: Date.now(),
             profile: Environment.NODE_PROFILE,
             username,
-            save: Buffer.from(save).toString('base64')
+            save: Buffer.from(save).toString('base64'),
+            requestedAt: requestedAt ?? Date.now()
         });
 
         if (reply.error) {
