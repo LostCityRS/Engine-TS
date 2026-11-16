@@ -17133,7 +17133,7 @@
       },
       {
        "kind": "loc",
-       "text": "Use Vampire tomb.",
+       "text": "Search Vampire tomb.",
        "why": "Look at it.",
        "target": "vampire_big_grave_noblood",
        "id": 6437,
@@ -17585,7 +17585,7 @@
       },
       {
        "kind": "loc",
-       "text": "Use Desert Treasure Oblix1.",
+       "text": "Activate Desert Treasure Oblix1.",
        "why": "Place the diamond.",
        "target": "desert_treasure_oblix1",
        "id": 6482,
@@ -17605,7 +17605,7 @@
       },
       {
        "kind": "loc",
-       "text": "Use Desert Treasure Oblix2.",
+       "text": "Activate Desert Treasure Oblix2.",
        "why": "Place the diamond.",
        "target": "desert_treasure_oblix2",
        "id": 6485,
@@ -17625,7 +17625,7 @@
       },
       {
        "kind": "loc",
-       "text": "Use Desert Treasure Oblix3.",
+       "text": "Activate Desert Treasure Oblix3.",
        "why": "Place the diamond.",
        "target": "desert_treasure_oblix3",
        "id": 6488,
@@ -17645,7 +17645,7 @@
       },
       {
        "kind": "loc",
-       "text": "Use Desert Treasure Oblix4.",
+       "text": "Activate Desert Treasure Oblix4.",
        "why": "Place the diamond.",
        "target": "desert_treasure_oblix4",
        "id": 6491,
@@ -81136,7 +81136,7 @@
       },
       {
        "kind": "obj",
-       "text": "Cup of tea.",
+       "text": "Look-at Cup of tea.",
        "why": "Drug the tea.",
        "target": "zogre_cup_of_tea_sithix",
        "id": 4838,
