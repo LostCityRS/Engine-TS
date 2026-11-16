@@ -567,6 +567,9 @@ export const enum ScriptOpcode {
     POLL_CAST,
     POLL_VOTES,
     POLL_TOTAL,
+    // custom (2026-11-16) - the playtime gate. APPENDED after the rest, same rule as always.
+    POLL_MINUTES,
+    POLL_MINMINUTES,
 
     // Debug ops (10000-11000)
     CONSOLE = 10000,
@@ -1079,6 +1082,8 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['POLL_CAST', ScriptOpcode.POLL_CAST],
     ['POLL_VOTES', ScriptOpcode.POLL_VOTES],
     ['POLL_TOTAL', ScriptOpcode.POLL_TOTAL],
+    ['POLL_MINUTES', ScriptOpcode.POLL_MINUTES],
+    ['POLL_MINMINUTES', ScriptOpcode.POLL_MINMINUTES],
 
     ['CONSOLE', ScriptOpcode.CONSOLE],
     ['ERROR', ScriptOpcode.ERROR],
