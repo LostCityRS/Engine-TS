@@ -5,6 +5,7 @@ import { parentPort } from 'worker_threads';
 import { ActionRowBuilder, ApplicationCommandOptionType, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, Client, Events, GatewayIntentBits, MessageFlags, RepliableInteraction } from 'discord.js';
 
 import Environment from '#/util/Environment.js';
+import { discordIdFor, recordLink, revokeSessions, TABLE_SQL as LAUNCHER_SESSION_SQL } from '#/server/discord/LauncherSessions.js';
 import { toDisplayName } from '#/util/JString.js';
 
 // THE DISCORD RELAY (custom, 2026-09-21). A bot, in its own worker thread, that sends a player's
@@ -38,6 +39,13 @@ import { toDisplayName } from '#/util/JString.js';
 // would happen and asks. Corey's call, 2026-09-27 - these are irreversible trades being made from a
 // phone.
 //
+// SIGNING IN FROM THE LAUNCHER (custom, 2026-11-15). The website runs the Discord OAuth - it is
+// the program that holds the client secret, and the one with a certificate Discord will redirect to
+// - and writes what it gets into `launcher_session` below. The launcher keeps that token, asks the
+// site which characters are linked to it, and sends it with the login so the engine can record the
+// link without anybody typing ::discord. This thread owns the resolving and the writing, because
+// this thread owns `link`.
+//
 // Only runs when DISCORD_TOKEN and DISCORD_GUILD_ID are set - see World.ts.
 
 if (!parentPort) throw new Error('This file must be run as a worker thread.');
@@ -62,6 +70,10 @@ db.exec(`
         expires  INTEGER NOT NULL
     );
 `);
+// The launcher sign-in's own table, kept in LauncherSessions so that the rules which read it can be
+// driven without this file - which cannot be imported by anything: it throws unless it is a worker
+// and logs into Discord on the way up. See tools/sim/launchersessions.ts.
+db.exec(LAUNCHER_SESSION_SQL);
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -132,6 +144,47 @@ function ask(username: string, action: string, arg = 0): Promise<TpReply> {
 // room for; a DM is where the seller decides, so it lists them.
 function bullets(items?: string[]): string {
     return items && items.length > 0 ? `\n${items.map(l => `- ${l}`).join('\n')}` : '';
+}
+
+// ---- the launcher's sign-in ----
+//
+// The rules and the table are in LauncherSessions, where they can be driven without this file; what
+// is left here is the part that needs the bot and the game thread. That file says what a launcher
+// token is worth, and why the link is only ever added and never moved.
+
+/**
+ * A login from a launcher signed in to Discord. Records the link, if there is one to record.
+ *
+ * NOTHING IS SAID on the ordinary path - a player whose link is already right would otherwise be
+ * told about it on every single login - and nothing is said for a token that has expired either:
+ * the launcher finds that out when it next asks the site for the character list, and is sent round
+ * the sign-in again by the site rather than by a line in the chatbox.
+ */
+async function launcherLink(username: string, token: string) {
+    const discordId = discordIdFor(db, token);
+    if (!discordId) {
+        return;
+    }
+
+    const outcome = recordLink(db, username, discordId);
+    if (outcome === 'already') {
+        return;
+    }
+    if (outcome === 'conflict') {
+        port.postMessage({ type: 'launcher-link-conflict', username });
+        return;
+    }
+
+    // The name is for the line the player is shown, and it is the only reason this function is
+    // async. A fetch that fails costs the name and not the link, which is already written.
+    let name = 'your Discord account';
+    try {
+        name = (await client.users.fetch(discordId)).username;
+    } catch {
+        // left as it is: a fetch can fail for a user the bot shares no server with
+    }
+    console.log(`Discord relay: linked ${username} from a signed-in launcher`);
+    port.postMessage({ type: 'linked', username, discord: name, auto: true });
 }
 
 // ---- which game account ----
@@ -278,6 +331,11 @@ async function command(i: ChatInputCommandInteraction) {
     } else if (i.commandName === 'unlink') {
         const rows = accounts(i.user.id);
         db.prepare('DELETE FROM link WHERE discord_id = ?').run(i.user.id);
+        // AND EVERY LAUNCHER SIGNED IN AS THIS DISCORD ACCOUNT, which is how a sign-in is revoked:
+        // /unlink is somebody saying "nothing of mine is connected to this any more", and leaving a
+        // launcher able to list characters after it would not be that. ::discord unlink in game is
+        // deliberately NOT this - it unlinks one character, and the sign-in may own others.
+        revokeSessions(db, i.user.id);
         await say(i, rows.length ? `Unlinked ${rows.map(u => `**${toDisplayName(u)}**`).join(', ')}.` : 'No game account is linked to you.');
     } else if (i.commandName === 'linked') {
         const rows = accounts(i.user.id);
@@ -343,6 +401,9 @@ port.on('message', msg => {
             port.postMessage({ type: 'status', username: msg.username, linked: row !== undefined });
             break;
         }
+        case 'launcher-link':
+            void launcherLink(msg.username, msg.token);
+            break;
         case 'notify':
             void notify(msg.username, msg.text, msg.offer, msg.items);
             break;

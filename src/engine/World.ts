@@ -298,13 +298,32 @@ class World {
         this.discordThread?.postMessage({ type: 'unlink', username: player.username });
     }
 
+    /**
+     * custom (2026-11-15) - LINKING WITHOUT ::discord. A login that came from a launcher signed in
+     * to Discord says so, and the relay records the link itself.
+     *
+     * ::discord IS NOT GOING ANYWHERE. The browser client at play.deathplateau.com has no launcher
+     * and never will, so the code and /link are still the only way for those players - this is a
+     * convenience for launcher players, not a replacement, and nothing may be written on the
+     * assumption that every account has a link.
+     *
+     * WHAT IS PROVED, EXACTLY. ::discord proves both ends: you are logged in to the character AND
+     * you are using the Discord account. This proves the character (the password or a saved login
+     * got us here) and a launcher that was signed in to Discord on this computer - which on a
+     * shared machine is not necessarily the same person. So the relay only ever ADDS a link where
+     * there is none, never moves one, and the player is told it happened and how to undo it.
+     */
+    discordLauncherLink(username: string, token: string): void {
+        this.discordThread?.postMessage({ type: 'launcher-link', username, token });
+    }
+
     // offer: the pending offer this notice is about, if it is about one - the relay puts Accept and
     // Decline on that message (server/discord/DiscordThread.ts). items: what is in it, listed.
     discordNotify(username: string, text: string, offer?: number, items?: string[]): void {
         this.discordThread?.postMessage({ type: 'notify', username, text, offer, items });
     }
 
-    private onDiscordMessage(msg: { type: string; username: string; discord?: string; had?: boolean; id?: number; action?: string; arg?: number }): void {
+    private onDiscordMessage(msg: { type: string; username: string; discord?: string; had?: boolean; auto?: boolean; id?: number; action?: string; arg?: number }): void {
         // A trading post request from the bot. It is answered from this thread because this thread
         // owns the market's database - see the note above tradingPostDiscord - and the reply carries
         // the worker's own request id back so it can match it up.
@@ -324,7 +343,17 @@ class World {
             return;
         }
         if (msg.type === 'linked') {
-            player.wrappedMessageGame(`Linked to Discord as @dre@${msg.discord}@bla@. Trading post alerts will be sent there too.`);
+            // The automatic one says more, because nobody asked for it: what happened, and the one
+            // command that undoes it. A player who typed ::discord and /link knows what they did.
+            player.wrappedMessageGame(
+                msg.auto
+                    ? `Your launcher is signed in to Discord as @dre@${msg.discord}@bla@, so this character is now linked to it. Type @dre@::discord unlink@bla@ if you would rather it was not.`
+                    : `Linked to Discord as @dre@${msg.discord}@bla@. Trading post alerts will be sent there too.`
+            );
+        } else if (msg.type === 'launcher-link-conflict') {
+            // Rare and worth saying: the launcher is signed in, but this character belongs to
+            // another Discord account. Silence here reads as the sign-in not working.
+            player.wrappedMessageGame('This character is already linked to a different Discord account. Type @dre@::discord unlink@bla@ here first if you want to link it to the one your launcher is signed in to.');
         } else if (msg.type === 'unlinked') {
             player.wrappedMessageGame(msg.had ? 'Your account is no longer linked to Discord.' : 'Your account was not linked to Discord.');
         }
@@ -2431,6 +2460,9 @@ class World {
                 // Written in onLogin with the rest of the opening packets rather than here, where
                 // the player has no outbound stream yet.
                 player.loginToken = msg.token ?? null;
+                // custom (2026-11-15) - the launcher's Discord sign-in, carried from the login
+                // block on the socket. Sent on from Player.onLogin; see the note there.
+                player.launcherSignIn = client.launcherSignIn.length > 0 ? client.launcherSignIn : null;
                 player.staffModLevel = staffmodlevel ?? 0;
                 player.veteran = (veteran ?? 0) > 0;
                 player.helper = (helper ?? 0) > 0;
@@ -3104,9 +3136,21 @@ class World {
             // them sends neither, and reading past what it wrote would be reading whatever was left
             // in the buffer - so the revision it announced is what decides, and an old client is
             // simply a login with no saved logins in it.
+            //
+            // custom (2026-11-15) - AND THE FLAG BYTE IS NOW A FLAG BYTE. Bit 0 is what it always
+            // was, "mint me a saved login"; bit 1 says a launcher sign-in token follows the saved
+            // one. A client that knows nothing about the launcher writes 0 or 1 exactly as before,
+            // so bit 1 is never set and nothing is read past what it wrote.
+            //
+            // THAT IS WHY ENGINE_REVISION DID NOT MOVE for this. The revision check above accepts
+            // exactly two values, so a bump would have met every client already out there with
+            // "has been updated" the moment this deployed - for a field most logins do not carry.
+            // A self-describing byte needs no announcement.
             const sendsToken = rev >= LOGIN_TOKEN_REVISION;
-            const remember = sendsToken && World.loginBuf.g1() === 1;
+            const loginFlags = sendsToken ? World.loginBuf.g1() : 0;
+            const remember = (loginFlags & 0x1) !== 0;
             const token = sendsToken ? World.loginBuf.gjstr() : '';
+            const launcherSignIn = (loginFlags & 0x2) !== 0 ? World.loginBuf.gjstr() : '';
 
             if (Environment.NODE_PRODUCTION && Environment.NODE_RATELIMIT_DEVICE_LOGIN > 0) {
                 const last = this.loginDeviceAttempts.get(`${uid}@${client.remoteAddress}`);
@@ -3135,6 +3179,13 @@ class World {
                 client.close();
                 return;
             }
+
+            // custom (2026-11-15) - the launcher sign-in is the same shape as a saved login (the
+            // website mints it with the same alphabet and length on purpose), so it is checked the
+            // same way - but a malformed one costs the LINK and not the login. Being refused at the
+            // door because a launcher wrote nonsense into a field that only saves you typing
+            // ::discord would be the wrong trade by a long way.
+            client.launcherSignIn = LoginToken.looksLikeToken(launcherSignIn) ? launcherSignIn : '';
 
             if (this.getTotalPlayers() > Environment.NODE_MAX_CONNECTED) {
                 client.send(Uint8Array.from([7]));

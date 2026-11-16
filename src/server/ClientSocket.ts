@@ -30,6 +30,14 @@ export default abstract class ClientSocket {
     // the nearest old splat instead (HitType.legacyHitType). A socketless player (a bot, a sim) has no
     // client to draw with, so it is never legacy.
     legacyHitmarks = false;
+
+    // custom (2026-11-15) - the launcher's Discord sign-in, read out of the login block and kept
+    // here until there is a player to hang it on (World.onLoginMessage). It is an opaque token the
+    // website minted, worth the NAMES of the characters linked to that Discord account and nothing
+    // else: it cannot log anybody in, and the auto-link it drives refuses to overwrite a link that
+    // already exists. '' for every login that did not come from a signed-in launcher, which is
+    // every login from the browser client.
+    launcherSignIn = '';
     waiting = 0; // bytes to wait for (if any)
 
     // custom (2026-11-03) - WHEN EACH PACKET ARRIVED, which is not when the tick got round to

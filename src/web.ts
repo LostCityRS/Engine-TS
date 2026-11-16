@@ -257,6 +257,12 @@ const CHEERPJ_PAGE = `<!DOCTYPE html>
 const SOCKETS = new Map();
 let NEXT_SOCKET = 1;
 
+// WHAT ?kbdebug=1 PUTS ON THE SCREEN. Three rounds of "the keyboard does not type" went by on
+// guesses, each one costing a build, a deploy and somebody holding a phone. These are the four
+// numbers that tell the whole story apart: whether the field is receiving characters at all,
+// whether the client is asking for them, and whether any were handed over.
+const DIAG = { hello: 0, input: 0, queued: 0, asked: 0, given: 0 };
+
 function wake(s) {
     if (s.wake) { const w = s.wake; s.wake = null; w(); }
 }
@@ -333,6 +339,41 @@ const natives = {
         const bytes = new Uint8Array(bin.length);
         for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
         s.ws.send(bytes);
+    },
+
+    // THE CLIENT SAYING HELLO (2026-11-16). This is how the page gets the library handle, and
+    // through it every static field in BrowserInput. It used to be taken from wsOpen below, which
+    // was fine while a camera drag was the only thing that crossed - nothing is dragged before
+    // there is a game. The keyboard is not like that: no socket is opened until ENTER is pressed,
+    // and the keyboard is what types the name that ENTER is pressed with, so on the login screen
+    // there was no handle and every key collected here sat in its queue for ever. Reported from a
+    // phone: "the keyboard does not type anything". GameShell calls this before it draws anything.
+    async Java_jagex2_client_BrowserInput_browserReady(lib) {
+        DIAG.hello++;
+        if (LIB === null) {
+            LIB = lib;
+        }
+    },
+
+    // ASKED FOR, NOT PUSHED. A native called from Java is how the whole protocol already travels
+    // (the four below), so it is the one direction known to work. The page keeps the queue and
+    // hands over one key at a time when the client asks; nothing has to reach into a running
+    // program from outside and there is no library handle to go missing.
+    async Java_jagex2_client_BrowserInput_nextKey(lib) {
+        DIAG.asked++;
+        if (keyOut.length === 0) {
+            return -1;
+        }
+        DIAG.given++;
+        return keyOut.shift();
+    },
+
+    async Java_jagex2_client_BrowserInput_nextTap(lib) {
+        if (tapOut.length === 0) {
+            return -1;
+        }
+        const t = tapOut.shift();
+        return (t.x << 16) | (t.y & 0xFFFF);
     },
 
     async Java_jagex2_io_WsSocket_wsClose(lib, handle) {
@@ -514,31 +555,16 @@ display.addEventListener('auxclick', e => { if (e.button === 1) { e.preventDefau
 // The input therefore always holds one character - a non-breaking space nobody can see - and a
 // backspace is recognised by that character going missing. Enter and Tab do arrive as keydown.
 const keyOut = [];
+const tapOut = [];
 
 function enqueueKey(code) {
     // A burst - a paste, a password manager's autofill - queues here and is delivered in order.
     if (keyOut.length < 256) {
         keyOut.push(code);
+        DIAG.queued++;
     }
 }
 
-async function pumpKeys() {
-    if (keyOut.length === 0) {
-        return;
-    }
-    const bi = await browserInput();
-    if (bi === null) {
-        return;
-    }
-    // ONE AT A TIME, ACKNOWLEDGED. The next key is written only once the game thread has taken the
-    // last one, so a keystroke can never be overwritten before it is read. See BrowserInput.
-    if (bi.typedSeq !== bi.typedAck) {
-        return;
-    }
-    bi.typedKey = keyOut.shift();
-    bi.typedSeq = bi.typedSeq + 1;
-}
-setInterval(pumpKeys, 16);
 
 const SENTINEL = '\u00a0';
 const kbd = document.createElement('input');
@@ -571,6 +597,7 @@ kbd.addEventListener('keydown', e => {
 });
 
 kbd.addEventListener('input', () => {
+    DIAG.input++;
     const v = kbd.value;
     if (v.indexOf(SENTINEL) !== 0) {
         // The sentinel itself was deleted: that is the backspace.
@@ -614,17 +641,10 @@ function cancelLongPress() {
     }
 }
 
-async function sendLongPress() {
-    const bi = await browserInput();
-    if (bi === null) {
-        return;
+function sendLongPress() {
+    if (tapOut.length < 8) {
+        tapOut.push({ x: pressCanvasX, y: pressCanvasY });
     }
-    if (bi.tapSeq !== bi.tapAck) {
-        return;
-    }
-    bi.tapX = pressCanvasX;
-    bi.tapY = pressCanvasY;
-    bi.tapSeq = bi.tapSeq + 1;
 }
 
 display.addEventListener('pointerdown', e => {
@@ -680,6 +700,16 @@ function rotateHint() {
 window.addEventListener('resize', rotateHint);
 window.addEventListener('orientationchange', rotateHint);
 rotateHint();
+
+if (new URLSearchParams(location.search).has('kbdebug')) {
+    const box = document.createElement('div');
+    box.style.cssText = 'position:fixed;left:0;bottom:0;z-index:9;background:#000c;color:#0f0;font:11px monospace;padding:3px 6px;';
+    document.body.appendChild(box);
+    setInterval(() => {
+        box.textContent = 'hello:' + DIAG.hello + ' input:' + DIAG.input + ' queued:' + DIAG.queued
+            + ' asked:' + DIAG.asked + ' given:' + DIAG.given + ' waiting:' + keyOut.length;
+    }, 250);
+}
 
 document.getElementById('kbdbtn').addEventListener('click', () => {
     // iOS raises the keyboard only from inside a real gesture, which this click is.
