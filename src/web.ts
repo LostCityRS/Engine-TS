@@ -189,6 +189,22 @@ const WEB_CLIENT_HEIGHT = 503;
 // because the answer has now changed twice under us.
 const WEB_CLIENT_ROOM = 160;
 
+// AND WIDE ENOUGH FOR THE PLUGIN SIDEBAR, WHICH IS BESIDE THE GAME AND NOT PART OF IT
+// (2026-11-16). ViewBox adds the game canvas to BorderLayout.CENTER and the sidebar to EAST, so a
+// desktop window GROWS by the sidebar's width and the game keeps its 765. A browser window cannot
+// grow: it is packed into the display this page makes, and if that display is 765 then AWT takes
+// the sidebar's width out of CENTER instead. Measured against the live page: the game's canvas is
+// 472x503 with the sidebar open, 765 - 293. The client still draws its 765-wide frame into it, so
+// the right 293 pixels of every screen - a third of the login box, the right-hand end of the title
+// art, the whole right column in game - are simply clipped away.
+//
+// 293 is Theme.WIDTH (250) plus Theme.RAIL_WIDTH (34) plus the sidebar's insets, taken from the
+// live page rather than from the constants, because the insets are a look-and-feel's to choose.
+const WEB_SIDEBAR_ROOM = 293;
+
+/** The whole window: the client, and the sidebar beside it. */
+const WEB_WINDOW_WIDTH = WEB_CLIENT_WIDTH + WEB_SIDEBAR_ROOM;
+
 const LAUNCHER_URL = 'https://github.com/coreysho/DeathPlateau-Client/releases/latest/download/Death-Plateau-Launcher.jar';
 
 const clientJarPath = path.join(process.cwd(), 'public', 'client.jar');
@@ -207,15 +223,22 @@ const CHEERPJ_PAGE = `<!DOCTYPE html>
   /* The hole the game is seen through: exactly the client, with the display sliding up behind it
      by the height of CheerpJ's title bar, so the bar is out of sight above rather than taking a
      strip out of the page and a window button beside the game's own. */
-  #screen { margin: 0 auto; width: ${WEB_CLIENT_WIDTH}px; height: ${WEB_CLIENT_HEIGHT}px; overflow: hidden; }
-  #display { width: ${WEB_CLIENT_WIDTH}px; height: ${WEB_CLIENT_HEIGHT + WEB_CLIENT_ROOM}px; }
+  #screen { margin: 0 auto; width: ${WEB_WINDOW_WIDTH}px; max-width: 100%; height: ${WEB_CLIENT_HEIGHT}px; overflow: hidden; }
+  #display { width: ${WEB_WINDOW_WIDTH}px; height: ${WEB_CLIENT_HEIGHT + WEB_CLIENT_ROOM}px; }
   #foot { text-align: center; padding: 6px; }
   #foot a { color: #c8a04a; }
+  /* REAL, FOCUSABLE AND ON THE PAGE, because a phone raises its keyboard for a focused input and
+     for nothing else - and an input parked off-screen does not reliably count as focusable on
+     iOS. So it is a pixel in the corner at zero opacity rather than at left:-1000px. */
+  #kbd { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; z-index: 5; }
+  #kbdbar { display: none; text-align: center; padding: 8px; }
+  #kbdbar button { background: #1b1b1b; color: #c8a04a; border: 1px solid #c8a04a; border-radius: 4px; padding: 10px 18px; font: 14px sans-serif; }
 </style>
 <script src="https://cjrtnc.leaningtech.com/4.3/loader.js"></script>
 </head>
 <body>
 <div id="screen"><div id="display"></div></div>
+<div id="kbdbar"><button id="kbdbtn" type="button">Keyboard</button></div>
 <div id="foot">The browser client is slower than the real thing. <a href="${LAUNCHER_URL}">Download the launcher</a> to play properly.</div>
 <script>
 // A BROWSER TAB HAS NO TCP. jagex2/io/WsSocket.java declares these four as native and this is where
@@ -337,8 +360,14 @@ function gameCanvas() {
     const canvases = display.getElementsByTagName('canvas');
     for (let i = 0; i < canvases.length; i++) {
         const r = canvases[i].getBoundingClientRect();
-        // Within a pixel of the client's own size: the game surface, not a cursor or an overlay.
-        if (Math.abs(r.width - ${WEB_CLIENT_WIDTH}) <= 2 && Math.abs(r.height - ${WEB_CLIENT_HEIGHT}) <= 2) {
+        // BY HEIGHT ALONE, AND FOR THE THIRD TIME BY SOMETHING THAT CANNOT MOVE (2026-11-16).
+        // Matching the width too is what broke this: the game's canvas is only 765 wide when the
+        // plugin sidebar is folded away, and it is open by default, so the match never ran and the
+        // ten-second fallback below exposed CheerpJ's own title bar on every load. The HEIGHT is
+        // the client's 503 whatever the sidebar is doing - the sidebar is beside the game, not
+        // above or below it - and the window's own canvas is taller (its title bar), so height
+        // alone tells the two apart.
+        if (Math.abs(r.height - ${WEB_CLIENT_HEIGHT}) <= 2) {
             return canvases[i];
         }
     }
@@ -386,19 +415,31 @@ let lastY = 0;
 let totalX = 0;
 let totalY = 0;
 
+// The class handle, asked for once. Both the camera drag and the phone's keyboard write through
+// it, so it is fetched here rather than by whichever of them happens to run first.
+async function browserInput() {
+    if (BROWSER_INPUT !== null) {
+        return BROWSER_INPUT;
+    }
+    if (LIB === null || BROWSER_INPUT_MISSING) {
+        return null;
+    }
+    try {
+        BROWSER_INPUT = await LIB.jagex2.client.BrowserInput;
+    } catch (e) {
+        BROWSER_INPUT_MISSING = true;
+        return null;
+    }
+    if (!BROWSER_INPUT) {
+        BROWSER_INPUT_MISSING = true;
+        return null;
+    }
+    return BROWSER_INPUT;
+}
+
 async function pushCameraDrag() {
     if (BROWSER_INPUT === null) {
-        if (LIB === null || BROWSER_INPUT_MISSING) {
-            return;
-        }
-        try {
-            BROWSER_INPUT = await LIB.jagex2.client.BrowserInput;
-        } catch (e) {
-            BROWSER_INPUT_MISSING = true;
-            return;
-        }
-        if (!BROWSER_INPUT) {
-            BROWSER_INPUT_MISSING = true;
+        if (await browserInput() === null) {
             return;
         }
     }
@@ -440,6 +481,106 @@ window.addEventListener('pointerup', e => {
 display.addEventListener('mousedown', e => { if (e.button === 1) { e.preventDefault(); } }, true);
 display.addEventListener('auxclick', e => { if (e.button === 1) { e.preventDefault(); } }, true);
 
+// THE PHONE'S KEYBOARD (2026-11-16). The game is a canvas, so no phone will ever put a keyboard
+// up for it, and the player cannot type a username - which is the first thing the game asks for.
+// A reported complaint, in those words: "no keyboard when trying to login with user".
+//
+// A real input, focused by a real tap, is what raises it. What is typed into that input is sent to
+// jagex2.client.BrowserInput one key at a time, because a synthetic KeyboardEvent aimed at the
+// canvas does NOT reach AWT - measured on the live page: three characters dispatched at the canvas,
+// at document, at window and at body changed nothing, while the same characters as real key events
+// landed in the username field. CheerpJ does not act on untrusted events.
+//
+// ANDROID DOES NOT SEND A USABLE BACKSPACE. Its soft keyboards report keyCode 229 for most keys and
+// fire no useful keydown at all when the field is empty, so backspace cannot be read from keydown.
+// The input therefore always holds one character - a non-breaking space nobody can see - and a
+// backspace is recognised by that character going missing. Enter and Tab do arrive as keydown.
+const keyOut = [];
+
+function enqueueKey(code) {
+    // A burst - a paste, a password manager's autofill - queues here and is delivered in order.
+    if (keyOut.length < 256) {
+        keyOut.push(code);
+    }
+}
+
+async function pumpKeys() {
+    if (keyOut.length === 0) {
+        return;
+    }
+    const bi = await browserInput();
+    if (bi === null) {
+        return;
+    }
+    // ONE AT A TIME, ACKNOWLEDGED. The next key is written only once the game thread has taken the
+    // last one, so a keystroke can never be overwritten before it is read. See BrowserInput.
+    if (bi.typedSeq !== bi.typedAck) {
+        return;
+    }
+    bi.typedKey = keyOut.shift();
+    bi.typedSeq = bi.typedSeq + 1;
+}
+setInterval(pumpKeys, 16);
+
+const SENTINEL = '\u00a0';
+const kbd = document.createElement('input');
+kbd.id = 'kbd';
+kbd.type = 'text';
+kbd.value = SENTINEL;
+kbd.setAttribute('autocapitalize', 'none');
+kbd.setAttribute('autocomplete', 'off');
+kbd.setAttribute('autocorrect', 'off');
+kbd.spellcheck = false;
+document.body.appendChild(kbd);
+
+function resetField() {
+    kbd.value = SENTINEL;
+    try {
+        kbd.setSelectionRange(SENTINEL.length, SENTINEL.length);
+    } catch (e) {
+        /* a browser that will not place the caret still types fine */
+    }
+}
+
+kbd.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+        enqueueKey(10);
+        e.preventDefault();
+    } else if (e.key === 'Tab') {
+        enqueueKey(9);
+        e.preventDefault();
+    }
+});
+
+kbd.addEventListener('input', () => {
+    const v = kbd.value;
+    if (v.indexOf(SENTINEL) !== 0) {
+        // The sentinel itself was deleted: that is the backspace.
+        enqueueKey(8);
+    } else {
+        const typed = v.slice(SENTINEL.length);
+        for (let i = 0; i < typed.length; i++) {
+            const c = typed.charCodeAt(i);
+            if (c >= 32 && c <= 126) {
+                enqueueKey(c);
+            }
+        }
+    }
+    resetField();
+});
+
+// Only where there is no real keyboard to begin with. A desktop browser types straight into the
+// canvas, as it always has, and never sees the bar.
+const COARSE = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+if (COARSE) {
+    document.getElementById('kbdbar').style.display = 'block';
+}
+document.getElementById('kbdbtn').addEventListener('click', () => {
+    // iOS raises the keyboard only from inside a real gesture, which this click is.
+    resetField();
+    kbd.focus();
+});
+
 (async function () {
     const port = location.port || (location.protocol === 'https:' ? '443' : '80');
     const ws = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/';
@@ -463,7 +604,7 @@ display.addEventListener('auxclick', e => { if (e.button === 1) { e.preventDefau
             'lostcity.cachedir=/files/.deathplateau'
         ]
     });
-    cheerpjCreateDisplay(${WEB_CLIENT_WIDTH}, ${WEB_CLIENT_HEIGHT + WEB_CLIENT_ROOM}, display);
+    cheerpjCreateDisplay(${WEB_WINDOW_WIDTH}, ${WEB_CLIENT_HEIGHT + WEB_CLIENT_ROOM}, display);
     await cheerpjRunMain('jagex2.client.Client', '/app/client.jar');
 })();
 </script>
