@@ -439,6 +439,12 @@ export default class Player extends PathingEntity {
     // login, not to the player, and nothing saves it anywhere on this side.
     loginToken: string | null = null;
 
+    // custom (2026-11-15) - the launcher sign-in token this login arrived with, waiting to be sent
+    // to the Discord relay once the player is actually in the world. Set by World.onLoginMessage
+    // from the client socket and cleared the moment it is used, for the same reason loginToken is:
+    // it belongs to the login and there is nowhere on this side it should outlive it.
+    launcherSignIn: string | null = null;
+
     socialProtect: boolean = false; // social packet spam protection
     reportAbuseProtect: boolean = false; // social packet spam protection
 
@@ -562,6 +568,16 @@ export default class Player extends PathingEntity {
         if (this.loginToken !== null) {
             this.write(new SetLoginToken(this.loginToken));
             this.loginToken = null;
+        }
+
+        // custom (2026-11-15) - and the link this login earns, if it came from a launcher signed in
+        // to Discord. HERE rather than in World.onLoginMessage, where the token arrives: the relay
+        // answers asynchronously and the reply is delivered with getPlayerByUsername, which cannot
+        // find a player still sitting in newPlayers. Said at the point the player is in the world
+        // and can be written to, so the line telling them it happened reaches them.
+        if (this.launcherSignIn !== null) {
+            World.discordLauncherLink(this.username, this.launcherSignIn);
+            this.launcherSignIn = null;
         }
 
         // todo: exact order
