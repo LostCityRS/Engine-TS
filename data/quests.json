@@ -2773,7 +2773,7 @@
    "name": "FIGHT ARENA",
    "source": "oldschool.runescape.wiki/w/Fight_Arena",
    "stageVar": "arenaquest",
-   "done": 15,
+   "done": 14,
    "start": [
     2569,
     3198,
@@ -34078,7 +34078,7 @@
    "name": "HEROES' QUEST (solo part)",
    "source": "oldschool.runescape.wiki/w/Heroes%27_Quest",
    "stageVar": "heroquest",
-   "done": 11,
+   "done": 15,
    "start": [
     2904,
     3510,
@@ -34577,6 +34577,21 @@
       }
      ],
      "items": [],
+     "worn": []
+    },
+    {
+     "from": 11,
+     "headings": [],
+     "marks": [],
+     "steps": [],
+     "items": [
+      {
+       "name": "Miscellaneous key",
+       "id": 1586,
+       "n": 1,
+       "bring": false
+      }
+     ],
      "worn": []
     }
    ]
@@ -39119,7 +39134,7 @@
    "name": "TEMPLE OF IKOV",
    "source": "oldschool.runescape.wiki/w/Temple_of_Ikov",
    "stageVar": "ikov",
-   "done": 90,
+   "done": 80,
    "start": [
     2573,
     3322,
@@ -44496,12 +44511,7 @@
     },
     {
      "from": 32,
-     "headings": [
-      {
-       "at": 4,
-       "text": "Gujuo comes out of the trees on his own this time - the replacement npc_add-s him with npc_setmode(opplayer2), so he walks over and starts the conversation himself."
-      }
-     ],
+     "headings": [],
      "marks": [],
      "steps": [
       {
@@ -44511,7 +44521,21 @@
        "target": "san_tojalon",
        "id": 936,
        "label": "San Tojalon"
-      },
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 35,
+     "headings": [
+      {
+       "at": 3,
+       "text": "Gujuo comes out of the trees on his own this time - the replacement npc_add-s him with npc_setmode(opplayer2), so he walks over and starts the conversation himself."
+      }
+     ],
+     "marks": [],
+     "steps": [
       {
        "kind": "loc",
        "text": "Use Yommi totem on Totem Pole.",
@@ -56840,7 +56864,7 @@
    "name": "OBSERVATORY QUEST",
    "source": "oldschool.runescape.wiki/w/Observatory_Quest",
    "stageVar": "itgronigen",
-   "done": 8,
+   "done": 7,
    "start": [
     2441,
     3186,
@@ -57278,44 +57302,6 @@
       }
      ],
      "items": [],
-     "worn": []
-    },
-    {
-     "from": 7,
-     "headings": [
-      {
-       "at": 1,
-       "text": "Reward: the assistant stands you a drink afterwards."
-      }
-     ],
-     "marks": [],
-     "steps": [
-      {
-       "text": "Go back to the reception room.",
-       "kind": "walk",
-       "at": [
-        2441,
-        3186,
-        0
-       ]
-      },
-      {
-       "kind": "talk",
-       "text": "Talk to Observatory assistant.",
-       "why": "He gives you his wine.",
-       "target": "observatory_assistant",
-       "id": 487,
-       "label": "Observatory assistant"
-      }
-     ],
-     "items": [
-      {
-       "name": "Uncut sapphire",
-       "id": 1623,
-       "n": 1,
-       "bring": false
-      }
-     ],
      "worn": []
     }
    ]
@@ -67266,32 +67252,7 @@
        "text": "The mound of earth south-west of the Shipyard."
       }
      ],
-     "marks": [
-      {
-       "at": 2,
-       "var": 116,
-       "varbit": false,
-       "is": 3
-      },
-      {
-       "at": 3,
-       "var": 116,
-       "varbit": false,
-       "is": 4
-      },
-      {
-       "at": 4,
-       "var": 116,
-       "varbit": false,
-       "is": 5
-      },
-      {
-       "at": 5,
-       "var": 116,
-       "varbit": false,
-       "is": 6
-      }
-     ],
+     "marks": [],
      "steps": [
       {
        "text": "Go to the mound of earth.",
@@ -67313,7 +67274,16 @@
         2999
        ],
        "op": 2
-      },
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 3,
+     "headings": [],
+     "marks": [],
+     "steps": [
       {
        "kind": "loc",
        "text": "Use Spade on Mound of earth.",
@@ -67326,7 +67296,16 @@
         2921,
         2999
        ]
-      },
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 4,
+     "headings": [],
+     "marks": [],
+     "steps": [
       {
        "kind": "loc",
        "text": "Use Lit candle on Fissure.",
@@ -67339,7 +67318,16 @@
         2921,
         2999
        ]
-      },
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 5,
+     "headings": [],
+     "marks": [],
+     "steps": [
       {
        "kind": "loc",
        "text": "Use Rope on Fissure.",
@@ -67352,7 +67340,16 @@
         2921,
         2999
        ]
-      },
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 6,
+     "headings": [],
+     "marks": [],
+     "steps": [
       {
        "kind": "loc",
        "text": "Search Fissure.",

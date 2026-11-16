@@ -90,13 +90,16 @@ const m: Manifest = {
         { note: 'drop a light down the fissure, tie the rope on, and squeeze in.' },
         { setpos: [MOUND[0], MOUND[1] - 1, 0], why: 'to the mound of earth' },
         { loc: 'ahzarhoon_entrance', at: MOUND, op: 2, why: 'search the mound' },
-        { varis: 'zombiequeen', to: 3 },
+        // `stage`, not `varis`: both assert the same number, but only `stage` is a leg boundary to
+        // ExportHelper, and each of these four has a real click after it - dig, light, rope, climb.
+        // As varis they were four stages a player could be sitting at with nothing in the panel.
+        { stage: 3 },
         { useLoc: 'ahzarhoon_entrance', at: MOUND, obj: 'spade', why: 'dig it' },
-        { varis: 'zombiequeen', to: 4 },
+        { stage: 4 },
         { useLoc: 'ahzarhoon_entrance_fissure', at: MOUND, obj: 'lit_candle', want: 'anchor point', why: 'light the fissure' },
-        { varis: 'zombiequeen', to: 5 },
+        { stage: 5 },
         { useLoc: 'ahzarhoon_entrance_fissure', at: MOUND, obj: 'rope', want: 'secure the rope', why: 'tie the rope on' },
-        { varis: 'zombiequeen', to: 6 },
+        { stage: 6 },
         { note: 'the way down is the SEARCH op, not the first one: op1 on the roped fissure only' },
         { note: 'describes it, and only op2 asks whether you want to crawl through.' },
         { loc: 'ahzarhoon_entrance_fissure_withrope', at: MOUND, op: 2, picks: ["Yes, I'll give it a go!"], want: 'lower yourself', why: 'climb down' },

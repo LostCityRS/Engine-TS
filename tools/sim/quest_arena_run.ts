@@ -28,7 +28,10 @@ const m: Manifest = {
     quest: 'FIGHT ARENA',
     source: 'oldschool.runescape.wiki/w/Fight_Arena',
     stageVar: 'arenaquest',
-    done: 15, // ^arena_complete_defeated_genkhazard
+    // ^arena_complete. The quest is over at 14; 15 is ^arena_complete_defeated_genkhazard, the
+    // extra state for killing the general afterwards, which this run goes on to do. `done` is what
+    // the helper reads as finished, and quests.rs2 turns the quest-list row green at 14.
+    done: 14,
     start: LADY,
     steps: [
         { note: 'no quest requirements. Items: five coins for a Khali brew, and the ability to beat' },

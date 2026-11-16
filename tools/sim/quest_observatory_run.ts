@@ -24,7 +24,10 @@ const m: Manifest = {
     quest: 'OBSERVATORY QUEST',
     source: 'oldschool.runescape.wiki/w/Observatory_Quest',
     stageVar: 'itgronigen',
-    done: 8, // ^itgronigen_claimed_wine - past ^itgronigen_complete, so the wine is checked too
+    // ^itgronigen_complete. The run goes on to 8 (^itgronigen_claimed_wine) so the wine is checked
+    // too, but that is a state after the quest, not part of it: a player who has finished and not
+    // claimed the wine is finished, and the helper must not keep showing them a step.
+    done: 7,
     start: RECEPTION,
     steps: [
         { note: 'no requirements. Items: 3 planks, a bronze bar and a molten glass.' },
