@@ -356,6 +356,9 @@ const display = document.getElementById('display');
 let slidX = -1;
 let slidY = -1;
 let looked = 0;
+// The height of the hole the game is seen through. The client's own 503 on a desktop; on a phone
+// the phone's, set below before the display is made.
+let holeH = ${WEB_CLIENT_HEIGHT};
 function gameCanvas() {
     const canvases = display.getElementsByTagName('canvas');
     for (let i = 0; i < canvases.length; i++) {
@@ -381,7 +384,7 @@ function fitWindow() {
         // survivable, and hiding the chat tabs is not. After ten seconds of looking, open the hole
         // to the full height of the display so nothing is cut off.
         if (++looked === 10) {
-            document.getElementById('screen').style.height = (${WEB_CLIENT_HEIGHT + WEB_CLIENT_ROOM}) + 'px';
+            document.getElementById('screen').style.height = (holeH + ${WEB_CLIENT_ROOM}) + 'px';
         }
         return;
     }
@@ -394,7 +397,7 @@ function fitWindow() {
     }
     slidX = x;
     slidY = y;
-    document.getElementById('screen').style.height = ${WEB_CLIENT_HEIGHT} + 'px';
+    document.getElementById('screen').style.height = holeH + 'px';
     display.style.marginTop = -y + 'px';
     display.style.marginLeft = -x + 'px';
 }
@@ -581,6 +584,39 @@ document.getElementById('kbdbtn').addEventListener('click', () => {
     kbd.focus();
 });
 
+// THE DISPLAY IS THE PHONE'S, NOT THE GAME'S (2026-11-16).
+//
+// Everywhere else this page makes a display the size of the game and lets the page scroll. On a
+// phone there is no size of page that helps: the game is 765x503 and the screen is smaller than
+// that in at least one direction whichever way up it is held. Scaling the display with CSS is not
+// the answer either - CheerpJ maps a CSS pixel to an AWT pixel one for one and reads the mouse off
+// the canvas's rectangle, so the picture moves and the clicks do not (measured: at 0.5 a tap on a
+// widget misses it, and the far half of the window stops being reachable at all).
+//
+// So the window is made the size of the screen and the CLIENT draws its frame scaled to fit, with
+// the mouse scaled back the same way - see Client's scaled mode, which turns itself on exactly
+// when the window is smaller than the game. The two properties below are how it learns the size;
+// without them the game opens at 765x503 and ViewBox holds the window at its minimum, and the
+// scale could never come on.
+let viewW = ${WEB_WINDOW_WIDTH};
+let viewH = ${WEB_CLIENT_HEIGHT};
+if (COARSE) {
+    // visualViewport, where there is one: innerHeight on a phone includes the browser's own bars
+    // on some versions and not others, and the difference is the row of chat tabs again.
+    const vv = window.visualViewport;
+    const vw = Math.round(vv ? vv.width : window.innerWidth);
+    const vh = Math.round(vv ? vv.height : window.innerHeight);
+    // Room under the game for the Keyboard button, which has to stay reachable.
+    viewW = Math.max(240, vw);
+    viewH = Math.max(240, vh - 52);
+    holeH = viewH;
+    const screenEl = document.getElementById('screen');
+    screenEl.style.width = viewW + 'px';
+    screenEl.style.height = viewH + 'px';
+    display.style.width = viewW + 'px';
+    display.style.height = (viewH + ${WEB_CLIENT_ROOM}) + 'px';
+}
+
 (async function () {
     const port = location.port || (location.protocol === 'https:' ? '443' : '80');
     const ws = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/';
@@ -601,10 +637,14 @@ document.getElementById('kbdbtn').addEventListener('click', () => {
             // CheerpJ keeps /files in the browser's own storage, so the client's file store
             // survives a reload and the animations and models are downloaded once rather than
             // every visit. signlink.findcachedir reads this.
-            'lostcity.cachedir=/files/.deathplateau'
+            'lostcity.cachedir=/files/.deathplateau',
+            // DisplaySettings.startWidth/startHeight and the window's minimum. A desktop browser
+            // sends the game's own size, which is what it has always opened at.
+            'lostcity.screenwidth=' + viewW,
+            'lostcity.screenheight=' + viewH
         ]
     });
-    cheerpjCreateDisplay(${WEB_WINDOW_WIDTH}, ${WEB_CLIENT_HEIGHT + WEB_CLIENT_ROOM}, display);
+    cheerpjCreateDisplay(viewW, viewH + ${WEB_CLIENT_ROOM}, display);
     await cheerpjRunMain('jagex2.client.Client', '/app/client.jar');
 })();
 </script>
