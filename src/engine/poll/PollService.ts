@@ -1,6 +1,8 @@
 import { printInfo, printWarning } from '#/util/Logger.js';
 import Environment from '#/util/Environment.js';
 import PollBook from '#/engine/poll/PollBook.js';
+import Player from '#/engine/entity/Player.js';
+import VarPlayerType from '#/cache/config/VarPlayerType.js';
 
 /**
  * The one poll database this world uses, opened when something first asks for it.
@@ -24,7 +26,31 @@ import PollBook from '#/engine/poll/PollBook.js';
 let book: PollBook | null = null;
 let refused = false;
 
+/**
+ * How long an account must have played before it may vote: two hours, as minutes.
+ *
+ * WHY A PLAYTIME GATE AND NOT AN IDENTITY ONE. The worry is ballot stuffing on a small player base,
+ * and the only measure a stuffer cannot buy cheaply is TIME. A game account here is free and
+ * instant - no email - so keying votes on the account is no barrier at all, and keying them on a
+ * linked Discord account only raises the price to one throwaway email, which is ten minutes' work.
+ * Twenty accounts with two hours on each is forty hours of somebody's life. Old School gates its
+ * own polls the same way, on total level and hours played.
+ *
+ * It also costs nobody their vote: no Discord account needed, no launcher, identical in the browser
+ * client, and every real player passes it within an evening.
+ *
+ * MINUTES, which is what %player_playtime counts - content/scripts/player/scripts/player_stats.rs2
+ * runs softtimer(playtime_minute, 100), and 100 ticks is sixty seconds.
+ *
+ * Mirrored in content as ^poll_min_minutes and on the website as MIN_MINUTES (src/lib/polls.ts).
+ * Three copies because three programs ask the question and none can call the others; raise it in
+ * all three or the clerk and the website will disagree about who may vote.
+ */
+export const POLL_MIN_MINUTES = 120;
+
 export default class PollService {
+    private static playtimeVarp: number = -2;
+
     static file(): string {
         return `data/polls/${Environment.NODE_PROFILE}.sqlite`;
     }
@@ -56,5 +82,18 @@ export default class PollService {
     static openId(): number {
         const polls = PollService.bookOrNull()?.openPolls() ?? [];
         return polls.length > 0 ? polls[0].id : 0;
+    }
+
+    /** How many minutes this player has played - the varp the quest tab and the hiscores both read. */
+    static minutesPlayed(player: Player): number {
+        if (PollService.playtimeVarp === -2) {
+            PollService.playtimeVarp = VarPlayerType.getId('player_playtime');
+        }
+        if (PollService.playtimeVarp < 0) {
+            // No such varp in this content build. Letting the vote through beats refusing everybody
+            // over a missing config: this is a deterrent, not a security boundary.
+            return POLL_MIN_MINUTES;
+        }
+        return player.vars[PollService.playtimeVarp] ?? 0;
     }
 }

@@ -1,6 +1,6 @@
 import { ScriptOpcode } from '#/engine/script/ScriptOpcode.js';
 import { CommandHandlers } from '#/engine/script/ScriptRunner.js';
-import PollService from '#/engine/poll/PollService.js';
+import PollService, { POLL_MIN_MINUTES } from '#/engine/poll/PollService.js';
 
 // The script side of engine/poll. Content owns the clerk, what she says and how she says it; this
 // owns the database and the one-vote rule, and nothing here can hand out an item.
@@ -67,7 +67,29 @@ const PollOps: CommandHandlers = {
             state.pushInt(-1); // ^poll_unavailable
             return;
         }
+
+        // THE PLAYTIME GATE, checked here rather than in PollBook: the book is shared with the
+        // website and with the command line tool, and neither of those has a player to ask. Both
+        // callers that DO have one check before writing, which is why this is duplicated on the
+        // site rather than pushed down - see POLL_MIN_MINUTES.
+        if (PollService.minutesPlayed(state.activePlayer) < POLL_MIN_MINUTES) {
+            state.pushInt(4); // ^poll_notyet
+            return;
+        }
+
         state.pushInt(book.vote(id, state.activePlayer.username, idx, 'game') as number);
+    },
+
+    // poll_minutes()(int): how long the active player has played, in minutes, so the clerk can say
+    // how much longer rather than only that it is not enough. Reads the same varp the gate does.
+    [ScriptOpcode.POLL_MINUTES]: state => {
+        state.pushInt(PollService.minutesPlayed(state.activePlayer));
+    },
+
+    // poll_minminutes()(int): the threshold itself, so content need not hardcode a second copy of
+    // it in the sentence it prints.
+    [ScriptOpcode.POLL_MINMINUTES]: state => {
+        state.pushInt(POLL_MIN_MINUTES);
     },
 
     // poll_votes(int $poll, int $idx)(int): how many accounts picked that option, so the clerk can

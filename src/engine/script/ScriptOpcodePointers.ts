@@ -1161,6 +1161,10 @@ const ScriptOpcodePointers: {
     [ScriptOpcode.POLL_CAST]: {
         require: ['active_player']
     },
+    // poll_minutes is about a particular player; poll_minminutes is a constant and needs nobody.
+    [ScriptOpcode.POLL_MINUTES]: {
+        require: ['active_player']
+    },
 
     [ScriptOpcode.CLAN_SETNAME]: {
         require: ['active_player']
