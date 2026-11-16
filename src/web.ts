@@ -189,6 +189,22 @@ const WEB_CLIENT_HEIGHT = 503;
 // because the answer has now changed twice under us.
 const WEB_CLIENT_ROOM = 160;
 
+// AND WIDE ENOUGH FOR THE PLUGIN SIDEBAR, WHICH IS BESIDE THE GAME AND NOT PART OF IT
+// (2026-11-16). ViewBox adds the game canvas to BorderLayout.CENTER and the sidebar to EAST, so a
+// desktop window GROWS by the sidebar's width and the game keeps its 765. A browser window cannot
+// grow: it is packed into the display this page makes, and if that display is 765 then AWT takes
+// the sidebar's width out of CENTER instead. Measured against the live page: the game's canvas is
+// 472x503 with the sidebar open, 765 - 293. The client still draws its 765-wide frame into it, so
+// the right 293 pixels of every screen - a third of the login box, the right-hand end of the title
+// art, the whole right column in game - are simply clipped away.
+//
+// 293 is Theme.WIDTH (250) plus Theme.RAIL_WIDTH (34) plus the sidebar's insets, taken from the
+// live page rather than from the constants, because the insets are a look-and-feel's to choose.
+const WEB_SIDEBAR_ROOM = 293;
+
+/** The whole window: the client, and the sidebar beside it. */
+const WEB_WINDOW_WIDTH = WEB_CLIENT_WIDTH + WEB_SIDEBAR_ROOM;
+
 const LAUNCHER_URL = 'https://github.com/coreysho/DeathPlateau-Client/releases/latest/download/Death-Plateau-Launcher.jar';
 
 const clientJarPath = path.join(process.cwd(), 'public', 'client.jar');
@@ -207,8 +223,8 @@ const CHEERPJ_PAGE = `<!DOCTYPE html>
   /* The hole the game is seen through: exactly the client, with the display sliding up behind it
      by the height of CheerpJ's title bar, so the bar is out of sight above rather than taking a
      strip out of the page and a window button beside the game's own. */
-  #screen { margin: 0 auto; width: ${WEB_CLIENT_WIDTH}px; height: ${WEB_CLIENT_HEIGHT}px; overflow: hidden; }
-  #display { width: ${WEB_CLIENT_WIDTH}px; height: ${WEB_CLIENT_HEIGHT + WEB_CLIENT_ROOM}px; }
+  #screen { margin: 0 auto; width: ${WEB_WINDOW_WIDTH}px; max-width: 100%; height: ${WEB_CLIENT_HEIGHT}px; overflow: hidden; }
+  #display { width: ${WEB_WINDOW_WIDTH}px; height: ${WEB_CLIENT_HEIGHT + WEB_CLIENT_ROOM}px; }
   #foot { text-align: center; padding: 6px; }
   #foot a { color: #c8a04a; }
 </style>
@@ -337,8 +353,14 @@ function gameCanvas() {
     const canvases = display.getElementsByTagName('canvas');
     for (let i = 0; i < canvases.length; i++) {
         const r = canvases[i].getBoundingClientRect();
-        // Within a pixel of the client's own size: the game surface, not a cursor or an overlay.
-        if (Math.abs(r.width - ${WEB_CLIENT_WIDTH}) <= 2 && Math.abs(r.height - ${WEB_CLIENT_HEIGHT}) <= 2) {
+        // BY HEIGHT ALONE, AND FOR THE THIRD TIME BY SOMETHING THAT CANNOT MOVE (2026-11-16).
+        // Matching the width too is what broke this: the game's canvas is only 765 wide when the
+        // plugin sidebar is folded away, and it is open by default, so the match never ran and the
+        // ten-second fallback below exposed CheerpJ's own title bar on every load. The HEIGHT is
+        // the client's 503 whatever the sidebar is doing - the sidebar is beside the game, not
+        // above or below it - and the window's own canvas is taller (its title bar), so height
+        // alone tells the two apart.
+        if (Math.abs(r.height - ${WEB_CLIENT_HEIGHT}) <= 2) {
             return canvases[i];
         }
     }
@@ -463,7 +485,7 @@ display.addEventListener('auxclick', e => { if (e.button === 1) { e.preventDefau
             'lostcity.cachedir=/files/.deathplateau'
         ]
     });
-    cheerpjCreateDisplay(${WEB_CLIENT_WIDTH}, ${WEB_CLIENT_HEIGHT + WEB_CLIENT_ROOM}, display);
+    cheerpjCreateDisplay(${WEB_WINDOW_WIDTH}, ${WEB_CLIENT_HEIGHT + WEB_CLIENT_ROOM}, display);
     await cheerpjRunMain('jagex2.client.Client', '/app/client.jar');
 })();
 </script>
