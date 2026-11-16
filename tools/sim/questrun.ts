@@ -2235,7 +2235,10 @@ export function play(m: Manifest, p: Player): Result[] {
     const stage = stageOf(p, m.stageVar);
     console.log('');
     if (stopped) console.log('  STOPPED at step ' + n + ': ' + stopped);
-    console.log('  ' + m.stageVar + ' finished at ' + stage + (stage === m.done ? ' - COMPLETE' : ' of ' + m.done));
+    // `>=`, not `===`: a run can finish PAST the quest's completion. Fight Arena goes on to kill
+    // the general, Temple of Ikov takes the ending worth 90 where the quest is over at 80, and the
+    // Observatory run claims the wine afterwards. All three are complete.
+    console.log('  ' + m.stageVar + ' finished at ' + stage + (stage >= m.done ? ' - COMPLETE' : ' of ' + m.done));
     if (gives.length) console.log('  items the run had to be handed: ' + gives.join(', '));
     const bad = out.filter(r => !r.ok).length;
     console.log('  ' + (out.length - bad) + ' of ' + out.length + ' checks passed');

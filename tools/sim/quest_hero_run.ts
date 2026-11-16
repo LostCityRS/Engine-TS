@@ -27,7 +27,10 @@ const m: Manifest = {
     quest: "HEROES' QUEST (solo part)",
     source: 'oldschool.runescape.wiki/w/Heroes%27_Quest',
     stageVar: 'heroquest',
-    done: 11, // ^hero_blackarm_id_papers_given, as far as one player goes
+    // ^hero_complete. This run stops at 11 (^hero_blackarm_id_papers_given), which is as far as one
+    // player can take it, so the last stage it asserts is NOT the end of the quest - `done` is the
+    // quest's own completion, because that is what the helper reads as finished.
+    done: 15,
     start: [2904, 3510, 0],
     steps: [
         { note: 'requirements: 55 quest points, Shield of Arrav, Lost City, Merlin’s Crystal and' },

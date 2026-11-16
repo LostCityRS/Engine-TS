@@ -65,7 +65,11 @@ const m: Manifest = {
     quest: 'TEMPLE OF IKOV',
     source: 'oldschool.runescape.wiki/w/Temple_of_Ikov',
     stageVar: 'ikov',
-    done: 90, // ^ikov_completed_lucien - see the note on the two endings below
+    // ^ikov_completed_armadyl. Both endings finish the quest - 80 for Armadyl, 90 for Lucien, which
+    // is the one this run plays - and quests.rs2 turns the row green at 80, so a player who sided
+    // with Armadyl is finished at 80. `done` takes the lower of the two for that reason; see the
+    // note on the two endings below.
+    done: 80,
     start: LUCIEN_INN,
     steps: [
         { note: 'requirements: Thieving 42 for the trap on the lever and Ranged 40 for the Fire' },

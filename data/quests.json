@@ -2773,7 +2773,7 @@
    "name": "FIGHT ARENA",
    "source": "oldschool.runescape.wiki/w/Fight_Arena",
    "stageVar": "arenaquest",
-   "done": 15,
+   "done": 14,
    "start": [
     2569,
     3198,
@@ -34078,7 +34078,7 @@
    "name": "HEROES' QUEST (solo part)",
    "source": "oldschool.runescape.wiki/w/Heroes%27_Quest",
    "stageVar": "heroquest",
-   "done": 11,
+   "done": 15,
    "start": [
     2904,
     3510,
@@ -34577,6 +34577,21 @@
       }
      ],
      "items": [],
+     "worn": []
+    },
+    {
+     "from": 11,
+     "headings": [],
+     "marks": [],
+     "steps": [],
+     "items": [
+      {
+       "name": "Miscellaneous key",
+       "id": 1586,
+       "n": 1,
+       "bring": false
+      }
+     ],
      "worn": []
     }
    ]
@@ -39119,7 +39134,7 @@
    "name": "TEMPLE OF IKOV",
    "source": "oldschool.runescape.wiki/w/Temple_of_Ikov",
    "stageVar": "ikov",
-   "done": 90,
+   "done": 80,
    "start": [
     2573,
     3322,
@@ -56840,7 +56855,7 @@
    "name": "OBSERVATORY QUEST",
    "source": "oldschool.runescape.wiki/w/Observatory_Quest",
    "stageVar": "itgronigen",
-   "done": 8,
+   "done": 7,
    "start": [
     2441,
     3186,
@@ -57278,44 +57293,6 @@
       }
      ],
      "items": [],
-     "worn": []
-    },
-    {
-     "from": 7,
-     "headings": [
-      {
-       "at": 1,
-       "text": "Reward: the assistant stands you a drink afterwards."
-      }
-     ],
-     "marks": [],
-     "steps": [
-      {
-       "text": "Go back to the reception room.",
-       "kind": "walk",
-       "at": [
-        2441,
-        3186,
-        0
-       ]
-      },
-      {
-       "kind": "talk",
-       "text": "Talk to Observatory assistant.",
-       "why": "He gives you his wine.",
-       "target": "observatory_assistant",
-       "id": 487,
-       "label": "Observatory assistant"
-      }
-     ],
-     "items": [
-      {
-       "name": "Uncut sapphire",
-       "id": 1623,
-       "n": 1,
-       "bring": false
-      }
-     ],
      "worn": []
     }
    ]
