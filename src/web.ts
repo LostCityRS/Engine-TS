@@ -681,6 +681,24 @@ document.getElementById('kbdbtn').addEventListener('click', () => {
 // when the window is smaller than the game. The two properties below are how it learns the size;
 // without them the game opens at 765x503 and ViewBox holds the window at its minimum, and the
 // scale could never come on.
+// THE CANVAS IS NINE TIMES THE SIZE OF THE SCREEN (2026-11-16). Measured on a phone: CheerpJ makes
+// its canvas at devicePixelRatio, which is 3 there, so a 765x503 client is a 2295x1509 backing
+// store - 3.46 million pixels to push for every frame, on the slowest processor that will ever run
+// this. Capping the ratio at 1 is nine times less of that.
+//
+// OPT IN, FOR NOW. CheerpJ is not documented on what else it reads the ratio for, and if it uses it
+// for pointer positions as well then capping it would silently move every click - which is the one
+// failure that would be hard to tell from "the game is broken". So it is a query parameter until
+// somebody has held a phone and checked both: ?lowdpi=1 to try it. If clicks still land where they
+// look, this becomes the default for coarse pointers and the parameter goes away.
+if (new URLSearchParams(location.search).has('lowdpi')) {
+    try {
+        Object.defineProperty(window, 'devicePixelRatio', { get: () => 1, configurable: true });
+    } catch (e) {
+        /* a browser that will not let it be redefined simply keeps its own ratio */
+    }
+}
+
 let viewW = ${WEB_WINDOW_WIDTH};
 let viewH = ${WEB_CLIENT_HEIGHT};
 if (COARSE) {
