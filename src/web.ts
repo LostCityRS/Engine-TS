@@ -360,21 +360,30 @@ let looked = 0;
 // the phone's, set below before the display is made.
 let holeH = ${WEB_CLIENT_HEIGHT};
 function gameCanvas() {
+    // BY SHAPE, NOT BY SIZE, AND FOR THE FOURTH TIME BY SOMETHING THAT CANNOT MOVE (2026-11-16).
+    //
+    // Every size this has been matched on has since moved. 765x503 stopped matching when the
+    // plugin sidebar landed and took the width out of the game. Then the height alone stopped
+    // matching too, because on a phone the game is drawn at the screen's height and not at the
+    // client's 503.
+    //
+    // What does not move is the ARRANGEMENT: CheerpJ draws the whole window - title bar and all -
+    // into one canvas, and the game's own canvas sits inside it. So the window's is always the
+    // larger, and the game's is the next one down. No number from this file appears in the test.
     const canvases = display.getElementsByTagName('canvas');
+    const byArea = [];
     for (let i = 0; i < canvases.length; i++) {
         const r = canvases[i].getBoundingClientRect();
-        // BY HEIGHT ALONE, AND FOR THE THIRD TIME BY SOMETHING THAT CANNOT MOVE (2026-11-16).
-        // Matching the width too is what broke this: the game's canvas is only 765 wide when the
-        // plugin sidebar is folded away, and it is open by default, so the match never ran and the
-        // ten-second fallback below exposed CheerpJ's own title bar on every load. The HEIGHT is
-        // the client's 503 whatever the sidebar is doing - the sidebar is beside the game, not
-        // above or below it - and the window's own canvas is taller (its title bar), so height
-        // alone tells the two apart.
-        if (Math.abs(r.height - ${WEB_CLIENT_HEIGHT}) <= 2) {
-            return canvases[i];
+        if (r.width > 1 && r.height > 1) {
+            byArea.push({ el: canvases[i], area: r.width * r.height });
         }
     }
-    return null;
+    if (byArea.length === 0) {
+        return null;
+    }
+    byArea.sort((a, b) => b.area - a.area);
+    // One canvas and no window around it: that one is the game.
+    return byArea.length === 1 ? byArea[0].el : byArea[1].el;
 }
 function fitWindow() {
     const canvas = gameCanvas();
@@ -571,6 +580,80 @@ kbd.addEventListener('input', () => {
     }
     resetField();
 });
+
+// THE RIGHT-CLICK MENU, WHICH A FINGER CANNOT ASK FOR (2026-11-16). Half of this game is that
+// menu. CheerpJ 4.3 does read long presses, but it delivers them as a mouse HOVER - right for a
+// Swing menu bar, no use here, because 377 opens its menu on a right PRESS and no amount of
+// hovering produces one. And a synthetic mouse event is no more use than a synthetic key one.
+//
+// So the press is watched for here and sent to BrowserInput, where GameShell.pollBrowserTap()
+// latches it as the right press it stands in for. Held and still, not dragged: a finger is never
+// quite still, so a little movement is allowed before it is treated as a drag instead.
+const LONG_PRESS_MS = 450;
+const LONG_PRESS_SLOP = 12;
+let pressTimer = null;
+let pressX = 0;
+let pressY = 0;
+// WORKED OUT WHEN THE FINGER LANDS, NOT WHEN THE TIMER FIRES. Nearly half a second passes between
+// the two, and the canvas's rectangle is relative to the viewport - so anything that moves the
+// page in that time (a scroll, the keyboard coming up) would move the rectangle out from under a
+// clientX measured before it, and the menu would open somewhere the finger never was.
+let pressCanvasX = 0;
+let pressCanvasY = 0;
+
+function cancelLongPress() {
+    if (pressTimer !== null) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+    }
+}
+
+async function sendLongPress() {
+    const bi = await browserInput();
+    if (bi === null) {
+        return;
+    }
+    if (bi.tapSeq !== bi.tapAck) {
+        return;
+    }
+    bi.tapX = pressCanvasX;
+    bi.tapY = pressCanvasY;
+    bi.tapSeq = bi.tapSeq + 1;
+}
+
+display.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'touch') {
+        return;
+    }
+    cancelLongPress();
+    const canvas = gameCanvas();
+    if (canvas === null) {
+        return;
+    }
+    pressX = e.clientX;
+    pressY = e.clientY;
+    // The canvas's own pixels, which is what AWT would have reported. A scaled frame scales this
+    // back in mapInput with every other mouse coordinate.
+    const r = canvas.getBoundingClientRect();
+    pressCanvasX = Math.round(e.clientX - r.left);
+    pressCanvasY = Math.round(e.clientY - r.top);
+    pressTimer = setTimeout(() => {
+        pressTimer = null;
+        sendLongPress();
+    }, LONG_PRESS_MS);
+}, true);
+
+display.addEventListener('pointermove', e => {
+    if (pressTimer === null || e.pointerType !== 'touch') {
+        return;
+    }
+    if (Math.abs(e.clientX - pressX) > LONG_PRESS_SLOP || Math.abs(e.clientY - pressY) > LONG_PRESS_SLOP) {
+        cancelLongPress();
+    }
+}, true);
+
+display.addEventListener('pointerup', cancelLongPress, true);
+display.addEventListener('pointercancel', cancelLongPress, true);
 
 // Only where there is no real keyboard to begin with. A desktop browser types straight into the
 // canvas, as it always has, and never sees the bar.
