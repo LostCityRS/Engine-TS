@@ -84,7 +84,10 @@ export const CHEATS: Cheat[] = [
     { name: 'giveother', args: '<username> <item> [amount]', what: "put an item in a player's inventory", rank: 3, staffWorld: true },
     { name: 'givecrap', what: 'fill your inventory with 28 random items', rank: 3 },
     { name: 'givemany', args: '<item>', what: '1000 of an item', rank: 3 },
-    { name: 'vote', args: '[username] [count]', what: 'what the vote ledger knows, or credit a player a vote', rank: 3 },
+    // ::vote ITSELF BELONGS TO THE PLAYERS NOW (2026-11-16): bare ::vote is handled in the client
+    // and opens the website's voting page with the player's name in it. This is the ledger half,
+    // which is what an administrator actually wants and which nobody types by accident.
+    { name: 'voteledger', args: '[username] [count]', what: 'what the vote ledger knows, or credit a player a vote', rank: 3 },
     // No staffWorld flag, unlike ::ban and ::mute, which also write an account row. That flag is
     // for commands that could be used AGAINST somebody on an open development world, where every
     // login is promoted to 4; this one only adds a chat icon, and a development world's accounts

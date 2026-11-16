@@ -841,14 +841,21 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
 
                 const count = Math.max(1, Math.min(tryParseInt(args[1], 1), 0x7fffffff));
                 player.invAdd(InvType.INV, obj, count);
-            } else if (cmd === 'vote') {
+            } else if (cmd === 'voteledger') {
                 // custom (2026-10-27) - credit a vote as if a site had reported one, for testing
                 // the claim path with no site configured and for making good a vote a site lost.
                 // It goes through the ledger like any other, so it is in the audit trail, it is
                 // delivered the same way, and it cannot be claimed twice.
                 //
-                // ::vote                     what the ledger knows about you
-                // ::vote <username> [count]  credit that player, as the site "staff"
+                // ::voteledger                     what the ledger knows about you
+                // ::voteledger <username> [count]  credit that player, as the site "staff"
+                //
+                // IT WAS ::vote UNTIL 16 NOVEMBER 2026, and the name went to the players: bare
+                // ::vote now opens the website's voting page in a browser, with the player's name
+                // already in it, which is what somebody typing it almost always wanted. An
+                // administrator command had the better name and the smaller audience. Renamed
+                // rather than kept as an alias on purpose - two spellings of a command that credits
+                // tickets is one more than anybody needs to know about.
                 if (args.length < 1) {
                     const owed = VoteService.owed(player.username);
                     const sites = VoteSites.count();
