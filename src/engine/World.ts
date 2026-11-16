@@ -2242,6 +2242,36 @@ class World {
         return this.shutdownTick - this.currentTick;
     }
 
+    /**
+     * A milestone announcement: broadcastMes, minus the players who have turned these off.
+     *
+     * The opt-out is a varp on the RECEIVER, which is why this cannot live in content - a script
+     * runs as one player and has no way to walk the player list. option_milestones is 0 for on,
+     * so an account that has never touched it hears them; ::milestones flips it.
+     *
+     * The varp id is looked up once and cached, the way Player does with xp_rate: a name lookup
+     * per player per broadcast would be a map lookup for every online player every time anybody
+     * hits a 99.
+     */
+    static milestoneVarp: number = -2;
+
+    broadcastMilestone(message: string): void {
+        if (World.milestoneVarp === -2) {
+            World.milestoneVarp = VarPlayerType.getId('option_milestones');
+        }
+
+        for (const player of this.playerLoop.all()) {
+            // As broadcastMes: a tutorial lesson turns every game message into a modal.
+            if (player.modalTutorial !== -1) {
+                continue;
+            }
+            if (World.milestoneVarp !== -1 && player.getVar(World.milestoneVarp) !== 0) {
+                continue;
+            }
+            player.wrappedMessageGame(message);
+        }
+    }
+
     broadcastMes(message: string): void {
         for (const player of this.playerLoop.all()) {
             // Not to anyone with a tutorial lesson open. The lesson covers the chatbox, so the client

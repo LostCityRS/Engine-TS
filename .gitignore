@@ -45,6 +45,10 @@ data/tradingpost/
 # Clan chat channels (ClanChat), written at runtime like the saves and the trading post above.
 data/clans/
 
+# The server-first milestone claims (engine/MilestoneStore.ts). A world's own record of who got
+# there first, like the clan and vote databases above - not something to carry in the repository.
+data/milestones/
+
 # the vote ledger (its own sqlite, one per profile) and the live site list, which carries nothing
 # secret itself but names which sites this server is listed on. data/vote/sites.example.json IS
 # tracked - it is the documentation for the shape.

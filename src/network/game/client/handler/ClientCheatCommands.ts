@@ -49,6 +49,7 @@ export const CHEATS: Cheat[] = [
     { name: 'discord', args: '[unlink]', what: 'a code to link this account to our Discord, for trading post alerts', rank: 0 },
     { name: 'bug', args: '<what went wrong>', what: 'report a bug from where it happened - it reaches the staff', rank: 0 },
     { name: 'yell', args: '<message>', what: 'a line to every player on the world, once every 10 seconds', rank: 0 },
+    { name: 'milestones', what: "show or hide other players' milestone announcements - 99s, max capes, server firsts", rank: 0 },
     { name: 'commands', args: '[name|debug]', what: 'this list, or what one command does', rank: 0 },
 
     // MODERATOR.

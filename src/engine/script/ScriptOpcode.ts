@@ -570,6 +570,16 @@ export const enum ScriptOpcode {
     // custom (2026-11-16) - the playtime gate. APPENDED after the rest, same rule as always.
     POLL_MINUTES,
     POLL_MINMINUTES,
+    // custom (2026-11-16). APPENDED, for the same reason as the two above.
+    //
+    // A milestone announcement, and a claim on a server first. BROADCAST_MILESTONE is
+    // BROADCAST_MES with one difference that cannot be done in content: it skips the players who
+    // have turned these off, which is a question about every RECEIVER rather than about the
+    // sender, and content has no way to walk the player list. MILESTONE_FIRST claims a key in the
+    // milestone store and answers whether this player is the one who got there first - see
+    // MilestoneStore.ts for why the claim has to be the write.
+    BROADCAST_MILESTONE,
+    MILESTONE_FIRST,
 
     // Debug ops (10000-11000)
     CONSOLE = 10000,
@@ -783,6 +793,8 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['SPOTANIM_PL', ScriptOpcode.SPOTANIM_PL],
     ['STAFFMODLEVEL', ScriptOpcode.STAFFMODLEVEL],
     ['CHATCROWN', ScriptOpcode.CHATCROWN],
+    ['BROADCAST_MILESTONE', ScriptOpcode.BROADCAST_MILESTONE],
+    ['MILESTONE_FIRST', ScriptOpcode.MILESTONE_FIRST],
     ['STAT_ADD', ScriptOpcode.STAT_ADD],
     ['STAT_ADVANCE', ScriptOpcode.STAT_ADVANCE],
     ['STAT_BASE', ScriptOpcode.STAT_BASE],

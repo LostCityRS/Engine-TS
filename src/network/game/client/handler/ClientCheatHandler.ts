@@ -160,6 +160,28 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
             return true;
         }
 
+        if (cmd === 'milestones') {
+            // custom (2026-11-16) - a player's own setting, so it is handled before the staff
+            // "Ran cheat" log below along with ::changepassword and ::forgetlogins.
+            //
+            // IT IS A COMMAND AND NOT A BUTTON ON THE OPTIONS TAB because there is no room on the
+            // tab: options.if is 190x261, the six-button grid fills it to y=246, and the level-up
+            // popup line already takes thirteen of the fifteen rows that leaves. That is written
+            // down in the interface itself, next to the component.
+            //
+            // 0 is on, so an account that has never run this hears them.
+            const varp = VarPlayerType.getByName('option_milestones');
+            if (!varp) {
+                player.messageGame('Milestone announcements are not available on this world.');
+                return true;
+            }
+
+            const hidden = player.getVar(varp.id) !== 0;
+            player.setVar(varp.id, hidden ? 0 : 1);
+            player.messageGame(hidden ? 'Milestone announcements are now shown. ::milestones hides them again.' : 'Milestone announcements are now hidden. ::milestones shows them again.');
+            return true;
+        }
+
         if (cmd === 'changepassword') {
             // custom (2026-09-27) - handled before the staff "Ran cheat" session log below, which would
             // otherwise write a moderator's passwords into the logs. Available to all players.

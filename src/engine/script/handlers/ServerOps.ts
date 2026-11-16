@@ -10,6 +10,7 @@ import ScriptState from '#/engine/script/ScriptState.js';
 import { check, CoordValid, LocTypeValid, NumberPositive, SeqTypeValid, SpotAnimTypeValid, FindSquareValid } from '#/engine/script/ScriptValidators.js';
 import InstanceMap from '#/engine/InstanceMap.js';
 import World from '#/engine/World.js';
+import { MilestoneStore } from '#/engine/MilestoneStore.js';
 import Environment from '#/util/Environment.js';
 import Midi from '#/cache/midi/Midi.js';
 
@@ -354,6 +355,24 @@ const ServerOps: CommandHandlers = {
         const message = state.popString();
 
         World.broadcastMes(message);
+    },
+
+    // As BROADCAST_MES, but skipped by the players who turned milestones off - see
+    // World.broadcastMilestone for why the filter cannot live in content.
+    [ScriptOpcode.BROADCAST_MILESTONE]: state => {
+        const message = state.popString();
+
+        World.broadcastMilestone(message);
+    },
+
+    // Claim a server first. True only for the account that got there first, and only once ever,
+    // whoever asks afterwards - MilestoneStore.claimFirst settles it in the database rather than
+    // in a read followed by a write, so two players on one tick cannot both be told yes.
+    [ScriptOpcode.MILESTONE_FIRST]: state => {
+        const milestone = state.popString();
+        const player = state.activePlayer;
+
+        state.pushInt(MilestoneStore.claimFirst(milestone, player.username) ? 1 : 0);
     },
 
     // Real-world minutes since 1 Jan 2025 UTC. map_clock counts ticks since the server booted and
