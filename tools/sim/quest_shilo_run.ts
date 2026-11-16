@@ -248,7 +248,7 @@ const m: Manifest = {
         { setpos: [DOLMEN[0], DOLMEN[1] - 1, 0], why: 'to the dolmen chamber' },
         { loc: 'zqrashdolmen', at: DOLMEN, op: 2, want: 'ground starts to shake', why: 'touch the dolmen' },
         { note: 'and for the run where the drive window does not cover all three' },
-        { fight: ['zq_mainzombie1', 'zq_mainzombie2', 'zq_mainzombie3'], r: 12, tries: 20, soft: true, why: 'whichever form is still standing' },
+        { fight: ['zq_mainzombie1', 'zq_mainzombie2', 'zq_mainzombie3'], untilvar: 'zq_map_mechanisms', to: 4084, r: 12, tries: 20, why: 'whichever form is still standing' },
         { varis: 'zq_map_mechanisms', to: 4084 },
         { loc: 'zqrashdolmen', at: DOLMEN, op: 2, want: 'mumified remains', why: 'search the dolmen' },
         { has: 'zqcorpse' },
