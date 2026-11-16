@@ -160,6 +160,28 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
             return true;
         }
 
+        if (cmd === 'milestones') {
+            // custom (2026-11-16) - a player's own setting, so it is handled before the staff
+            // "Ran cheat" log below along with ::changepassword and ::forgetlogins.
+            //
+            // IT IS A COMMAND AND NOT A BUTTON ON THE OPTIONS TAB because there is no room on the
+            // tab: options.if is 190x261, the six-button grid fills it to y=246, and the level-up
+            // popup line already takes thirteen of the fifteen rows that leaves. That is written
+            // down in the interface itself, next to the component.
+            //
+            // 0 is on, so an account that has never run this hears them.
+            const varp = VarPlayerType.getByName('option_milestones');
+            if (!varp) {
+                player.messageGame('Milestone announcements are not available on this world.');
+                return true;
+            }
+
+            const hidden = player.getVar(varp.id) !== 0;
+            player.setVar(varp.id, hidden ? 0 : 1);
+            player.messageGame(hidden ? 'Milestone announcements are now shown. ::milestones hides them again.' : 'Milestone announcements are now hidden. ::milestones shows them again.');
+            return true;
+        }
+
         if (cmd === 'changepassword') {
             // custom (2026-09-27) - handled before the staff "Ran cheat" session log below, which would
             // otherwise write a moderator's passwords into the logs. Available to all players.
@@ -841,14 +863,21 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
 
                 const count = Math.max(1, Math.min(tryParseInt(args[1], 1), 0x7fffffff));
                 player.invAdd(InvType.INV, obj, count);
-            } else if (cmd === 'vote') {
+            } else if (cmd === 'voteledger') {
                 // custom (2026-10-27) - credit a vote as if a site had reported one, for testing
                 // the claim path with no site configured and for making good a vote a site lost.
                 // It goes through the ledger like any other, so it is in the audit trail, it is
                 // delivered the same way, and it cannot be claimed twice.
                 //
-                // ::vote                     what the ledger knows about you
-                // ::vote <username> [count]  credit that player, as the site "staff"
+                // ::voteledger                     what the ledger knows about you
+                // ::voteledger <username> [count]  credit that player, as the site "staff"
+                //
+                // IT WAS ::vote UNTIL 16 NOVEMBER 2026, and the name went to the players: bare
+                // ::vote now opens the website's voting page in a browser, with the player's name
+                // already in it, which is what somebody typing it almost always wanted. An
+                // administrator command had the better name and the smaller audience. Renamed
+                // rather than kept as an alias on purpose - two spellings of a command that credits
+                // tickets is one more than anybody needs to know about.
                 if (args.length < 1) {
                     const owed = VoteService.owed(player.username);
                     const sites = VoteSites.count();
