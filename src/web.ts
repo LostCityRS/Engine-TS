@@ -230,14 +230,20 @@ const CHEERPJ_PAGE = `<!DOCTYPE html>
   /* REAL, FOCUSABLE AND ON THE PAGE, because a phone raises its keyboard for a focused input and
      for nothing else - and an input parked off-screen does not reliably count as focusable on
      iOS. So it is a pixel in the corner at zero opacity rather than at left:-1000px. */
-  #kbd { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; z-index: 5; }
+  /* 16px IS NOT COSMETIC. Safari zooms the whole page in when a field smaller than 16px takes
+     focus, and there is no way to zoom back out of a canvas - reported from a phone: "hitting the
+     keyboard button zooms the screen in". The field is invisible, so the size is only ever this
+     rule's business. */
+  #kbd { position: fixed; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; z-index: 5; font-size: 16px; }
   #kbdbar { display: none; text-align: center; padding: 8px; }
   #kbdbar button { background: #1b1b1b; color: #c8a04a; border: 1px solid #c8a04a; border-radius: 4px; padding: 10px 18px; font: 14px sans-serif; }
+  #rotate { display: none; text-align: center; padding: 4px 8px; color: #8a8a8a; font: 12px sans-serif; }
 </style>
 <script src="https://cjrtnc.leaningtech.com/4.3/loader.js"></script>
 </head>
 <body>
 <div id="screen"><div id="display"></div></div>
+<div id="rotate">Turn your phone sideways - the game is drawn half the size in portrait.</div>
 <div id="kbdbar"><button id="kbdbtn" type="button">Keyboard</button></div>
 <div id="foot">The browser client is slower than the real thing. <a href="${LAUNCHER_URL}">Download the launcher</a> to play properly.</div>
 <script>
@@ -661,6 +667,20 @@ const COARSE = window.matchMedia && window.matchMedia('(pointer: coarse)').match
 if (COARSE) {
     document.getElementById('kbdbar').style.display = 'block';
 }
+// WHY IT IS WORTH SAYING. The frame keeps its shape, so the scale is whichever of the two fits
+// worst: in portrait that is the width, 390 against 765, and the game is drawn at half size with
+// most of the height left empty. Turned sideways the same phone gives about 0.78 and the whole
+// height is used. That is the difference between the 2004 font being legible and not.
+function rotateHint() {
+    const el = document.getElementById('rotate');
+    if (el) {
+        el.style.display = COARSE && window.innerHeight > window.innerWidth ? 'block' : 'none';
+    }
+}
+window.addEventListener('resize', rotateHint);
+window.addEventListener('orientationchange', rotateHint);
+rotateHint();
+
 document.getElementById('kbdbtn').addEventListener('click', () => {
     // iOS raises the keyboard only from inside a real gesture, which this click is.
     resetField();
