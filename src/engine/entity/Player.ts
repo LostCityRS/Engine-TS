@@ -2309,9 +2309,14 @@ export default class Player extends PathingEntity {
     }
 
     /**
-     * Mark this account as one whose stats were written by a staff command, so no milestone of its
-     * is ever announced again. Called by ::setstat, ::advancestat and ::minme BEFORE they touch a
-     * stat, so the announcement that change would have caused is already suppressed when it lands.
+     * Mark this account as one a staff command gave its progress to, so no milestone of its is ever
+     * announced again. Called by ::setstat, ::advancestat and ::minme BEFORE they touch a stat, so
+     * the announcement that change would have caused is already suppressed when it lands.
+     *
+     * The content-side doors set the same varp themselves through [proc,milestone_mark_cheated] -
+     * ~sl, ~hunter, ~droptest and the quest debugprocs. The experience ones cannot be caught here:
+     * they hand out experience with stat_advance, which is the same op every fishing spot in the
+     * game uses, and addXp has nothing in it to tell them apart.
      *
      * general/configs/milestones.varp has why this is the whole account rather than the one skill,
      * and why it does not expire. It is said out loud the first time, because a setting that turns
@@ -2322,7 +2327,7 @@ export default class Player extends PathingEntity {
             return;
         }
         this.setVar(Player.cheatedVarp, 1);
-        this.messageGame('Your levels were set by a command, so your milestones are no longer announced.');
+        this.messageGame('Your progress was set by a command, so your milestones are no longer announced.');
     }
 
     private checkXpMilestone(stat: number, xpBefore: number): void {

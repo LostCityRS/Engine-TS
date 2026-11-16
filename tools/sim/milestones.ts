@@ -21,6 +21,8 @@
 //     small to be a collection stays quiet, and the whole log announces once;
 //   * a staff command that writes stats (::setstat, ::advancestat, ::minme) announces nothing and,
 //     the part that actually matters, does not CLAIM the server first on the way past;
+//   * and the same for the content-side doors the engine cannot see - ~sl and ~hunter hand out
+//     experience with the same stat_advance every fishing spot uses;
 //   * and NO milestone line is long enough to wrap onto a second chatbox line - measured against
 //     the real font, for every skill, every tier and every page, at the longest name a player can
 //     have. The first version of this file said "200 million Woodcutting experience" and arrived
@@ -36,6 +38,9 @@ import EnumType from '#/cache/config/EnumType.js';
 import FontType from '#/cache/config/FontType.js';
 import DbTableType from '#/cache/config/DbTableType.js';
 import DbRowType from '#/cache/config/DbRowType.js';
+import fs from 'fs';
+import path from 'path';
+import Environment from '#/util/Environment.js';
 
 await H.boot();
 H.loginOrder();
@@ -452,6 +457,79 @@ console.log('\n================ A STAFF COMMAND ANNOUNCES NOTHING, AND CLAIMS NO
     xpTo(staff, 'hunter', M200);
     check('the experience tiers are muted too', broadcasts(), []);
     check('...and claim nothing', MilestoneStore.holderOf('xp:200m:Hunter'), null);
+
+    // THE DOORS IN CONTENT. ~sl hands out 250k Farming with stat_advance - the same op a fishing
+    // spot uses - so there is nothing in addXp that could tell it apart. It has to mark the
+    // account itself, and this is the check that it does.
+    const dev = player('ms_dev');
+    H.clearLogs();
+    H.runProc(dev, '[debugproc,sl]');
+    H.tick(4);
+    check('~sl says so', H.mesgs.filter(m => m.who === dev.username && m.text.includes('no longer announced')).length, 1);
+    // ...and from here the account is muted like any other, so the 99 it was used to reach is not
+    // news. 250k is nowhere near 99, so take it the rest of the way the ordinary way.
+    H.clearLogs();
+    levelTo(dev, 'farming', 99);
+    check('a 99 reached after ~sl announces nothing', broadcasts(), []);
+    check('...and claims nothing', MilestoneStore.holderOf('99:Farming'), null);
+
+    // AND ~sl IS NOT THE ONLY ONE: every content door goes through the same proc, so the test that
+    // matters for the rest is that they call it at all.
+    const dev2 = player('ms_dev2');
+    H.clearLogs();
+    H.runProc(dev2, '[proc,milestone_mark_cheated]');
+    H.tick(2);
+    check('the mark can be set from content', H.getVar(dev2, 'milestone_cheated'), 1);
+    check('...and says so once, not once per call', H.mesgs.filter(m => m.who === dev2.username && m.text.includes('no longer announced')).length, 1);
+    H.clearLogs();
+    H.runProc(dev2, '[proc,milestone_mark_cheated]');
+    H.tick(2);
+    check('a second call is silent', H.mesgs.filter(m => m.who === dev2.username && m.text.includes('no longer announced')).length, 0);
+}
+
+console.log('\n================ NO DEBUGPROC HANDS OUT EXPERIENCE WITHOUT MARKING');
+
+// THE CHECK THAT WOULD HAVE FOUND ~sl AND ~hunter, which the section above only covers because
+// somebody asked whether the maxme debugproc was handled. (It is not: this build has no maxme -
+// the comment in ClientCheatHandler that mentions one is inherited from upstream Lost City. Two
+// others did hand out experience, and nothing was looking.)
+//
+// A debugproc that calls stat_advance is giving a level away, and stat_advance is indistinguishable
+// from a real skilling action inside addXp, so the mark can only be set by the debugproc itself.
+// This reads the content source and insists on it, so the next one added cannot forget.
+{
+    const root = path.join(Environment.BUILD_SRC_DIR, 'scripts');
+    const files: string[] = [];
+    const walk = (dir: string) => {
+        for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+            const full = path.join(dir, entry.name);
+            if (entry.isDirectory()) walk(full);
+            else if (entry.name.endsWith('.rs2')) files.push(full);
+        }
+    };
+    walk(root);
+
+    const unmarked: string[] = [];
+    let granting = 0;
+    for (const file of files) {
+        const text = fs.readFileSync(file, 'utf8');
+        // one block per script: a line starting with '[' begins the next one
+        for (const block of text.split(/\n(?=\[)/)) {
+            const head = block.split('\n', 1)[0];
+            if (!head.startsWith('[debugproc,')) continue;
+            if (!/\bstat_advance\s*\(/.test(block)) continue;
+            granting++;
+            if (!block.includes('~milestone_mark_cheated')) {
+                unmarked.push(`${head.split(']')[0]}] in ${path.relative(root, file)}`);
+            }
+        }
+    }
+    console.log(`  (${files.length} script files, ${granting} debugprocs hand out experience)`);
+    for (const one of unmarked) console.log(`     unmarked: ${one}`);
+    check('every experience-granting debugproc marks the account', unmarked, []);
+    // and that the scan is actually finding them, rather than passing because its regex matches
+    // nothing - the failure mode a source-reading test has and a behavioural one does not
+    check('...and the scan found some to check', granting >= 2, true);
 }
 
 console.log('\n================ NOT ONE LINE WRAPS');
