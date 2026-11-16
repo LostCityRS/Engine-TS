@@ -37316,6 +37316,15 @@
        ]
       },
       {
+       "kind": "obj",
+       "text": "Hold Monkey greegree.",
+       "why": "Wield it - a gorilla has the shoulders for the haul.",
+       "target": "mm_monkey_greegree_for_normal_gorilla",
+       "id": 4026,
+       "label": "Monkey greegree",
+       "op": 2
+      },
+      {
        "kind": "loc",
        "text": "Use Loc 12610.",
        "why": "Haul the crown down.",
@@ -37977,6 +37986,18 @@
       {
        "name": "Monkey greegree",
        "id": 4026,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Monkey greegree",
+       "id": 4026,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Rope",
+       "id": 954,
        "n": 1,
        "bring": true
       },
@@ -41067,8 +41088,7 @@
       },
       {
        "kind": "loc",
-       "text": "Use Open Cupboard.",
-       "why": "Search it.",
+       "text": "Search Open Cupboard.",
        "target": "cupboardopen",
        "id": 370,
        "label": "Open Cupboard",
@@ -41076,6 +41096,7 @@
         3354,
         3332
        ],
+       "op": 2,
        "gives": [
         669
        ]
