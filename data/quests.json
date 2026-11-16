@@ -44511,12 +44511,7 @@
     },
     {
      "from": 32,
-     "headings": [
-      {
-       "at": 4,
-       "text": "Gujuo comes out of the trees on his own this time - the replacement npc_add-s him with npc_setmode(opplayer2), so he walks over and starts the conversation himself."
-      }
-     ],
+     "headings": [],
      "marks": [],
      "steps": [
       {
@@ -44526,7 +44521,21 @@
        "target": "san_tojalon",
        "id": 936,
        "label": "San Tojalon"
-      },
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 35,
+     "headings": [
+      {
+       "at": 3,
+       "text": "Gujuo comes out of the trees on his own this time - the replacement npc_add-s him with npc_setmode(opplayer2), so he walks over and starts the conversation himself."
+      }
+     ],
+     "marks": [],
+     "steps": [
       {
        "kind": "loc",
        "text": "Use Yommi totem on Totem Pole.",
@@ -67243,32 +67252,7 @@
        "text": "The mound of earth south-west of the Shipyard."
       }
      ],
-     "marks": [
-      {
-       "at": 2,
-       "var": 116,
-       "varbit": false,
-       "is": 3
-      },
-      {
-       "at": 3,
-       "var": 116,
-       "varbit": false,
-       "is": 4
-      },
-      {
-       "at": 4,
-       "var": 116,
-       "varbit": false,
-       "is": 5
-      },
-      {
-       "at": 5,
-       "var": 116,
-       "varbit": false,
-       "is": 6
-      }
-     ],
+     "marks": [],
      "steps": [
       {
        "text": "Go to the mound of earth.",
@@ -67290,7 +67274,16 @@
         2999
        ],
        "op": 2
-      },
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 3,
+     "headings": [],
+     "marks": [],
+     "steps": [
       {
        "kind": "loc",
        "text": "Use Spade on Mound of earth.",
@@ -67303,7 +67296,16 @@
         2921,
         2999
        ]
-      },
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 4,
+     "headings": [],
+     "marks": [],
+     "steps": [
       {
        "kind": "loc",
        "text": "Use Lit candle on Fissure.",
@@ -67316,7 +67318,16 @@
         2921,
         2999
        ]
-      },
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 5,
+     "headings": [],
+     "marks": [],
+     "steps": [
       {
        "kind": "loc",
        "text": "Use Rope on Fissure.",
@@ -67329,7 +67340,16 @@
         2921,
         2999
        ]
-      },
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 6,
+     "headings": [],
+     "marks": [],
+     "steps": [
       {
        "kind": "loc",
        "text": "Search Fissure.",

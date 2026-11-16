@@ -644,6 +644,9 @@ const m: Manifest = {
             soft: true,
             why: 'the three heroes, then the demon'
         },
+        // The fight ends on 35 and the pole offer below is a real click, so this is a leg a player
+        // can be sitting at - without it the panel went quiet between 32 and 45.
+        { stage: 35 },
         { note: 'and the same five-hundred-tick summon, four fights deep this time - so the pole is' },
         { note: 'offered again whatever happened. At stage 32 that brings the next one of them' },
         { note: 'back; at 35 it IS the replacement, which is the step after this anyway, so the' },
