@@ -222,8 +222,14 @@ const m: Manifest = {
             want: 'reason nobody has',
             why: 'confront him'
         },
-        { stage: 110 },
-        { nearnpc: 'tgbr_barrelchest', r: 12, why: 'Barrelchest is out' },
+        // 110 IS A STAGE THIS RUN CANNOT STAND STILL ON, and Barrelchest may already be down:
+        // the confrontation above is driven for up to 600 ticks, and a damage-immune player with
+        // maxed stats kills what Mi-Gor whistles up while that is still clicking. So the marker
+        // stays - ExportHelper needs it for the leg - but says it may have been passed, and the
+        // nearnpc on him is gone with it: the fight below proves more than it did, because its
+        // untilvar reads tgbr reaching 120 - which cannot happen unless he was summoned AND put
+        // down, by this step or by the one before it.
+        { stage: 110, orLater: true },
         { fight: 'tgbr_barrelchest', untilvar: 'tgbr', to: 120, tries: 30, r: 16, why: 'kill it' },
         { stage: 120 },
         { has: 'barrelchest_anchor' },

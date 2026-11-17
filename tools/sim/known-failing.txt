@@ -1,5 +1,22 @@
 # The sims that were already failing when the nightly job was switched on.
 #
+# THE LIST IS EMPTY (2026-11-17). Every entry has come off, and what is left below is the
+# history: why each one failed and what fixed it. `grep -oE '^[a-z0-9_]+'`, which is what
+# sims.yml matches against, finds nothing in this file now.
+#
+# So the nightly means what it says again: a sim that fails is a sim that is broken, and nobody
+# has to check whether it was already broken yesterday. The last nine came off together - the
+# sweep behind tracker issue 21 - and not one of them turned out to be the quest it blamed:
+# a random event owed to the player eating one crafting press, two blind teleports to npc.x+1
+# that landed through a wall, two tiles of walk slack that were a doorway, a boss already dead
+# before the fight step looked, a stage the run could not stand still on, a witch who catches
+# you while you wait, and two rules a page had deliberately outgrown.
+#
+# TO ADD AN ENTRY, put the sim's name at the start of a line and say underneath what fails and
+# why it is being carried rather than fixed. The job prints a notice the night it starts passing,
+# which is the signal to take it off again - a list nobody empties is just an excuse, and this one
+# took long enough to empty.
+#
 # .github/workflows/sims.yml goes red only for a sim that fails and is NOT listed here, so this
 # file is what makes the job readable rather than red every night. It is a record of a debt, not
 # a list of things that are fine. The job also reports any sim here that starts passing, so the

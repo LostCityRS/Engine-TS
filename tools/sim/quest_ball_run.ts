@@ -86,13 +86,17 @@ const m: Manifest = {
         { setpos: [2901, 3466, 0], why: 'down and out through the back door' },
         { loc: 'witchbackdoor', at: [2901, 3465], why: 'the back door the mouse unlocked' },
         { go: [2901, 3463], exact: true, why: 'into the garden, clear of the doorway' },
-        { sneak: [2908, 3471], past: 'nora_t_hagg', r: 8, why: 'the long way round to the fountain, keeping out of her sight' },
+        // r IS HER RADIUS PLUS THE SLACK TO ALLOW HER, not a comfort distance: huntall(npc_coord,
+        // 3, 0) is her reach and she covers a tile a tick, so 4 means "plan as though she may be
+        // one tile closer than she looks". It was 8, which the old distance-only hold could never
+        // wait out in a garden this size.
+        { sneak: [2908, 3471], past: 'nora_t_hagg', r: 4, why: 'the long way round to the fountain, keeping out of her sight' },
         { loc: 'witchfountain', at: [2909, 3470], op: 2, want: 'small key', why: 'search it' },
         { has: 'witches_shedkey' },
 
         { note: 'wiki step 7: the shed, and the experiment. Reaching for the ball wakes it, and it' },
         { note: 'has to be killed four times over - a skavid, a spider, a bear and a wolf.' },
-        { sneak: [2933, 3463], past: 'nora_t_hagg', r: 8, why: 'back round the maze to the shed' },
+        { sneak: [2933, 3463], past: 'nora_t_hagg', r: 4, why: 'back round the maze to the shed' },
         { useLoc: 'witchsheddoor', at: SHED, obj: 'witches_shedkey', why: 'unlock it' },
         { go: [2935, 3461], why: 'in' },
         { take: 'ball', r: 6, soft: true, why: 'reaching for it wakes the shapeshifter instead' },

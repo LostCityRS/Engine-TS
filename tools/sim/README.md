@@ -400,7 +400,16 @@ been mistaken for content faults at least once, so the signature matters as much
 - **A random event in the middle of a long run.** The frog event teleports the player to the Land of
   the Frogs and the next loc click throws "no such loc"; it reads as a missing loc and is not one.
   `~macro_event_allowed` refuses to spawn one while `%macro_event` is already set, so
-  `H.setVar(p, 'macro_event', 1)` is the switch - `eaglespeak` and the three `quest_*_run` sims.
+  `H.setVar(p, 'macro_event', 1)` stops the spawn - `eaglespeak` and the three `quest_*_run` sims.
+  **That varp was never the whole switch, and you no longer need it for the other half.** Content
+  reads `afk_event` at the top of the actions a macroer repeats - cooking, thieving a stall or a
+  pocket, spinning, crafting jewellery - and every one of those sites spawns the event AND RETURNS,
+  so the action is dropped whether or not the spawn was allowed. `H.tick` now clears
+  `afkEventReady` every tick for every player, which is the half the varp could not reach. Family
+  Crest spent a session looking like a content bug over it: the press that should have cast a
+  perfect ruby ring made nothing, the necklace a few steps later worked because the first press had
+  eaten the flag, and the quest sat at stage 7 with Avan refusing the fragment. Miscellania lost
+  "Magnus's own rock is his" to the same thing while already setting the varp.
 - **A handler written against a multinpc variant.** `OpNpcHandler` resolves multivarp/multinpc only
   to decide whether the option exists; `Player.getOpTrigger` then looks the trigger up on the npc's
   OWN type. So `[opnpc1,<variant>]` never fires and the click does nothing. Handlers go on the shell

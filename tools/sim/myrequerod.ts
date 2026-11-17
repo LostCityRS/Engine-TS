@@ -20,7 +20,7 @@ import Component from '#/cache/config/Component.js';
 import ScriptState from '#/engine/script/ScriptState.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import { Interaction } from '#/engine/entity/Interaction.js';
-import { findPathToLoc, findPathToEntity } from '#/engine/GameMap.js';
+import { findPathToLoc } from '#/engine/GameMap.js';
 
 await H.boot();
 
@@ -168,12 +168,31 @@ console.log('VELIAF');
 const veliaf = [...World.npcs].find(n => n && n.isActive && NpcType.get(n.type).debugname === 'burgh_rescue_veliaf_hurtz_talk');
 check('Veliaf is in the cellar', veliaf !== undefined, true);
 if (veliaf) {
-    p.teleport(veliaf.x + 1, veliaf.z, veliaf.level);
-    H.tick(1);
-    p.clearPendingAction();
-    p.queueWaypoints(findPathToEntity(p.level, p.x, p.z, veliaf.x, veliaf.z, p.width, veliaf.width, veliaf.length));
-    p.setInteraction(Interaction.ENGINE, veliaf, ServerTriggerType.APNPC1);
-    settle(p);
+    // HE WANDERS, AND A TELEPORT DOES NOT CARE WHAT IS IN THE WAY. This used to read his tile
+    // once, teleport to x+1 and hand-roll the interaction from there - and over 120 ticks he
+    // stands on nineteen different tiles, so x+1 is whatever happened to be east of him at the
+    // moment of reading. Landing on the far side of the cellar wall answers "I can't reach
+    // that!", the conversation never starts, and the check reports the quest stuck at 108 as
+    // though the content had refused the rod. It had not: driven from a tile he can actually be
+    // reached from, he finishes the quest every time (tracker issue 21).
+    //
+    // So: H.standBeside picks a side the route finder agrees is a side, re-reading where he is
+    // NOW, and H.opNpc sends the op the way a player's client would - routing from the current
+    // position and following him if he moves off again. A few goes, because he can step away
+    // between choosing the tile and arriving on it.
+    for (let a = 0; a < 5 && v(p, 'myreque_2_quest') < 110; a++) {
+        if (!H.standBeside(p, veliaf)) {
+            H.tick(5);
+            continue;
+        }
+        H.tick(1);
+        try {
+            H.opNpc(p, veliaf, 1);
+        } catch {
+            // his menu has no talk option this tick; let him settle and try again
+        }
+        settle(p);
+    }
     check('he takes the rod, looks at it, and hands it straight back: quest complete', [v(p, 'myreque_2_quest'), H.invCount(p, 'burgh_rod_command_final_10')], [110, 1]);
 }
 
