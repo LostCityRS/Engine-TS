@@ -85,6 +85,18 @@ const RULES: { name: string; wrong: (row: Row) => boolean }[] = [
     {
         name: 'no verb in front of the target',
         wrong: r => r.kind !== 'walk' && r.kind !== 'note' && !/^[A-Z][a-zA-Z-]* /.test(r.text)
+    },
+    // A CHARACTER THE CLIENT'S FONT CANNOT DRAW. PixFont keeps one glyph per character in arrays
+    // of 256 indexed by the character itself, so anything above 255 is an
+    // ArrayIndexOutOfBoundsException the moment the helper measures or draws the row - and a
+    // plugin cannot catch that: five frames later the client has turned it off, and a player who
+    // switches it back on lands on the same step and loses it again. 32 rows across 16 quests
+    // shipped with a typographic apostrophe in them, because the sims' prose is written with
+    // them; The Knight's Sword had one in its first leg. The exporter folds them to ASCII on the
+    // way out, and this is the check that says so rather than hoping.
+    {
+        name: 'a character the client font cannot draw',
+        wrong: r => /[^\x20-\x7E]/.test(r.text) || /[^\x20-\x7E]/.test(r.why ?? '')
     }
 ];
 
