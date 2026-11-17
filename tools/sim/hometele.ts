@@ -2,10 +2,13 @@
 // Usage: npx tsx tools/sim/hometele.ts   (exit code is the verdict)
 //
 // All three books used to call one label with no argument and land everyone in Edgeville, which is
-// also where ::home goes - two ways to the same square, one of them with a thirty-minute wait. The
+// also where ::home goes - two ways to the same square, one of them with a wait on it. The
 // normal book now goes to Lumbridge again, the way 474 had it and the way this build had it before
 // September. The destination travels as an argument through five weak queues, so what this asserts
 // is that it arrives: the staging is the part that can silently drop it.
+import fs from 'fs';
+import path from 'path';
+import Environment from '#/util/Environment.js';
 import * as H from './harness.js';
 import { check, R, player, walkable, reachLoc, connected } from './a1lib.js';
 
@@ -55,7 +58,17 @@ console.log('\n== and takes the full cast to get there');
 }
 
 // ---------------------------------------------------------------------------------------------
-console.log('\n== the thirty-minute wait still bites');
+// ^home_teleport_wait, read out of the content source: a constant is compiled away, so there is no
+// way to ask the running server what it is.
+const SCRIPTS = path.join(Environment.BUILD_SRC_DIR, 'scripts');
+const WAIT = (() => {
+    const src = fs.readFileSync(path.join(SCRIPTS, 'skill_magic/configs/home_teleport.constant'), 'utf8');
+    const m = src.match(/\^home_teleport_wait\s*=\s*(\d+)/);
+    if (!m) throw new Error('no ^home_teleport_wait in skill_magic/configs/home_teleport.constant');
+    return parseInt(m[1], 10);
+})();
+
+console.log(`\n== the ${WAIT}-minute wait still bites`);
 {
     const p = player('hometelewait', START[0], START[1]);
     H.setVar(p, 'home_teleport_last', 0);
@@ -76,6 +89,44 @@ console.log('\n== the thirty-minute wait still bites');
         said.some(m => m.includes('wait another')),
         true
     );
+    // AND THE NUMBER IT SAYS IS THE CONSTANT. No minute has passed since the cast, so the whole
+    // wait is still to run - which is what makes this readable as "the cooldown is WAIT minutes"
+    // rather than just "there is one". A change to the constant that did not reach the script
+    // would land here.
+    check(
+        `...and it is ${WAIT} minutes, the constant's own figure`,
+        said.some(m => m.includes(`wait another ${WAIT} minutes`)),
+        true
+    );
+}
+
+// ---------------------------------------------------------------------------------------------
+// THE THREE SPELLBOOK TOOLTIPS SAY THE NUMBER AND CANNOT READ IT. "once every 15 minutes" is text
+// baked into the .if files and packed into the client's cache; an interface cannot call a script,
+// so there is no way to build that line from ^home_teleport_wait. Nothing but this stops the
+// cooldown being changed in the script and the three books going on promising the old one.
+console.log('\n== the spellbooks promise what the server does');
+{
+    const BOOKS_IF = ['magic.if', 'ancient_magic.if', 'lunar_magic.if'];
+    const wrong: string[] = [];
+    let found = 0;
+    for (const file of BOOKS_IF) {
+        const src = fs.readFileSync(path.join(SCRIPTS, 'skill_magic/interfaces', file), 'utf8');
+        const m = src.match(/once every (\d+) minutes/);
+        if (!m) {
+            wrong.push(`${file}: no "once every N minutes" line at all`);
+            continue;
+        }
+        found++;
+        if (parseInt(m[1], 10) !== WAIT) {
+            wrong.push(`${file}: says ${m[1]}, the server waits ${WAIT}`);
+        }
+    }
+    for (const one of wrong) console.log(`     ${one}`);
+    check(`all three books say ${WAIT} minutes`, wrong, []);
+    // ...and the scan actually read three tooltips, rather than passing because a rename made its
+    // regex match nothing.
+    check('...and all three were found to check', found, BOOKS_IF.length);
 }
 
 // ---------------------------------------------------------------------------------------------
