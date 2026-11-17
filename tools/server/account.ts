@@ -54,6 +54,9 @@
  *   npx tsx tools/server/account.ts delete bob
  *   npx tsx tools/server/account.ts password bob hunter2
  *   npx tsx tools/server/account.ts deaths bob --days 3
+ *   npx tsx tools/server/account.ts audit                       every staff command, last 7 days
+ *   npx tsx tools/server/account.ts audit bob --days 30
+ *   npx tsx tools/server/account.ts audit --summary --limit 500
  *   npx tsx tools/server/account.ts logout bob
  *
  * --profile <name> picks the world profile (default: NODE_PROFILE, or "main").
@@ -114,6 +117,9 @@ const profile = typeof args.profile === 'string' ? args.profile : Environment.NO
 // WealthEventType.DEATH. Not imported: WealthEventType is a const enum, which erases at compile
 // time, and this file is run through tsx where that import would resolve to nothing at runtime.
 const DEATH_EVENT_TYPE = 3;
+
+// LoggerEventType.MODERATOR, not imported for the same reason.
+const MODERATOR_EVENT_TYPE = 2;
 
 function fail(msg: string): never {
     console.error(msg);
@@ -1007,6 +1013,142 @@ async function cmdDeaths() {
     console.log('  and anything they ran back for is already theirs again - check against `show` before giving.');
 }
 
+/**
+ * What staff have been typing.
+ *
+ * ClientCheatHandler writes one session_log row per command - the event is literally
+ * "Ran cheat " plus what was typed - for anybody at staffModLevel 2 or above, stamped with the
+ * time and the coord they stood on. This reads it back.
+ *
+ * NOTHING IS RECORDED UNLESS LOGGER_SERVER IS TRUE, and it defaults to false. Every log type goes
+ * through LoggerThread, which drops the message on the floor when that flag is off - so an empty
+ * result is ambiguous in exactly the way an audit must not be. This tells the two apart: if
+ * session_log has no rows AT ALL then the logger was never on, and it says so instead of
+ * reporting a clean bill of health nobody has earned.
+ *
+ * Names come from the `session` table, which only LoginServer writes. Without it the commands are
+ * still all here, just as session uuids - the same fallback `deaths` makes, and for the same
+ * reason: the question is usually "what was run around then", and a time still answers it.
+ *
+ * WHAT IS NOT IN HERE. Helpers are not staff and are not logged - the one command the rank grants
+ * is ::sz, the staff zone teleport. ::home, ::yell, ::bug, ::discord, ::changepassword,
+ * ::forgetlogins, ::milestones and ::commands are handled before the logging line and are not
+ * recorded either; none of them is a staff power. Anything a staff member did through ordinary
+ * play - trading, dropping, picking up - is the wealth log, not this: see `deaths` and `show`.
+ */
+async function cmdAudit() {
+    // parseArgs hands every flag back as a string, so these convert rather than typeof-test for a
+    // number, which is always false and silently ignores the flag.
+    let days = 7;
+    if (typeof args.days === 'string') {
+        days = parseInt(args.days, 10);
+        if (!Number.isFinite(days) || days < 1) fail('--days takes a whole number of days, 1 or more');
+    }
+    let limit = 50;
+    if (typeof args.limit === 'string') {
+        limit = parseInt(args.limit, 10);
+        if (!Number.isFinite(limit) || limit < 1) fail('--limit takes a whole number, 1 or more');
+    }
+    const since = toDbDate(Date.now() - days * 86400000);
+    const username = args._[1];
+    const everything = args.all === true;
+
+    let uuids: string[] | null = null;
+    if (username) {
+        const account = await getAccount(username);
+        if (!account) fail(`no account called ${username}`);
+        const sessions = await tryDb('sessions', () => db.selectFrom('session').select('uuid').where('account_id', '=', account!.id).where('profile', '=', profile).execute());
+        if (sessions === null) return;
+        uuids = sessions.map(x => x.uuid);
+        if (!uuids.length) {
+            console.log(`  no session rows for ${username} - the login server is not recording them, so commands cannot be tied to an account.`);
+            console.log('  showing every staff command in the window instead; match it by the time.');
+            uuids = null;
+        }
+    }
+
+    let query = db.selectFrom('session_log').select(['timestamp', 'session_uuid', 'coord', 'event']).where('event_type', '=', MODERATOR_EVENT_TYPE).where('timestamp', '>=', since).orderBy('timestamp', 'desc').limit(limit);
+    if (!everything) query = query.where('event', 'like', 'Ran cheat%');
+    if (uuids) query = query.where('session_uuid', 'in', uuids);
+
+    const rows = await tryDb('the moderator log', () => query.execute());
+    if (rows === null) return;
+
+    if (!rows.length) {
+        // The distinction that matters. "No commands" and "no logging" look identical from here,
+        // and only one of them is good news.
+        const any = await tryDb('the moderator log', () => db.selectFrom('session_log').select('id').limit(1).execute());
+        if (any !== null && !any.length) {
+            console.log('  session_log is EMPTY - nothing has ever been recorded on this world, so this says');
+            console.log('  nothing about whether staff have run anything. Turn the logger on:');
+            console.log('');
+            console.log('    LOGGER_SERVER=true in .env, AND a logger process running (npm run logger,');
+            console.log('    or EASY_STARTUP=true to run one inside the world).');
+            console.log('');
+            console.log('  the world prints a warning about this at startup. Nothing is recorded retroactively.');
+            return;
+        }
+        console.log(`  no staff commands logged in the last ${days} day${days === 1 ? '' : 's'}.`);
+        console.log('  the log has rows, so the logger is working - this window is simply quiet.');
+        return;
+    }
+
+    // uuid -> name, in two steps rather than a join: the file does its reads this way throughout,
+    // and a missing session row has to degrade to the uuid rather than drop the command.
+    const names = new Map<string, string>();
+    const seen = [...new Set(rows.map(r => r.session_uuid))];
+    const sessions = await tryDb('sessions', () => db.selectFrom('session').select(['uuid', 'account_id']).where('uuid', 'in', seen).execute());
+    if (sessions && sessions.length) {
+        const ids = [...new Set(sessions.map(s => s.account_id))];
+        const accounts = await tryDb('accounts', () => db.selectFrom('account').select(['id', 'username']).where('id', 'in', ids).execute());
+        const byId = new Map((accounts ?? []).map(a => [a.id, a.username]));
+        for (const session of sessions) {
+            const name = byId.get(session.account_id);
+            if (name) names.set(session.uuid, name);
+        }
+    }
+
+    if (args.summary === true) {
+        // Who ran what, and how often. The shape of abuse is usually a count, not a single line.
+        const tally = new Map<string, number>();
+        for (const row of rows) {
+            const who = names.get(row.session_uuid) ?? `session ${row.session_uuid.slice(0, 8)}`;
+            const cheat = row.event.startsWith('Ran cheat ') ? row.event.slice('Ran cheat '.length) : row.event;
+            const cmd = cheat.split(' ')[0] || '(empty)';
+            const key = `${who}\u0000${cmd}`;
+            tally.set(key, (tally.get(key) ?? 0) + 1);
+        }
+        const sorted = [...tally.entries()].sort((a, b) => b[1] - a[1]);
+        console.log(`  ${rows.length} command${rows.length === 1 ? '' : 's'} in the last ${days} day${days === 1 ? '' : 's'}, by who and what:`);
+        console.log('');
+        for (const [key, count] of sorted) {
+            const [who, cmd] = key.split('\u0000');
+            console.log(`  ${String(count).padStart(6)}  ${who.padEnd(20)} ::${cmd}`);
+        }
+        console.log('');
+        console.log(`  --limit is ${limit}, so a tally can only count what came back - raise it before reading much into these.`);
+        return;
+    }
+
+    for (const row of rows) {
+        const level = (row.coord >> 28) & 0x3;
+        const x = (row.coord >> 14) & 0x3fff;
+        const z = row.coord & 0x3fff;
+        const who = names.get(row.session_uuid) ?? `session ${row.session_uuid.slice(0, 8)}`;
+        // The :: belongs to a command and to nothing else - --all brings back the other
+        // moderator-log events too, and "::Server check in" reads like something somebody typed.
+        const ran = row.event.startsWith('Ran cheat ');
+        const what = ran ? `::${row.event.slice('Ran cheat '.length)}` : row.event;
+
+        console.log(`  ${new Date(row.timestamp).toISOString()}  ${who.padEnd(16)} ${what}`);
+        console.log(`      at ${x}, ${z}, level ${level}`);
+    }
+
+    console.log('');
+    console.log(`  ${rows.length} shown, newest first (--limit ${limit}, --days ${days}). --summary counts them by who and what.`);
+    if (!everything) console.log('  commands only; --all adds the other moderator-log events.');
+}
+
 async function main() {
     const username = args._[1];
 
@@ -1075,6 +1217,10 @@ async function main() {
 
         case 'deaths':
             await cmdDeaths();
+            break;
+
+        case 'audit':
+            await cmdAudit();
             break;
 
         case 'password':
