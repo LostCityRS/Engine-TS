@@ -1115,9 +1115,47 @@ for (const file of fs
     });
 }
 
+/**
+ * THE TABLE IS READ BY A 2004 BITMAP FONT, so every string in it is printable ASCII.
+ *
+ * PixFont keeps one glyph per character in arrays of 256 indexed by the character itself, so a
+ * character above 255 is an ArrayIndexOutOfBoundsException the moment the client measures or
+ * draws it - and a plugin cannot catch that: five frames later the client has turned it off, and
+ * a player who switches it back on lands on the same step and loses it again.
+ *
+ * WHICH IS WHAT SHIPPED. The sims' prose is written with typographic apostrophes, because that
+ * is what prose looks like - "Go west to Doric’s hut" - and 32 rows across 16 quests carried one
+ * into the table. The Knight's Sword had one in its FIRST leg, so the helper died on the first
+ * step of an early quest. The client defends itself now (OverlayGraphics.drawable), and this is
+ * the other end of it: what the sims write stays prose, and what the table ships is ASCII.
+ */
+function ascii(text: string): string {
+    return text
+        .replace(/[\u2018\u2019\u201A\u201B\u00B4]/g, "'")
+        .replace(/[\u201C\u201D\u201E\u201F\u00AB\u00BB]/g, '"')
+        .replace(/[\u2010-\u2015]/g, '-')
+        .replace(/\u2026/g, '...')
+        .replace(/[\u2022\u00B7]/g, '*')
+        .replace(/[\u00A0\u2000-\u200A\u202F]/g, ' ')
+        .replace(/\u00D7/g, 'x')
+        .replace(/[^\x20-\x7E]/g, '?');
+}
+
+/** Every string in the table, through {@link ascii}. */
+function asciiDeep(value: unknown): unknown {
+    if (typeof value === 'string') return ascii(value);
+    if (Array.isArray(value)) return value.map(asciiDeep);
+    if (value && typeof value === 'object') {
+        const out: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(value as Record<string, unknown>)) out[k] = asciiDeep(v);
+        return out;
+    }
+    return value;
+}
+
 const dest = process.argv[2] ?? path.join(import.meta.dirname, '..', '..', 'data', 'quests.json');
 fs.mkdirSync(path.dirname(dest), { recursive: true });
-fs.writeFileSync(dest, JSON.stringify({ quests: out }, null, 1));
+fs.writeFileSync(dest, JSON.stringify(asciiDeep({ quests: out }), null, 1));
 
 const steps = out.reduce((a, q) => a + q.stages.reduce((b, s) => b + s.steps.length, 0), 0);
 const items = out.reduce((a, q) => a + q.stages.reduce((b, s) => b + s.items.length, 0), 0);

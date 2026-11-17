@@ -39,7 +39,10 @@ console.log('\n== Trade opens it');
         // IS, immediately before the click, is the fix; the extra ticks cover the walk if he moves
         // anyway.
         H.tick(1);
-        p.teleport(npc.x + 1, npc.z, npc.level);
+        // A SIDE THE ROUTE FINDER AGREES IS A SIDE. He stands behind his counter, so the tile east
+        // of him - which this used to teleport to - answers "I can't reach that!" and the shop
+        // never opens (tracker issue 21).
+        check('  there is a tile he can be reached from', H.standBeside(p, npc), true);
         H.opNpc(p, npc, 3);
         for (let t = 0; t < 10 && !p.containsModalInterface(); t++) H.tick(1);
         check('  the shop is open', p.modalTop === Component.getId('shop_template') || p.containsModalInterface(), true);
@@ -52,7 +55,7 @@ console.log('\n== Talk-to asks first, then opens it');
     const npc = H.npcNear('magic_store_owner2', 2594, 3090, 1);
     if (npc) {
         H.tick(1);
-        p.teleport(npc.x + 1, npc.z, npc.level);
+        check('  there is a tile he can be reached from', H.standBeside(p, npc), true);
         const lines = talk(p, 'magic_store_owner2', ['Yes please.'], 1, false);
         check('  it greets you', saw(lines, 'Robe Store'), true);
         for (let t = 0; t < 10 && !p.containsModalInterface(); t++) H.tick(1);

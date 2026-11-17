@@ -100,7 +100,7 @@ export type Step =
     | { useNpc: string; obj: string; picks?: (number | string)[]; want?: string; why?: string; tries?: number; until?: string }
     | { give: string; n?: number; how?: string }
     | { setvar: string; to: number; why?: string }
-    | { stage: number }
+    | { stage: number; orLater?: boolean }
     | { level: number }
     | { varis: string; to: number }
     | { wait: number; why?: string }
@@ -1066,7 +1066,19 @@ export function play(m: Manifest, p: Player): Result[] {
         }
         if ('stage' in s) {
             const got = stageOf(p, m.stageVar);
-            soft(m.stageVar + ' is now ' + s.stage, got === s.stage, got === s.stage ? '' : 'it is ' + got);
+            // `orLater` IS FOR A STAGE THE RUN CANNOT STAND STILL ON. A stage marker is a leg
+            // boundary to ExportHelper as well as an assertion, so it has to stay in the manifest
+            // even where the run blows straight past it: The Great Brain Robbery sets tgbr to 110
+            // when Mi-Gor is confronted and 120 when Barrelchest goes down, and drive() keeps
+            // clicking through that confrontation for up to 600 ticks while a damage-immune player
+            // with maxed stats kills the thing it summoned - so by the time this step looked, 110
+            // had been and gone: "tgbr is now 110 -- it is 120" (tracker issue 21).
+            //
+            // Only where the overshoot IS the content working. A plain stage still means exactly
+            // this number, which is what catches a quest that skipped a step.
+            const orLater = 'orLater' in s && s.orLater === true;
+            const ok = orLater ? got >= s.stage : got === s.stage;
+            soft(m.stageVar + ' is now ' + s.stage + (orLater ? ' or past it' : ''), ok, ok ? '' : 'it is ' + got);
             continue;
         }
         if ('has' in s) {
@@ -1429,47 +1441,139 @@ export function play(m: Manifest, p: Player): Result[] {
             // out is recoverable the way it is for a player: go back to the start of the leg and
             // walk it again, further out of her way. Three goes, re-routing from wherever the
             // throw-out left the player.
+            // HER OWN TEST, INVERTED, because waiting is not safety.
+            //
+            // [ai_timer,nora_t_hagg] is huntall(npc_coord, 3, 0), then lineofsight (the same
+            // GameMap.isLineOfSight this calls - the LINEOFSIGHT opcode is that function), and then
+            // a hedge check: a player NORTH of her is caught unless the tile SOUTH of them is a
+            // hedge or hedgecorner, and a player SOUTH of her unless the tile NORTH of them is a
+            // hedge. On her exact row neither branch matches and she never catches at all. That is
+            // what the wiki means by "move around the edge, using the hedges as cover".
+            //
+            // The old version held for sixty ticks whenever she was inside the manifest's margin
+            // and then stepped anyway. Both halves of that were wrong. Stepping into her reach
+            // gets you caught - and so does STANDING in it, which is what actually happened here
+            // every run: the player waited on 2922,3466 with her three tiles away on 2925,3463 and
+            // a clear line, she said "Stop! Thief!" on the eleventh tick, and the catch deleted the
+            // shed key and the ball, put %ballquest back to ^ball_started and threw the player to
+            // 2929,3456 outside the hedge, where no route back in exists. Three retries could not
+            // win, because the key was gone (tracker issue 21).
+            //
+            // So: never stand still inside her reach - step out of it - and re-plan the route after
+            // every move, because a retreat makes the old one stale.
+            const CATCH = 3;
+            const hedgeAt = (x: number, z: number) => H.locAt(p.level, x, z, 'hedge') || H.locAt(p.level, x, z, 'hedgecorner');
             const sneakTo = (tx: number, tz: number): boolean => {
-                // AN EMPTY ROUTE IS NOT AN ARRIVAL. route() returns nothing when there is no way
-                // from here to there, and walking a zero-step path "succeeded" - so being thrown
-                // out of the garden mid-leg ended the attempt as a win, the retry never ran, and
-                // the step reported "ended up at 2907,3458" as though the player had strolled
-                // there. That is 13 tiles south of the fountain, outside the hedge, which is
-                // exactly where Nora T. Hagg puts people she catches.
-                const legs = route(p.level, p.x, p.z, tx, tz, 96, 0);
-                if (!legs.length && (p.x !== tx || p.z !== tz)) {
-                    blocked = 'no route from ' + p.x + ',' + p.z + ' to ' + tx + ',' + tz;
-                    return false;
-                }
-                // DISTANCE IS NOT WHAT CATCHES YOU, SIGHT IS, which is why the hold below used to
-                // time out every single time and walk anyway. [ai_timer,nora_t_hagg] is
-                // huntall(npc_coord, 3, 0) and then lineofsight(npc_coord, coord) - "move around
-                // the edge, using the hedges as cover" is the wiki telling you the hedges break
-                // the line, and a garden that size never has her more than eight tiles off, so a
-                // distance-only wait is a wait that can never end. Being caught is not recoverable
-                // either: the catch deletes the shed key AND the ball and puts %ballquest back to
-                // ^ball_started, so there is no retry that can win - the step has to not be seen.
-                const seen = (nx: number, nz: number, tx: number, tz: number) => Math.max(Math.abs(nx - tx), Math.abs(nz - tz)) <= keepOut && isLineOfSight(p.level, nx, nz, tx, tz);
-                for (const [sx, sz] of legs) {
-                    // hold while she can see the tile being left OR the one being stepped onto -
-                    // checking only the next tile let her walk into the player
-                    for (let w = 0; w < 60; w++) {
-                        const npc = H.npcNear(s.past, p.x, p.z, p.level);
-                        if (!npc) break;
-                        if (!seen(npc.x, npc.z, sx, sz) && !seen(npc.x, npc.z, p.x, p.z)) break;
+                // THE ROUTE AVOIDS HER REACH; IT DOES NOT WALK INTO IT AND HOPE.
+                //
+                // By the time she can catch the tile the player is standing on, the catch has
+                // already begun: her script runs p_stopaction and then p_delay on the player, so
+                // the player cannot move, and stepping aside is not an option that exists. The
+                // trace is unambiguous - "retreat to 2919,3460 score=104 delayed=true" three times
+                // over, the player pinned on 2920,3460 while she finished the spell. Avoiding her
+                // reach is therefore the only play, and it has to be re-planned every step because
+                // she patrols.
+                //
+                // route() already takes a set of tiles to keep out of. The margin is her radius
+                // plus two, because she covers a tile a tick and the player covers one or two.
+                const K = (a: number, b: number) => a * 20000 + b;
+                let budget = 900;
+                while (budget-- > 0) {
+                    if (p.x === tx && p.z === tz) {
+                        blocked = '';
+                        return true;
+                    }
+                    const npc = H.npcNear(s.past, p.x, p.z, p.level);
+                    const avoid = new Set<number>();
+                    if (npc) {
+                        // WHERE SHE COULD CATCH FROM NEXT TICK, not only from where she stands.
+                        // She covers a tile a tick and so does the player, and this loop looks once
+                        // a tick - so a tile judged safe against her CURRENT tile can be a catch by
+                        // the time the step lands. That is exactly what happened: the player walked
+                        // to 2924,3466 with her four off, she stepped to 2926,3463, and the tile was
+                        // hers. Dilating her position by one tile is the margin that fits the
+                        // clock, and cover is re-tested for each of those positions because a hedge
+                        // only protects the side she is actually on.
+                        // `r` IS WHAT THAT DILATION IS. The manifest's margin is her radius plus
+                        // the ticks of slack to allow for, so r: 4 against her 3 means "assume she
+                        // may be one tile closer than she looks". Clamped, because a margin wide
+                        // enough to cover her whole garden leaves nowhere to stand.
+                        const slack = Math.max(1, Math.min(3, keepOut - CATCH));
+                        for (let wx = -slack; wx <= slack; wx++) {
+                            for (let wz = -slack; wz <= slack; wz++) {
+                                const hx = npc.x + wx;
+                                const hz = npc.z + wz;
+                                for (let dx = -CATCH; dx <= CATCH; dx++) {
+                                    for (let dz = -CATCH; dz <= CATCH; dz++) {
+                                        const x = hx + dx;
+                                        const z = hz + dz;
+                                        if (avoid.has(K(x, z))) continue;
+                                        if (!isLineOfSight(p.level, hx, hz, x, z)) continue;
+                                        const ddz = z - hz;
+                                        if (ddz === 0) continue;
+                                        if (ddz > 0 && hedgeAt(x, z - 1)) continue;
+                                        if (ddz < 0 && hedgeAt(x, z + 1)) continue;
+                                        avoid.add(K(x, z));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // A route THROUGH the avoid set is route()'s own fallback when keeping out of
+                    // it leaves nowhere to go - fine for a crowded doorway, fatal here. So if what
+                    // comes back still crosses her reach, stand still and let her walk on.
+                    const legs = route(p.level, p.x, p.z, tx, tz, 96, 0, avoid);
+                    if (!legs.length) {
+                        blocked = 'no route from ' + p.x + ',' + p.z + ' to ' + tx + ',' + tz;
+                        return false;
+                    }
+                    // STANDING IN THE MARGIN IS NOT WAITING, IT IS LOSING SLOWLY. Her radius is
+                    // three and the margin is five, so a player inside the margin has a tick or two
+                    // in hand - and spending them standing still is how the last version was
+                    // caught: it walked out to nine tiles clear, then held while she strolled back
+                    // into range. Inside the margin, move out of it; the tile does not have to be
+                    // on the route.
+                    if (avoid.has(K(p.x, p.z)) && npc) {
+                        let best: [number, number] | null = null;
+                        let bestScore = -1;
+                        for (const [dx, dz] of [
+                            [1, 0],
+                            [-1, 0],
+                            [0, 1],
+                            [0, -1]
+                        ]) {
+                            const nx = p.x + dx;
+                            const nz = p.z + dz;
+                            if (!canTravel(p.level, p.x, p.z, dx, dz, 1, 0, CollisionType.NORMAL)) continue;
+                            const score = (avoid.has(K(nx, nz)) ? 0 : 100) + Math.max(Math.abs(npc.x - nx), Math.abs(npc.z - nz));
+                            if (score > bestScore) {
+                                bestScore = score;
+                                best = [nx, nz];
+                            }
+                        }
+                        if (best) {
+                            if (process.env.QUESTRUN_DEBUG) console.log(`        in the margin at ${p.x},${p.z}, witch ${npc.x},${npc.z} - out to ${best[0]},${best[1]}`);
+                            H.walkTo(p, best[0], best[1]);
+                            H.tick(1);
+                            waited++;
+                            continue;
+                        }
+                    }
+                    // the route itself crosses her reach: hold, out of the margin, until she moves
+                    if (legs.slice(0, 4).some(([lx, lz]) => avoid.has(K(lx, lz)))) {
                         H.tick(1);
                         waited++;
+                        continue;
                     }
+                    const [sx, sz] = legs[0];
+                    if (process.env.QUESTRUN_DEBUG && npc) console.log(`        at ${p.x},${p.z} -> ${sx},${sz} witch ${npc.x},${npc.z} d=${Math.max(Math.abs(npc.x - p.x), Math.abs(npc.z - p.z))} avoiding ${avoid.size} tiles, ${legs.length} to go`);
+                    const wasX = p.x;
+                    const wasZ = p.z;
                     for (let t = 0; t < 12 && (p.x !== sx || p.z !== sz); t++) {
-                        const wasX = p.x;
-                        const wasZ = p.z;
                         H.walkTo(p, sx, sz);
                         H.tick(1);
                         // A TELEPORT, NOT A STEP. A running player covers at most two tiles a tick,
-                        // so anything further is somebody else moving them - and walking on down a
-                        // route computed before that happened is how this step spent all three of
-                        // its attempts without noticing. Say so, rather than reporting the tile the
-                        // stale route gave up on.
+                        // so anything further is somebody else moving them - being caught, here.
                         if (Math.max(Math.abs(p.x - wasX), Math.abs(p.z - wasZ)) > 2) {
                             blocked = 'moved from ' + wasX + ',' + wasZ + ' to ' + p.x + ',' + p.z + ' in one tick - thrown out of the leg, not walked';
                             return false;
@@ -1480,8 +1584,8 @@ export function play(m: Manifest, p: Player): Result[] {
                         return false;
                     }
                 }
-                blocked = '';
-                return true;
+                blocked = 'gave up ' + Math.max(Math.abs(p.x - tx), Math.abs(p.z - tz)) + ' tiles short at ' + p.x + ',' + p.z;
+                return false;
             };
             for (let a = 0; a < 3; a++) {
                 if (sneakTo(s.sneak[0], s.sneak[1])) break;

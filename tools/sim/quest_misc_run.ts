@@ -165,7 +165,12 @@ const m: Manifest = {
         { loc: 'misc_ulby_throneroomdoor', at: THRONE_S, soft: true, why: 'out of the throne room' },
         { go: [2503, 3852], why: "to Prince Brand's door" },
         { loc: 'loc_1512', at: DOOR_BRAND, soft: true, why: 'open it' },
-        { go: [BRAND[0], BRAND[1] + 1], why: 'in to the Prince' },
+        // EXACT, BECAUSE THE TWO TILES OF SLACK ARE THE DOORWAY. travel() accepts landing within
+        // two of the target, and from the ante-room that is 2505,3854 - outside Brand's door, with
+        // a posh chair blocking the diagonal. The talk step then cannot route to him and reports
+        // him four tiles off, which reads as the npc having wandered somewhere unreachable. He had
+        // not: the player never came through the door (tracker issue 21).
+        { go: [BRAND[0], BRAND[1] + 1], exact: true, why: 'in to the Prince' },
         { talk: 'misc_prince_brand', want: 'So I wrote a song about it', why: 'the awful anthem' },
         { has: 'misc_awful_anthem' },
 
@@ -215,7 +220,7 @@ const m: Manifest = {
         { loc: 'misc_ulby_throneroomdoor', at: THRONE_S, soft: true, why: 'out of the throne room' },
         { go: [2503, 3852], why: "to Brand's door" },
         { loc: 'loc_1512', at: DOOR_BRAND, soft: true, why: 'open it' },
-        { go: [BRAND[0], BRAND[1] + 1], why: 'in' },
+        { go: [BRAND[0], BRAND[1] + 1], exact: true, why: 'in' },
         { talk: 'misc_prince_brand', want: 'Ahahahaha', why: 'the first talk' },
         { varis: 'misc_court_stage', to: 1 },
         { useNpc: 'misc_prince_brand', obj: 'gold_ring', want: "couldn't possibly accept", why: 'a ring this early is refused' },

@@ -35,7 +35,7 @@ import { Interaction } from '#/engine/entity/Interaction.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import OpHeldU from '#/network/game/client/model/OpHeldU.js';
 import OpHeldUHandler from '#/network/game/client/handler/OpHeldUHandler.js';
-import { findPathToEntity, findPathToLoc } from '#/engine/GameMap.js';
+import { findPathToEntity, findPathToLoc, isMapBlocked, reachedEntity } from '#/engine/GameMap.js';
 import JavaRandom from '#/util/JavaRandom.js';
 
 // 'nid' is the npc's own index, so a hit can be attributed to ONE npc rather than to every npc
@@ -822,6 +822,41 @@ export function useOnPlayer(p: Player, other: Player, objName: string): boolean 
 }
 
 /** The nearest live npc of a type to (x, z) on this level, or null. */
+/**
+ * PUT THE PLAYER SOMEWHERE THIS NPC CAN ACTUALLY BE TALKED TO FROM, and say whether there was
+ * anywhere. Returns false without moving the player when every side of it is blocked or walled off.
+ *
+ * `p.teleport(npc.x + 1, npc.z, npc.level)` is written in thirty sims and it is a guess twice over.
+ * An npc WANDERS, so the tile read a moment ago is not where it is standing now; and a teleport
+ * ignores collision, so the tile east of it can be the far side of a counter or a cellar wall. The
+ * engine then answers "I can't reach that!" - one line in the log after three successful ones - the
+ * conversation never starts, and the check above it reports working content as broken. Two of the
+ * nine sims failing on 377-wip were exactly this: the Rod of Ivandis "refused" by Veliaf, who
+ * stands on nineteen different tiles over 120 ticks, and both halves of the Magic Guild robe shop,
+ * whose keeper stands behind his counter.
+ *
+ * So ask the same question the route finder answers for a real click, around the npc as it is now,
+ * and take the first side that says yes.
+ */
+export function standBeside(p: Player, npc: Npc): boolean {
+    const w = npc.width;
+    const l = npc.length;
+    const spots: [number, number][] = [];
+    for (let dx = 0; dx < w; dx++) {
+        spots.push([npc.x + dx, npc.z - 1], [npc.x + dx, npc.z + l]);
+    }
+    for (let dz = 0; dz < l; dz++) {
+        spots.push([npc.x - 1, npc.z + dz], [npc.x + w, npc.z + dz]);
+    }
+    for (const [x, z] of spots) {
+        if (isMapBlocked(x, z, npc.level)) continue;
+        if (!reachedEntity(npc.level, x, z, npc.x, npc.z, w, l, 1)) continue;
+        p.teleport(x, z, npc.level);
+        return true;
+    }
+    return false;
+}
+
 export function npcNear(npcName: string, x: number, z: number, level = 0): Npc | null {
     const id = NpcType.getId(npcName);
     let best: Npc | null = null;
@@ -976,6 +1011,21 @@ export function tick(n = 1) {
         for (const p of World.playerLoop.all()) {
             p.lastConnected = World.currentTick;
             p.lastResponse = World.currentTick;
+            // AND NO RANDOM EVENT IS OWED. World sets afkEventReady on a coin flip every 500
+            // ticks, and content reads it through `afk_event` at the top of the things a macroer
+            // would be doing - cooking, thieving, spinning, crafting jewellery - where the pattern
+            // is "if the event is owed, spawn it AND RETURN". The action is dropped on the floor.
+            //
+            // For a player that is the game working. For a sim it is one action in a long run
+            // silently doing nothing, at a tick nothing chose, and the 131 manifests that set the
+            // `macro_event` varp do not help: that varp stops the SPAWN, and the early return
+            // happens either way. Family Crest lost its perfect ruby ring to exactly this and
+            // stalled at stage 7 - the necklace a few steps later worked, because the first press
+            // had eaten the flag (tracker issue 21).
+            //
+            // randomevents.ts drives the spawn procs directly with runProc and never reads this,
+            // so nothing that tests macro events loses anything by it being off here.
+            p.afkEventReady = false;
         }
         World.cycle();
     }

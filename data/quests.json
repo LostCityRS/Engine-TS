@@ -80,7 +80,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "Evil Dave, in his mother’s cellar under Edgeville."
+       "text": "Evil Dave, in his mother's cellar under Edgeville."
       }
      ],
      "marks": [],
@@ -2037,7 +2037,7 @@
       },
       {
        "at": 15,
-       "text": "The Old Crone, east of the Slayer Tower, mirrors the unused half of the ghostspeak amulet and binds it with one of Alice’s hairs."
+       "text": "The Old Crone, east of the Slayer Tower, mirrors the unused half of the ghostspeak amulet and binds it with one of Alice's hairs."
       },
       {
        "at": 17,
@@ -2826,7 +2826,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "A guard’s uniform is in the chest in the north-east house."
+       "text": "A guard's uniform is in the chest in the north-east house."
       }
      ],
      "marks": [],
@@ -3718,7 +3718,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "Arhein’s crate in Catherby, which is big enough to hide in."
+       "text": "Arhein's crate in Catherby, which is big enough to hide in."
       },
       {
        "at": 3,
@@ -3790,7 +3790,7 @@
       },
       {
        "at": 6,
-       "text": "Light the candle, stand on the magic symbol by the tower and drop the bats’ bones."
+       "text": "Light the candle, stand on the magic symbol by the tower and drop the bats' bones."
       }
      ],
      "marks": [],
@@ -4655,11 +4655,11 @@
      "headings": [
       {
        "at": 3,
-       "text": "Blurberry’s, the Gnome Stronghold."
+       "text": "Blurberry's, the Gnome Stronghold."
       },
       {
        "at": 5,
-       "text": "The Dead Man’s Chest, Brimhaven."
+       "text": "The Dead Man's Chest, Brimhaven."
       },
       {
        "at": 7,
@@ -4671,7 +4671,7 @@
       },
       {
        "at": 11,
-       "text": "The Forester’s Arms, Seers’ Village."
+       "text": "The Forester's Arms, Seers' Village."
       },
       {
        "at": 13,
@@ -12782,13 +12782,13 @@
      "headings": [
       {
        "at": 1,
-       "text": "Doric’s whetstone, which takes the sword down to a slender blade."
+       "text": "Doric's whetstone, which takes the sword down to a slender blade."
       }
      ],
      "marks": [],
      "steps": [
       {
-       "text": "Go west to Doric’s hut.",
+       "text": "Go west to Doric's hut.",
        "kind": "walk",
        "at": [
         2952,
@@ -12879,7 +12879,7 @@
      "marks": [],
      "steps": [
       {
-       "text": "Go to the monks’ ship to Entrana - and nobody searches a pouch.",
+       "text": "Go to the monks' ship to Entrana - and nobody searches a pouch.",
        "kind": "walk",
        "at": [
         2853,
@@ -16308,7 +16308,7 @@
       {
        "kind": "loc",
        "text": "Open Door.",
-       "why": "The door into the thieves’ room.",
+       "why": "The door into the thieves' room.",
        "target": "loc_1530",
        "id": 1530,
        "label": "Door",
@@ -18704,7 +18704,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "B: and into Burntmeat’s stew, which he then eats himself."
+       "text": "B: and into Burntmeat's stew, which he then eats himself."
       }
      ],
      "marks": [],
@@ -20955,7 +20955,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "Ghaslor the Elder, who blames the town rather than the spirits, and who hands over the Ballad of Jareesh - an obj in this quest’s own block that nothing gave out and nothing asked for."
+       "text": "Ghaslor the Elder, who blames the town rather than the spirits, and who hands over the Ballad of Jareesh - an obj in this quest's own block that nothing gave out and nothing asked for."
       }
      ],
      "marks": [],
@@ -20992,7 +20992,7 @@
      "marks": [],
      "steps": [
       {
-       "text": "Go west to Shiratti’s building.",
+       "text": "Go west to Shiratti's building.",
        "kind": "walk",
        "at": [
         3420,
@@ -21264,7 +21264,7 @@
        ]
       },
       {
-       "text": "Go to the grey golem’s door.",
+       "text": "Go to the grey golem's door.",
        "kind": "walk",
        "at": [
         3373,
@@ -21295,7 +21295,7 @@
        ]
       },
       {
-       "text": "Go west to the white golem’s door.",
+       "text": "Go west to the white golem's door.",
        "kind": "walk",
        "at": [
         3365,
@@ -21326,7 +21326,7 @@
        ]
       },
       {
-       "text": "Go north to the black golem’s door.",
+       "text": "Go north to the black golem's door.",
        "kind": "walk",
        "at": [
         3371,
@@ -30520,7 +30520,7 @@
       {
        "kind": "obj",
        "text": "Wield Excalibur.",
-       "why": "Wield it - the Titan heals unless the last blow is Excalibur’s.",
+       "why": "Wield it - the Titan heals unless the last blow is Excalibur's.",
        "target": "excalibur",
        "id": 35,
        "label": "Excalibur",
@@ -30613,11 +30613,11 @@
       },
       {
        "at": 3,
-       "text": "Galahad, west of McGrubor’s Wood, and the holy table napkin."
+       "text": "Galahad, west of McGrubor's Wood, and the holy table napkin."
       },
       {
        "at": 5,
-       "text": "The southernmost room on Draynor Manor’s top floor."
+       "text": "The southernmost room on Draynor Manor's top floor."
       },
       {
        "at": 10,
@@ -30625,7 +30625,7 @@
       },
       {
        "at": 11,
-       "text": "The Black Knight Titan on the bridge, who heals to full if the last blow is not Excalibur’s - which is why Excalibur is the only weapon this run carries."
+       "text": "The Black Knight Titan on the bridge, who heals to full if the last blow is not Excalibur's - which is why Excalibur is the only weapon this run carries."
       },
       {
        "at": 13,
@@ -30663,7 +30663,7 @@
        ]
       },
       {
-       "text": "Go to Galahad’s house.",
+       "text": "Go to Galahad's house.",
        "kind": "walk",
        "at": [
         2611,
@@ -30845,7 +30845,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "Arthur’s feather, the sacks in Goblin Village, and Percival."
+       "text": "Arthur's feather, the sacks in Goblin Village, and Percival."
       }
      ],
      "marks": [],
@@ -30910,7 +30910,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "Back to the realm - no Titan this time - and the Grail off the top floor of the castle’s eastern tower."
+       "text": "Back to the realm - no Titan this time - and the Grail off the top floor of the castle's eastern tower."
       },
       {
        "at": 5,
@@ -31584,7 +31584,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "The four pillars of the watchtower in Glough’s house spell TUZO."
+       "text": "The four pillars of the watchtower in Glough's house spell TUZO."
       }
      ],
      "marks": [],
@@ -32578,7 +32578,7 @@
       {
        "kind": "talk",
        "text": "Pickpocket Zealot.",
-       "why": "The Zealot’s key.",
+       "why": "The Zealot's key.",
        "target": "saradominist_zealot",
        "id": 1528,
        "label": "Zealot",
@@ -32778,7 +32778,7 @@
       },
       {
        "at": 5,
-       "text": "B: the Zealot’s key ON the valve."
+       "text": "B: the Zealot's key ON the valve."
       }
      ],
      "marks": [],
@@ -34090,7 +34090,7 @@
      "headings": [
       {
        "at": 0,
-       "text": "Achietties, outside the Heroes’ Guild."
+       "text": "Achietties, outside the Heroes' Guild."
       }
      ],
      "marks": [],
@@ -34228,7 +34228,7 @@
        ]
       },
       {
-       "text": "Go to the monks’ ship to Entrana.",
+       "text": "Go to the monks' ship to Entrana.",
        "kind": "walk",
        "at": [
         2850,
@@ -35522,7 +35522,7 @@
       },
       {
        "at": 19,
-       "text": "The Culinaromancer’s chest in the castle cellar, which opens its first tier of food the moment Aris has explained it."
+       "text": "The Culinaromancer's chest in the castle cellar, which opens its first tier of food the moment Aris has explained it."
       }
      ],
      "marks": [
@@ -36182,7 +36182,7 @@
        ]
       },
       {
-       "text": "Go to the Wizards’ Tower, first floor.",
+       "text": "Go to the Wizards' Tower, first floor.",
        "kind": "walk",
        "at": [
         3112,
@@ -36425,7 +36425,7 @@
       },
       {
        "kind": "walk",
-       "text": "Go to the generals’ door.",
+       "text": "Go to the generals' door.",
        "at": [
         2956,
         3508
@@ -36860,7 +36860,7 @@
        ]
       },
       {
-       "text": "Go to Doris’s house in Edgeville.",
+       "text": "Go to Doris's house in Edgeville.",
        "kind": "walk",
        "at": [
         3081,
@@ -38716,7 +38716,7 @@
      "marks": [],
      "steps": [
       {
-       "text": "Go south to the embalmer’s house.",
+       "text": "Go south to the embalmer's house.",
        "kind": "walk",
        "at": [
         3288,
@@ -43768,14 +43768,14 @@
       },
       {
        "at": 2,
-       "text": "The glowing heart into the recess by the dragon’s teeth."
+       "text": "The glowing heart into the recess by the dragon's teeth."
       }
      ],
      "marks": [],
      "steps": [
       {
        "kind": "walk",
-       "text": "Go to the dragon’s eye.",
+       "text": "Go to the dragon's eye.",
        "at": [
         2410,
         4714
@@ -43834,7 +43834,7 @@
      "headings": [
       {
        "at": 0,
-       "text": "The barrier by the dragon’s teeth lets you through at last."
+       "text": "The barrier by the dragon's teeth lets you through at last."
       },
       {
        "at": 2,
@@ -43905,7 +43905,7 @@
      "headings": [
       {
        "at": 0,
-       "text": "Viyeldi’s clothes lie on the ledge the rope landed you on, so the six climbs have to be walked back - and the barrier first: the inner cavern is 767 tiles with no other way out of it."
+       "text": "Viyeldi's clothes lie on the ledge the rope landed you on, so the six climbs have to be walked back - and the barrier first: the inner cavern is 767 tiles with no other way out of it."
       },
       {
        "at": 16,
@@ -44478,13 +44478,13 @@
      "headings": [
       {
        "at": 1,
-       "text": "The carved pole used on the tribe’s corrupted one."
+       "text": "The carved pole used on the tribe's corrupted one."
       }
      ],
      "marks": [],
      "steps": [
       {
-       "text": "Go to the tribe’s totem pole.",
+       "text": "Go to the tribe's totem pole.",
        "kind": "walk",
        "at": [
         2794,
@@ -44573,7 +44573,7 @@
       {
        "kind": "talk",
        "text": "Talk to Gujuo.",
-       "why": "The tribe’s gift, if he has not handed it over already.",
+       "why": "The tribe's gift, if he has not handed it over already.",
        "target": "gujuo",
        "id": 928,
        "label": "Gujuo",
@@ -44603,7 +44603,7 @@
      "marks": [],
      "steps": [
       {
-       "text": "Go back to the Legends’ Guild study.",
+       "text": "Go back to the Legends' Guild study.",
        "kind": "walk",
        "at": [
         2725,
@@ -44634,7 +44634,7 @@
      "marks": [],
      "steps": [
       {
-       "text": "Go into the Legends’ Guild main hall.",
+       "text": "Go into the Legends' Guild main hall.",
        "kind": "walk",
        "at": [
         2727,
@@ -44687,7 +44687,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "Sigmund, the Duke’s advisor, hands out the quest."
+       "text": "Sigmund, the Duke's advisor, hands out the quest."
       }
      ],
      "marks": [],
@@ -45089,7 +45089,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "The Duke takes his advisor’s word over yours."
+       "text": "The Duke takes his advisor's word over yours."
       },
       {
        "at": 3,
@@ -49929,7 +49929,7 @@
      "headings": [
       {
        "at": 2,
-       "text": "King Vargas, up on the first floor of the south-west castle - which is six clicks away through four doors and a staircase, and a guard who only lets a Heroes’ Guild member past."
+       "text": "King Vargas, up on the first floor of the south-west castle - which is six clicks away through four doors and a staircase, and a guard who only lets a Heroes' Guild member past."
       }
      ],
      "marks": [
@@ -55241,7 +55241,7 @@
       },
       {
        "at": 19,
-       "text": "The poison salesman in the Seers’ Village pub sold to the family."
+       "text": "The poison salesman in the Seers' Village pub sold to the family."
       },
       {
        "at": 21,
@@ -56136,7 +56136,7 @@
       {
        "kind": "talk",
        "text": "Kill Gadderanks.",
-       "why": "Gadderanks.",
+       "why": "Gadderanks, if he is still standing.",
        "target": "burgh_gadderanks_attackable",
        "id": 3518,
        "label": "Gadderanks"
@@ -56158,7 +56158,7 @@
      "headings": [
       {
        "at": 2,
-       "text": "Which this build does after the fight rather than before it: the inn’s back wall, off the trapdoor."
+       "text": "Which this build does after the fight rather than before it: the inn's back wall, off the trapdoor."
       }
      ],
      "marks": [],
@@ -56367,7 +56367,7 @@
      "headings": [
       {
        "at": 4,
-       "text": "B: north through Mort Myre to Ulizius’s gate, where two of them are waiting on the Paterdomus side Ulizius’s gate at the top of Mort Myre is Nature Spirit’s loc and not this quest’s, so the run steps past it rather than through it - and Ivan’s own timer brings him to whoever he is following when the swamp gets between the two of them, which is what the walk relies on over four map squares with a gate in them."
+       "text": "B: north through Mort Myre to Ulizius's gate, where two of them are waiting on the Paterdomus side Ulizius's gate at the top of Mort Myre is Nature Spirit's loc and not this quest's, so the run steps past it rather than through it - and Ivan's own timer brings him to whoever he is following when the swamp gets between the two of them, which is what the walk relies on over four map squares with a gate in them."
       }
      ],
      "marks": [],
@@ -59332,7 +59332,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "A bucket of water from the well below, blessed by Drezel, poured over the vampire’s coffin."
+       "text": "A bucket of water from the well below, blessed by Drezel, poured over the vampire's coffin."
       }
      ],
      "marks": [],
@@ -61083,7 +61083,7 @@
      "headings": [
       {
        "at": 8,
-       "text": "B: and Jack’s own cat has eaten one of them."
+       "text": "B: and Jack's own cat has eaten one of them."
       }
      ],
      "marks": [],
@@ -61353,7 +61353,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "B: Jack, who did not believe it, and Smokin’ Joe’s name."
+       "text": "B: Jack, who did not believe it, and Smokin' Joe's name."
       }
      ],
      "marks": [],
@@ -61508,7 +61508,7 @@
       },
       {
        "at": 3,
-       "text": "The docks, and eight notes in the scroll’s order - D, G, E, F sharp, high D, B, C sharp, A."
+       "text": "The docks, and eight notes in the scroll's order - D, G, E, F sharp, high D, B, C sharp, A."
       }
      ],
      "marks": [],
@@ -62707,7 +62707,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "Iorwerth takes the pendant back and hands over the Big Book O’ Bangs, three barrels and the limestone."
+       "text": "Iorwerth takes the pendant back and hands over the Big Book O' Bangs, three barrels and the limestone."
       }
      ],
      "marks": [],
@@ -64178,7 +64178,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "Cyreg Paddlehorn, by his boat on the east side of Mort’ton."
+       "text": "Cyreg Paddlehorn, by his boat on the east side of Mort'ton."
       }
      ],
      "marks": [],
@@ -64490,7 +64490,7 @@
      "headings": [
       {
        "at": 0,
-       "text": "Out through the chamber’s own mouth, north up the corridor, and the wall at the end of it is the back of the Hair of the Dog’s cellar."
+       "text": "Out through the chamber's own mouth, north up the corridor, and the wall at the end of it is the back of the Hair of the Dog's cellar."
       },
       {
        "at": 4,
@@ -64641,7 +64641,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "Glarial’s tomb, and the three moss giants in it."
+       "text": "Glarial's tomb, and the three moss giants in it."
       }
      ],
      "marks": [],
@@ -65300,7 +65300,7 @@
      "marks": [],
      "steps": [
       {
-       "text": "Go north to Seers’ Village, at the house door.",
+       "text": "Go north to Seers' Village, at the house door.",
        "kind": "walk",
        "at": [
         2701,
@@ -65409,7 +65409,7 @@
        ]
       },
       {
-       "text": "Go back to Seers’ Village.",
+       "text": "Go back to Seers' Village.",
        "kind": "walk",
        "at": [
         2701,
@@ -68467,7 +68467,7 @@
       {
        "kind": "talk",
        "text": "Talk to Squire.",
-       "why": "He has lost Sir Vyvin’s sword and you offer to replace it.",
+       "why": "He has lost Sir Vyvin's sword and you offer to replace it.",
        "target": "squire",
        "id": 606,
        "label": "Squire",
@@ -68595,7 +68595,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "Back to the Squire, who remembers the portrait in Vyvin’s cupboard."
+       "text": "Back to the Squire, who remembers the portrait in Vyvin's cupboard."
       }
      ],
      "marks": [],
@@ -68612,7 +68612,7 @@
       {
        "kind": "talk",
        "text": "Talk to Squire.",
-       "why": "He names the portrait in Vyvin’s cupboard.",
+       "why": "He names the portrait in Vyvin's cupboard.",
        "target": "squire",
        "id": 606,
        "label": "Squire"
@@ -68637,7 +68637,7 @@
      "steps": [
       {
        "kind": "note",
-       "text": "Search the cupboard in Sir Vyvin’s room, top floor of Falador castle, for the portrait."
+       "text": "Search the cupboard in Sir Vyvin's room, top floor of Falador castle, for the portrait."
       },
       {
        "text": "Go back to Mudskipper Point.",
@@ -70166,7 +70166,7 @@
       {
        "kind": "talk",
        "text": "Transport Brother Tranquility.",
-       "why": "Ask for a lift to Mos Le’Harmless.",
+       "why": "Ask for a lift to Mos Le'Harmless.",
        "target": "tgbr_tranquility_shell",
        "id": 5124,
        "label": "Brother Tranquility",
@@ -70305,7 +70305,7 @@
        "label": "Brother Tranquility"
       },
       {
-       "text": "Go to the top floor of Fenkenstrain’s castle.",
+       "text": "Go to the top floor of Fenkenstrain's castle.",
        "kind": "walk",
        "at": [
         3549,
@@ -70568,7 +70568,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "The beached ship’s locker, and the deck above it."
+       "text": "The beached ship's locker, and the deck above it."
       },
       {
        "at": 6,
@@ -71021,7 +71021,7 @@
       {
        "kind": "loc",
        "text": "Enter Tunnel.",
-       "why": "Into the cave of Guthix’s tears.",
+       "why": "Into the cave of Guthix's tears.",
        "target": "tog_cave_down",
        "id": 6659,
        "label": "Tunnel",
@@ -71143,7 +71143,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "Horacio, Handelmort’s gardener, on the lawn in front of the mansion."
+       "text": "Horacio, Handelmort's gardener, on the lawn in front of the mansion."
       },
       {
        "at": 3,
@@ -71266,7 +71266,7 @@
      "marks": [],
      "steps": [
       {
-       "text": "Go east to Cromperty’s house.",
+       "text": "Go east to Cromperty's house.",
        "kind": "walk",
        "at": [
         2684,
@@ -73040,7 +73040,7 @@
      "headings": [
       {
        "at": 2,
-       "text": "Dunstan the smith is Godric’s father."
+       "text": "Dunstan the smith is Godric's father."
       }
      ],
      "marks": [
@@ -79654,7 +79654,7 @@
      "headings": [
       {
        "at": 1,
-       "text": "The Book on Baxtorian, in the bookcase upstairs in Hadley’s house."
+       "text": "The Book on Baxtorian, in the bookcase upstairs in Hadley's house."
       }
      ],
      "marks": [],
@@ -79705,11 +79705,11 @@
      "headings": [
       {
        "at": 1,
-       "text": "Golrie, locked in the cellar under the Tree Gnome Village, has Glarial’s pebble among his grandfather’s junk."
+       "text": "Golrie, locked in the cellar under the Tree Gnome Village, has Glarial's pebble among his grandfather's junk."
       },
       {
        "at": 6,
-       "text": "Glarial’s tombstone, west of the village."
+       "text": "Glarial's tombstone, west of the village."
       }
      ],
      "marks": [],
@@ -80409,7 +80409,7 @@
      "steps": [
       {
        "kind": "walk",
-       "text": "Go to the leprechaun’s tree.",
+       "text": "Go to the leprechaun's tree.",
        "at": [
         3139,
         3212
@@ -80452,7 +80452,7 @@
      "marks": [],
      "steps": [
       {
-       "text": "Go to the monks’ ship to Entrana and down into the cave.",
+       "text": "Go to the monks' ship to Entrana and down into the cave.",
        "kind": "walk",
        "at": [
         2861,
@@ -81021,7 +81021,7 @@
        ]
       },
       {
-       "text": "Go to the Wizards’ Guild bell.",
+       "text": "Go to the Wizards' Guild bell.",
        "kind": "walk",
        "at": [
         2598,

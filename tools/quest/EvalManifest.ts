@@ -20,12 +20,22 @@
 // generator somebody writes next. Running the code is the only reading of it that cannot disagree
 // with the sim.
 import { execFileSync } from 'child_process';
+import { createRequire } from 'node:module';
 import * as fs from 'fs';
 import * as path from 'path';
 
 const SIM = path.join(import.meta.dirname, '..', 'sim');
 const STUB = path.join(import.meta.dirname, 'evalstub');
 const ROOT = path.join(import.meta.dirname, '..', '..');
+
+/**
+ * tsx's own entry point, which runs a TypeScript file under the node that is already running.
+ *
+ * A path and not a command: see the note where it is used. createRequire rather than a literal
+ * node_modules path so that it is still found when the dependency is hoisted or linked somewhere
+ * other than beside this file.
+ */
+const TSX = createRequire(import.meta.url).resolve('tsx/cli');
 
 /**
  * One sim's manifest, or null when it will not give one up.
@@ -66,7 +76,13 @@ export function manifestOf(file: string): Record<string, unknown> | null {
             ].join('\n')
         );
 
-        const out = execFileSync('npx', ['tsx', path.join(work, 'emit.ts')], {
+        // TSX ITSELF, not npx. npx is npx.cmd on Windows, which execFile cannot start without a
+        // shell - so every one of these threw ENOENT there, the catch below turned each into a
+        // null, and the exporter reported 28 of 108 quests as "still refused" rather than as a
+        // tool that could not run. A table regenerated on that machine would have been short of
+        // Recipe for Disaster, Legends' Quest, Monkey Madness and Desert Treasure. Resolving the
+        // CLI from this package drops the launcher as well as the platform difference.
+        const out = execFileSync(process.execPath, [TSX, path.join(work, 'emit.ts')], {
             cwd: ROOT,
             encoding: 'utf8',
             stdio: ['ignore', 'pipe', 'pipe'],
