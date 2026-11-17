@@ -305,9 +305,18 @@ jobs:
           # and this sim walks the whole of it, so it is not going to get faster; waiting for it to
           # cross the line would only mean reading a timeout as a failure first, which is the
           # audit7 trap this whole block exists to stop repeating.
+          #
+          # equipcycle arrived with #56 and was never given one at all, so it took the 180s default
+          # and was killed by it on the first nightly that ran it - reported as a timeout, which is
+          # the category working: it is slow, not broken. Measured since at 590s, 1406 ok and 0 FAIL,
+          # and placed by comparison rather than by converting between machines: on the same box
+          # gwdanims took 450s and dpick 513s, and both already sit at 1200. It is the heaviest of
+          # the three by about fifteen per cent, which still leaves it at half its cap - under the
+          # seven tenths the notice below warns at. 600 would have been 98% of the cap on that
+          # measurement, which is the audit7 trap again.
           case "$label" in
             audit7|glassblowing|roofall|animmag|audit3|diaryrewards|quest_hundred_run|droprate|fairyrings|seedstall|pickpocketloot|quest_legends_run) cap=600 ;;
-            gwdguards|dpick|gwdanims|lunar) cap=1200 ;;
+            gwdguards|dpick|gwdanims|lunar|equipcycle) cap=1200 ;;
             audit1-*) cap=2400 ;;
             *) cap=180 ;;
           esac
