@@ -249,10 +249,10 @@ async function handleRequests(parentPort: ParentPort, msg: any) {
             break;
         }
         case 'player_logout': {
-            const { username, save } = msg;
+            const { username, save, requestedAt } = msg;
 
             if (Environment.LOGIN_SERVER) {
-                const success = await client.playerLogout(username, save);
+                const success = await client.playerLogout(username, save, requestedAt);
 
                 parentPort.postMessage({
                     type: 'player_logout',

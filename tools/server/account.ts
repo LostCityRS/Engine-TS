@@ -427,8 +427,22 @@ function accountToJson(account: AccountRow | null | undefined) {
     };
 }
 
-async function fullExport(username: string) {
-    const player = readSave(username);
+/**
+ * Everything an account is, as JSON.
+ *
+ * `save: false` LEAVES THE CHARACTER OUT, and `set account.<field>` asks for that. A database
+ * column has nothing to do with the save file, but every write here went through
+ * fullExport -> fullImport, so changing a rank read the whole character out through names and
+ * wrote the whole character back. On 15 November `set schema account.staffmodlevel 3` was refused
+ * by a bank slot it was not touching - an obj with no debugname, exported as obj_9013 and not
+ * recognised on the way in - and raw sqlite was the only way left to change a rank.
+ *
+ * objId reads that fallback now, so that exact failure is gone. This is the other half: a rank
+ * edit should not be able to be stopped by the save at all, nor rewrite it, nor leave a .bak
+ * behind. The blast radius of a column change should be the column.
+ */
+async function fullExport(username: string, opts: { save?: boolean } = {}) {
+    const player = opts.save === false ? null : readSave(username);
     const account = await getAccount(username);
     const friends = account ? await tryDb('friends', () => db.selectFrom('friendlist').select('friend_username').where('account_id', '=', account.id).where('profile', '=', profile).execute()) : null;
     const ignores = account ? await tryDb('ignores', () => db.selectFrom('ignorelist').select('value').where('account_id', '=', account.id).where('profile', '=', profile).execute()) : null;
@@ -439,7 +453,7 @@ async function fullExport(username: string) {
         account: accountToJson(account),
         friends: friends ? friends.map(f => f.friend_username) : [],
         ignores: ignores ? ignores.map(i => i.value) : [],
-        save: saveToJson(player)
+        save: player ? saveToJson(player) : null
     };
 }
 
@@ -517,19 +531,26 @@ async function fullImport(username: string, data: Export, force: boolean) {
 function applyPath(data: Export, dotted: string, raw: string) {
     const parts = dotted.split('.');
 
+    // Only reachable through a caller that asked for no save and then named one; say which rather
+    // than failing on a null field three lines down.
+    if (parts[0] === 'save' && !data.save) {
+        fail(`the character was not read, so ${dotted} cannot be set here`);
+    }
+
     if (parts[0] === 'save' && parts[1] === 'stats') {
         const level = parseInt(raw, 10);
         if (!Number.isInteger(level) || level < 1 || level > 99) fail('a stat level is 1-99');
         const which = parts[2];
         const field = parts[3]; // optional: level | xp
-        const names = which === '*' ? Object.keys(data.save.stats) : [which.toUpperCase()];
+        const stats = data.save!.stats;
+        const names = which === '*' ? Object.keys(stats) : [which.toUpperCase()];
         for (const name of names) {
-            if (!(name in data.save.stats)) fail(`no such stat: ${name}`);
+            if (!(name in stats)) fail(`no such stat: ${name}`);
             if (field === 'xp') {
-                data.save.stats[name].xp = Number(raw);
-                data.save.stats[name].level = getLevelByExp(toStoredXp(Number(raw)));
+                stats[name].xp = Number(raw);
+                stats[name].level = getLevelByExp(toStoredXp(Number(raw)));
             } else {
-                data.save.stats[name] = { level, xp: toRealXp(getExpByLevel(level)) };
+                stats[name] = { level, xp: toRealXp(getExpByLevel(level)) };
             }
         }
         return;
@@ -545,7 +566,7 @@ function applyPath(data: Export, dotted: string, raw: string) {
     // The name is checked against the cache, not against what the player happens to hold, and it
     // has to be a PERM varp: a temp one is not written to the save at all, so setting it here
     // would report success and change nothing.
-    if (parts[0] === 'save' && parts[1] === 'vars' && parts.length === 3 && !(parts[2] in data.save.vars)) {
+    if (parts[0] === 'save' && parts[1] === 'vars' && parts.length === 3 && !(parts[2] in data.save!.vars)) {
         const name = parts[2];
         const id = VarPlayerType.getId(name);
         if (id === -1) fail(`no such varp: ${name}`);
@@ -554,7 +575,7 @@ function applyPath(data: Export, dotted: string, raw: string) {
         }
         const value = Number(raw);
         if (!Number.isInteger(value)) fail(`a varp holds a whole number, not ${raw}`);
-        data.save.vars[name] = value;
+        data.save!.vars[name] = value;
         return;
     }
 
@@ -610,7 +631,8 @@ async function cmdList() {
 
 async function cmdShow(username: string) {
     const data = await fullExport(username);
-    const s = data.save;
+    // show and give both ask for the character, so it is there.
+    const s = data.save!;
 
     console.log(`${data.username}  (profile ${data.profile})`);
     if (!fs.existsSync(savePath(username))) console.log('  NO SAVE FILE - everything below is a fresh character');
@@ -684,7 +706,7 @@ async function cmdGive(username: string) {
     loadCache();
     const id = objId(obj);
     const stackable = ObjType.get(id).stackable;
-    const contents = (data.save.invs[invName] ??= []);
+    const contents = (data.save!.invs[invName] ??= []);
 
     const typeId = InvType.getId(invName);
     if (typeId === -1) fail(`no such inv: ${invName}`);
@@ -858,9 +880,7 @@ async function cmdLogout(username: string) {
     const account = await getAccount(username);
     if (!account) fail(`no account row for ${username} - the login flag lives in the database, not the save file`);
 
-    const rows = await tryDb('the login state', () =>
-        db.selectFrom('account_login').select(['profile', 'logged_in', 'login_time']).where('account_id', '=', account.id).execute()
-    );
+    const rows = await tryDb('the login state', () => db.selectFrom('account_login').select(['profile', 'logged_in', 'login_time']).where('account_id', '=', account.id).execute());
     if (rows === null) return;
 
     // EVERY PROFILE, not just the one being acted on. The row that is stuck is not always the
@@ -887,12 +907,7 @@ async function cmdLogout(username: string) {
     }
 
     const ok = await tryDb('the login flag', async () => {
-        await db
-            .updateTable('account_login')
-            .set({ logged_in: 0, login_time: null })
-            .where('account_id', '=', account.id)
-            .where('profile', '=', profile)
-            .execute();
+        await db.updateTable('account_login').set({ logged_in: 0, login_time: null }).where('account_id', '=', account.id).where('profile', '=', profile).execute();
         return true;
     });
     if (!ok) return;
@@ -1033,7 +1048,10 @@ async function main() {
             const dotted = args._[2];
             const value = args._[3];
             if (!username || !dotted || value === undefined) fail('usage: set <user> <path> <value>   e.g. set bob save.stats.ATTACK 99');
-            const data = await fullExport(username);
+            // THE CHARACTER IS ONLY READ WHEN THE CHANGE IS TO IT. set account.staffmodlevel is a
+            // database column and nothing else; reading and rewriting the save to get there is how
+            // a rank change came to be refused by a bank slot. See fullExport.
+            const data = await fullExport(username, { save: String(dotted).startsWith('save.') });
             applyPath(data, dotted, value);
             await fullImport(username, data, args.force === true);
             console.log(`  ${dotted} = ${value}`);

@@ -83,7 +83,16 @@ export function drive(p: Player, picks: (number | string)[] = [], guardTicks = 3
             // time. Sea Slug lit a fire, warmed nothing over it and reported no fire there: it had
             // burned out inside the step that lit it.
             const parked = !!s && s.execution === ScriptState.WORLD_SUSPENDED;
-            if ((!s || parked) && !p.delayed && [...p.queue.all()].length === 0 && !p.target) idle++;
+            // AND NEITHER IS A SCRIPT THAT HAS ALREADY ENDED. A player script that calls
+            // npc_delay is handed to the npc (Player.executeScript sets npc.activeScript), and when
+            // the npc runs it to the end only the NPC's reference is cleared - the player's still
+            // points at it, FINISHED. The engine never acts on that (it only resumes SUSPENDED and
+            // dialog states), so a real player is fine, but this loop read it as "still working".
+            // Shilo Village's dolmen summons Nazastarool that way: the boss stood next to the
+            // player for its whole 500-tick life while the touch step ran out its 600-tick guard,
+            // and the fight step after it found nothing (tracker issue 18).
+            const ended = !!s && (s.execution === ScriptState.FINISHED || s.execution === ScriptState.ABORTED);
+            if ((!s || parked || ended) && !p.delayed && [...p.queue.all()].length === 0 && !p.target) idle++;
             else idle = 0;
             H.tick(1);
             continue;

@@ -133,6 +133,13 @@ const LOGIN_TOKEN_REVISION = 382;
 const LOGIN_LEGACY_REVISION = 381;
 
 type LogoutRequest = {
+    /**
+     * When the player actually left, which is NOT when this is sent. The request is retried every
+     * 15 seconds until the login server confirms it, so the copy that arrives may be minutes old
+     * and the player may be back on by then. The login server compares this against the account's
+     * login time and refuses to mark somebody logged out who has logged in since.
+     */
+    requestedAt: number;
     save: Uint8Array;
     lastAttempt: number;
 };
@@ -1105,7 +1112,8 @@ class World {
                 this.loginThread.postMessage({
                     type: 'player_logout',
                     username,
-                    save: request.save
+                    save: request.save,
+                    requestedAt: request.requestedAt
                 });
             }
         }
@@ -3394,7 +3402,8 @@ class World {
 
         this.logoutRequests.set(player.username, {
             save,
-            lastAttempt: -1
+            lastAttempt: -1,
+            requestedAt: Date.now()
         });
     }
 }

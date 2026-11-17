@@ -1739,6 +1739,19 @@ export function play(m: Manifest, p: Player): Result[] {
                     break;
                 }
                 if (!(want || wantVar) || got()) break;
+                // AND THE NEXT ONE MAY BE BEHIND A MESBOX. Shilo Village's Nazastarool has three
+                // forms, and each one's death opens a mesbox whose script summons the next: left
+                // open, nothing comes, and the next round waited 200 ticks for a form that was
+                // never sent (tracker issue 18). Only between rounds, so a fight that has finished
+                // still leaves its last dialogue for the step after it - Fight Arena's `say` steps
+                // are written for exactly that.
+                if (p.activeScript && p.activeScript.execution === ScriptState.PAUSEBUTTON) {
+                    try {
+                        drive(p, picksFight ? [...picksFight] : []);
+                    } catch {
+                        // a menu this step has no picks for; the next round's re-click closes it
+                    }
+                }
             }
             const ok = want || wantVar ? got() : died;
             const detail = ok

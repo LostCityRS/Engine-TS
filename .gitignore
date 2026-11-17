@@ -49,6 +49,11 @@ data/clans/
 # there first, like the clan and vote databases above - not something to carry in the repository.
 data/milestones/
 
+# The poll database, one sqlite per profile (engine/poll/PollService.ts, tools/server/poll.ts).
+# A world's own votes, written the first time anything opens a poll - including a sim run, which
+# is how it turned up untracked in the first place.
+data/polls/
+
 # the vote ledger (its own sqlite, one per profile) and the live site list, which carries nothing
 # secret itself but names which sites this server is listed on. data/vote/sites.example.json IS
 # tracked - it is the documentation for the shape.
