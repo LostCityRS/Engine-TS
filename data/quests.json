@@ -56136,7 +56136,7 @@
       {
        "kind": "talk",
        "text": "Kill Gadderanks.",
-       "why": "Gadderanks.",
+       "why": "Gadderanks, if he is still standing.",
        "target": "burgh_gadderanks_attackable",
        "id": 3518,
        "label": "Gadderanks"
