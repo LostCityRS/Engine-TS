@@ -54,7 +54,9 @@ const m: Manifest = {
         { give: 'hundred_pirate_diving_backpack' },
         { give: 'hammer' },
         { give: 'nails', n: 40 },
-        { give: 'plank', n: 8 },
+        // woodplank: `plank` is the dead duplicate the login migration strips off a player, so
+        // giving it here tested the quest against an item nobody can hold.
+        { give: 'woodplank', n: 8 },
         { give: 'blessedstar' },
         { give: 'ring_of_charos' },
         { give: 'tinderbox' },

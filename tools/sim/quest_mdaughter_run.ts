@@ -127,7 +127,9 @@ const m: Manifest = {
         { has: 'mdaughter_mud' },
 
         { note: 'wiki step 3: the tall tree by the geysers is wet through until somebody muds it' },
-        { give: 'plank' },
+        // woodplank: `plank` is the dead duplicate the login migration strips off a player, so
+        // giving it here tested the quest against an item nobody can hold.
+        { give: 'woodplank' },
         { go: SHORE, exact: true, r: 90, why: 'west along the shore to the tall tree' },
         { loc: 'mdaughter_lake_tree', at: TREE, op: 3, want: 'wet through', why: 'and you slide back down' },
         { useLoc: 'mdaughter_lake_tree', at: TREE, obj: 'mdaughter_mud', want: 'hold a boot', why: 'mud on the bark' },

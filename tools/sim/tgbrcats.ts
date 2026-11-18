@@ -45,7 +45,11 @@ H.setVarBit(p, 'tgbr_crate', 1); // ^tgbr_crate_space - Rufus has handed the par
 check('the workbench offers to carve them', H.runProc(p, '[proc,tgbr_wants_cats]')[0] === 1);
 
 H.clearInv(p);
-H.give(p, 'plank', 10);
+// woodplank, NOT plank. This handed over the DEAD plank obj - the one
+// ~sawmill_old_planks_login strips off a player on every login and that nothing in the game
+// produces - so it was testing the quest against an item no player can be holding, and passing.
+// The quest asked for the same dead obj, which is the bug this caught.
+H.give(p, 'woodplank', 10);
 H.give(p, 'fur', 10);
 const xpBefore = p.stats[12]; // crafting
 // The carving is a loop with a p_delay in it, so ScriptRunner.execute on its own stops at the first
@@ -58,7 +62,7 @@ st.pointerAdd(ScriptPointer.ProtectedActivePlayer);
 p.executeScript(st, true, true);
 for (let i = 0; i < 80 && H.invCount(p, 'wooden_cat') < 10; i++) H.tick(1);
 check('ten cats', H.invCount(p, 'wooden_cat'), 10);
-check('ten planks gone', H.invCount(p, 'plank'), 0);
+check('ten planks gone', H.invCount(p, 'woodplank'), 0);
 check('ten pieces of fur gone', H.invCount(p, 'fur'), 0);
 check('and 150 Crafting experience for each', p.stats[12] - xpBefore, 1500);
 
