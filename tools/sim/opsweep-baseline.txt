@@ -4,7 +4,7 @@
 #
 # This file is a ratchet, not an approval. Every line in it is an option a player can
 # click that does nothing. The number should only ever go down.
-# 2773 lines at the time of writing.
+# 2770 lines at the time of writing.
 
 dead grid inter_232:com_90 op1="Value"
 dead grid inter_232:com_90 op2="Buy"
@@ -1675,8 +1675,6 @@ dead npc  agrith_reen_sigil op1="Talk-to"
 dead npc  agrith_tanya op1="Talk-to"
 dead npc  agrith_tanya_sigil op1="Talk-to"
 dead npc  ahoy_akharanu op3="Trade"
-dead npc  ahoy_ghost_guard op1="Talk-To"
-dead npc  ahoy_ghost_sailor op1="Talk-To"
 dead npc  al_the_camel op1="Talk-to"
 dead npc  ali_the_carter op1="Talk-to"
 dead npc  ali_the_farmer op1="Talk-to"
@@ -2093,7 +2091,6 @@ dead npc  poh_toy_cat op1="Pick-up"
 dead npc  poh_toy_doll op1="Pick-up"
 dead npc  poh_toy_mouse op1="Pick-up"
 dead npc  poh_toy_soldier op1="Pick-up"
-dead npc  possessed_pickaxe_stationary op1="Take"
 dead npc  postie_pete op1="Talk-to"
 dead npc  queen_ellamaria op1="Talk-to"
 dead npc  ranging_guild_poison_salesman op1="Talk-to"
