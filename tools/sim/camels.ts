@@ -243,5 +243,106 @@ console.log('\nNEFERTI IS BEHIND A FENCE');
     check('  her Talk-to is an ap trigger, not an op', [!!ScriptProvider.getByName('[apnpc1,neferti_the_camel]'), !!ScriptProvider.getByName('[opnpc1,neferti_the_camel]')], [true, false]);
 }
 
+// ========================================================================= Lazim, afterwards
+// He is the only way back to the amulet once it is gone and the only way to stop counting its
+// charges. Both matter more here than in Old School: there is no ugthanki dung in this cache, so a
+// spent Camulet cannot be recharged and his million is the only thing that keeps the teleport
+// working at all.
+
+/** Lazim at the altar on the temple's top floor, where he stands from completion onwards. */
+const LAZIM = { x: 3105, z: 9318, level: 2 };
+
+/** Talk to Lazim there, with the quest finished and him moved to the altar. */
+function lazim(p: Player, picks: (number | string)[] = [], label = 'the menu this step expects'): string[] {
+    H.setVarBit(p, 'enakh_quest', 70); // ^enakh_complete
+    H.setVarBit(p, 'enakh_where_is_lazim', 3); // ^enakh_lazim_at_altar
+    const npc = H.npcNear('enakh_lazim_altar_multinpc', LAZIM.x, LAZIM.z, LAZIM.level);
+    if (!npc) {
+        throw new Error('Lazim is not placed at the altar');
+    }
+    return talkTo(p, npc, picks, label);
+}
+
+console.log('\nLAZIM KEEPS A SPARE');
+{
+    const p = player('cam_lazim_a', LAZIM.x, LAZIM.z, LAZIM.level);
+    H.setVarBit(p, 'enakh_camulet_charge', 4);
+    check('  the player has no camulet anywhere', H.invCount(p, 'camulet'), 0);
+    const out = lazim(p, [], 'a player with no camulet is given one, with no menu');
+    check('  he greets the player as warmly as ever', said(out, 'How are you and your defective brain doing nowadays'), true);
+    check('  and blames them for losing it', said(out, 'You really are an idiot'), true);
+    check('  then hands one over', said(out, 'Lazim returns the Camulet to you.'), true);
+    check('  which the player now has', H.invCount(p, 'camulet'), 1);
+    check('  and he does not try to sell an upgrade in the same breath', said(out, 'one million coins'), false);
+}
+
+console.log('\nAND SELLS UNLIMITED CHARGES FOR A MILLION');
+{
+    const p = player('cam_lazim_b', LAZIM.x, LAZIM.z, LAZIM.level);
+    H.give(p, 'camulet', 1);
+    H.give(p, 'coins', 999999);
+    let out = lazim(p, ['Why do you need so much money'], 'the upgrade pitch');
+    check('  he offers the upgrade', said(out, 'For one million coins I can give it unlimited charges'), true);
+    check('  and gives his three reasons', said(out, "we're not big on charity work"), true);
+    check('  including hating the player', said(out, 'in case you need reminding, I hate you'), true);
+    // One coin short: the transcript has the player say so themselves rather than being offered a
+    // button they cannot press.
+    check('  a coin short, the offer is not made', said(out, "Okay, here's one million coins"), false);
+    check('  and the player says so', said(out, "I haven't got that kind of money on me"), true);
+    check('  nothing is taken', H.invCount(p, 'coins'), 999999);
+    check('  and nothing is upgraded', H.getVarBit(p, 'enakh_camulet_unlimited'), 0);
+
+    H.give(p, 'coins', 1);
+    out = lazim(p, ['Why do you need so much money', "I'm not interested"], 'the pay-or-not menu');
+    check('  with the money, refusing costs nothing', H.invCount(p, 'coins'), 1000000);
+    check('  and he takes it badly', said(out, 'Your loss.'), true);
+    check('  still not upgraded', H.getVarBit(p, 'enakh_camulet_unlimited'), 0);
+
+    out = lazim(p, ['Why do you need so much money', "here's one million coins"], 'the pay-or-not menu');
+    check('  paying costs exactly a million', H.invCount(p, 'coins'), 0);
+    check('  and augments the amulet', said(out, 'augments the enchantment on the Camulet'), true);
+    check('  which is remembered', H.getVarBit(p, 'enakh_camulet_unlimited'), 1);
+
+    // ...and from then on he only gloats about it.
+    out = lazim(p, [], 'a gloat needs no menu');
+    check('  afterwards he takes the credit', said(out, 'And don\'t forget who gave it unlimited charges for you!'), true);
+    check('  and does not sell it twice', said(out, 'For one million coins'), false);
+}
+
+console.log('\nAND AN UPGRADED AMULET STOPS COUNTING');
+{
+    const p = player('cam_lazim_c', 3273, 3166);
+    H.give(p, 'camulet', 1);
+    H.setVarBit(p, 'enakh_quest', 70);
+    H.setVarBit(p, 'enakh_camulet_charge', 0);
+    H.setVarBit(p, 'enakh_camulet_unlimited', 1);
+
+    let from = mark();
+    H.opheld(p, 'camulet', 3);
+    drive(p, []);
+    check('  Check-charge says so', said(lines(p, from), 'Your camulet has unlimited charges.'), true);
+
+    // A spent-out amulet with the upgrade still teleports, which is the whole of what the million
+    // buys - and the only way the teleport works at all in a build with no ugthanki dung in it.
+    const was = [p.x, p.z];
+    from = mark();
+    H.opheld(p, 'camulet', 4);
+    for (let t = 0; t < 12; t++) {
+        H.tick(1);
+    }
+    drive(p, []);
+    check('  and Rub still works on nought charges', p.x !== was[0] || p.z !== was[1], true);
+    check('  spending nothing', H.getVarBit(p, 'enakh_camulet_charge'), 0);
+    check('  and saying nothing about charges left', said(lines(p, from), 'charges left'), false);
+    // AND IT LANDS BESIDE LAZIM, which is the point of the destination this PR moved. The Camulet's
+    // own page gives "Inside Enakhra's Temple" as the default and the surface entrance only "after
+    // the hard Desert Diary" - 2015 content - and the surface entrance was the only one wired. It
+    // matters because he is the only source of a replacement amulet: "To get to Lazim after
+    // completing the quest, teleport to him with the camulet."
+    console.log(`    rubbed to ${p.x},${p.z} plane ${p.level}; Lazim is at ${LAZIM.x},${LAZIM.z} plane ${LAZIM.level}`);
+    check('  inside the temple, on Lazim\'s own floor', p.level, LAZIM.level);
+    check('  and within a few tiles of him', Math.max(Math.abs(p.x - LAZIM.x), Math.abs(p.z - LAZIM.z)) <= 5, true);
+}
+
 console.log(`\n${R.ok} ok, ${R.bad} failed`);
 process.exit(R.bad ? 1 : 0);
