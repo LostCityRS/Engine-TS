@@ -153,5 +153,54 @@ console.log('\nTHE WRONG KIT DOES NOTHING');
     H.despawn(p);
 }
 
+// ------------------------------------------------------------ the Gravediggers' OTHER slot
+//
+// Revert above takes the kit off and leaves a whole slayer helmet. Disassemble takes the HELMET
+// apart, and the Gravediggers were the only two slayer helmets where nothing answered it: both
+// declare iop4=Disassemble and no [opheld4,...] existed (DeathPlateau-Bugs#27).
+//
+// WHAT THIS IS REALLY CHECKING IS THAT THE KIT COMES BACK. Wiring it to the plain
+// @slayer_helm_split - the obvious one-line copy - would have deleted the helmet, handed over the
+// five parts and destroyed the kit without saying so. So the assertion below is the kit, not the
+// parts: the parts would pass either way.
+console.log('\nAND THE GRAVEDIGGERS COME APART WITHOUT EATING THE KIT');
+{
+    const PARTS = ['slayer_earmuffs', 'slayer_facemask', 'slayer_nosepeg', 'wallbeast_spike_helmet'];
+    for (const [helm, mask] of [
+        ['slayer_helm_gravedigger', 'black_mask'],
+        ['slayer_helm_gravedigger_i', 'black_mask_i']
+    ] as const) {
+        const q: any = player(`grave_${helm}`, 3200, 3200);
+        H.clearInv(q);
+        H.give(q, helm, 1);
+        A.held(q, helm, 4);
+
+        check(`  ${helm}: the helmet is gone`, H.invCount(q, helm), 0);
+        check('  the kit is handed back', H.invCount(q, 'gravedigger_kit'), 1);
+        check(`  the mask is ${mask}`, H.invCount(q, mask), 1);
+        for (const part of PARTS) {
+            check(`  ...and the ${part}`, H.invCount(q, part), 1);
+        }
+        H.despawn(q);
+    }
+
+    // FIVE FREE, NOT FOUR, and the difference is the kit. @slayer_helm_split asks for four because
+    // it hands back five things for one; @slayer_helm_split_coloured asks for five because it hands
+    // back six. A gravedigger wired to the four-space path would fit into this inventory and lose
+    // the kit on the way, so this is the check that it is on the other one.
+    //
+    // 23 bones plus the helmet is 24 of the 28 slots, leaving exactly four.
+    const q: any = player('gravefull', 3200, 3200);
+    H.clearInv(q);
+    H.give(q, 'slayer_helm_gravedigger', 1);
+    H.give(q, 'bones', 23);
+    check('  24 slots used, four free', [H.invCount(q, 'bones'), H.invCount(q, 'slayer_helm_gravedigger')], [23, 1]);
+    A.held(q, 'slayer_helm_gravedigger', 4);
+    check('  with four free it refuses', H.invCount(q, 'slayer_helm_gravedigger'), 1);
+    check('  the kit is not handed out', H.invCount(q, 'gravedigger_kit'), 0);
+    check('  and it asks for five', A.lastMes(q).includes('five free inventory spaces'), true);
+    H.despawn(q);
+}
+
 console.log(`\n${R.ok} ok, ${R.bad} FAIL`);
 process.exit(R.bad ? 1 : 0);

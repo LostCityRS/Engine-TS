@@ -4,7 +4,7 @@
 #
 # This file is a ratchet, not an approval. Every line in it is an option a player can
 # click that does nothing. The number should only ever go down.
-# 2784 lines at the time of writing.
+# 2782 lines at the time of writing.
 
 dead grid inter_232:com_90 op1="Value"
 dead grid inter_232:com_90 op2="Buy"
@@ -2407,8 +2407,6 @@ dead obj  red_logs op4="Light" (on the ground)
 dead obj  rotten_net iop1="Wear"
 dead obj  shrine iop1="Wear"
 dead obj  sine_wave iop1="Wear"
-dead obj  slayer_helm_gravedigger iop4="Disassemble"
-dead obj  slayer_helm_gravedigger_i iop4="Disassemble"
 dead obj  sphinx_baby iop1="Wear"
 dead obj  tax_relief iop1="Wear"
 dead obj  trail_clue_easy_map004 iop1="Read"
