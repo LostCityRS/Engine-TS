@@ -60,6 +60,14 @@ const m: Manifest = {
         { note: 'wiki step 6: Clivet guards the raft, and offers you the other side of the story' },
         { setpos: [CAVE[0], CAVE[1] - 1, 0], why: 'to the cave entrance in the forest' },
         { loc: 'hazeelcultcave', at: CAVE, hop: true, soft: true, why: 'into the cave' },
+        { note: 'Clivet writes 3 before his question, and both answers are offered again by his own' },
+        { note: 'case ^hazeelcult_spoken_clivet - so walking away on "I have heard enough of your' },
+        { note: 'rubbish" leaves the quest at 3 for good. The table had no leg there and the panel' },
+        { note: 'went on naming the leg before it. DeathPlateau-Bugs#16.' },
+        { talk: 'clivet_hazeel_cultist', picks: ["I've heard enough of your rubbish."], want: 'Then leave, fool', why: 'walk away from him first, which leaves the quest at 3' },
+        { stage: 3 },
+
+        { note: 'and going back to him puts the same question, which is what a player at 3 does' },
         {
             talk: 'clivet_hazeel_cultist',
             picks: ['What do you mean?', "You're crazy, I'd never help you."],

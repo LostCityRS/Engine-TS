@@ -1,0 +1,42 @@
+# Every progress value the content can write that the quest helper has no leg for, and the
+# verdict on each. Rewritten with: npx tsx tools/quest/StageGaps.ts --baseline
+#
+# quest | value | category | why it needs no leg
+#
+# above-done, benign, transient, blocked, unassertable - and unclassified, which
+# --baseline writes for a value nobody has judged yet. Read the quest and give it a verdict,
+# or fix it with a `{ stage: N }` marker in its manifest and let it leave this file.
+#
+A FAIRY TALE PART I       |  90 | transient    | set, then mesbox/p_delay twice and both switches off - a locked cutscene to ^fairy_told
+CREATURE OF FENKENSTRAIN  |   7 | transient    | the ring is lifted, then if_close/p_delay(2) and queue(fenk_quest_complete) finishes the quest
+FAMILY CREST              |   3 | benign       | leg 2 is "Talk to Caleb", and talking to Caleb again is how you reach 4
+FIGHT ARENA               |  12 | benign       | general_khazard.rs2 writes 12 when he turns on you, so leg 11 "Kill General Khazard" still applies
+GOBLIN DIPLOMACY          |   5 | transient    | the armour is handed over, four chat lines, then queue(goblin_diplomacy_complete_quest)
+HAZEEL CULT               |   5 | benign       | the evil side poisoning the soup; the HAZEEL CULT (Hazeel side) row HAS a leg for 5. The two rows share one varp, so each reports the other branch values
+HEROES' QUEST (solo part) |   2 | blocked      | Phoenix branch; quest_hero_run.ts plays Black Arm. heroes_candlestick.ts reaches it but is not manifest-driven. DeathPlateau-Bugs#16 step 4
+HEROES' QUEST (solo part) |   3 | blocked      | Phoenix branch, as 2
+HEROES' QUEST (solo part) |   4 | blocked      | Phoenix branch, as 2
+HEROES' QUEST (solo part) |   5 | blocked      | Phoenix branch, as 2. Written by a drop (grip.rs2), not a conversation
+HEROES' QUEST (solo part) |   6 | blocked      | Phoenix branch, as 2
+HEROES' QUEST (solo part) |  12 | blocked      | Black Arm, but past where one player can go: the candlestick needs a Phoenix partner. Falls back to leg 11, which has NO steps, so the panel is empty here
+HEROES' QUEST (solo part) |  13 | blocked      | as 12, and the same empty panel
+HOLY GRAIL                |   7 | benign       | ^grail_failed_defeat_titan, the Titan beaten without Excalibur. Since leg 4 exists it falls back there, and leg 4 names the Titan
+ICTHLARIN'S LITTLE HELPER |  22 | transient    | jars placed, then if_close/p_delay(3) straight to 24. Nothing clickable
+LEGENDS' QUEST            |  40 | transient    | replacing the totem npc_adds Gujuo with npc_setmode(opplayer2), so he walks over and starts the conversation himself
+NATURE SPIRIT             |  15 | benign       | ^druidspirit_failed_talk, met without the amulet. Leg 10 ends "Enter Grotto", which is what to do once it is on, and the Ghostspeak amulet is on the bring list at leg 0
+OBSERVATORY QUEST         |   8 | above-done   | done is 7; questValue >= done, so the quest already reads complete
+PLAGUE CITY               |  30 | above-done   | done is 29 - the post-quest teleport scroll
+PRIEST IN PERIL           |  61 | above-done   | done is 60 - reading the scroll afterwards
+SHADOW OF THE STORM       | 100 | transient    | [proc,agrith_naar_fight] is mes/p_delay/damage_self all the way to ^agrith_dead. A locked cutscene, nothing to click
+SHILO VILLAGE             |   2 | benign       | ^zombiequeen_found_mound is misnamed: it is set by ASKING Trufitus where to look. Leg 1 "Search Mound of earth" is right
+SHILO VILLAGE             |  16 | above-done   | done is 15 - a post-completion Trufitus chat
+SHILO VILLAGE             |  17 | above-done   | done is 15 - a post-completion Trufitus chat
+SWAN SONG                 |  15 | unassertable | REAL: walk out of Herman and the panel sends you back to net a fishing spot you just finished. But 15 to 20 has no player decision, only continue-clicks and an if_close, so no manifest can break off there. Needs a harness that can abandon a conversation
+TEMPLE OF IKOV            |  50 | blocked      | the Armadyl path; quest_ikov_run.ts plays the Lucien ending. DeathPlateau-Bugs#16 step 4
+TEMPLE OF IKOV            |  60 | blocked      | Armadyl path, as 50
+TEMPLE OF IKOV            |  70 | blocked      | Armadyl path, as 50
+TEMPLE OF IKOV            |  90 | above-done   | done is 80 - the Armadyl completion value, past it either way
+THE TOURIST TRAP          |   6 | benign       | a fork, but leg 5 is "Go to the male slave. Talk to Male slave.", which is what a player at 6 does
+THE TOURIST TRAP          |   7 | benign       | a fork, but leg 5 names the same slave, as 6
+THE TOURIST TRAP          |  27 | benign       | Ana is freed and p_opnpc(1) opens her conversation; leg 26 "Go back to Irena. Talk to Irena." is the next thing to do
+WATCH TOWER               |  14 | above-done   | done is 13 - reading the scroll afterwards

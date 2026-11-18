@@ -78,6 +78,13 @@ const m: Manifest = {
         // floors that the router will take.
         { setpos: [2962, 3339, 2], why: 'up the western tower of the White Knights castle' },
         { talk: 'sir_amik_varze', picks: ['Go on.'], want: 'Sir Tiffy Cashien', why: 'he sends you to the park' },
+        { note: 'and that is where ^rd_started comes from, at the end of his conversation. It was' },
+        { note: 'never asserted, so leg 0 carried the whole quest - the tower, Sir Amik, Sir Tiffy' },
+        { note: 'and all seven rooms - and a player anywhere in the maze was being told to go up' },
+        { note: 'the western tower of the White Knights castle and talk to Sir Amik, which is how' },
+        { note: 'they got in. The var only holds 0, 1 and 2, so this one marker is the whole of the' },
+        { note: 'split there is to make. DeathPlateau-Bugs#16.' },
+        { stage: 1 },
         { varis: 'rd_main', to: 1 },
 
         { note: 'wiki step 2: Sir Tiffy on the bench in Falador Park' },

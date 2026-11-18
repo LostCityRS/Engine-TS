@@ -93,13 +93,25 @@ const m: Manifest = {
         { note: 'and the journal, in a knot in the grotto tree' },
         { loc: 'grotto_druidicspirit', at: TREE, op: 2, want: "'Tarlock' and 'journal'", why: 'search the tree' },
         { has: 'filliman_journal' },
+        { note: 'Handing the journal over writes 30 and then opens a five-way menu, and only "How' },
+        { note: 'can I help?" goes on to 35. Any of the other four leaves the quest at 30, where' },
+        { note: 'filliman.rs2 case ^druidspirit_given_journal puts the same menu up again - so 30 is' },
+        { note: 'a stage a player can sit at, and the table had no leg for it. DeathPlateau-Bugs#16.' },
+        { note: 'The two menus word the last option differently - "Ok thanks." in the branch that' },
+        { note: 'hands the journal over, "Ok, thanks." in the case that repeats it - so the picks' },
+        { note: 'below are not interchangeable.' },
         {
             useNpc: 'filliman_tarlock_spirit',
             obj: 'filliman_journal',
-            picks: ['How can I help?'],
-            want: 'small sheet of papyrus',
-            why: 'give him the journal and offer to help'
+            picks: ['Ok thanks.'],
+            want: 'collect my thoughts',
+            why: 'give him the journal and then decline, which leaves the quest at 30'
         },
+        { stage: 30 },
+        { hasnt: 'filliman_journal' },
+
+        { note: 'and talking to him again puts the menu back, which is what a player at 30 does' },
+        { talk: 'filliman_tarlock_spirit', picks: ['How can I help?'], want: 'small sheet of papyrus', why: 'offer to help this time' },
         { stage: 35 },
         { has: 'bloom_spell' },
 
