@@ -314,8 +314,15 @@ jobs:
           # the three by about fifteen per cent, which still leaves it at half its cap - under the
           # seven tenths the notice below warns at. 600 would have been 98% of the cap on that
           # measurement, which is the audit7 trap again.
+          #
+          # zanaris is here on arrival rather than after a timeout, which is the whole point of the
+          # paragraph above. 78s measured on this box, and four of those are the market gate's own
+          # 500-tick revert waited out so the next check starts with a shut door - time that cannot
+          # be trimmed without testing a different door each round. 180 would be 43% of the cap HERE
+          # and this box is faster than a runner, so it is exactly the audit7 shape: slow, not
+          # broken, and killed on the first night.
           case "$label" in
-            audit7|glassblowing|roofall|animmag|audit3|diaryrewards|quest_hundred_run|droprate|fairyrings|seedstall|pickpocketloot|quest_legends_run) cap=600 ;;
+            audit7|glassblowing|roofall|animmag|audit3|diaryrewards|quest_hundred_run|droprate|fairyrings|seedstall|pickpocketloot|quest_legends_run|zanaris) cap=600 ;;
             gwdguards|dpick|gwdanims|lunar|equipcycle) cap=1200 ;;
             audit1-*) cap=2400 ;;
             *) cap=180 ;;
