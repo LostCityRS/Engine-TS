@@ -1,0 +1,95 @@
+# Families where some members are answered and some are not, by (name, ops).
+# Rewritten with: npx tsx tools/sim/siblings.ts --baseline
+#
+# A line here is a family somebody has looked at. The verdicts - which are bugs and which
+# are an empty banana tree, a locked chest, a depleted rock or an unbuilt minigame - are on
+# DeathPlateau-Bugs#27, because the reasoning does not fit on one line.
+#
+# 86 families, 2746 placed spawns on their dead members.
+#
+family  Wall | op1="Open" | dead: macor_maze_walllow_safe4,macro_maze_wallhigh,macro_maze_walllow,macro_maze_walllow_safe1,macro_maze_walllow_safe2,macro_maze_walllow_safe3
+family  Rocks | op1="Mine" op2="Prospect" | dead: loc474_16998,loc474_16999,loc474_17000,loc474_17001,loc474_17002,loc474_17003,loc474_17004,loc474_17005,loc474_17006,loc_10944,loc_10945,loc_10946,loc_10947,loc_11166,loc_11167,loc_11168,loc_11169,loc_11170,loc_11171,loc_11172,loc_11173,loc_11174,loc_11175,loc_11176,loc_11177,loc_11178,loc_11179,loc_11180,loc_11181,loc_11182,loc_11192,loc_11424,loc_11425,loc_11426,loc_11427,loc_11428,loc_11429,loc_11430,loc_11431,loc_11432,loc_11433,loc_11434,loc_11435,loc_11436,loc_11437,loc_11438,loc_11439,loc_11440,loc_11441,loc_11442,loc_11443,loc_11444,loc_11915,loc_11916,loc_11917,loc_11918,loc_11919,loc_11920,loc_11921,loc_11922,loc_11923,loc_11924,loc_11925,loc_11926,loc_11927,loc_11928,loc_11929,loc_11936,loc_11937,loc_11938,loc_11939,loc_11940,loc_11941,loc_11942,loc_11943,loc_11944,loc_11945,loc_11948,loc_11949,loc_11950,loc_14834,loc_14835,loc_14836,loc_14837,loc_14838,loc_14839,loc_14840,loc_14841,loc_14842,loc_14843,loc_14844,loc_14845,loc_14846,loc_14847,loc_14848,loc_14849,loc_14850,loc_14851,loc_14852,loc_14861,loc_14883,loc_14884,loc_14885,loc_14886,loc_14887,loc_14888,loc_14889,loc_14890,loc_14892,loc_14893,loc_14894,loc_14895,loc_14896,loc_14897,loc_14898,loc_14899,loc_14900,loc_14901,loc_14915,loc_14916,loc_6947,loc_6948,loc_9726,loc_9727,loc_9728,loc_9729,loc_9730,loc_9731,loc_9732,loc_9733,loc_9734,loc_9735,newbierocks1
+family  Wheat | op2="Pick" | dead: loc474_22300,wheat_tall
+family  Floor space | op5="Build" | dead: loc474_15350,loc474_15351
+family  Decoration space | op5="Build" | dead: loc474_15259,loc474_15331
+family  Bookcase | op1="Search" | dead: bookcase_polybooks,dwarf_keldagrim_bookcase,dwarf_keldagrim_metal_bookcase,elf_village_bookcase_1,elf_village_bookcase_2,elf_village_bookcase_3,fai_wiztower_bookcase,fai_wiztower_bookcase_wall,loc_11767,sarim_bookcase2,sarim_bookcase2_offset,sarim_bookcase2_offset_northfacing,sarim_bookcase2_offset_westfacing
+family  Door | op1="Open" | dead: ahoy_town_walldoor_left,ahoy_town_walldoor_right,ardougnewalldoor_left,ardougnewalldoor_right,boardgames_runesquares_door_experienced,boardgames_runeversi_door_experienced,burgh_village_door,desert_door_l,desert_door_r,draynor_basement_door_open,elid_underground_door,enakh_b+w_arm,enakh_b+w_leg,famcrest_doorh2i2,icthalarins_door,icthalarins_door_mirror,loc_11713,loc_1595,mourning_poordoor,mourning_prisondoor,newbie_door9,rd_door,rellekka_poh_doubledoor,rellekka_poh_doubledoorl,roguesden_gallery_door,roguesden_obstacle_magic_door,roguesden_puzzle_door_gears,roguesden_puzzle_door_mosaic,roguesden_puzzle_door_rotation,timberwall_door,timberwall_doorl,village_door_l,village_door_r,wild_door,wild_doubledoor_l,wild_doubledoor_r,yanille_poh_double_door,yanille_poh_double_doorl
+family  Rug space | op5="Build" | dead: loc474_15389
+family  Old Bookshelf | op1="Search" | dead: bookshelf_old_short,bookshelf_old_short2,bookshelf_old_short2_movedin,bookshelf_old_short2_movedin2,bookshelf_old_short2_movedin3,bookshelf_old_short2_movedin4,bookshelf_old_short3,bookshelf_old_short3_movedin,bookshelf_old_short3_movedin2,bookshelf_old_short3_movedin3,bookshelf_old_short3_movedin4,bookshelf_old_short_movedin,bookshelf_old_short_movedin2,bookshelf_old_short_movedin3,bookshelf_old_short_movedin4,bookshelf_old_short_withsphinx,bookshelf_old_tall,bookshelf_old_tall2,bookshelf_old_tall2_movedin,bookshelf_old_tall2_movedin2,bookshelf_old_tall2_movedin3,bookshelf_old_tall2_movedin4,bookshelf_old_tall3,bookshelf_old_tall3_movedin,bookshelf_old_tall3_movedin2,bookshelf_old_tall3_movedin3,bookshelf_old_tall3_movedin4,bookshelf_old_tall_double,bookshelf_old_tall_movedin,bookshelf_old_tall_movedin2,bookshelf_old_tall_movedin3,bookshelf_old_tall_movedin4,loc_11698,wom_bookshelf_old_tall_double,wom_bookshelf_old_tall_double2
+family  Crate | op1="Search" | dead: dwarf_keldagrim_metal_crate_withpapers,fairy_crates_small,gwd_crate,mcannoncrate,mm_reinitialisation_crate,osrsloc_14934,viking_crate,viking_crate_2
+family  Combat ring space | op5="Build" | dead: loc474_15283,loc474_15284,loc474_15285
+family  Boxes | op1="Search" | dead: ahoy_boxes_1,loc_11744,osrsloc_3685,osrsloc_3686,osrsloc_3687
+family  Sarcophagus | op1="Search" | dead: loc_6630
+family  Wardrobe | op1="Open" | dead: draynor_wardrobe
+family  Ladder | op1="Climb-up" | dead: 4d_ladder1,4d_ladder2,boardgames_ladderup,boardgames_runesquares_ladderup_experienced,boardgames_runeversi_ladderup_experienced,burgh_inn_basement_ladder,burgh_ladder_hatch_up,champions_arenaladder,champions_ladderup,fairy_ladder_wind_up,loc_11739,loc_11740,loc_5812,magearena_ladder_from_cellar,mcannonladder,prison_ladder_up,vampire_ladder,wild_ladder,zanarisladderout2
+family  Chest | op1="Open" | dead: fenk_chest_closed,goblin_outpost_chest_closed,loc_8988,macro_maze_chest,viking_chest_closed,wild_chest_closed
+family  Banana Tree | op1="Search" | dead: icthalarins_bananatreeempty,loc_6579
+family  Ladder | op1="Climb-down" | dead: burgh_floorboard_hatch,fairy_ladder_wind_down,loc_11741,loc_11742,loc_1756,loc_1758,loc_2611,magearena_ladder_to_cellar,mcannonladder2,osrsloc_60732,prison_laddertop,wild_laddertop,wild_laddertop_dungeon
+family  Climbing rocks | op1="Climb" | dead: agility_pyramid_climbing_rocks
+family  Closed chest | op1="Open" | dead: ahoy_chest_closed,chestlocked,chestlockedgold,ics_chestclosed,mourning_inactive_chest_closed
+family  Crates | op1="Search" | dead: loc_11745
+family  Protruding rocks | op1="Climb" | dead: regicide_trap_hand_holds
+family  Rocks | op1="Climb" | dead: death_climbingrocks_bottom,death_climbingrocks_top,loc_9296,loc_9297,loc_9316,loc_9317,loc_9331,loc_9332,loc_9335,loc_9336
+family  Ladder | op1="Climb-Down" | dead: boardgames_ladderdown,boardgames_runesquares_ladderdown_experienced,boardgames_runeversi_ladderdown_experienced,roguesden_passage_down
+family  Trapdoor | op1="Open" | dead: champions_trap_door_closed,ikov_trapdoor,loc_12262,mm_eastern_warehouse_trapdoor,mm_trapdoor_ne,mm_trapdoor_ne_open,mm_trapdoor_nw,mm_trapdoor_nw_open,mm_trapdoor_se,mm_trapdoor_se_open,mm_trapdoor_sw,mm_trapdoor_sw_open,mm_western_warehouse_trapdoor,osrsloc_100,trapdoor_level1,vampire_trap1
+family  Teleportation Device | op1="Operate" | dead: bunker_teleport_corner,bunker_teleport_floor
+family  Gate | op1="Open" | dead: ctratgateb,pest_wall_gate_fixed,pest_wall_gate_fixed_mirror,pier_rail_double_gate,smithing_guild_door,viking_fencegate_l,viking_fencegate_r
+family  Bridge | op1="Cross" | dead: fenk_bridgebroken,fenk_bridgesurface
+family  Crate wall | op1="Climb-out" | dead: merlincrate_wall2
+family  Cupboard | op1="Search" | dead: loc_10783,loc_10784,loc_10785,loc_10786,loc_10787,loc_10788,loc_10789,loc_10790,loc_10791,loc_10792,loc_10793,loc_10794,loc_10795,loc_10796,loc_10797,loc_10798
+family  Gangplank | op1="Cross" | dead: ahoy_gangplank_shipwreck_off,arhein_ship_off,pest_lander_gangplank,pest_ship_island_off,pest_ship_island_on,pest_ship_sarim_off,pest_ship_sarim_on
+family  Ladder | op1="Climb" op2="Climb-up" op3="Climb-down" | dead: feud_laddermiddle,loc_1751,wild_ladder_middle
+family  Wall safe | op1="Crack" | dead: roguesden_walldecor_mazesafe
+family  Ladder | op1="Climb" | dead: loc474_16960,loc474_16962,loc_12264,pest_lander_ladder,pest_watchtower_ladder
+family  Cave entrance | op1="Enter" | dead: trollrescue_troll_cave_entrance1,trollrescue_troll_cave_entrance2,trollrescue_troll_cave_entrance3,trollrescue_troll_cave_entrance4,trollrescue_troll_cave_entrance5,trollrescue_troll_cave_entrance_multi
+family  Pineapple Plant | op1="Pick" | dead: mm_pineapple_plant_one
+family  ladder | op1="Climb-up" | dead: elf_village_ladder
+family  Rock | op1="Search" | dead: darkcaverock2,darkcaverock3
+family  Stairs | op1="Climb-down" | dead: loc474_16732,loc474_16733
+family  Stairs | op1="Climb-up" | dead: loc474_16734
+family  Castle door | op1="Open" | dead: loc_11717,loc_11719
+family  Cupboard | op1="Open" | dead: newbiecbshut,osrsloc_367,osrsloc_368
+family  Curtain | op1="Close" | dead: osrsloc_1534
+family  Curtain | op1="Open" | dead: loc_1526,osrsloc_1533
+family  Entrance | op1="Forfeit" | dead: flag_entrance,flag_entrance2
+family  Pipe | op1="Squeeze-through" | dead: loc_5099,loc_5100
+family  Ship's ladder | op1="Climb-down" | dead: ahoy_ghostshipladder_top_angled,ship_laddertop_no_approach
+family  Ship's ladder | op1="Climb-up" | dead: ahoy_ghostshipladder_angled,ship_ladder_no_approach
+family  Barrel | op1="Climb-on" | dead: game_trawler_barrel3
+family  Door | op1="Open" op5="Pick-lock" | dead: port_sarim_jaildoor
+family  Fish stall | op2="Steal-from" | dead: viking_fish_market
+family  Bamboo Door | op1="Open" | dead: mm_bamboo_door
+family  City gate | op1="Open" | dead: clue_suggestion_list
+family  Coffin | op1="Open" | dead: egyptcoffin1,egyptcoffin2
+family  Door | op1="Close" | dead: desert_door_l_open,desert_door_r_open,icthalarins_door_open,icthalarins_door_open_mirror,makinghistory_door_open,makinghistory_doubledoorl_open,makinghistory_doubledoorr_open,mourner_hideout_door2_open,mourning_poordooropen,mourning_prisondooropen,osrsloc_24307,osrsloc_24310,osrsloc_24313,osrsloc_24316,osrsloc_24319,poh_cage_dungeon_bones_door_open,poh_cage_dungeon_oak+steel_door_open,poh_cage_dungeon_oak_door_open,poh_cage_dungeon_steel+spikes_door_open,poh_cage_dungeon_steel_door_open,poh_dungeon_ldoor_marble_open,poh_dungeon_ldoor_oak_open,poh_dungeon_ldoor_steel_open,poh_dungeon_rdoor_marble_open,poh_dungeon_rdoor_oak_open,poh_dungeon_rdoor_steel_open,rd_door_open,rellekka_poh_doubledoor_open,rellekka_poh_doubledoorl_open,timberwall_door_open,timberwall_doorl_open,vc_elfdooropen,village_door_l_open,village_door_r_open,wild_door_open,wild_doubledoor_open_l,wild_doubledoor_open_r,witchdoor
+family  Doorway | op1="Open" | dead: mm_bamboo_door_secure,roguesden_mazeentrance
+family  Fur stall | op2="Steal-from" | dead: viking_fur_market
+family  Ice gate | op1="Go-through" | dead: icegate_left_small,icegate_right_small
+family  Ledge | op1="Open" | dead: waterfall_ledge_door_left,waterfall_ledge_door_right
+family  Log balance | op1="Walk-across" | dead: karam_dungeon_bamboo_logbalance1,karam_dungeon_bamboo_logbalance3
+family  Open chest | op2="Search" op3="Shut" | dead: fairy_chest_open,ics_chestopen
+family  Path | op1="Look-at" op2="Continue-trek" | dead: templetrek_swamp_continue_1,templetrek_swamp_continue_2,templetrek_swamp_success_path_brown
+family  Staircase | op1="Climb-up" | dead: loc474_15790
+family  Trapdoor | op1="Climb-down" | dead: loc_5835,osrsloc_26119,prison_trapdoor,vampire_trap2,win05_trapdoor
+family  Wooden doors | op1="Open" | dead: shadelairentrancel,shadelairentrancer
+family  Cave | op1="Enter" | dead: cavewalltunnel_upass_tocells
+family  Cave Entrance | op1="Enter" | dead: legends_cave_entrance_3,viking_trollcave_entrance
+family  Cave entrance | op1="Go-through" | dead: dwarf_cavewall_tunnel
+family  Cave exit | op1="Enter" | dead: trollrescue_troll_cave_exit
+family  Chest | op1="Search" op2="Close" | dead: arena_guard_chest_open,fenk_chest_open,wild_chest_open
+family  Doorway | op1="Enter" | dead: magictraining_temple_door
+family  Exit | op1="Leave" | dead: karam_dungeon_exit
+family  Fishing spot | op1="Net" | dead: loc_14938,newbiefishing
+family  Hole | op1="Climb-down" | dead: osrsloc_30179
+family  Hole | op1="Enter" | dead: loc_12581
+family  Lever | op1="Pull" | dead: harmony_mill_lever,watchleverdown
+family  Monkeybars | op1="Swing Across" | dead: loc_12575
+family  Open chest | op1="Search" op2="Close" | dead: ahoy_chest_open,burgh_chest_open
+family  Portal | op1="Use" | dead: 100_portal_chicken
+family  Rope | op1="Climb-up" | dead: chickenquest_chamber_exit
+family  Rope | op1="Climb" | dead: mole_rope_02
+family  Signpost | op1="Read" | dead: mudskipper_sign
+family  Silver stall | op2="Steal-from" | dead: dwarf_market_silver
+family  Spinning wheel | op2="Spin" | dead: elf_village_spinning_wheel
+family  Stairs | op1="Climb" | dead: loc474_16946
+family  Well | op1="Climb-down" | dead: regicide_voyage_temple_well1
