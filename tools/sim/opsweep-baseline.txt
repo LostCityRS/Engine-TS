@@ -4,7 +4,7 @@
 #
 # This file is a ratchet, not an approval. Every line in it is an option a player can
 # click that does nothing. The number should only ever go down.
-# 2782 lines at the time of writing.
+# 2773 lines at the time of writing.
 
 dead grid inter_232:com_90 op1="Value"
 dead grid inter_232:com_90 op2="Buy"
@@ -1858,17 +1858,12 @@ dead npc  fai_barbarian_female_1 op1="Talk-to"
 dead npc  fai_barbarian_female_2 op1="Talk-to"
 dead npc  fai_barbarian_female_3 op1="Talk-to"
 dead npc  fai_barbarian_female_4 op1="Talk-to"
-dead npc  fairy op1="Talk-to"
 dead npc  fairy_chef op1="Talk-to"
-dead npc  fairy_cow op1="Talk-to"
 dead npc  fairy_frog op1="Talk-to"
 dead npc  fairy_greek_choir op1="Talk-to"
 dead npc  fairy_henchman1 op1="Talk-to"
 dead npc  fairy_henchman2 op1="Talk-to"
-dead npc  fairy_mindslayer op1="Talk-to"
 dead npc  fairy_mindslayer_guard op1="Talk-to"
-dead npc  fairy_sheep op1="Talk-to"
-dead npc  fairy_sheepsheered op1="Talk-to"
 dead npc  falador_doric_area_guard op1="Talk-to"
 dead npc  falador_doric_area_man1 op1="Talk-to"
 dead npc  falador_doric_area_man2 op1="Talk-to"
@@ -2067,10 +2062,6 @@ dead npc  mm_freed_zoo_monkey op1="Talk-to"
 dead npc  mm_salenab op1="Talk-to"
 dead npc  mm_waydar_cutscene op1="Talk-to"
 dead npc  morgan_le_faye op1="Talk-to"
-dead npc  mort_afflicted_man op1="Talk-to"
-dead npc  mort_afflicted_man2 op1="Talk-to"
-dead npc  mort_afflicted_woman op1="Talk-to"
-dead npc  mort_afflicted_woman2 op1="Talk-to"
 dead npc  mort_man op1="Talk-to"
 dead npc  mort_man2 op1="Talk-to"
 dead npc  mort_woman op1="Talk-to"
