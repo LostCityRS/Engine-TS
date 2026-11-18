@@ -31,6 +31,7 @@ const PANELS: [string, number][] = [
 const AMULET = 'glarials_amulet_waterfall_quest';
 const ENTERED_TOMB = 4;
 const ENTERED_WATERFALL = 5;
+const COMPLETE = 10; // ^waterfall_complete / ^waterfall_poured_ashes
 
 console.log('== the doorway is three panels wide and they all offer Open');
 for (const [nm, x] of PANELS) {
@@ -64,6 +65,31 @@ for (const [nm, x] of PANELS) {
     check(`${nm} lets you through`, mesOf(p).includes('You walk through the door.'), true);
     check('  and you are inside', [p.x, p.z], [2575, 9861]);
     check('  with the quest moved on', H.getVar(p, 'waterfall_quest'), ENTERED_WATERFALL);
+}
+
+// ---------------------------------------------------------------------------------------------
+// AND AFTER THE QUEST, WITH NO AMULET AT ALL, which is DeathPlateau-Bugs#28.
+//
+// The section above is correct for a player who has not done the quest: no amulet, the corridor
+// floods, 8 damage, washed up at 2527,3413. What it never covered is a player who has FINISHED
+// Waterfall Quest and no longer carries the amulet, and Old School stopped flooding those on
+// 16 March 2017 - the Waterfall Dungeon is open to anybody who has completed the quest, amulet
+// or not. oldschool.runescape.wiki/w/Waterfall_Dungeon
+//
+// The amulet is reobtainable from the chest in Glarial's tomb, so the old behaviour was not a
+// dead end - it was a trip back across the river and 8 damage for nothing.
+console.log('\n== after the quest, every panel lets you in with no amulet at all');
+for (const [nm, x] of PANELS) {
+    const p: any = player('wfc' + x, x, 3465, 0);
+    H.setVar(p, 'waterfall_quest', COMPLETE);
+    H.clearLogs();
+    H.opLoc(p, x, 3464, nm, 1);
+    H.tick(8);
+    const said = mesOf(p);
+    check(`${nm} lets a finished player through`, said.includes('You walk through the door.'), true);
+    check('  and does not flood them', said.includes('Suddenly the corridor floods...'), false);
+    check('  they are inside', [p.x, p.z], [2575, 9861]);
+    check('  and the quest is left alone at done', H.getVar(p, 'waterfall_quest'), COMPLETE);
 }
 
 console.log(`\n${R.ok} ok, ${R.bad} FAIL`);
