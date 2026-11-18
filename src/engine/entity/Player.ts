@@ -8,6 +8,7 @@ import InvType from '#/cache/config/InvType.js';
 import LocType from '#/cache/config/LocType.js';
 import NpcType from '#/cache/config/NpcType.js';
 import ObjType from '#/cache/config/ObjType.js';
+import { TALK_TO_OP } from '#/cache/config/OpVisibility.js';
 import { ParamHelper } from '#/cache/config/ParamHelper.js';
 import ParamType from '#/cache/config/ParamType.js';
 import ScriptVarType from '#/cache/config/ScriptVarType.js';
@@ -1307,8 +1308,51 @@ export default class Player extends PathingEntity {
             DeadOps.record(ServerTriggerType[this.targetOp + 7].toLowerCase(), debugname, this.username, this.x, this.z, this.level);
         }
 
-        this.messageGame('Nothing interesting happens.');
+        this.messageGame(this.defaultOpMessage());
         this.clearWaypoints();
+    }
+
+    /**
+     * custom (2026-11-18) - what a player is told when nothing answered their click.
+     *
+     * "Nothing interesting happens." for everything, EXCEPT Talk-to on an npc, which gets
+     * "<name> is not interested in talking." - the sentence the content already writes by hand for
+     * Jonny the Beard, the bandit camp leaders, Billy Rehnison and the beggar in Camelot.
+     *
+     * WHY. `npm run opsweep` counts 307 npcs the map places that advertise Talk-to with nothing
+     * behind it: forty-two fairies in Zanaris, twenty-seven ugthanki in the desert, every HAM
+     * civilian under Lumbridge, Alice the camel by the Al Kharid gate. Walking up to a fairy and
+     * being told "Nothing interesting happens." reads like a broken game. Being told she is not
+     * interested in talking reads like a character who does not want to talk, which is the same
+     * amount of unwritten dialogue and a tenth of the bug reports.
+     *
+     * WHY HERE AND NOT A GLOBAL [opnpc1,_] IN THE CONTENT, WHICH IS WHAT I WROTE FIRST AND IS
+     * WRONG, TWICE OVER.
+     *   1. Player.interact prefers an op trigger over an ap trigger whenever the player is in
+     *      operable distance, and ScriptProvider.getByTrigger falls back type -> category ->
+     *      global. So a global [opnpc1,_] does not fill the gaps, it BEATS the fifteen npcs whose
+     *      Talk-to is written as [apnpc1,x] with no opnpc1 beside it - every banker, Hengrad,
+     *      Eadgar, Godric, the three fight slaves - for anyone who clicks from an adjacent tile.
+     *      A global [apnpc1,_] has the mirror problem: it fires on the way in, at ap range, ahead
+     *      of the specific opnpc1 that was going to run on arrival.
+     *   2. A script cannot read an op's LABEL, so a content global cannot tell Talk-to from the
+     *      five op1s that are something else - "Take" on the Haunted Mine's bronze pickaxes,
+     *      "Pet" on Sophanem's plagued cows, "Kick" on the Wise Old Man's bed - and would have
+     *      told the player a pickaxe was not interested in talking. Here the label is in hand.
+     *
+     * defaultOp only runs when nothing claimed the click, so this can preempt nothing, and the
+     * DeadOps row and the dev-world `No trigger for [opnpc1,fairy]` line above are untouched: the
+     * 307 stay on the to-do list in opsweep's report exactly as they are. This is a better sentence
+     * for an unwritten npc, not an implementation of one.
+     */
+    private defaultOpMessage(): string {
+        if (this.target instanceof Npc && this.targetOp + 7 === ServerTriggerType.OPNPC1) {
+            const type = NpcType.get(this.target.type);
+            if (type && type.name && TALK_TO_OP.test(type.op?.[0] ?? '')) {
+                return `${type.name} is not interested in talking.`;
+            }
+        }
+        return 'Nothing interesting happens.';
     }
 
     inOperableDistance(target: Entity): boolean {

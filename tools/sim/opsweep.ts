@@ -45,7 +45,7 @@ import path from 'path';
 
 import * as H from './harness.js';
 import Component from '#/cache/config/Component.js';
-import { isVisibleOp } from '#/cache/config/OpVisibility.js';
+import { isVisibleOp, TALK_TO_OP } from '#/cache/config/OpVisibility.js';
 import { namesAppearingInContent, namesAppearingInScripts, namesSpawnedInScripts } from '#/cache/config/ObjReach.js';
 import { SPELLBOOKS } from '#/engine/bot/BotInput.js';
 import LocType from '#/cache/config/LocType.js';
@@ -349,6 +349,18 @@ console.log(
         }).length
     } are on an obj nothing in content can hand to a player`
 );
+// custom (2026-11-18) - which of the dead npc rows a player is told something civil about.
+// Player.defaultOpMessage answers an unanswered Talk-to with "<name> is not interested in talking."
+// instead of "Nothing interesting happens.", using the same TALK_TO_OP rule as the count below.
+// Everything else on this list - "Take" on the Haunted Mine's bronze pickaxes, "Pet" on Sophanem's
+// plagued cows, "Kick" on the Wise Old Man's bed, every dead loc and obj option - still gets the
+// blunt line, and these are the rows to read when deciding what to write next.
+// op1 ONLY, not any op: defaultOpMessage checks the trigger is OPNPC1, so the two Talk-tos that
+// sit on another op - cavewitchcat op3, Gertrude's cat op4, both of which want a catspeak amulet -
+// still say "Nothing interesting happens.", and so does loc op2="Talk-to" on the dwarf firewall.
+const talkTo = dead.filter(r => r.line.startsWith('npc ') && TALK_TO_OP.test(/ op1="([^"]*)"/.exec(r.line)?.[1] ?? ''));
+console.log(`  ${talkTo.length} are an unanswered Talk-to, which now reads "<name> is not interested in talking." rather than`);
+console.log('  "Nothing interesting happens." - a politer hole, not a filled one');
 console.log('');
 
 console.log(`-- dead, and on the map (${placed.length}) - these are what a player clicks`);

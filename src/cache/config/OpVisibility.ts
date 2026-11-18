@@ -21,6 +21,21 @@ export function isHiddenOp(label: string | null | undefined): boolean {
     return !isVisibleOp(label);
 }
 
+// custom (2026-11-18) - "is this option the one that starts a conversation?", in ONE place, for
+// the same reason as above: two copies of a label rule drift.
+//
+// The cache spells it both ways - 285 `Talk-to` and 22 `Talk-To` across the npc configs - so an
+// exact comparison misses the twenty-two (Ahoy's ghost sailors, the Mort'ton afflicted). Two
+// callers need the same answer and must agree:
+//
+//   Player.defaultOpMessage  prints "<name> is not interested in talking." instead of "Nothing
+//                            interesting happens." when a Talk-to click found no trigger.
+//   tools/sim/opsweep.ts     reports an unanswered op1 that is NOT Talk-to separately, because the
+//                            sentence above is the wrong one for it: "Take" on the Haunted Mine's
+//                            bronze pickaxes, "Pet" on Sophanem's plagued cows, "Kick" on the
+//                            Wise Old Man's bed.
+export const TALK_TO_OP = /^talk[- ]to$/i;
+
 // ------------------------------------------------------------------------------------------------
 // custom (2026-11-03) - "could a client ever send this op?", with multilocs resolved the way the
 // handler resolves them.
