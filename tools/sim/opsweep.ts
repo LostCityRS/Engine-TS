@@ -2,7 +2,10 @@
 //
 //   npx tsx tools/sim/opsweep.ts                 the report
 //   npx tsx tools/sim/opsweep.ts --baseline      rewrite tools/sim/opsweep-baseline.txt
-//   npx tsx tools/sim/opsweep.ts --check         fail if anything is dead that was not dead before
+//   npx tsx tools/sim/opsweep.ts --check         fail on a new dead option a player can REACH
+//
+// --check fails on a new dead option on a loc the map PLACES, and records one on a loc it does
+// not. See the note above placedLines for why the line is drawn there and what it costs.
 //   npx tsx tools/sim/opsweep.ts --area 3200 3150 3300 3250
 //
 // WHY THIS AND NOT THE FUZZER. The fuzzer answers "what breaks". This answers "what was never
@@ -42,7 +45,7 @@ import path from 'path';
 
 import * as H from './harness.js';
 import Component from '#/cache/config/Component.js';
-import { isVisibleOp } from '#/cache/config/OpVisibility.js';
+import { isVisibleOp, TALK_TO_OP } from '#/cache/config/OpVisibility.js';
 import { namesAppearingInContent, namesAppearingInScripts, namesSpawnedInScripts } from '#/cache/config/ObjReach.js';
 import { SPELLBOOKS } from '#/engine/bot/BotInput.js';
 import LocType from '#/cache/config/LocType.js';
@@ -346,6 +349,18 @@ console.log(
         }).length
     } are on an obj nothing in content can hand to a player`
 );
+// custom (2026-11-18) - which of the dead npc rows a player is told something civil about.
+// Player.defaultOpMessage answers an unanswered Talk-to with "<name> is not interested in talking."
+// instead of "Nothing interesting happens.", using the same TALK_TO_OP rule as the count below.
+// Everything else on this list - "Take" on the Haunted Mine's bronze pickaxes, "Pet" on Sophanem's
+// plagued cows, "Kick" on the Wise Old Man's bed, every dead loc and obj option - still gets the
+// blunt line, and these are the rows to read when deciding what to write next.
+// op1 ONLY, not any op: defaultOpMessage checks the trigger is OPNPC1, so the two Talk-tos that
+// sit on another op - cavewitchcat op3, Gertrude's cat op4, both of which want a catspeak amulet -
+// still say "Nothing interesting happens.", and so does loc op2="Talk-to" on the dwarf firewall.
+const talkTo = dead.filter(r => r.line.startsWith('npc ') && TALK_TO_OP.test(/ op1="([^"]*)"/.exec(r.line)?.[1] ?? ''));
+console.log(`  ${talkTo.length} are an unanswered Talk-to, which now reads "<name> is not interested in talking." rather than`);
+console.log('  "Nothing interesting happens." - a politer hole, not a filled one');
 console.log('');
 
 console.log(`-- dead, and on the map (${placed.length}) - these are what a player clicks`);
@@ -460,6 +475,25 @@ if (strangers.size) {
 // ------------------------------------------------------------------------------------ the baseline
 
 const signature = [...dead.map(r => `dead ${r.line}`), ...swallowed.map(r => `global ${r.line}`)].sort();
+
+// WHICH NEW LINES ARE WORTH FAILING A BUILD OVER. A dead option on a loc the map never places is
+// unreachable: real, worth recording, and nobody can click it. A dead option on a loc with spawns
+// is a ticket waiting to be filed - log_withaxe (tracker #26) was exactly that, sitting in this
+// file for months while a player walked up to it. So --check draws the line there, and the set
+// below is what it draws it with.
+//
+// This LOOSENS the ratchet for unplaced lines on purpose, which is the part to be careful about.
+// The argument for it: a gate that fires on something no player can reach trains whoever hits it
+// to re-run --baseline, and a ratchet nobody believes is worse than one that fires less often.
+// The argument against: unreachable today is not unreachable for ever - a map edit can place a
+// loc years after its option died. That is why an unplaced line is still PRINTED and still goes
+// into the baseline; it is the exit code that changes, not the record.
+//
+// The other half of this is siblings.ts, which fails on a new family where some members are
+// answered and some are not. The two catch different things and neither subsumes the other: a
+// brand-new loc wired to nothing has no answered sibling to give it away, and a dead member of an
+// answered family can sit on a loc the map does not place. Both gates, deliberately.
+const placedLines = new Set(dead.filter(r => r.instances > 0).map(r => `dead ${r.line}`));
 if (WRITE_BASELINE) {
     fs.mkdirSync(path.dirname(BASELINE_FILE), { recursive: true });
     fs.writeFileSync(
@@ -496,9 +530,26 @@ if (CHECK) {
     }
     const added = signature.filter(l => !before.has(l));
     const fixed = [...before].filter(l => !signature.includes(l));
-    console.log(`\nAGAINST THE BASELINE: ${added.length} new, ${fixed.length} fixed`);
-    for (const line of added.slice(0, 40)) {
+
+    // A new line fails unless it is a dead option on a loc the map never places - see the note by
+    // placedLines above. `global` lines are not downgraded: an option that newly falls through to
+    // a catch-all handler is a wiring change, not an unreachable one.
+    const reachable = added.filter(l => !l.startsWith('dead ') || placedLines.has(l));
+    const unreachable = added.filter(l => l.startsWith('dead ') && !placedLines.has(l));
+
+    console.log(`\nAGAINST THE BASELINE: ${added.length} new (${reachable.length} reachable), ${fixed.length} fixed`);
+    for (const line of reachable.slice(0, 40)) {
         console.log(`   NEW  ${line}`);
+    }
+    if (unreachable.length) {
+        console.log(`\n   ${unreachable.length} of the new lines are on locs the map never places - recorded, not failed:`);
+        for (const line of unreachable.slice(0, 10)) {
+            console.log(`   new, unreachable  ${line}`);
+        }
+        if (unreachable.length > 10) {
+            console.log(`   ... and ${unreachable.length - 10} more`);
+        }
+        console.log('   rerun with --baseline to bank them, and they stay unreachable only until somebody places one');
     }
     for (const line of fixed.slice(0, 10)) {
         console.log(`   fixed ${line}`);
@@ -506,7 +557,7 @@ if (CHECK) {
     if (fixed.length > 10) {
         console.log(`   ... and ${fixed.length - 10} more fixed - rerun with --baseline to bank them`);
     }
-    process.exit(added.length ? 1 : 0);
+    process.exit(reachable.length ? 1 : 0);
 }
 
 process.exit(0);

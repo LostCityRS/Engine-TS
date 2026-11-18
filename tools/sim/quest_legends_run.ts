@@ -543,6 +543,16 @@ const m: Manifest = {
         { note: 'out of the water. He wants Viyeldi dead and hands over a dagger of pure obsidian.' },
         { note: 'The boulders are NPCs, not locs - [opnpc1,boulder_legends].' },
         { go: BOULDER_EAST, r: 192, why: 'to the boulder in the stream' },
+        { note: 'The push itself writes 19 - echned_zekin.rs2 moves ^legends_heart_in_recess on' },
+        { note: 'before a word is said - and the conversation that follows reaches 20 only at the end' },
+        { note: 'of a five-deep option tree. Break off anywhere in it and the quest stays at 19,' },
+        { note: 'with the panel still naming leg 18, which ends "go to the boulder in the stream" -' },
+        { note: 'the boulder they have already pushed, and no mention of Echned at all.' },
+        { note: 'DeathPlateau-Bugs#16.' },
+        { talk: 'boulder_legends', tries: 3, want: 'Who disturbs the rocks', why: 'push it, and break off before answering - which leaves the quest at 19' },
+        { stage: 19 },
+
+        { note: 'and pushing it again puts the same question, which is what a player at 19 does' },
         {
             talk: 'boulder_legends',
             tries: 3,

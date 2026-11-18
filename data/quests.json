@@ -3073,6 +3073,19 @@
      "worn": []
     },
     {
+     "from": 8,
+     "headings": [
+      {
+       "at": 0,
+       "text": "The ogre is down."
+      }
+     ],
+     "marks": [],
+     "steps": [],
+     "items": [],
+     "worn": []
+    },
+    {
      "from": 9,
      "headings": [
       {
@@ -3102,10 +3115,32 @@
       {
        "kind": "talk",
        "text": "Kill Khazard Scorpion.",
-       "why": "The scorpion, then Bouncer.",
+       "why": "The scorpion.",
        "target": "arena_scorpion",
        "id": 271,
        "label": "Khazard Scorpion"
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 10,
+     "headings": [
+      {
+       "at": 0,
+       "text": "Fight 3: Bouncer, out of the cage Khazard has just had opened."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "talk",
+       "text": "Kill Bouncer.",
+       "why": "Bouncer.",
+       "target": "arena_bouncer",
+       "id": 269,
+       "label": "Bouncer"
       }
      ],
      "items": [],
@@ -7127,6 +7162,19 @@
        "op": 1
       }
      ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 30,
+     "headings": [
+      {
+       "at": 0,
+       "text": "The bait is down."
+      }
+     ],
+     "marks": [],
+     "steps": [],
      "items": [],
      "worn": []
     },
@@ -15582,13 +15630,13 @@
       {
        "kind": "talk",
        "text": "Use Journal on Filliman Tarlock.",
-       "why": "Give him the journal and offer to help.",
+       "why": "Give him the journal and then decline, which leaves the quest at 30.",
        "target": "filliman_tarlock_spirit",
        "id": 1050,
        "label": "Filliman Tarlock",
        "item": 2967,
        "picks": [
-        "How can I help?"
+        "Ok thanks."
        ]
       }
      ],
@@ -15600,6 +15648,26 @@
        "bring": false
       }
      ],
+     "worn": []
+    },
+    {
+     "from": 30,
+     "headings": [],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "talk",
+       "text": "Talk to Filliman Tarlock.",
+       "why": "Offer to help this time.",
+       "target": "filliman_tarlock_spirit",
+       "id": 1050,
+       "label": "Filliman Tarlock",
+       "picks": [
+        "How can I help?"
+       ]
+      }
+     ],
+     "items": [],
      "worn": []
     },
     {
@@ -16426,7 +16494,7 @@
      "headings": [
       {
        "at": 0,
-       "text": "The water, and then the cart - both in the one conversation, so the stage jumps 40 to 60 and the yes/no about the cart is part of the same talk."
+       "text": "The water, and then the cart."
       }
      ],
      "marks": [],
@@ -16434,7 +16502,27 @@
       {
        "kind": "talk",
        "text": "Talk to Brother Cedric.",
-       "why": "The water sobers him up.",
+       "why": "The water sobers him up, and declining the cart leaves the quest at 50.",
+       "target": "brother_cedric",
+       "id": 280,
+       "label": "Brother Cedric",
+       "picks": [
+        "No, I've helped enough monks today!"
+       ]
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 50,
+     "headings": [],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "talk",
+       "text": "Talk to Brother Cedric.",
+       "why": "Agreeing to the cart this time.",
        "target": "brother_cedric",
        "id": 280,
        "label": "Brother Cedric",
@@ -29871,14 +29959,6 @@
       {
        "at": 10,
        "text": "Elissa at the Digsite, her husband's notes in the Exam Centre, and back to Elissa."
-      },
-      {
-       "at": 20,
-       "text": "The curator, his pocket, and display case thirty."
-      },
-      {
-       "at": 27,
-       "text": "The statuette in the alcove, then the four statues."
       }
      ],
      "marks": [
@@ -30086,7 +30166,38 @@
        "picks": [
         "Where is the statuette that Varmen took back from Uzer?"
        ]
+      }
+     ],
+     "items": [
+      {
+       "name": "Black mushroom",
+       "id": 4620,
+       "n": 1,
+       "bring": false
       },
+      {
+       "name": "Varmen's notes",
+       "id": 4616,
+       "n": 1,
+       "bring": false
+      }
+     ],
+     "worn": []
+    },
+    {
+     "from": 3,
+     "headings": [
+      {
+       "at": 1,
+       "text": "The curator, his pocket, and display case thirty."
+      },
+      {
+       "at": 8,
+       "text": "The statuette in the alcove, then the four statues."
+      }
+     ],
+     "marks": [],
+     "steps": [
       {
        "text": "Go to the Varrock Museum.",
        "kind": "walk",
@@ -30208,18 +30319,6 @@
       }
      ],
      "items": [
-      {
-       "name": "Black mushroom",
-       "id": 4620,
-       "n": 1,
-       "bring": false
-      },
-      {
-       "name": "Varmen's notes",
-       "id": 4616,
-       "n": 1,
-       "bring": false
-      },
       {
        "name": "Display cabinet key",
        "id": 4617,
@@ -30348,14 +30447,7 @@
        "text": "He does not believe you, so the mushroom becomes ink, the feather becomes a pen, the papyrus becomes a program, and the implement opens his head long enough to put it in."
       }
      ],
-     "marks": [
-      {
-       "at": 10,
-       "var": 353,
-       "varbit": true,
-       "is": 1
-      }
-     ],
+     "marks": [],
      "steps": [
       {
        "kind": "walk",
@@ -30413,7 +30505,23 @@
        "target": "golem_golem",
        "id": 1907,
        "label": "Broken clay golem"
-      },
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 7,
+     "headings": [],
+     "marks": [
+      {
+       "at": 4,
+       "var": 353,
+       "varbit": true,
+       "is": 1
+      }
+     ],
+     "steps": [
       {
        "kind": "obj",
        "text": "Use Pestle and mortar on Black mushroom.",
@@ -30610,34 +30718,6 @@
       {
        "at": 1,
        "text": "The High Priest on Entrana, who sends knights out searching."
-      },
-      {
-       "at": 3,
-       "text": "Galahad, west of McGrubor's Wood, and the holy table napkin."
-      },
-      {
-       "at": 5,
-       "text": "The southernmost room on Draynor Manor's top floor."
-      },
-      {
-       "at": 10,
-       "text": "Stand under the tower on the Karamja peninsula and blow it."
-      },
-      {
-       "at": 11,
-       "text": "The Black Knight Titan on the bridge, who heals to full if the last blow is not Excalibur's - which is why Excalibur is the only weapon this run carries."
-      },
-      {
-       "at": 13,
-       "text": "The fisherman, south along the river."
-      },
-      {
-       "at": 15,
-       "text": "The Grail bell off the ground by the bricks, rung in front of a maiden he puts the bell on the ground by the bricks at 2762,4694 as he says it."
-      },
-      {
-       "at": 18,
-       "text": "The Fisher King, and both of the options that matter."
       }
      ],
      "marks": [],
@@ -30661,7 +30741,45 @@
        "picks": [
         "Ok, I will go searching."
        ]
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 4,
+     "headings": [
+      {
+       "at": 1,
+       "text": "Galahad, west of McGrubor's Wood, and the holy table napkin."
       },
+      {
+       "at": 3,
+       "text": "The southernmost room on Draynor Manor's top floor."
+      },
+      {
+       "at": 8,
+       "text": "Stand under the tower on the Karamja peninsula and blow it."
+      },
+      {
+       "at": 9,
+       "text": "The Black Knight Titan on the bridge, who heals to full if the last blow is not Excalibur's - which is why Excalibur is the only weapon this run carries."
+      },
+      {
+       "at": 11,
+       "text": "The fisherman, south along the river."
+      },
+      {
+       "at": 13,
+       "text": "The Grail bell off the ground by the bricks, rung in front of a maiden he puts the bell on the ground by the bricks at 2762,4694 as he says it."
+      },
+      {
+       "at": 16,
+       "text": "The Fisher King, and both of the options that matter."
+      }
+     ],
+     "marks": [],
+     "steps": [
       {
        "text": "Go to Galahad's house.",
        "kind": "walk",
@@ -33161,6 +33279,26 @@
       {
        "kind": "talk",
        "text": "Talk to Clivet.",
+       "why": "Walk away from him first, which leaves the quest at 3.",
+       "target": "clivet_hazeel_cultist",
+       "id": 893,
+       "label": "Clivet",
+       "picks": [
+        "I've heard enough of your rubbish."
+       ]
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 3,
+     "headings": [],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "talk",
+       "text": "Talk to Clivet.",
        "why": "He hands you poison.",
        "target": "clivet_hazeel_cultist",
        "id": 893,
@@ -33906,6 +34044,26 @@
         3233
        ]
       },
+      {
+       "kind": "talk",
+       "text": "Talk to Clivet.",
+       "why": "Walk away from him first, which leaves the quest at 3.",
+       "target": "clivet_hazeel_cultist",
+       "id": 893,
+       "label": "Clivet",
+       "picks": [
+        "I've heard enough of your rubbish."
+       ]
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 3,
+     "headings": [],
+     "marks": [],
+     "steps": [
       {
        "kind": "talk",
        "text": "Talk to Clivet.",
@@ -35263,10 +35421,6 @@
       {
        "at": 3,
        "text": "Jossik, and the level-100 Dagannoth that comes out of the water at the end of his story."
-      },
-      {
-       "at": 6,
-       "text": "Back up into the real lighthouse - the copy is gone now - and up to Jossik's library, where he reads the casket with you."
       }
      ],
      "marks": [],
@@ -35314,7 +35468,21 @@
        "target": "horror_dagannoth_jr4",
        "id": 1347,
        "label": "Dagannoth"
-      },
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 3,
+     "headings": [
+      {
+       "at": 1,
+       "text": "Back up into the real lighthouse - the copy is gone now - and up to Jossik's library, where he reads the casket with you."
+      }
+     ],
+     "marks": [],
+     "steps": [
       {
        "kind": "talk",
        "text": "Kill Dagannoth mother.",
@@ -43871,6 +44039,23 @@
         4689
        ]
       },
+      {
+       "kind": "talk",
+       "text": "Talk to Boulder.",
+       "why": "Push it, and break off before answering - which leaves the quest at 19.",
+       "target": "boulder_legends",
+       "id": 939,
+       "label": "Boulder"
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 19,
+     "headings": [],
+     "marks": [],
+     "steps": [
       {
        "kind": "talk",
        "text": "Talk to Boulder.",
@@ -61663,74 +61848,8 @@
    "stages": [
     {
      "from": 0,
-     "headings": [
-      {
-       "at": 3,
-       "text": "Sir Tiffy on the bench in Falador Park."
-      }
-     ],
-     "marks": [
-      {
-       "at": 2,
-       "var": 657,
-       "varbit": true,
-       "is": 1
-      },
-      {
-       "at": 4,
-       "var": 670,
-       "varbit": true,
-       "is": 1
-      },
-      {
-       "at": 18,
-       "var": 659,
-       "varbit": true,
-       "is": 1
-      },
-      {
-       "at": 21,
-       "var": 660,
-       "varbit": true,
-       "is": 1
-      },
-      {
-       "at": 24,
-       "var": 661,
-       "varbit": true,
-       "is": 1
-      },
-      {
-       "at": 26,
-       "var": 662,
-       "varbit": true,
-       "is": 1
-      },
-      {
-       "at": 28,
-       "var": 663,
-       "varbit": true,
-       "is": 1
-      },
-      {
-       "at": 43,
-       "var": 686,
-       "varbit": true,
-       "is": 3
-      },
-      {
-       "at": 55,
-       "var": 664,
-       "varbit": true,
-       "is": 1
-      },
-      {
-       "at": 57,
-       "var": 665,
-       "varbit": true,
-       "is": 1
-      }
-     ],
+     "headings": [],
+     "marks": [],
      "steps": [
       {
        "text": "Go up the western tower of the White Knights castle.",
@@ -61751,7 +61870,82 @@
        "picks": [
         "Go on."
        ]
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 1,
+     "headings": [
+      {
+       "at": 1,
+       "text": "Sir Tiffy on the bench in Falador Park."
+      }
+     ],
+     "marks": [
+      {
+       "at": 0,
+       "var": 657,
+       "varbit": true,
+       "is": 1
       },
+      {
+       "at": 2,
+       "var": 670,
+       "varbit": true,
+       "is": 1
+      },
+      {
+       "at": 16,
+       "var": 659,
+       "varbit": true,
+       "is": 1
+      },
+      {
+       "at": 19,
+       "var": 660,
+       "varbit": true,
+       "is": 1
+      },
+      {
+       "at": 22,
+       "var": 661,
+       "varbit": true,
+       "is": 1
+      },
+      {
+       "at": 24,
+       "var": 662,
+       "varbit": true,
+       "is": 1
+      },
+      {
+       "at": 26,
+       "var": 663,
+       "varbit": true,
+       "is": 1
+      },
+      {
+       "at": 41,
+       "var": 686,
+       "varbit": true,
+       "is": 3
+      },
+      {
+       "at": 53,
+       "var": 664,
+       "varbit": true,
+       "is": 1
+      },
+      {
+       "at": 55,
+       "var": 665,
+       "varbit": true,
+       "is": 1
+      }
+     ],
+     "steps": [
       {
        "text": "Go to Sir Tiffy.",
        "kind": "walk",
@@ -65033,14 +65227,14 @@
       {
        "kind": "talk",
        "text": "Talk to Sedridor.",
-       "why": "He takes the talisman and hands over the research package.",
+       "why": "He takes the talisman, and declining the errand leaves the quest at 2.",
        "target": "head_wizard",
        "id": 300,
        "label": "Sedridor",
        "picks": [
         "looking for the head wizard",
         "here you are",
-        "Yes, certainly"
+        "No, I'm busy."
        ]
       }
      ],
@@ -65052,6 +65246,26 @@
        "bring": false
       }
      ],
+     "worn": []
+    },
+    {
+     "from": 2,
+     "headings": [],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "talk",
+       "text": "Talk to Sedridor.",
+       "why": "Accept it this time, and take the research package.",
+       "target": "head_wizard",
+       "id": 300,
+       "label": "Sedridor",
+       "picks": [
+        "Yes, certainly"
+       ]
+      }
+     ],
+     "items": [],
      "worn": []
     },
     {
