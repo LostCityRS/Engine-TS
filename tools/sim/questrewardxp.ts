@@ -26,7 +26,7 @@ import type Player from '#/engine/entity/Player.js';
 await H.boot();
 
 // The engine's stat order, for the skills this sim reads.
-const STAT = { prayer: 5, magic: 6, herblore: 15 } as const;
+const STAT = { prayer: 5, magic: 6, herblore: 15, thieving: 17 } as const;
 
 /** The reward lines the scroll was just given (inter_238:com_10..14). */
 function rewardLines(p: Player, from: number): string[] {
@@ -104,6 +104,57 @@ for (const rate of [1, 5, 10]) {
     check('Desert Treasure advertises one Magic XP line', advertised.length, 1);
     check('Desert Treasure advertises 20,000 Magic XP', advertised[0], '20,000 Magic XP');
     check('and pays exactly what it advertises at Realism', r.gained, DT_MAGIC);
+}
+
+// ---- 2c. Tribal Totem: 1,775 Thieving XP ----------------------------------------------------
+// Its scroll used to read "1,1775 Thieving XP" - a stray comma, not a wrong payout. The payout was
+// always right, so what this pins is the two agreeing, which is the only way a typo in a reward
+// line gets noticed at all.
+const TOTEM_THIEVING = 1775;
+
+for (const rate of [1, 10]) {
+    const r = completed('totem', 'totem_quest_complete', STAT.thieving, rate, () => {});
+    check(`Tribal Totem at ${rate}x pays ${TOTEM_THIEVING} x ${rate} Thieving XP`, r.gained, TOTEM_THIEVING * rate);
+}
+
+{
+    const r = completed('totemscroll', 'totem_quest_complete', STAT.thieving, 1, () => {});
+    const advertised = r.lines.filter(l => l.includes('Thieving XP'));
+    check('Tribal Totem advertises one Thieving XP line', advertised.length, 1);
+    check('Tribal Totem advertises 1,775 Thieving XP', advertised[0], '1,775 Thieving XP');
+    check('and pays exactly what it advertises at Realism', r.gained, TOTEM_THIEVING);
+}
+
+// ---- 2d. Watchtower: 15,250 Magic XP, which the queue never sees ----------------------------
+// NOT DRIVEN THROUGH THE COMPLETE QUEUE, because Watchtower does not pay from there. Its queue
+// only shows the scroll; the reward is handed out by [oploc1,watchleverup] the moment the
+// forcefield comes up, and the queue is armed afterwards. A quest can put its reward anywhere, so
+// a sim that only ever drives complete queues would have scored this one as having no reward at
+// all - which is exactly what my first sweep for this did.
+const WT_MAGIC = 15250;
+const WT_CRYSTALS = ['powering_crystal1', 'powering_crystal2', 'powering_crystal3', 'powering_crystal4'];
+const WT_FOUND_ALL = 11; // ^itwatchtower_found_all_crystals
+
+for (const rate of [1, 10]) {
+    const p = player('wt' + rate, 2543, 3116, 2);
+    H.setVar(p, 'xp_rate', rate);
+    H.setVar(p, 'itwatchtower', WT_FOUND_ALL);
+    for (const c of WT_CRYSTALS) H.give(p, c, 1);
+    const before = p.stats[STAT.magic];
+    const from = H.ifaces.length;
+    H.opLoc(p, 2543, 3115, 'watchleverup', 1);
+    H.tick(20); // the lever does p_delay(3) and only then arms the complete queue
+    const gained = (p.stats[STAT.magic] - before) / 10;
+    check(`Watchtower at ${rate}x pays ${WT_MAGIC} x ${rate} Magic XP`, gained, WT_MAGIC * rate);
+    // AND ITS REWARD LIST IS NEVER SHOWN, which is why there is no scroll-text check here to match
+    // the ones above. Watchtower and Sea Slug are the two quests ~send_quest_complete routes to the
+    // `questscroll` interface instead of inter_238 (general/scripts/quests.rs2), and that branch
+    // writes the quest message, the quest-point count and the reward obj - never $rewardtext. Their
+    // reward lines exist only as a dead argument in the source. Pinned rather than left implied: if
+    // that branch ever starts printing them, this notices and the check above can join the others.
+    if (rate === 1) {
+        check('and shows no reward list at all, on the questscroll branch', rewardLines(p, from).filter(l => l.includes('Magic XP')).length, 0);
+    }
 }
 
 // ---- 3. The rate itself, so a real missing multiplier cannot hide behind section 1 -----------
