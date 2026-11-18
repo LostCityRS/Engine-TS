@@ -26,7 +26,7 @@ import type Player from '#/engine/entity/Player.js';
 await H.boot();
 
 // The engine's stat order, for the skills this sim reads.
-const STAT = { prayer: 5, herblore: 15 } as const;
+const STAT = { prayer: 5, magic: 6, herblore: 15 } as const;
 
 /** The reward lines the scroll was just given (inter_238:com_10..14). */
 function rewardLines(p: Player, from: number): string[] {
@@ -85,6 +85,25 @@ for (const rate of [1, 10]) {
     check('Jungle Potion advertises one Herblore XP line', advertised.length, 1);
     check('Jungle Potion advertises 775 Herblore XP', advertised[0], '775 Herblore XP');
     check('and pays exactly what it advertises at Realism', r.gained, JP_HERBLORE);
+}
+
+// ---- 2b. Desert Treasure: 20,000 Magic XP, and the same bug the other way up -----------------
+// This one was written at TEN TIMES its reward rather than a tenth, so it paid 200,000 to a player
+// on Realism and two million on 10x. It is driven at all three rates for the same reason Priest in
+// Peril is: a wrong amount and a wrong multiplier are indistinguishable at a single rate.
+const DT_MAGIC = 20000;
+
+for (const rate of [1, 5, 10]) {
+    const r = completed('dt', 'dt_quest_complete', STAT.magic, rate, () => {});
+    check(`Desert Treasure at ${rate}x pays ${DT_MAGIC} x ${rate} Magic XP`, r.gained, DT_MAGIC * rate);
+}
+
+{
+    const r = completed('dtscroll', 'dt_quest_complete', STAT.magic, 1, () => {});
+    const advertised = r.lines.filter(l => l.includes('Magic XP'));
+    check('Desert Treasure advertises one Magic XP line', advertised.length, 1);
+    check('Desert Treasure advertises 20,000 Magic XP', advertised[0], '20,000 Magic XP');
+    check('and pays exactly what it advertises at Realism', r.gained, DT_MAGIC);
 }
 
 // ---- 3. The rate itself, so a real missing multiplier cannot hide behind section 1 -----------
