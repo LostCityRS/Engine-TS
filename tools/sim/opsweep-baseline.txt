@@ -4,7 +4,7 @@
 #
 # This file is a ratchet, not an approval. Every line in it is an option a player can
 # click that does nothing. The number should only ever go down.
-# 2801 lines at the time of writing.
+# 2784 lines at the time of writing.
 
 dead grid inter_232:com_90 op1="Value"
 dead grid inter_232:com_90 op2="Buy"
@@ -1624,8 +1624,6 @@ dead loc  village_door_l_open op1="Close"
 dead loc  village_door_r op1="Open"
 dead loc  village_door_r_open op1="Close"
 dead loc  watchleverdown op1="Pull"
-dead loc  waterfall_ledge_door_left op1="Open"
-dead loc  waterfall_ledge_door_right op1="Open"
 dead loc  waterfall_swim_point op1="Swim"
 dead loc  webwall op1="Slash"
 dead loc  wild_chest_closed op1="Open"

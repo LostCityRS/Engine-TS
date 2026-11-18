@@ -2,7 +2,10 @@
 //
 //   npx tsx tools/sim/opsweep.ts                 the report
 //   npx tsx tools/sim/opsweep.ts --baseline      rewrite tools/sim/opsweep-baseline.txt
-//   npx tsx tools/sim/opsweep.ts --check         fail if anything is dead that was not dead before
+//   npx tsx tools/sim/opsweep.ts --check         fail on a new dead option a player can REACH
+//
+// --check fails on a new dead option on a loc the map PLACES, and records one on a loc it does
+// not. See the note above placedLines for why the line is drawn there and what it costs.
 //   npx tsx tools/sim/opsweep.ts --area 3200 3150 3300 3250
 //
 // WHY THIS AND NOT THE FUZZER. The fuzzer answers "what breaks". This answers "what was never
@@ -460,6 +463,25 @@ if (strangers.size) {
 // ------------------------------------------------------------------------------------ the baseline
 
 const signature = [...dead.map(r => `dead ${r.line}`), ...swallowed.map(r => `global ${r.line}`)].sort();
+
+// WHICH NEW LINES ARE WORTH FAILING A BUILD OVER. A dead option on a loc the map never places is
+// unreachable: real, worth recording, and nobody can click it. A dead option on a loc with spawns
+// is a ticket waiting to be filed - log_withaxe (tracker #26) was exactly that, sitting in this
+// file for months while a player walked up to it. So --check draws the line there, and the set
+// below is what it draws it with.
+//
+// This LOOSENS the ratchet for unplaced lines on purpose, which is the part to be careful about.
+// The argument for it: a gate that fires on something no player can reach trains whoever hits it
+// to re-run --baseline, and a ratchet nobody believes is worse than one that fires less often.
+// The argument against: unreachable today is not unreachable for ever - a map edit can place a
+// loc years after its option died. That is why an unplaced line is still PRINTED and still goes
+// into the baseline; it is the exit code that changes, not the record.
+//
+// The other half of this is siblings.ts, which fails on a new family where some members are
+// answered and some are not. The two catch different things and neither subsumes the other: a
+// brand-new loc wired to nothing has no answered sibling to give it away, and a dead member of an
+// answered family can sit on a loc the map does not place. Both gates, deliberately.
+const placedLines = new Set(dead.filter(r => r.instances > 0).map(r => `dead ${r.line}`));
 if (WRITE_BASELINE) {
     fs.mkdirSync(path.dirname(BASELINE_FILE), { recursive: true });
     fs.writeFileSync(
@@ -496,9 +518,26 @@ if (CHECK) {
     }
     const added = signature.filter(l => !before.has(l));
     const fixed = [...before].filter(l => !signature.includes(l));
-    console.log(`\nAGAINST THE BASELINE: ${added.length} new, ${fixed.length} fixed`);
-    for (const line of added.slice(0, 40)) {
+
+    // A new line fails unless it is a dead option on a loc the map never places - see the note by
+    // placedLines above. `global` lines are not downgraded: an option that newly falls through to
+    // a catch-all handler is a wiring change, not an unreachable one.
+    const reachable = added.filter(l => !l.startsWith('dead ') || placedLines.has(l));
+    const unreachable = added.filter(l => l.startsWith('dead ') && !placedLines.has(l));
+
+    console.log(`\nAGAINST THE BASELINE: ${added.length} new (${reachable.length} reachable), ${fixed.length} fixed`);
+    for (const line of reachable.slice(0, 40)) {
         console.log(`   NEW  ${line}`);
+    }
+    if (unreachable.length) {
+        console.log(`\n   ${unreachable.length} of the new lines are on locs the map never places - recorded, not failed:`);
+        for (const line of unreachable.slice(0, 10)) {
+            console.log(`   new, unreachable  ${line}`);
+        }
+        if (unreachable.length > 10) {
+            console.log(`   ... and ${unreachable.length - 10} more`);
+        }
+        console.log('   rerun with --baseline to bank them, and they stay unreachable only until somebody places one');
     }
     for (const line of fixed.slice(0, 10)) {
         console.log(`   fixed ${line}`);
@@ -506,7 +545,7 @@ if (CHECK) {
     if (fixed.length > 10) {
         console.log(`   ... and ${fixed.length - 10} more fixed - rerun with --baseline to bank them`);
     }
-    process.exit(added.length ? 1 : 0);
+    process.exit(reachable.length ? 1 : 0);
 }
 
 process.exit(0);
