@@ -283,6 +283,11 @@ class ClanChatService {
         for (const member of channel.members) {
             member.write(packet);
         }
+
+        // AFTER THE TWO REFUSALS ABOVE, so the log holds what was said and not what somebody tried
+        // to say in a channel that would not carry it. `text` is already ChatText.decode'd by
+        // ClanMessageHandler, which is the same as-typed string public chat logs as logMessage.
+        World.logClanChat(player, channel.owner, channel.name, text);
     }
 
     // ---- login, logout, friends

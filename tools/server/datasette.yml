@@ -22,13 +22,16 @@ databases:
 
       player_chat:
         title: What a player said
-        description: Public chat and private messages in one list, newest first.
+        description: >-
+          Public chat, private messages and clan channel lines in one list, newest first. A clan
+          line names its channel in the channel column; the other two leave it empty.
         sql: |-
           select
               pc.timestamp as said_at,
               'public' as kind,
               a.username as who,
               '' as to_who,
+              '' as channel,
               pc.message as message,
               ((pc.coord >> 14) & 16383) || ', ' || (pc.coord & 16383) as tile
           from public_chat pc
@@ -41,6 +44,7 @@ databases:
               'private',
               sender.username,
               recip.username,
+              '',
               p.message,
               ((p.coord >> 14) & 16383) || ', ' || (p.coord & 16383)
           from private_chat p
@@ -48,30 +52,53 @@ databases:
           join account recip on recip.id = p.to_account_id
           where lower(replace(sender.username, ' ', '_')) = lower(replace(:name, ' ', '_'))
              or lower(replace(recip.username, ' ', '_')) = lower(replace(:name, ' ', '_'))
+          union all
+          select
+              cc.timestamp,
+              'clan',
+              a.username,
+              '',
+              cc.channel,
+              cc.message,
+              ((cc.coord >> 14) & 16383) || ', ' || (cc.coord & 16383) || ', level ' || ((cc.coord >> 28) & 3)
+          from clan_chat cc
+          join session s on s.uuid = cc.session_uuid
+          join account a on a.id = s.account_id
+          where lower(replace(a.username, ' ', '_')) = lower(replace(:name, ' ', '_'))
           order by said_at desc
           limit 500
 
       player_alts:
         title: Other accounts on the same address or machine
         description: >-
-          uid 0 is excluded on both sides. It is the client install id, and it is 0 when the
-          client could not read uid.dat - so it is shared by strangers. Matching on it names
-          them alts.
+          Two sentinels are excluded and neither is NULL: uid 0 (the client install id, 0 when
+          the client could not read uid.dat) and the literal address 'unknown' (what
+          normalizeAddress returns for a socket with no address). Both are shared by strangers,
+          and matching on either turns them into alts. shared_address names the address that
+          matched, because a match nobody can check is how that went unnoticed.
         sql: |-
           with mine as (
               select s.uid, s.ip
               from session s
               join account a on a.id = s.account_id
               where lower(replace(a.username, ' ', '_')) = lower(replace(:name, ' ', '_'))
+          ),
+          my_ips as (
+              select distinct ip from mine
+              where ip is not null and ip <> '' and ip <> 'unknown'
+          ),
+          my_uids as (
+              select distinct uid from mine where uid <> 0
           )
           select
               other.username as account,
               case
-                  when max(s.uid != 0 and s.uid in (select uid from mine where uid != 0)) = 1
-                   and max(s.ip in (select ip from mine where ip is not null)) = 1 then 'same PC + address'
-                  when max(s.uid != 0 and s.uid in (select uid from mine where uid != 0)) = 1 then 'same PC'
+                  when max(s.uid <> 0 and s.uid in (select uid from my_uids)) = 1
+                   and max(s.ip in (select ip from my_ips)) = 1 then 'same PC + address'
+                  when max(s.uid <> 0 and s.uid in (select uid from my_uids)) = 1 then 'same PC'
                   else 'same address'
               end as link,
+              group_concat(distinct case when s.ip in (select ip from my_ips) then s.ip end) as shared_address,
               count(*) as logins,
               min(s.timestamp) as first_seen,
               max(s.timestamp) as last_seen,
@@ -81,8 +108,8 @@ databases:
           join account other on other.id = s.account_id
           where other.username != (select username from account where lower(replace(username, ' ', '_')) = lower(replace(:name, ' ', '_')))
             and (
-                  s.ip in (select ip from mine where ip is not null)
-               or (s.uid != 0 and s.uid in (select uid from mine where uid != 0))
+                  s.ip in (select ip from my_ips)
+               or (s.uid <> 0 and s.uid in (select uid from my_uids))
             )
           group by other.id
           order by link = 'same address', last_seen desc
@@ -91,7 +118,11 @@ databases:
         title: Addresses many accounts have used
         description: Context for the query above. A busy address means an address match proves nothing.
         sql: |-
-          select ip, count(distinct account_id) as accounts, count(*) as logins, max(timestamp) as last_seen
+          select ip,
+                 case when ip is null or ip = '' or ip = 'unknown'
+                      then 'NOT AN ADDRESS - the socket had none. Never a link between accounts.'
+                      else '' end as note,
+                 count(distinct account_id) as accounts, count(*) as logins, max(timestamp) as last_seen
           from session
           where ip is not null
           group by ip
@@ -110,3 +141,42 @@ databases:
           group by p.account_id, p.to_account_id
           order by messages desc
           limit 200
+
+      clan_channel:
+        title: A clan channel, as a conversation
+        description: >-
+          Takes the channel's name or its owner, since a name can be changed and a report quotes
+          whichever it saw. Newest 500 lines, shown oldest first so it reads forwards.
+        sql: |-
+          select * from (
+              select
+                  cc.timestamp as said_at,
+                  a.username as who,
+                  cc.message as message,
+                  cc.channel as channel,
+                  cc.owner as owner,
+                  ((cc.coord >> 14) & 16383) || ', ' || (cc.coord & 16383) || ', level ' || ((cc.coord >> 28) & 3) as tile
+              from clan_chat cc
+              join session s on s.uuid = cc.session_uuid
+              join account a on a.id = s.account_id
+              where lower(cc.channel) = lower(:channel) or lower(cc.owner) = lower(:channel)
+              order by cc.timestamp desc
+              limit 500
+          )
+          order by said_at
+
+      clan_channels:
+        title: Which channels have been talked in
+        description: The way in to the page above when you do not know the channel's name.
+        sql: |-
+          select
+              channel,
+              owner,
+              count(*) as lines_said,
+              count(distinct s.account_id) as speakers,
+              min(cc.timestamp) as first_seen,
+              max(cc.timestamp) as last_seen
+          from clan_chat cc
+          join session s on s.uuid = cc.session_uuid
+          group by cc.owner, cc.channel
+          order by last_seen desc

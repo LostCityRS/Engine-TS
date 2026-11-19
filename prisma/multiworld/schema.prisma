@@ -208,6 +208,20 @@ model private_chat {
     message       String
 }
 
+model clan_chat {
+    id Int @id @default(autoincrement())
+
+    session_uuid String
+    timestamp    DateTime
+
+    coord   Int
+    owner   String
+    channel String
+    message String
+
+    @@index([session_uuid])
+}
+
 model report {
     id Int @id @default(autoincrement())
 

@@ -2016,6 +2016,17 @@ class World {
         });
     }
 
+    logClanChat(player: Player, owner: string, channel: string, chat: string) {
+        this.friendThread.postMessage({
+            type: 'clan_message',
+            session_uuid: player.session,
+            coord: player.coord,
+            owner,
+            channel,
+            chat
+        });
+    }
+
     logPublicChat(player: Player, chat: string) {
         this.friendThread.postMessage({
             type: 'public_message',

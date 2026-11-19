@@ -32,7 +32,13 @@ export const enum FriendsClientOpcodes {
     RELAY_RELOAD,
     RELAY_CLEARLOGINS,
     RELAY_CLEARLOGOUTS,
-    RELAY_QUEUESCRIPT
+    RELAY_QUEUESCRIPT,
+    // AT THE END, NOT BESIDE PUBLIC_CHAT_LOG WHERE IT BELONGS BY SUBJECT. These are implicit
+    // ordinals and they travel between two processes: the world sends the number, the friend
+    // server switches on it. Inserting one in the middle renumbers everything after it, so during
+    // a deploy where one side has restarted and the other has not, a kick would arrive as a
+    // broadcast. Appending is the only safe place.
+    CLAN_CHAT_LOG
 }
 
 /**
@@ -293,6 +299,20 @@ export class FriendServer {
                                 session_uuid,
                                 timestamp: toDbDate(nodeTime),
                                 coord,
+                                message: chat
+                            })
+                            .execute();
+                    } else if (type === FriendsClientOpcodes.CLAN_CHAT_LOG) {
+                        const { nodeTime, session_uuid, coord, owner, channel, chat } = message;
+
+                        await db
+                            .insertInto('clan_chat')
+                            .values({
+                                session_uuid,
+                                timestamp: toDbDate(nodeTime),
+                                coord,
+                                owner,
+                                channel,
                                 message: chat
                             })
                             .execute();
@@ -667,6 +687,34 @@ export class FriendClient extends InternalClient {
                 pmId,
                 chat,
                 coord
+            })
+        );
+    }
+
+    /**
+     * A line said in a clan channel. LOGGING ONLY - the channel itself is still relayed inside the
+     * one world by ClanChat, which is deliberate (see its header: putting the channel through the
+     * friend server is what would join the worlds together). This writes a row and sends nothing
+     * back, so it records clan chat without changing where clan chat goes.
+     */
+    async clanMessage(session_uuid: string, coord: number, owner: string, channel: string, chat: string) {
+        await this.connect();
+
+        if (!this.ws || !this.wsr || !this.wsr.checkIfWsLive()) {
+            return;
+        }
+
+        this.ws.send(
+            JSON.stringify({
+                type: FriendsClientOpcodes.CLAN_CHAT_LOG,
+                nodeId: this.nodeId,
+                profile: this.profile,
+                nodeTime: Date.now(),
+                session_uuid,
+                coord,
+                owner,
+                channel,
+                chat
             })
         );
     }

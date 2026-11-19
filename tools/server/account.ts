@@ -57,8 +57,9 @@
  *   npx tsx tools/server/account.ts audit                       every staff command, last 7 days
  *   npx tsx tools/server/account.ts audit bob --days 30
  *   npx tsx tools/server/account.ts audit --summary --limit 500
- *   npx tsx tools/server/account.ts chat bob --days 7       what they said, public and private
+ *   npx tsx tools/server/account.ts chat bob --days 7       what they said: public, private, clan
  *   npx tsx tools/server/account.ts chat bob --with alice --where
+ *   npx tsx tools/server/account.ts clan "Death Plateau"       a whole clan channel, oldest first
  *   npx tsx tools/server/account.ts whois bob                  other accounts on the same IP or PC
  *   npx tsx tools/server/account.ts logout bob
  *
@@ -1169,9 +1170,28 @@ async function cmdAudit() {
 // coinciding, and it survives a change of address. It does NOT survive a cache wipe, so a uid
 // that fails to match proves nothing either way.
 //
-// AN IP IS THE WEAKER HALF. Families, shared houses, phone networks and VPNs all put unrelated
-// people on one address, so an address that many accounts have used says little; `whois` counts
-// how many and says so rather than presenting a crowded address as a finding.
+// AN ADDRESS OF 'unknown' IS NOT AN ADDRESS, and it is the same trap wearing different clothes.
+// normalizeAddress (src/server/ConnectionLimiter.ts) returns the LITERAL STRING 'unknown' when a
+// socket has no address - which Node does for a connection already destroyed by the time the
+// event fires - and that string goes straight into session.ip. It is not NULL, so a plain
+// not-null test lets it through, and then every bad-socket login matches every other one. On the
+// live server that turned eight unrelated players, each with one or two such logins, into the
+// owner's alts. Found only because somebody read the output and knew it was wrong.
+//
+// SO THE MATCHED ADDRESS IS PRINTED. A match that cannot name what it matched on is a match
+// nobody can check, which is exactly how the above survived being written, tested and shipped.
+//
+// AN ADDRESS IS THE WEAKER HALF even when it is real. Families, shared houses, phone networks and
+// VPNs all put unrelated people on one address, so an address that many accounts have used says
+// little; `whois` counts how many and says so rather than presenting a crowded one as a finding.
+
+/**
+ * An address worth matching on. NOT just "not null": normalizeAddress writes the literal string
+ * 'unknown' for a socket with no address, and an empty string is as empty as a null.
+ */
+function usableAddress(ip: string | null | undefined): ip is string {
+    return typeof ip === 'string' && ip.length > 0 && ip !== 'unknown';
+}
 
 function coordText(coord: number) {
     const level = (coord >> 28) & 0x3;
@@ -1196,7 +1216,7 @@ function windowFlags(defDays: number, defLimit: number) {
     return { days, limit };
 }
 
-type ChatLine = { timestamp: string; who: string; message: string; coord: number; kind: 'public' | 'private' };
+type ChatLine = { timestamp: string; who: string; message: string; coord: number; kind: 'public' | 'private' | 'clan' };
 
 async function cmdChat(username: string) {
     const { days, limit } = windowFlags(7, 200);
@@ -1205,11 +1225,15 @@ async function cmdChat(username: string) {
     const account = await getAccount(username);
     if (!account) fail(`no account called ${username}`);
 
-    // --with names a correspondent, and public chat has none, so it narrows to the private
-    // half unless --public is asked for on top of it. Without this, `--with alice` returned
-    // every unrelated thing the player shouted that week alongside the two lines wanted.
-    const wantPublic = args.private !== true && (typeof args.with !== 'string' || args.public === true);
-    const wantPrivate = args.public !== true || typeof args.with === 'string';
+    // ANY of --public/--private/--clan selects; none of them means all three. --with names a
+    // correspondent and only a private message has one, so it narrows to the private half unless
+    // another is asked for alongside it - without that, `--with alice` returned every unrelated
+    // thing the player shouted that week beside the two lines wanted.
+    const withUser = typeof args.with === 'string';
+    const picked = args.public === true || args.private === true || args.clan === true;
+    const wantPublic = picked ? args.public === true : !withUser;
+    const wantPrivate = (picked ? args.private === true : true) || withUser;
+    const wantClan = picked ? args.clan === true : !withUser;
 
     // --with restricts the private half to one correspondent. The pair is what matters in a
     // scam report, and without this a chatty player buries it.
@@ -1222,18 +1246,23 @@ async function cmdChat(username: string) {
 
     const lines: ChatLine[] = [];
 
-    if (wantPublic) {
-        // Public chat is tied to a session, not an account, so their sessions come first. Every
-        // one of them: a player who logs in daily has hundreds, and the window is applied to the
-        // chat rows rather than to the sessions because a session that began before the window
-        // can carry lines inside it.
+    if (wantPublic || wantClan) {
+        // Public and clan chat are both tied to a session, not an account, so their sessions come
+        // first - and one lookup serves both. Every session: a player who logs in daily has
+        // hundreds, and the window is applied to the chat rows rather than to the sessions
+        // because a session that began before the window can carry lines inside it.
         const sessions = await tryDb('sessions', () => db.selectFrom('session').select('uuid').where('account_id', '=', account.id).where('profile', '=', profile).execute());
         if (sessions === null) return;
         const uuids = sessions.map(s => s.uuid);
-        if (uuids.length) {
+        if (uuids.length && wantPublic) {
             const rows = await tryDb('public chat', () => db.selectFrom('public_chat').select(['timestamp', 'coord', 'message']).where('session_uuid', 'in', uuids).where('timestamp', '>=', since).orderBy('timestamp', 'desc').limit(limit).execute());
             if (rows === null) return;
             for (const row of rows) lines.push({ timestamp: row.timestamp as unknown as string, who: account.username, message: row.message, coord: row.coord, kind: 'public' });
+        }
+        if (uuids.length && wantClan) {
+            const rows = await tryDb('clan chat', () => db.selectFrom('clan_chat').select(['timestamp', 'coord', 'message', 'channel']).where('session_uuid', 'in', uuids).where('timestamp', '>=', since).orderBy('timestamp', 'desc').limit(limit).execute());
+            if (rows === null) return;
+            for (const row of rows) lines.push({ timestamp: row.timestamp as unknown as string, who: `${account.username} @${row.channel}`, message: row.message, coord: row.coord, kind: 'clan' });
         }
     }
 
@@ -1267,9 +1296,10 @@ async function cmdChat(username: string) {
         // of them is good news. Same distinction cmdAudit draws for session_log.
         const anyPub = await tryDb('public chat', () => db.selectFrom('public_chat').select('id').limit(1).execute());
         const anyPriv = await tryDb('private chat', () => db.selectFrom('private_chat').select('id').limit(1).execute());
-        if (anyPub !== null && anyPriv !== null && !anyPub.length && !anyPriv.length) {
+        const anyClan = await tryDb('clan chat', () => db.selectFrom('clan_chat').select('id').limit(1).execute());
+        if (anyPub !== null && anyPriv !== null && anyClan !== null && !anyPub.length && !anyPriv.length && !anyClan.length) {
             console.log('');
-            console.log('  BOTH CHAT TABLES ARE EMPTY - nothing has ever been recorded on this world, so this');
+            console.log('  ALL THREE CHAT TABLES ARE EMPTY - nothing has ever been recorded on this world, so this');
             console.log('  says nothing about what anyone has said. Chat is written by the FRIEND server:');
             console.log('');
             console.log('    FRIEND_SERVER=true in .env, AND a friend process running (npm run friend,');
@@ -1281,8 +1311,9 @@ async function cmdChat(username: string) {
     }
 
     const pub = shown.filter(l => l.kind === 'public').length;
-    const priv = shown.length - pub;
-    console.log(`  ${account.username}, last ${days} day${days === 1 ? '' : 's'} - ${shown.length} line${shown.length === 1 ? '' : 's'} (${pub} public, ${priv} private)`);
+    const clan = shown.filter(l => l.kind === 'clan').length;
+    const priv = shown.length - pub - clan;
+    console.log(`  ${account.username}, last ${days} day${days === 1 ? '' : 's'} - ${shown.length} line${shown.length === 1 ? '' : 's'} (${pub} public, ${priv} private, ${clan} clan)`);
     console.log('');
     const width = Math.max(...shown.map(l => l.who.length));
     for (const line of shown) {
@@ -1290,11 +1321,87 @@ async function cmdChat(username: string) {
         if (args.where === true) console.log(`  ${' '.repeat(19)}  ${' '.repeat(width)}  at ${coordText(line.coord)}`);
     }
     console.log('');
-    console.log('  a bare name is public chat; "a -> b" is a private message. --where adds the tile.');
+    console.log('  a bare name is public chat, "a -> b" a private message, "a @name" a clan channel.');
+    console.log('  --where adds the tile. --public, --private and --clan each narrow it to one kind.');
     // NO NUMBER HERE, deliberately. Each half was capped at --limit before the merge, so
     // lines.length is not the total that exists - subtracting from it reported '2 older lines'
     // for a player with five more. Either half coming back full means there may be more.
     if (lines.length >= limit) console.log(`  there may be older lines than these - raise --limit (now ${limit}).`);
+}
+
+/**
+ * A whole clan channel, rather than one player's share of it. `chat` answers "what did this
+ * person say", which deliberately leaves out everyone they were talking to; a channel is where
+ * the trade gets arranged and the scam gets planned, and that only reads as a conversation.
+ *
+ * TAKES THE NAME OR THE OWNER. A channel's identity is its owner and its name can be changed at
+ * any time, so somebody reading a report has whichever of the two the report happened to quote.
+ */
+async function cmdClan(channel: string) {
+    const { days, limit } = windowFlags(7, 200);
+    const since = toDbDate(Date.now() - days * 86400000);
+    const needle = channel.toLowerCase();
+
+    const rows = await tryDb('clan chat', () =>
+        db
+            .selectFrom('clan_chat')
+            .select(['timestamp', 'coord', 'message', 'owner', 'channel', 'session_uuid'])
+            .where('timestamp', '>=', since)
+            .where(eb => eb.or([eb(eb.fn('lower', ['channel']), '=', needle), eb(eb.fn('lower', ['owner']), '=', needle)]))
+            .orderBy('timestamp', 'desc')
+            .limit(limit)
+            .execute()
+    );
+    if (rows === null) return;
+
+    if (!rows.length) {
+        console.log(`  nothing in a channel called ${channel} in the last ${days} day${days === 1 ? '' : 's'}.`);
+        const any = await tryDb('clan chat', () => db.selectFrom('clan_chat').select('id').limit(1).execute());
+        if (any !== null && !any.length) {
+            console.log('');
+            console.log('  clan_chat is EMPTY - no clan line has ever been recorded on this world. It needs');
+            console.log('  FRIEND_SERVER=true and a friend process running, the same as public chat, AND an');
+            console.log('  engine new enough to log it at all. Nothing is recorded retroactively.');
+            return;
+        }
+        const named = await tryDb('clan chat', () => db.selectFrom('clan_chat').select(['owner', 'channel']).orderBy('timestamp', 'desc').limit(200).execute());
+        const seen = [...new Map((named ?? []).map(r => [`${r.owner}\u0000${r.channel}`, r])).values()];
+        if (seen.length) {
+            console.log('  channels with lines recently, as "name (owner)":');
+            for (const c of seen.slice(0, 20)) console.log(`    ${c.channel} (${c.owner})`);
+        }
+        return;
+    }
+
+    // uuid -> name, in two steps rather than a join: the file does its reads this way throughout,
+    // and a missing session row has to degrade to the uuid rather than drop the line.
+    const names = new Map<string, string>();
+    const uuids = [...new Set(rows.map(r => r.session_uuid))];
+    const sessions = await tryDb('sessions', () => db.selectFrom('session').select(['uuid', 'account_id']).where('uuid', 'in', uuids).execute());
+    if (sessions?.length) {
+        const ids = [...new Set(sessions.map(x => x.account_id))];
+        const accounts = await tryDb('accounts', () => db.selectFrom('account').select(['id', 'username']).where('id', 'in', ids).execute());
+        const byId = new Map((accounts ?? []).map(a => [a.id, a.username]));
+        for (const session of sessions) {
+            const name = byId.get(session.account_id);
+            if (name) names.set(session.uuid, name);
+        }
+    }
+
+    const channels = [...new Set(rows.map(r => `${r.channel} (${r.owner})`))];
+    console.log(`  ${channels.join(', ')} - last ${days} day${days === 1 ? '' : 's'}, ${rows.length} line${rows.length === 1 ? '' : 's'}`);
+    console.log('');
+    const width = Math.max(...rows.map(r => (names.get(r.session_uuid) ?? r.session_uuid.slice(0, 8)).length));
+    for (const row of rows.slice().reverse()) {
+        const who = names.get(row.session_uuid) ?? `session ${row.session_uuid.slice(0, 8)}`;
+        console.log(`  ${String(row.timestamp).slice(0, 19)}  ${who.padEnd(width)}  ${row.message}`);
+        if (args.where === true) console.log(`  ${' '.repeat(19)}  ${' '.repeat(width)}  at ${coordText(row.coord)}`);
+    }
+    console.log('');
+    // OLDEST FIRST, unlike every other read here, because this one is a conversation and a
+    // conversation read upwards is not one.
+    console.log('  oldest first - it is a conversation. --where adds the tile.');
+    if (rows.length >= limit) console.log(`  there may be older lines than these - raise --limit (now ${limit}).`);
 }
 
 async function cmdWhois(username: string) {
@@ -1309,15 +1416,18 @@ async function cmdWhois(username: string) {
         return;
     }
 
-    // A uid of 0 is "the client could not read uid.dat", not a machine - see the note above.
-    const ips = [...new Set(mine.map(s => s.ip).filter((x): x is string => typeof x === 'string' && x.length > 0))];
+    // Neither sentinel is NULL, and that is the whole point - see the note above. uid 0 is "the
+    // client could not read uid.dat"; ip 'unknown' is "the socket had no address". Both are
+    // shared by strangers, so neither is a link.
+    const ips = [...new Set(mine.map(s => s.ip).filter(usableAddress))];
     const uids = [...new Set(mine.map(s => s.uid).filter(x => typeof x === 'number' && x !== 0))];
 
     const ipLogins = new Map<string, number>();
-    for (const s of mine) if (s.ip) ipLogins.set(s.ip, (ipLogins.get(s.ip) ?? 0) + 1);
+    for (const s of mine) if (usableAddress(s.ip)) ipLogins.set(s.ip, (ipLogins.get(s.ip) ?? 0) + 1);
+    const unreadable = mine.filter(s => !usableAddress(s.ip)).length;
 
     console.log(`  ${account.username} (account ${account.id}) - ${mine.length} login${mine.length === 1 ? '' : 's'} recorded`);
-    console.log(`    addresses:      ${ips.length ? ips.map(ip => `${ip} (${ipLogins.get(ip)})`).join(', ') : 'none recorded'}`);
+    console.log(`    addresses:      ${ips.length ? ips.map(ip => `${ip} (${ipLogins.get(ip)})`).join(', ') : 'none usable'}${unreadable ? `  (and ${unreadable} login${unreadable === 1 ? '' : 's'} whose socket had no address - not matchable)` : ''}`);
     console.log(`    client installs: ${uids.length ? uids.join(', ') : 'none usable'}${mine.some(s => s.uid === 0) ? '  (some logins reported uid 0 - unknown, not matchable)' : ''}`);
     console.log('');
 
@@ -1344,12 +1454,15 @@ async function cmdWhois(username: string) {
         return;
     }
 
-    type Match = { byIp: boolean; byUid: boolean; first: string; last: string; logins: number };
+    type Match = { byIp: boolean; byUid: boolean; first: string; last: string; logins: number; addresses: Set<string> };
     const matches = new Map<number, Match>();
     for (const row of others) {
         const ts = String(row.timestamp).slice(0, 19);
-        const m = matches.get(row.account_id) ?? { byIp: false, byUid: false, first: ts, last: ts, logins: 0 };
-        if (row.ip && ips.includes(row.ip)) m.byIp = true;
+        const m = matches.get(row.account_id) ?? { byIp: false, byUid: false, first: ts, last: ts, logins: 0, addresses: new Set<string>() };
+        if (row.ip && ips.includes(row.ip)) {
+            m.byIp = true;
+            m.addresses.add(row.ip);
+        }
         if (row.uid !== 0 && uids.includes(row.uid)) m.byUid = true;
         if (ts < m.first) m.first = ts;
         if (ts > m.last) m.last = ts;
@@ -1373,6 +1486,10 @@ async function cmdWhois(username: string) {
     console.log(`  ${order.length} other account${order.length === 1 ? '' : 's'} seen from the same address or machine:`);
     console.log('');
     const nameWidth = Math.max(8, ...order.map(id => (byId.get(id)?.username ?? `account ${id}`).length));
+    // The address goes in its own column rather than inline, so a "same PC" row with no address
+    // and a "same address" row with one still line up against each other.
+    const vias = new Map(order.map(id => [id, [...matches.get(id)!.addresses].join(', ')]));
+    const viaWidth = Math.max(0, ...vias.values().map(v => v.length));
     for (const id of order) {
         const other = byId.get(id);
         const m = matches.get(id)!;
@@ -1382,7 +1499,7 @@ async function cmdWhois(username: string) {
         if (other?.banned_until && new Date(other.banned_until) > new Date()) flags.push(`BANNED until ${String(other.banned_until).slice(0, 19)}`);
         if (other?.muted_until && new Date(other.muted_until) > new Date()) flags.push(`MUTED until ${String(other.muted_until).slice(0, 19)}`);
         if (other && other.staffmodlevel > 0) flags.push(`staff level ${other.staffmodlevel}`);
-        console.log(`  ${name.padEnd(nameWidth)}  ${link.padEnd(17)}  ${m.logins} login${m.logins === 1 ? '' : 's'}, ${m.first} to ${m.last}${flags.length ? `  ${flags.join(', ')}` : ''}`);
+        console.log(`  ${name.padEnd(nameWidth)}  ${link.padEnd(17)}  ${(vias.get(id) ?? '').padEnd(viaWidth)}  ${m.logins} login${m.logins === 1 ? '' : 's'}, ${m.first} to ${m.last}${flags.length ? `  ${flags.join(', ')}` : ''}`);
     }
     console.log('');
 
@@ -1478,8 +1595,13 @@ async function main() {
             break;
 
         case 'chat':
-            if (!username) fail('usage: chat <user> [--days 7] [--limit 200] [--with <user>] [--public|--private] [--where]');
+            if (!username) fail('usage: chat <user> [--days 7] [--limit 200] [--with <user>] [--public|--private|--clan] [--where]');
             await cmdChat(username);
+            break;
+
+        case 'clan':
+            if (!username) fail('usage: clan <channel name or owner> [--days 7] [--limit 200] [--where]');
+            await cmdClan(username);
             break;
 
         case 'whois':
