@@ -1,0 +1,112 @@
+# Datasette canned queries for the Death Plateau database.  Tested against datasette 0.65.6.
+#
+# Datasette 0.x reads this as METADATA, so the flag is -m.  Serve a SNAPSHOT, never db.sqlite:
+# the live database is in rollback-journal mode (not WAL), where a reader blocks a writer, so a
+# query against it can stall the game server mid-save.  Take the snapshot with VACUUM INTO -
+# a plain copy leaves the newest writes behind in the journal beside it.
+#
+#   cd /opt/deathplateau/engine && node -e 'const{DatabaseSync}=require("node:sqlite");new DatabaseSync("db.sqlite").exec("VACUUM INTO \x27" + process.argv[1] + "\x27")' /opt/deathplateau/snapshots/snap.sqlite
+#
+#   /opt/datasette/bin/datasette serve /opt/deathplateau/snapshots/snap.sqlite \
+#     --host 127.0.0.1 --port 8001 --setting sql_time_limit_ms 5000 \
+#     -m /opt/deathplateau/engine/tools/server/datasette.yml
+#
+# --host 127.0.0.1 IS THE SECURITY.  Datasette ships with no login, and this database holds
+# every password hash and every IP on the server.  Reach it over an ssh tunnel, never 0.0.0.0.
+#
+# "snap" below is the database FILENAME without its extension.  Rename the file, rename this.
+# The same four joins are in moderation.sql, for a query box or any other tool.
+databases:
+  snap:
+    queries:
+
+      player_chat:
+        title: What a player said
+        description: Public chat and private messages in one list, newest first.
+        sql: |-
+          select
+              pc.timestamp as said_at,
+              'public' as kind,
+              a.username as who,
+              '' as to_who,
+              pc.message as message,
+              ((pc.coord >> 14) & 16383) || ', ' || (pc.coord & 16383) as tile
+          from public_chat pc
+          join session s on s.uuid = pc.session_uuid
+          join account a on a.id = s.account_id
+          where lower(replace(a.username, ' ', '_')) = lower(replace(:name, ' ', '_'))
+          union all
+          select
+              p.timestamp,
+              'private',
+              sender.username,
+              recip.username,
+              p.message,
+              ((p.coord >> 14) & 16383) || ', ' || (p.coord & 16383)
+          from private_chat p
+          join account sender on sender.id = p.account_id
+          join account recip on recip.id = p.to_account_id
+          where lower(replace(sender.username, ' ', '_')) = lower(replace(:name, ' ', '_'))
+             or lower(replace(recip.username, ' ', '_')) = lower(replace(:name, ' ', '_'))
+          order by said_at desc
+          limit 500
+
+      player_alts:
+        title: Other accounts on the same address or machine
+        description: >-
+          uid 0 is excluded on both sides. It is the client install id, and it is 0 when the
+          client could not read uid.dat - so it is shared by strangers. Matching on it names
+          them alts.
+        sql: |-
+          with mine as (
+              select s.uid, s.ip
+              from session s
+              join account a on a.id = s.account_id
+              where lower(replace(a.username, ' ', '_')) = lower(replace(:name, ' ', '_'))
+          )
+          select
+              other.username as account,
+              case
+                  when max(s.uid != 0 and s.uid in (select uid from mine where uid != 0)) = 1
+                   and max(s.ip in (select ip from mine where ip is not null)) = 1 then 'same PC + address'
+                  when max(s.uid != 0 and s.uid in (select uid from mine where uid != 0)) = 1 then 'same PC'
+                  else 'same address'
+              end as link,
+              count(*) as logins,
+              min(s.timestamp) as first_seen,
+              max(s.timestamp) as last_seen,
+              case when other.banned_until > datetime('now') then 'BANNED until ' || other.banned_until else '' end as banned,
+              case when other.muted_until > datetime('now') then 'MUTED until '  || other.muted_until else '' end as muted
+          from session s
+          join account other on other.id = s.account_id
+          where other.username != (select username from account where lower(replace(username, ' ', '_')) = lower(replace(:name, ' ', '_')))
+            and (
+                  s.ip in (select ip from mine where ip is not null)
+               or (s.uid != 0 and s.uid in (select uid from mine where uid != 0))
+            )
+          group by other.id
+          order by link = 'same address', last_seen desc
+
+      crowded_ips:
+        title: Addresses many accounts have used
+        description: Context for the query above. A busy address means an address match proves nothing.
+        sql: |-
+          select ip, count(distinct account_id) as accounts, count(*) as logins, max(timestamp) as last_seen
+          from session
+          where ip is not null
+          group by ip
+          having count(distinct account_id) > 1
+          order by accounts desc
+
+      pm_pairs:
+        title: Who messages whom
+        description: A ring feeding one account shows up as a column of rows pointing at one name.
+        sql: |-
+          select sender.username as from_who, recip.username as to_who, count(*) as messages,
+                 min(p.timestamp) as first_seen, max(p.timestamp) as last_seen
+          from private_chat p
+          join account sender on sender.id = p.account_id
+          join account recip on recip.id = p.to_account_id
+          group by p.account_id, p.to_account_id
+          order by messages desc
+          limit 200
