@@ -11,6 +11,7 @@ import { check, CoordValid, LocTypeValid, NumberPositive, SeqTypeValid, SpotAnim
 import InstanceMap from '#/engine/InstanceMap.js';
 import World from '#/engine/World.js';
 import { MilestoneStore } from '#/engine/MilestoneStore.js';
+import { BroadcastFeed } from '#/server/broadcast/BroadcastFeed.js';
 import Environment from '#/util/Environment.js';
 import Midi from '#/cache/midi/Midi.js';
 
@@ -355,6 +356,10 @@ const ServerOps: CommandHandlers = {
         const message = state.popString();
 
         World.broadcastMes(message);
+        // And the Discord channel, if one is configured. NOT every message that gets here: this op
+        // carries content's yell and staff announcement procs as well as the news, so the feed
+        // decides - see the note at the top of BroadcastFeed.
+        BroadcastFeed.news(message);
     },
 
     // As BROADCAST_MES, but skipped by the players who turned milestones off - see
@@ -363,6 +368,10 @@ const ServerOps: CommandHandlers = {
         const message = state.popString();
 
         World.broadcastMilestone(message);
+        // Every milestone goes: this op carries nothing else. ::milestones is not consulted - it
+        // is a varp on a player, about that player's own chatbox, and a public channel is not
+        // anybody's chatbox.
+        BroadcastFeed.milestone(message);
     },
 
     // Claim a server first. True only for the account that got there first, and only once ever,

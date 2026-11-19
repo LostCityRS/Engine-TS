@@ -276,6 +276,21 @@ export default {
     MARKET_FEED_EVERY: tryParseInt(process.env.MARKET_FEED_EVERY, 15000),
     MARKET_CARD_ICONS: tryParseString(process.env.MARKET_CARD_ICONS, ''),
 
+    // custom (2026-11-19) - the broadcast feed (server/broadcast/BroadcastFeed.ts): the world's
+    // own announcements as cards in a Discord channel, drawn the same way the market's are. Off
+    // unless BROADCAST_FEED_WEBHOOK is set, and a webhook url is a password, so it belongs in .env
+    // and is never printed - only whether there is one.
+    //
+    // A DIFFERENT CHANNEL FROM THE MARKET, which is the point of it being a second variable rather
+    // than a flag on the first: a feed of what people are selling and a feed of what people have
+    // achieved are read by the same person in two different moods.
+    //
+    // BROADCAST_FEED_EVERY is lower than the market's 15s because these are rarer and more worth
+    // reading, and because milestones arrive in bursts rather than steadily - a total level and a
+    // 99 can land on the same tick.
+    BROADCAST_FEED_WEBHOOK: tryParseString(process.env.BROADCAST_FEED_WEBHOOK, ''),
+    BROADCAST_FEED_EVERY: tryParseInt(process.env.BROADCAST_FEED_EVERY, 5000),
+
     // custom (2026-09-21) - the Discord relay (server/discord/DiscordThread.ts): a bot that DMs players
     // their trading post notices. Both must be set or it does not start. Keep the token in .env only.
     DISCORD_TOKEN: tryParseString(process.env.DISCORD_TOKEN, ''),

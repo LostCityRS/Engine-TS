@@ -15,6 +15,7 @@ import BotManager from '#/engine/bot/BotManager.js';
 import DeadOps from '#/engine/script/DeadOps.js';
 import ScriptCoverage from '#/engine/script/ScriptCoverage.js';
 import ScriptFaults from '#/engine/script/ScriptFaults.js';
+import { BroadcastFeed } from '#/server/broadcast/BroadcastFeed.js';
 import { MarketFeed } from '#/server/market/MarketFeed.js';
 import VoteService from '#/engine/vote/VoteService.js';
 import VoteSites from '#/engine/vote/VoteSites.js';
@@ -58,6 +59,7 @@ ScriptFaults.init();
 // custom (2026-11-09) - the public market feed. Reads its webhook once and is off without
 // one, so this costs nothing on a world that has not configured it.
 MarketFeed.init();
+BroadcastFeed.init();
 
 // custom (2026-10-27) - read the voting sites now rather than the first time somebody talks to the
 // Vote clerk, so a mistyped sites.json is a line in the boot log and not a surprise in front of a
