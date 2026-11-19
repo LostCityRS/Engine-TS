@@ -250,14 +250,29 @@ export default {
     // server - so it belongs in .env and never in a commit. It is never printed, only whether
     // there is one.
     //
-    // MARKET_FEED_MIN keeps the bronze daggers out: a listing worth less than this many coins
-    // is not posted. MARKET_FEED_EVERY is the gap between cards, which is what stops a busy
-    // evening becoming a channel nobody reads.
+    // MARKET_FEED_MIN is the floor: a listing worth less than this many coins is not posted.
+    //
+    // IT IS NOUGHT, SO EVERYTHING IS. It was 50,000 to keep the bronze daggers out of the
+    // channel, which is the right instinct on a server with an economy and the wrong one on a
+    // server four days old: almost nobody has 50,000 to spend yet, and what the feed is actually
+    // for at this stage is telling people a thing has been listed AT ALL. Changed on the owner's
+    // reading of his own channel, 19 November 2026.
+    //
+    // AND IT SILENCED THE LISTINGS THAT MOST WANT AN AUDIENCE. A listing with no buyout - offers
+    // please - has no price to judge, so TradingPostOps hands over the lot's shop value instead,
+    // and any floor at all therefore muted every cheap item somebody was asking for offers on.
+    //
+    // NOUGHT POSTS A NOUGHT. The test is `value < minValue`, not `<=`, so a lot that is worth
+    // nothing still goes out rather than being the one thing a floor of nought keeps catching.
+    //
+    // MARKET_FEED_EVERY is the gap between cards, which is what stops a busy evening becoming a
+    // channel nobody reads - and that, with the queue's cap dropping the cheapest first, is what
+    // makes a floor of nought safe to have.
     //
     // MARKET_CARD_ICONS is where tools/models/ObjIconFiles.java wrote the item icons - on the
     // live box, the website's public/icons. Unset, and cards still draw, with an empty slot.
     MARKET_FEED_WEBHOOK: tryParseString(process.env.MARKET_FEED_WEBHOOK, ''),
-    MARKET_FEED_MIN: tryParseInt(process.env.MARKET_FEED_MIN, 50000),
+    MARKET_FEED_MIN: tryParseInt(process.env.MARKET_FEED_MIN, 0),
     MARKET_FEED_EVERY: tryParseInt(process.env.MARKET_FEED_EVERY, 15000),
     MARKET_CARD_ICONS: tryParseString(process.env.MARKET_CARD_ICONS, ''),
 

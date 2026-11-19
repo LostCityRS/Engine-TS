@@ -80,8 +80,10 @@ class MarketFeedImpl {
         }
         this.minValue = Environment.MARKET_FEED_MIN;
         this.every = Math.max(1000, Environment.MARKET_FEED_EVERY);
-        // Whether there is a URL, never the URL.
-        console.log(`market feed: on, one card every ${Math.round(this.every / 1000)}s, nothing under ${commas(this.minValue)} gp`);
+        // Whether there is a URL, never the URL. "nothing under 0 gp" is not a sentence, and
+        // this line is the only place the floor is ever stated out loud.
+        const floor = this.minValue > 0 ? `nothing under ${commas(this.minValue)} gp` : 'every listing, whatever it is worth';
+        console.log(`market feed: on, one card every ${Math.round(this.every / 1000)}s, ${floor}`);
     }
 
     get enabled(): boolean {
