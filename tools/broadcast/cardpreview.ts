@@ -16,6 +16,10 @@
  */
 import fs from 'fs';
 
+// World first, for the reason tools/server/account.ts gives at its own top import.
+import World from '#/engine/World.js';
+
+import ObjType from '#/cache/config/ObjType.js';
 import { renderBroadcastCard, splitBroadcast } from '#/server/broadcast/BroadcastCard.js';
 import { postCard } from '#/server/market/MarketFeed.js';
 import Environment from '#/util/Environment.js';
@@ -28,20 +32,41 @@ if (!out || out.startsWith('--')) {
     process.exit(1);
 }
 
+// account.ts says why this is reload() and not World.start(), and why an empty data/pack is a
+// normal state rather than a broken install.
+if (!fs.existsSync('data/pack')) {
+    console.error('cardpreview: data/pack is empty or missing, so there are no item names to read.\nBuild it first (npm run build), or start the server once.');
+    process.exit(1);
+}
+World.reload();
+
 const at = args.indexOf('--line');
 const custom = at !== -1 && at + 1 < args.length ? args[at + 1] : null;
 
 // kind is what the feed would pass: milestones from one op, news from the other.
-type PreviewLine = { kind: string; raw: string; feed: 'milestone' | 'news'; obj?: number; skill?: string };
+type PreviewLine = { kind: string; raw: string; feed: 'milestone' | 'news'; item?: string; skill?: string };
+
+// THE ITEMS ARE NAMED, NOT NUMBERED, and that is the whole of what went wrong the first time: the
+// samples carried ids typed from memory - 13342 for a max cape, 6499 for a baby mole - and this
+// build has 8312 and no baby mole at all. The cards came out bare, which looked like the icon
+// work being broken when it was only the preview lying about what it was drawing. A name is
+// checked against the cache below and a miss is reported rather than quietly drawn without.
+function objId(name: string): number {
+    const id = ObjType.getId(name);
+    if (id === -1) {
+        console.error(`  no such obj: ${name} - that card will be drawn without a picture`);
+    }
+    return id;
+}
 
 const ALL: PreviewLine[] = [
     { kind: 'milestone', raw: '@sh1@@gre@[Server first!]@sh0@@bla@ Koda is the first to reach level @dre@99 Fishing@bla@.', feed: 'milestone', skill: 'Fishing' },
     { kind: 'milestone', raw: '@sh1@@gre@[Milestone]@sh0@@bla@ Explorer has reached level @dre@99 Woodcutting@bla@.', feed: 'milestone', skill: 'Woodcutting' },
-    { kind: 'milestone', raw: '@sh1@@gre@[Milestone]@sh0@@bla@ Nsx has completed every quest in the game.', feed: 'milestone' },
-    { kind: 'milestone', raw: '@sh1@@gre@[Server first!]@sh0@@bla@ Koda is the first to master every skill. @dre@Max cape@bla@!', feed: 'milestone', obj: 13342 },
-    { kind: 'world broadcast', raw: '@sh1@@or1@Rare drop!@sh0@@bla@ Corey received @dre@Dragon chainbody@bla@.', feed: 'news', obj: 3140 },
-    { kind: 'world broadcast', raw: "@sh1@@or1@Pet!@sh0@@bla@ Thalia has a funny feeling like they're being followed: @dre@Baby mole@bla@.", feed: 'news', obj: 6499 },
-    { kind: 'world broadcast', raw: '@sh1@@or1@Fire cape!@sh0@@bla@ Moaz has defeated TzTok-Jad and claimed a @dre@Fire cape@bla@.', feed: 'news' },
+    { kind: 'milestone', raw: '@sh1@@gre@[Milestone]@sh0@@bla@ Nsx has completed every quest in the game.', feed: 'milestone', item: 'quest_point_cape' },
+    { kind: 'milestone', raw: '@sh1@@gre@[Server first!]@sh0@@bla@ Koda is the first to master every skill. @dre@Max cape@bla@!', feed: 'milestone', item: 'max_cape' },
+    { kind: 'world broadcast', raw: '@sh1@@or1@Rare drop!@sh0@@bla@ Corey received @dre@Dragon chainbody@bla@.', feed: 'news', item: 'dragon_chainbody' },
+    { kind: 'world broadcast', raw: "@sh1@@or1@Pet!@sh0@@bla@ Thalia has a funny feeling like they're being followed: @dre@Giant mole@bla@.", feed: 'news', item: 'bosspet_giant_mole_item' },
+    { kind: 'world broadcast', raw: '@sh1@@or1@Fire cape!@sh0@@bla@ Moaz has defeated TzTok-Jad and claimed a @dre@Fire cape@bla@.', feed: 'news', item: 'tzhaar_cape_fire' },
     // The two that must not go. Drawn anyway, so the picture shows what is being withheld.
     { kind: 'world broadcast', raw: '@sh1@@cya@[Yell]@sh0@@bla@ Somebody: selling whip 3m, pm me', feed: 'news' },
     { kind: 'world broadcast', raw: '@sh1@@red@[Announcement]@sh0@@bla@ Corey: the world restarts in ten minutes.', feed: 'news' }
@@ -70,7 +95,7 @@ for (const line of LINES) {
         console.log(`  ${n}. NOT A BROADCAST LINE - no card: ${line.raw.slice(0, 60)}`);
         continue;
     }
-    const png = renderBroadcastCard({ ...parts, kind: line.kind, obj: line.obj ?? -1, skill: line.skill ?? '' });
+    const png = renderBroadcastCard({ ...parts, kind: line.kind, obj: line.item ? objId(line.item) : -1, skill: line.skill ?? '' });
     const file = `${out}-${n}.png`;
     fs.writeFileSync(file, png);
     const verdict = wouldPost(line) ? 'would post' : 'WITHHELD';
