@@ -1,7 +1,11 @@
-import { CARD_PALETTE, encodePng, GameFont, loadFonts } from '#/server/market/MarketCard.js';
+import fs from 'fs';
+
+import { CARD_PALETTE, decodeIconSized, encodePng, GameFont, loadFonts } from '#/server/market/MarketCard.js';
+import Environment from '#/util/Environment.js';
 
 // A world broadcast drawn as a picture, for the Discord feed. The market card's twin, and it shares
-// that file's palette, its font reader and its PNG encoder on purpose - see the note there.
+// that file's palette, its font reader, its icon decoder and its PNG encoder on purpose - see the
+// note there.
 //
 // WHAT IT DRAWS IS THE SENTENCE THE GAME ALREADY WROTE, not a reassembled version of it. A
 // broadcast arrives here as one formatted string, built in content by ~broadcast_news or
@@ -15,13 +19,18 @@ import { CARD_PALETTE, encodePng, GameFont, loadFonts } from '#/server/market/Ma
 // a parser that is right about "is the first to reach level 99 Fishing" is wrong about the next
 // thing somebody writes. The sentence is the content; the card's job is to frame it.
 //
+// THE ICON IS PASSED, NOT PARSED, for the same reason. Content knows which item a drop was and
+// which skill a 99 was in - ~broadcast_drop takes the obj, ~milestone_99 takes the stat - so the
+// ops carry it here rather than this file guessing from the words. Picking "Fishing" out of a
+// sentence would work until somebody writes a sentence about fishing that is not about Fishing.
+//
 // NO PER-KIND COLOUR. In game the label's colour is the difference - gold for a rare drop, green
 // for somebody's own milestone - and the obvious move here was to carry that across. It is not
 // done, because the card's one piece of colour is the server's red and that is what was agreed for
 // the market card; two cards from one server with different spines look like two servers. The badge
 // text says which kind it is, which is the thing a reader actually needs.
 
-const { BG, EDGE, RULE, ACCENT, TEXT, DIM, STEEL, SCALE } = CARD_PALETTE;
+const { BG, SLOT, EDGE, RULE, ACCENT, TEXT, DIM, STEEL, SCALE } = CARD_PALETTE;
 
 const CARD_W = 540;
 /** Head, rule, badge. */
@@ -31,6 +40,12 @@ const BOTTOM_PAD = 16;
 /** Three is enough for every line the game sends and keeps a pasted staff announcement in bounds. */
 const MAX_LINES = 3;
 
+const PAD = 18;
+const SLOT_Y = 42;
+const SLOT_CELL = 64;
+/** Where the words start once a slot is in the way. */
+const TEXT_X = PAD + SLOT_CELL + 20;
+
 export type BroadcastCardInput = {
     /** "Rare drop!", "[Milestone]", "[Server first!]" - whatever content put before the name. */
     label: string;
@@ -38,6 +53,10 @@ export type BroadcastCardInput = {
     sentence: string;
     /** The word under the wordmark: what kind of announcement this is. */
     kind: string;
+    /** The item this is about, or -1. A drop, a pet, a cape, the max cape. */
+    obj?: number;
+    /** The skill this is about, lower case, or ''. A 99, or an experience milestone. */
+    skill?: string;
 };
 
 /**
@@ -61,21 +80,34 @@ export function stripCodes(text: string): string {
  * one curly apostrophe in a quest step took the whole helper panel down.
  *
  * So the handful of characters a person actually types instead of the ASCII ones are translated,
- * and anything else above 255 is dropped rather than left as a hole.
+ * and anything else is dropped rather than left as a hole.
  */
+const FANCY = new Map<number, string>([
+    [0x2018, "'"],
+    [0x2019, "'"],
+    [0x201b, "'"],
+    [0x201c, '"'],
+    [0x201d, '"'],
+    [0x2013, '-'],
+    [0x2014, '-'],
+    [0x2026, '...'],
+    [0x00a0, ' ']
+]);
+
 function toDrawable(text: string): string {
-    return (
-        text
-            .replace(/[\u2018\u2019\u201b]/g, "'")
-            .replace(/[\u201c\u201d]/g, '"')
-            .replace(/[\u2013\u2014]/g, '-')
-            .replace(/\u2026/g, '...')
-            .replace(/\u00a0/g, ' ')
-            // Anything else the font has no glyph for, rather than a hole where it was. The range
-            // starts at a space rather than at nought, so this takes the control characters with
-            // it: a card is one line of prose and a tab or a newline in it is nothing good.
-            .replace(/[^ -\u00ff]/g, '')
-    );
+    let out = '';
+    for (const ch of text) {
+        const code = ch.codePointAt(0) ?? 0;
+        const mapped = FANCY.get(code);
+        if (mapped !== undefined) {
+            out += mapped;
+        } else if (code >= 0x20 && code <= 0xff) {
+            out += ch;
+        }
+        // Anything else has no glyph in a font of 256, so it is dropped rather than left as a
+        // hole. Below 0x20 goes too: a card is one line of prose and a tab in it is nothing good.
+    }
+    return out;
 }
 
 /**
@@ -101,6 +133,37 @@ export function splitBroadcast(raw: string): { label: string; sentence: string }
         return null;
     }
     return { label, sentence };
+}
+
+/**
+ * The picture for this card, from one of the two folders the website already has.
+ *
+ * TWO SETS, BOTH SOMEBODY ELSE'S WORK: the item icons ObjIconFiles renders for the site's own item
+ * pages, and the 23 skill icons beside them. Nothing is drawn here and nothing new is generated -
+ * a broadcast card showing a different Dragon chainbody from the one on the website would be its
+ * own small lie.
+ *
+ * NULL IS A NORMAL ANSWER. Half the milestones are not about an item or a skill at all - a total
+ * level, a combat level - and the card is laid out without a slot rather than with an empty one.
+ * A missing file answers the same way, so a feed never stops over a picture.
+ */
+function iconFor(obj: number, skill: string): { px: Int32Array; w: number; h: number } | null {
+    const dir = skill ? Environment.CARD_SKILL_ICONS : Environment.MARKET_CARD_ICONS;
+    // Content's stat_names enum gives "Fishing" and the files are fishing.png, because the website
+    // named them. Lowercased here rather than in content, so a skill name keeps the capital it has
+    // everywhere a player can see it.
+    const name = skill ? skill.toLowerCase() : obj >= 0 ? String(obj) : '';
+    // No folder configured, or nothing to look up. Either way there is no picture, which the
+    // layout above handles rather than treating as a fault.
+    if (!dir || !name) {
+        return null;
+    }
+    const file = `${dir}/${name}.png`;
+    try {
+        return fs.existsSync(file) ? decodeIconSized(fs.readFileSync(file)) : null;
+    } catch {
+        return null;
+    }
 }
 
 /** Greedy wrap against the real font, so a long name breaks where the card actually runs out. */
@@ -133,9 +196,12 @@ function wrap(font: GameFont, text: string, width: number): string[] {
 export function renderBroadcastCard(input: BroadcastCardInput): Buffer {
     const { p11, p12, b12 } = loadFonts();
 
-    const textWidth = CARD_W - 18 - 18;
+    const icon = iconFor(input.obj ?? -1, input.skill ?? '');
+    const textX = icon ? TEXT_X : PAD;
+    const textWidth = CARD_W - textX - PAD;
     const lines = wrap(p12, input.sentence, textWidth);
-    const cardH = BODY_TOP + lines.length * LINE_H + BOTTOM_PAD;
+    // Tall enough for the words, and never shorter than the slot when there is one.
+    const cardH = Math.max(BODY_TOP + lines.length * LINE_H + BOTTOM_PAD, icon ? SLOT_Y + SLOT_CELL + 14 : 0);
 
     const px = new Int32Array(CARD_W * cardH);
     const rect = (x: number, y: number, w: number, h: number, colour: number): void => {
@@ -154,16 +220,40 @@ export function renderBroadcastCard(input: BroadcastCardInput): Buffer {
     rect(0, 0, 3, cardH, ACCENT);
     rect(3, 28, CARD_W - 4, 1, RULE);
 
-    b12.draw(px, CARD_W, 18, 21, ACCENT, 'DEATH PLATEAU');
-    p11.draw(px, CARD_W, 18 + b12.width('DEATH PLATEAU') + 10, 21, DIM, input.kind);
+    b12.draw(px, CARD_W, PAD, 21, ACCENT, 'DEATH PLATEAU');
+    p11.draw(px, CARD_W, PAD + b12.width('DEATH PLATEAU') + 10, 21, DIM, input.kind);
+
+    if (icon) {
+        rect(PAD, SLOT_Y, SLOT_CELL, SLOT_CELL, SLOT);
+        rect(PAD, SLOT_Y, SLOT_CELL, 1, EDGE);
+        rect(PAD, SLOT_Y + SLOT_CELL - 1, SLOT_CELL, 1, EDGE);
+        rect(PAD, SLOT_Y, 1, SLOT_CELL, EDGE);
+        rect(PAD + SLOT_CELL - 1, SLOT_Y, 1, SLOT_CELL, EDGE);
+        // Doubled and centred, as the market card does - the whole picture is doubled again at the
+        // end, so a 32px item ends up four times its own size and reads at Discord's width. The
+        // skill icons are smaller and squarer than the items, hence centring rather than a fixed
+        // corner: a 25x25 Fishing icon and a 32x32 chainbody sit in the same box either way.
+        const dw = icon.w * 2;
+        const dh = icon.h * 2;
+        const ox = PAD + ((SLOT_CELL - dw) >> 1);
+        const oy = SLOT_Y + ((SLOT_CELL - dh) >> 1);
+        for (let y = 0; y < icon.h; y++) {
+            for (let x = 0; x < icon.w; x++) {
+                const c = icon.px[y * icon.w + x];
+                if (c !== 0) {
+                    rect(ox + x * 2, oy + y * 2, 2, 2, c);
+                }
+            }
+        }
+    }
 
     // The badge, in the server's red: the only thing on the card that is not the game's own words.
-    b12.draw(px, CARD_W, 18, 50, ACCENT, input.label);
+    b12.draw(px, CARD_W, textX, 50, ACCENT, input.label);
 
     for (const [at, line] of lines.entries()) {
         // The first line in the brighter grey, the rest in the body colour - a long sentence then
         // reads as one thing with a beginning rather than three equal rows.
-        p12.draw(px, CARD_W, 18, BODY_TOP + at * LINE_H, at === 0 ? STEEL : TEXT, line);
+        p12.draw(px, CARD_W, textX, BODY_TOP + at * LINE_H, at === 0 ? STEEL : TEXT, line);
     }
 
     const w = CARD_W * SCALE;

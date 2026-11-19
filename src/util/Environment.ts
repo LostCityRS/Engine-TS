@@ -288,6 +288,10 @@ export default {
     // BROADCAST_FEED_EVERY is lower than the market's 15s because these are rarer and more worth
     // reading, and because milestones arrive in bursts rather than steadily - a total level and a
     // 99 can land on the same tick.
+    // CARD_SKILL_ICONS is the sibling of MARKET_CARD_ICONS: the 23 skill icons the website draws
+    // on its own hiscore pages, which a 99 or an experience milestone puts on its card. Unset, and
+    // those cards come out without a picture rather than not at all.
+    CARD_SKILL_ICONS: tryParseString(process.env.CARD_SKILL_ICONS, ''),
     BROADCAST_FEED_WEBHOOK: tryParseString(process.env.BROADCAST_FEED_WEBHOOK, ''),
     BROADCAST_FEED_EVERY: tryParseInt(process.env.BROADCAST_FEED_EVERY, 5000),
 

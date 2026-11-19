@@ -356,22 +356,42 @@ const ServerOps: CommandHandlers = {
         const message = state.popString();
 
         World.broadcastMes(message);
-        // And the Discord channel, if one is configured. NOT every message that gets here: this op
-        // carries content's yell and staff announcement procs as well as the news, so the feed
-        // decides - see the note at the top of BroadcastFeed.
-        BroadcastFeed.news(message);
+    },
+
+    // NEWS, which is BROADCAST_MES plus a Discord card: a rare drop, a pet, a cape. It is a
+    // separate op precisely so that yells and staff announcements - which also go through
+    // BROADCAST_MES - cannot reach the channel by sharing one. The feed still checks, because
+    // this is the mistake that cannot be taken back, but it is checking something that should
+    // already be impossible rather than doing the work.
+    //
+    // $icon is the item the news is about, or null. $skill is unused here today and carried
+    // because the two broadcast ops have the same shape; a future piece of news about a skill
+    // costs nothing.
+    [ScriptOpcode.BROADCAST_NEWS]: state => {
+        const skill = state.popString();
+        const icon = state.popInt();
+        const message = state.popString();
+
+        World.broadcastMes(message);
+        BroadcastFeed.news(message, icon, skill);
     },
 
     // As BROADCAST_MES, but skipped by the players who turned milestones off - see
     // World.broadcastMilestone for why the filter cannot live in content.
+    // $icon is the item it is about (the max cape) or null; $skill is the skill it is about
+    // ("fishing") or "". Both come from content because content is where they are known - the 99
+    // has the stat in hand before it turns it into a name - and picking either back out of the
+    // finished sentence would be a guess.
     [ScriptOpcode.BROADCAST_MILESTONE]: state => {
+        const skill = state.popString();
+        const icon = state.popInt();
         const message = state.popString();
 
         World.broadcastMilestone(message);
         // Every milestone goes: this op carries nothing else. ::milestones is not consulted - it
         // is a varp on a player, about that player's own chatbox, and a public channel is not
         // anybody's chatbox.
-        BroadcastFeed.milestone(message);
+        BroadcastFeed.milestone(message, icon, skill);
     },
 
     // Claim a server first. True only for the account that got there first, and only once ever,

@@ -110,7 +110,22 @@ export function encodePng(px: Int32Array, w: number, h: number): Buffer {
  * anything else returns null rather than being guessed at. A wrong guess here would not throw, it
  * would draw confetti.
  */
+/**
+ * As decodeIcon, but says how big the picture was.
+ *
+ * The market's icons are all 32x32 and that file can assume it. The skill icons the broadcast card
+ * draws are 18x23 and 25x25 - whatever ObjIconFiles' sibling wrote - so something has to carry the
+ * size out, and guessing it from the array length only works for a square.
+ */
+export function decodeIconSized(buf: Buffer): { px: Int32Array; w: number; h: number } | null {
+    return decodeIconInner(buf);
+}
+
 export function decodeIcon(buf: Buffer): Int32Array | null {
+    return decodeIconInner(buf)?.px ?? null;
+}
+
+function decodeIconInner(buf: Buffer): { px: Int32Array; w: number; h: number } | null {
     if (buf.length < 8 || buf.readUInt32BE(0) !== 0x89504e47) {
         return null;
     }
@@ -177,7 +192,7 @@ export function decodeIcon(buf: Buffer): Int32Array | null {
         }
         line.copy(prev);
     }
-    return out;
+    return { px: out, w, h };
 }
 
 // ---------------------------------------------------------------- the font

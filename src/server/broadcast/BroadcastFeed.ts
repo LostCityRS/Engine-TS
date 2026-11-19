@@ -30,10 +30,17 @@ import Environment from '#/util/Environment.js';
 /** The colour content gives news, and gives nothing else. */
 const NEWS_COLOUR = '@or1@';
 
-/** Labels that are never news, whatever colour they arrive in. */
-const NEVER = ['[yell]', '[announcement]'];
+/**
+ * Labels that never get a card.
+ *
+ * The first two are never news, whatever colour they arrive in - see above. [New player] is a
+ * milestone and would otherwise qualify, and is excluded on the owner's call (19 November): a
+ * welcome belongs in the game, where the person can actually be welcomed, and a channel full of
+ * them is a channel nobody reads. The line in game is untouched.
+ */
+const NEVER = ['[yell]', '[announcement]', '[new player]'];
 
-type Pending = { label: string; sentence: string; kind: string };
+type Pending = { label: string; sentence: string; kind: string; obj: number; skill: string };
 
 class BroadcastFeedImpl {
     private url = '';
@@ -59,22 +66,22 @@ class BroadcastFeedImpl {
     }
 
     /** A milestone: a 99, a total level, a max cape, a server first. All of them go. */
-    milestone(raw: string): void {
-        this.queueIt(raw, 'milestone');
+    milestone(raw: string, obj = -1, skill = ''): void {
+        this.queueIt(raw, 'milestone', obj, skill);
     }
 
     /**
      * A broadcast from the content op, which is news only - see the note at the top for the two
      * guards and why there are two of them.
      */
-    news(raw: string): void {
+    news(raw: string, obj = -1, skill = ''): void {
         if (!raw.includes(NEWS_COLOUR)) {
             return;
         }
-        this.queueIt(raw, 'world broadcast');
+        this.queueIt(raw, 'world broadcast', obj, skill);
     }
 
-    private queueIt(raw: string, kind: string): void {
+    private queueIt(raw: string, kind: string, obj: number, skill: string): void {
         if (!this.enabled) {
             return;
         }
@@ -86,7 +93,7 @@ class BroadcastFeedImpl {
         if (NEVER.includes(parts.label.toLowerCase())) {
             return;
         }
-        this.queue.push({ ...parts, kind });
+        this.queue.push({ ...parts, kind, obj, skill });
         // A cap, so a flood cannot make the queue the leak. OLDEST out, unlike the market's
         // cheapest: there is no value to rank these by, and a backlog should lose the announcement
         // nobody is still talking about rather than the one that just happened.

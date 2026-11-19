@@ -32,14 +32,15 @@ const at = args.indexOf('--line');
 const custom = at !== -1 && at + 1 < args.length ? args[at + 1] : null;
 
 // kind is what the feed would pass: milestones from one op, news from the other.
-type PreviewLine = { kind: string; raw: string; feed: 'milestone' | 'news' };
+type PreviewLine = { kind: string; raw: string; feed: 'milestone' | 'news'; obj?: number; skill?: string };
 
 const ALL: PreviewLine[] = [
-    { kind: 'milestone', raw: '@sh1@@gre@[Server first!]@sh0@@bla@ Koda is the first to reach level @dre@99 Fishing@bla@.', feed: 'milestone' },
-    { kind: 'milestone', raw: '@sh1@@gre@[Milestone]@sh0@@bla@ Explorer has reached level @dre@99 Woodcutting@bla@.', feed: 'milestone' },
+    { kind: 'milestone', raw: '@sh1@@gre@[Server first!]@sh0@@bla@ Koda is the first to reach level @dre@99 Fishing@bla@.', feed: 'milestone', skill: 'Fishing' },
+    { kind: 'milestone', raw: '@sh1@@gre@[Milestone]@sh0@@bla@ Explorer has reached level @dre@99 Woodcutting@bla@.', feed: 'milestone', skill: 'Woodcutting' },
     { kind: 'milestone', raw: '@sh1@@gre@[Milestone]@sh0@@bla@ Nsx has completed every quest in the game.', feed: 'milestone' },
-    { kind: 'world broadcast', raw: '@sh1@@or1@Rare drop!@sh0@@bla@ Corey received @dre@Dragon chainbody@bla@.', feed: 'news' },
-    { kind: 'world broadcast', raw: "@sh1@@or1@Pet!@sh0@@bla@ Thalia has a funny feeling like they're being followed: @dre@Baby mole@bla@.", feed: 'news' },
+    { kind: 'milestone', raw: '@sh1@@gre@[Server first!]@sh0@@bla@ Koda is the first to master every skill. @dre@Max cape@bla@!', feed: 'milestone', obj: 13342 },
+    { kind: 'world broadcast', raw: '@sh1@@or1@Rare drop!@sh0@@bla@ Corey received @dre@Dragon chainbody@bla@.', feed: 'news', obj: 3140 },
+    { kind: 'world broadcast', raw: "@sh1@@or1@Pet!@sh0@@bla@ Thalia has a funny feeling like they're being followed: @dre@Baby mole@bla@.", feed: 'news', obj: 6499 },
     { kind: 'world broadcast', raw: '@sh1@@or1@Fire cape!@sh0@@bla@ Moaz has defeated TzTok-Jad and claimed a @dre@Fire cape@bla@.', feed: 'news' },
     // The two that must not go. Drawn anyway, so the picture shows what is being withheld.
     { kind: 'world broadcast', raw: '@sh1@@cya@[Yell]@sh0@@bla@ Somebody: selling whip 3m, pm me', feed: 'news' },
@@ -51,7 +52,7 @@ const LINES: PreviewLine[] = custom ? [{ kind: 'milestone', raw: custom, feed: '
 // The feed's own rules, stated here rather than imported, so this tool says what it believes and a
 // disagreement with BroadcastFeed shows up as a surprise in the output rather than being hidden by
 // sharing the code under test.
-const NEVER = ['[yell]', '[announcement]'];
+const NEVER = ['[yell]', '[announcement]', '[new player]'];
 function wouldPost(line: { raw: string; feed: string }): boolean {
     if (line.feed === 'news' && !line.raw.includes('@or1@')) {
         return false;
@@ -69,7 +70,7 @@ for (const line of LINES) {
         console.log(`  ${n}. NOT A BROADCAST LINE - no card: ${line.raw.slice(0, 60)}`);
         continue;
     }
-    const png = renderBroadcastCard({ ...parts, kind: line.kind });
+    const png = renderBroadcastCard({ ...parts, kind: line.kind, obj: line.obj ?? -1, skill: line.skill ?? '' });
     const file = `${out}-${n}.png`;
     fs.writeFileSync(file, png);
     const verdict = wouldPost(line) ? 'would post' : 'WITHHELD';
