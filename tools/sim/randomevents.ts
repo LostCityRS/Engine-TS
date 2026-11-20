@@ -1137,6 +1137,13 @@ console.log('PRISON PETE: THREE KEYS, AND THE DOORS WERE ALREADY WIRED TO THEM')
         settleAny(p);
         return H.getVarBit(p, 'macro_pete_wants');
     };
+    /** How many balloons of this type are still in the cell. */
+    const balloons = (which: number) => {
+        const id = NpcType.getId(`prisonpete_balloon${which}`);
+        let n = 0;
+        for (const npc of World.npcs) if (npc && npc.isActive && npc.type === id) n++;
+        return n;
+    };
     const pop = (which: number) => {
         const b = H.npcNear(`prisonpete_balloon${which}`, p.x, p.z, 0)!;
         p.teleport(b.x + 1, b.z, 0);
@@ -1156,6 +1163,43 @@ console.log('PRISON PETE: THREE KEYS, AND THE DOORS WERE ALREADY WIRED TO THEM')
     pop((shown % 4) + 1);
     check('the wrong one puts you back to nothing', H.getVarBit(p, 'macro_pete_keys'), 0);
     check('  ...and takes the key off you', H.invCount(p, 'prisonpete_key'), 0);
+
+    // A FULL BACKPACK MUST NOT PUT THE KEY ON THE FLOOR. inv_add does not refuse a full inv - it
+    // drops the overflow at the player's feet, silently, on a 200-tick despawn (InvOps.ts,
+    // ScriptOpcode.INV_ADD) - so the right balloon used to pay a key onto the ground while the
+    // barrier count went up anyway, leaving a player who had made no space with two of the three
+    // keys they thought they had. Reported in DeathPlateau-Bugs#36.
+    //
+    // The section above runs on a cleared inventory, which is why it never saw this.
+    {
+        shown = pull();
+        H.fillInv(p);
+        const before = H.getVarBit(p, 'macro_pete_keys');
+        const ground = () => [...World.gameMap.getZone(p.x, p.z, p.level).getAllObjsSafe()].filter(o => o.type === ObjType.getId('prisonpete_key')).length;
+        const groundBefore = ground();
+        const balloonsBefore = balloons(shown);
+        const from = mark();
+        pop(shown);
+        check(
+            'a full pack is told there is no room',
+            mesSince(p, from).some(m => m.includes('no room for a key')),
+            true
+        );
+        check('  ...and no key is left on the floor', ground(), groundBefore);
+        check('  ...and the barrier count does not move', H.getVarBit(p, 'macro_pete_keys'), before);
+        // AND THE BALLOON IS STILL THERE, because the refusal comes before npc_del rather than
+        // after it. Counted rather than "is one of them nearby": there are four or five balloons
+        // of each type in the cell, so a check that only asks whether any remain can never fail,
+        // and the first version of this check did exactly that - it passed with the fix removed.
+        check(`  ...and the balloon was not popped (${balloons(shown)} left)`, balloons(shown), balloonsBefore);
+        H.clearInv(p);
+        pop(shown);
+        check('  ...so it pays the key once there is room', H.invCount(p, 'prisonpete_key'), 1);
+        check('  ...and takes the balloon this time', balloons(shown), balloonsBefore - 1);
+        check('  ...and counts it', H.getVarBit(p, 'macro_pete_keys'), before + 1);
+        H.clearInv(p);
+        H.setVarBit(p, 'macro_pete_keys', 0);
+    }
 
     for (let k = 0; k < 3; k++) pop(pull());
     check('three right in a row opens the wall', H.getVarBit(p, 'macro_pete_keys'), 3);
