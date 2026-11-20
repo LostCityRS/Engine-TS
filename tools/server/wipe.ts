@@ -26,8 +26,9 @@
  *                        they could keep. One ticket is one point (^vote_points_per_ticket), so
  *                        they add together and come back as tickets, to collect from the clerk.
  *   bans and mutes       ipban and the account's own ban/mute columns. A wipe is not an amnesty.
- *   moderation records   report, input_report, public_chat, private_chat. These are what happened;
- *                        they are not a character and a wipe is no reason to lose them.
+ *   moderation records   report, input_report, public_chat, private_chat, clan_chat. These are
+ *                        what happened; they are not a character and a wipe is no reason to lose
+ *                        them.
  *   session history      session and its three child tables. The same argument, plus a practical
  *                        one: session_log, session_wealth and session_input key off session_uuid
  *                        and deleting the parent would orphan all three. The activity page's

@@ -1,135 +1,90 @@
-// THE QUEST-COMPLETE SCROLL SAYS ITS QUEST POINTS ONCE.
-//
-//   npx tsx tools/sim/questscroll.ts
-//
-// The default scroll (~send_quest_complete) writes "N Quest Point(s)" on its own line from the number
-// it is given. 43 quests also wrote "N Quest Points" at the front of their reward text, so the scroll
-// showed it twice - Holy Grail's was reported. The proc now drops a leading quest-points line from the
-// reward text, so a quest written either way shows it once.
-//
-// WHY THE REAL COMPLETION QUEUES. The thing that matters is the text a player's client is sent, so
-// this fires each quest's own `[queue,..._complete]` on a fresh player and reads the interface text
-// the server writes, rather than calling the proc with a string it would be easy to get the shape of
-// wrong. The first eight are quests that wrote the line by hand (the ones that showed it twice); the
-// last two are quests that left it to the scroll, so the fix cannot have swallowed THEIR line.
-//
-// AND THE REWARDS ARE COMPARED AGAINST WHAT THE QUEST DECLARES, not against a list written out
-// here. The proc does string surgery on the reward text, and a cut that takes one character too
-// many takes it from a reward: an earlier version of the fix dropped any first line CONTAINING
-// the words "Quest Point", which turned "2 Quest Points and a hat" into nothing and PASSED a
-// check that only counted points lines. So the expectation is read out of the quest's own
-// ~send_quest_complete call - the points line dropped only when it is exactly the one com_9
-// prints - and a scroll that loses a line fails here whatever the reward text says.
+/**
+ * The quest completion scroll: that every quest's reward lines actually reach a player.
+ *
+ * WHY THIS IS NOT COVERED BY CHECKING THE REWARD. A quest hands ~send_quest_complete a string of
+ * reward lines, and that proc decides which interface to draw them on. Three quests had a case of
+ * their own in that switch, pointing at a scroll whose name matched the quest but whose component
+ * ids did not match the interface - and on those, the reward lines were simply never written. The
+ * quest completed, the XP was paid, the scroll opened, and the reward list was a dead argument.
+ *
+ * Gertrude's Cat was the first found (questscroll_fluffs, 2302, children scattered across 2303,
+ * 2305, 2308, 2309 and 3215 - opening it rendered a shape-puzzle random event). Sea Slug and
+ * Watchtower were the other two: `questscroll` is 297 with com_0..com_7 at 298-305, contiguous and
+ * real, but their case wrote com_9 and com_10, and those names sit on 4444 and 6158 - 4444 between
+ * levelup_ranged and options_ld, 6158 between options_ld:com_2 and questscroll_itgronigen:com_4.
+ * The quest point count went into an unrelated interface and $rewardtext was never written at all.
+ *
+ * All three go through inter_238 now, which is contiguous at 12140-12155. This drives the two whose
+ * reward lines nobody had ever seen and reads the text back off the interface.
+ */
 import * as H from './harness.js';
-import { enqueue } from './a1lib.js';
-import Component from '#/cache/config/Component.js';
-import Environment from '#/util/Environment.js';
-import fs from 'fs';
-import path from 'path';
+import { check, R, player } from './a1lib.js';
+import type Player from '#/engine/entity/Player.js';
 
 await H.boot();
 
-const AFTER_HAND_WRITTEN = ['grail_quest_complete', 'fenk_quest_complete', 'lost_tribe_quest_complete', 'devious_quest_complete', 'zogre_quest_complete', 'elid_quest_complete', 'eadgar_quest_complete', 'icslittle_quest_complete'];
-const LEFT_TO_THE_SCROLL = ['regicide_quest_complete', 'dragon_complete'];
+// inter_238, the scroll every quest now uses. Contiguous, which is the whole point.
+const INTER_238 = 12141; // :com_0
 
-// The scroll's lines: com_9 is the quest-points line, com_10 to com_14 the reward text.
-const LINES = [9, 10, 11, 12, 13, 14].map(n => Component.getId('inter_238:com_' + n));
-
-// ---- what each quest says its rewards are, out of the content it is about to be run from ----
-
-/** Every script label in the content paired with the reward text of the ~send_quest_complete it
- *  makes, so a quest's declared rewards can be looked up by the name this sim enqueues. */
-function declaredRewards(): Map<string, { points: string; rest: string[] }> {
-    const out = new Map<string, { points: string; rest: string[] }>();
-    const constants = new Map<string, number>();
-    const files: string[] = [];
-    const walk = (dir: string) => {
-        for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-            const full = path.join(dir, e.name);
-            if (e.isDirectory()) walk(full);
-            else if (e.name.endsWith('.rs2') || e.name.endsWith('.constant')) files.push(full);
-        }
-    };
-    walk(path.join(Environment.BUILD_SRC_DIR, 'scripts'));
-    for (const file of files.filter(f => f.endsWith('.constant'))) {
-        for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
-            const m = /^\^?([A-Za-z0-9_]+)\s*=\s*(-?\d+)\s*$/.exec(line.trim());
-            if (m && !constants.has(m[1])) constants.set(m[1], Number(m[2]));
-        }
-    }
-    for (const file of files.filter(f => f.endsWith('.rs2'))) {
-        let label = '';
-        for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
-            const head = /^\[[a-z_]+,([^\]]+)\]/.exec(line);
-            if (head) label = head[1];
-            const at = line.indexOf('~send_quest_complete(');
-            if (at === -1 || line.trimStart().startsWith('//')) continue;
-            const call = line.slice(at);
-            const strings = [...call.matchAll(/"((?:[^"\\]|\\.)*)"/g)].map(m => m[1]);
-            // the 4th argument, with strings blanked so a comma inside one does not count
-            const args = call
-                .slice(call.indexOf('(') + 1)
-                .replace(/"(?:[^"\\]|\\.)*"/g, '""')
-                .split(',');
-            const points = constants.get((args[3] ?? '').trim().replace(/^\^/, '')) ?? -1;
-            if (strings.length < 2 || points < 0) continue;
-            // ~pluralise in the content's string_procs.rs2, which is what com_9 is printed through
-            const printed = points === 1 ? '1 Quest Point' : `${points} Quest Points`;
-            const declared = strings[strings.length - 1].split('|');
-            // dropped here exactly as the proc drops it: only when it IS the printed line
-            const rest = declared[0] === printed ? declared.slice(1) : declared;
-            out.set(label, { points: printed, rest });
-        }
+/** The text this player was just given on the scroll, by component name. */
+function scrollText(p: Player, from: number): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const f of H.ifaces.slice(from)) {
+        if (f.who !== p.username || f.kind !== 'text' || typeof f.text !== 'string') continue;
+        const com = f.com - INTER_238;
+        if (com >= 0 && com <= 14) out['com_' + com] = f.text;
     }
     return out;
 }
 
-const declared = declaredRewards();
-if (declared.size < 100) {
-    // a lookup that found nothing would make every comparison below vacuously true
-    console.log(`  FAIL only ${declared.size} completion calls read out of ${Environment.BUILD_SRC_DIR} - expected 111 or so`);
-    process.exit(1);
+/**
+ * Complete a quest through its own completion queue and read the scroll back.
+ * The queue runs with protected access, which is what a real queue has.
+ */
+function scrollOf(who: string, varp: string, done: number, queue: string, x: number, z: number) {
+    const p = player(who, x, z, 0);
+    H.setVar(p, varp, done);
+    const qpBefore = H.getVar(p, 'qp') as number;
+    const from = H.ifaces.length;
+    H.runProc(p, queue, [], undefined, true);
+    H.tick(3);
+    return { text: scrollText(p, from), qpBefore, qp: H.getVar(p, 'qp') as number };
 }
 
-let failed = 0;
-const check = (name: string, ok: boolean, detail: string) => {
-    console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${name}${ok ? '' : '  ' + detail}`);
-    if (!ok) failed++;
-};
-
-let n = 0;
-for (const quest of [...AFTER_HAND_WRITTEN, ...LEFT_TO_THE_SCROLL]) {
-    const p: any = H.makePlayer('scroll' + n++, 3200, 3200);
-    H.tick(2);
-    p.applyDamage = function () {};
-    H.tick(1);
-    const mark = H.ifaces.length;
-    enqueue(p, `[queue,${quest}]`);
-    H.tick(6);
-    const lines = H.ifaces
-        .slice(mark)
-        .filter(i => i.who === p.username && i.kind === 'text' && LINES.includes(i.com) && i.text)
-        .map(i => i.text as string);
-    const name = quest.replace(/_(quest_)?complete$/, '');
-    const points = lines.filter(t => /Quest Points?/i.test(t));
-    check(`${name}: the scroll shows its quest points once`, points.length === 1, `${points.length} lines: ${JSON.stringify(lines)}`);
-
-    // AND EVERY OTHER LINE THE QUEST DECLARES IS STILL THERE. split_init wraps a long line, so the
-    // scroll's lines are joined back up before comparing - what matters is that no reward was cut,
-    // not where the wrapping fell.
-    const want = declared.get(quest);
-    if (!want) {
-        check(`${name}: its reward text was found in the content`, false, `no ~send_quest_complete under [.,${quest}]`);
-    } else {
-        const shown = lines
-            .filter(t => t !== want.points)
-            .join(' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-        const expected = want.rest.join(' ').replace(/\s+/g, ' ').trim();
-        check(`${name}: and every reward it declares, with nothing cut`, shown === expected, `\n       scroll:   ${JSON.stringify(shown)}\n       declared: ${JSON.stringify(expected)}`);
-    }
+// ---- Watchtower -----------------------------------------------------------------------------
+// ^itwatchtower_complete = 13, ^itwatchtower_questpoints = 4.
+{
+    const s = scrollOf('scwt', 'itwatchtower', 13, '[queue,itwatchtower_quest_complete]', 2544, 3112);
+    check('Watchtower names the quest on the scroll', s.text.com_3, 'You have finished the Watchtower Quest.');
+    check('Watchtower shows its quest points', s.text.com_9, '4 Quest Points');
+    // The three lines the quest passes in, which were a dead argument before.
+    check('Watchtower shows its Magic XP', s.text.com_10, '15,250 Magic XP');
+    check('Watchtower shows its coins', s.text.com_11, '5,000 Coins');
+    check('Watchtower shows its spell', s.text.com_12, 'Watchtower Teleport Spell');
+    // And the points are RECOUNTED, not hand-added: the case this replaces did its own
+    // `%qp = add(%qp, ...)`, which made ~update_questpoints a no-op.
+    check('Watchtower recounts quest points from 0', s.qp, 4);
 }
 
-console.log(failed ? `\n${failed} scrolls wrong` : '\nALL PASS');
-process.exit(failed ? 1 : 0);
+// ---- Sea Slug -------------------------------------------------------------------------------
+// ^seaslug_complete = 12, ^seaslug_questpoints = 1. Note the singular on com_9.
+{
+    const s = scrollOf('scss', 'seaslugquest', 12, '[queue,seaslug_quest_complete]', 2528, 3331);
+    check('Sea Slug shows its quest point, singular', s.text.com_9, '1 Quest Point');
+    check('Sea Slug shows its Fishing XP', s.text.com_10, '7,175 Fishing XP');
+    check('Sea Slug shows its platform access', s.text.com_11, 'Fishing Platform Access');
+    check('Sea Slug shows its pearls', s.text.com_12, 'Some Oyster Pearls');
+    check('Sea Slug recounts quest points from 0', s.qp, 1);
+}
+
+// ---- and the lines that must stay empty -----------------------------------------------------
+// Both quests pass three reward lines, and the scroll has five slots. A leftover in com_13 or
+// com_14 would mean split_get is reading past the end of what the quest handed it.
+{
+    const s = scrollOf('sctail', 'itwatchtower', 13, '[queue,itwatchtower_quest_complete]', 2544, 3112);
+    check('the fourth reward slot is empty', s.text.com_13, '');
+    check('and the fifth', s.text.com_14, '');
+}
+
+console.log(R.bad ? `FAILED: ${R.bad} of ${R.ok + R.bad}` : `${R.ok} ok`);
+process.exit(R.bad ? 1 : 0);

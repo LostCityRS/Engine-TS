@@ -29,6 +29,12 @@ import Environment from '#/util/Environment.js';
 
 // THE SITE'S PALETTE, from DeathPlateauWeb src/app/globals.css. The Java card carries the same list
 // and the same comments; if one moves, move both.
+//
+// SHARED WITH THE BROADCAST CARD, which is why the palette, encodePng and loadFonts are exported
+// below rather than kept to this file. They are not the market's - they are how this server draws
+// a card at all - and a second file with its own copy of nine colours is how two cards come to
+// disagree about the server's red. If a third card ever appears, lift all three out to a kit of
+// their own; two does not earn the move.
 const BG = 0x1a1a1a; // --ground
 const SLOT = 0x141414; // --ink
 const EDGE = 0x3a3a3a; // --line
@@ -41,6 +47,9 @@ const STEEL = 0xdddddd; // --knob
 const CARD_W = 540;
 const CARD_H = 172;
 const SCALE = 2;
+
+/** The same colours, by the same names, for anything else that draws one of these. */
+export const CARD_PALETTE = { BG, SLOT, EDGE, RULE, ACCENT, TEXT, DIM, STEEL, SCALE } as const;
 
 // ---------------------------------------------------------------- PNG
 
@@ -74,7 +83,7 @@ function chunk(type: string, data: Buffer): Buffer {
 }
 
 /** An opaque RGB PNG. The card has no transparency, so colour type 2 and no palette. */
-function encodePng(px: Int32Array, w: number, h: number): Buffer {
+export function encodePng(px: Int32Array, w: number, h: number): Buffer {
     const raw = Buffer.alloc(h * (1 + w * 3));
     let p = 0;
     for (let y = 0; y < h; y++) {
@@ -101,7 +110,22 @@ function encodePng(px: Int32Array, w: number, h: number): Buffer {
  * anything else returns null rather than being guessed at. A wrong guess here would not throw, it
  * would draw confetti.
  */
+/**
+ * As decodeIcon, but says how big the picture was.
+ *
+ * The market's icons are all 32x32 and that file can assume it. The skill icons the broadcast card
+ * draws are 18x23 and 25x25 - whatever ObjIconFiles' sibling wrote - so something has to carry the
+ * size out, and guessing it from the array length only works for a square.
+ */
+export function decodeIconSized(buf: Buffer): { px: Int32Array; w: number; h: number } | null {
+    return decodeIconInner(buf);
+}
+
 export function decodeIcon(buf: Buffer): Int32Array | null {
+    return decodeIconInner(buf)?.px ?? null;
+}
+
+function decodeIconInner(buf: Buffer): { px: Int32Array; w: number; h: number } | null {
     if (buf.length < 8 || buf.readUInt32BE(0) !== 0x89504e47) {
         return null;
     }
@@ -168,7 +192,7 @@ export function decodeIcon(buf: Buffer): Int32Array | null {
         }
         line.copy(prev);
     }
-    return out;
+    return { px: out, w, h };
 }
 
 // ---------------------------------------------------------------- the font
@@ -181,7 +205,7 @@ export function decodeIcon(buf: Buffer): Int32Array | null {
  * rather than approximated, because a font measured differently from the way it is drawn gives
  * text that is correctly spaced and in the wrong place.
  */
-class GameFont {
+export class GameFont {
     readonly mask: Uint8Array[] = [];
     readonly maskW: number[] = [];
     readonly maskH: number[] = [];
@@ -253,8 +277,16 @@ class GameFont {
         return n;
     }
 
-    /** y is the BASELINE, as the client's drawString takes it. */
+    /**
+     * y is the BASELINE, as the client's drawString takes it.
+     *
+     * THE HEIGHT COMES FROM THE BUFFER, not from a constant. This used to clip against CARD_H,
+     * which was right while the market card was the only card and silently wrong the moment a
+     * second one was a different height - text below 172 rows would simply not be drawn, on a
+     * card that looked fine in every other respect.
+     */
     draw(px: Int32Array, stride: number, x: number, y: number, colour: number, text: string): number {
+        const rows = (px.length / stride) | 0;
         const top = y - this.height;
         for (let i = 0; i < text.length; i++) {
             const c = text.charCodeAt(i) & 0xff;
@@ -266,7 +298,7 @@ class GameFont {
                 const dy = top + this.offY[c];
                 for (let gy = 0; gy < h; gy++) {
                     const ty = dy + gy;
-                    if (ty < 0 || ty >= CARD_H) {
+                    if (ty < 0 || ty >= rows) {
                         continue;
                     }
                     for (let gx = 0; gx < w; gx++) {
@@ -289,7 +321,7 @@ class GameFont {
 
 let fonts: { p11: GameFont; p12: GameFont; b12: GameFont } | null = null;
 
-function loadFonts(): { p11: GameFont; p12: GameFont; b12: GameFont } {
+export function loadFonts(): { p11: GameFont; p12: GameFont; b12: GameFont } {
     if (!fonts) {
         // "_full" is what tools/pack/sprite/title.ts names them; "p11" is not in the archive at all.
         const jag = Jagfile.load('data/pack/client/title');

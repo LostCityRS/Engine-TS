@@ -93,6 +93,13 @@ async function handleRequests(_parentPort: ParentPort, msg: any) {
             }
             break;
         }
+        case 'clan_message': {
+            if (Environment.FRIEND_SERVER) {
+                const { session_uuid, coord, owner, channel, chat } = msg;
+                await client.clanMessage(session_uuid, coord, owner, channel, chat);
+            }
+            break;
+        }
         case 'public_message': {
             if (Environment.FRIEND_SERVER) {
                 const { session_uuid, coord, chat } = msg;

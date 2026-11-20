@@ -77,6 +77,15 @@ export type input_report = {
 export type ipban = {
     ip: string;
 };
+export type clan_chat = {
+    id: Generated<number>;
+    session_uuid: string;
+    timestamp: string;
+    coord: number;
+    owner: string;
+    channel: string;
+    message: string;
+};
 export type private_chat = {
     id: Generated<number>;
     account_id: number;
@@ -144,6 +153,7 @@ export type DB = {
     account: account;
     account_login: account_login;
     account_token: account_token;
+    clan_chat: clan_chat;
     collection_log: collection_log;
     friendlist: friendlist;
     hiscore: hiscore;

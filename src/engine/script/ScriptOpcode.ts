@@ -580,6 +580,11 @@ export const enum ScriptOpcode {
     // MilestoneStore.ts for why the claim has to be the write.
     BROADCAST_MILESTONE,
     MILESTONE_FIRST,
+    // News - a rare drop, a pet, a cape. Its own op rather than BROADCAST_MES, which content's
+    // yell and staff announcement procs also use: the Discord feed must never carry a yell, and
+    // a separate op makes that structural instead of a guess about the message. Appended, like
+    // every opcode here: the numbers are implicit and inserting one renumbers the rest.
+    BROADCAST_NEWS,
 
     // Debug ops (10000-11000)
     CONSOLE = 10000,
@@ -795,6 +800,7 @@ export const ScriptOpcodeMap: Map<string, number> = new Map([
     ['CHATCROWN', ScriptOpcode.CHATCROWN],
     ['BROADCAST_MILESTONE', ScriptOpcode.BROADCAST_MILESTONE],
     ['MILESTONE_FIRST', ScriptOpcode.MILESTONE_FIRST],
+    ['BROADCAST_NEWS', ScriptOpcode.BROADCAST_NEWS],
     ['STAT_ADD', ScriptOpcode.STAT_ADD],
     ['STAT_ADVANCE', ScriptOpcode.STAT_ADVANCE],
     ['STAT_BASE', ScriptOpcode.STAT_BASE],
