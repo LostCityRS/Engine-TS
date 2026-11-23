@@ -10,6 +10,20 @@
 // That is two claims and this checks both, because getting only the first would turn the island
 // hostile to the very disguise the quest exists to give you.
 //
+// AND THE SECOND CLAIM USED TO EXCLUDE THE NPCS THAT BROKE IT. The "leaves a monkey alone" loop
+// below carried `if (name.includes('zombie') || name.includes('skeleton')) continue;` - so the
+// three undead this file had already gone to the trouble of finding in Zooknock's tunnel were
+// hunted as a human and then skipped as a monkey. They were on huntmode=aggressive_melee, the
+// SHARED hunt, which has no greegree guard, and this file was green because it did not ask. The
+// three jungle natives on the surface were on it too and were never in the list at all. Reported
+// from play as "other monsters besides monkey attack you when in greegree form", from 2739,2726 -
+// a jungle snake one tile away. DeathPlateau-Bugs#46.
+//
+// So the skip is gone, the jungle three are in the list, and section 1 no longer takes a list's
+// word for it: it walks every npc actually spawned on the island and under it and asks each one's
+// own huntmode whether it reads the greegree. A hostile placed on Ape Atoll on the shared hunt
+// fails there, named, whether or not anybody remembered to add it below.
+//
 // A sim npc never hunts on its own: Npc.processNpc only calls huntAll when a real client is
 // observing it, and a harness player observes nothing. So the hunt is driven by hand, the way
 // questrun's `wakehunt` step does it.
@@ -22,6 +36,7 @@ import { isLineOfSight, isMapBlocked } from '#/engine/GameMap.js';
 import type Npc from '#/engine/entity/Npc.js';
 import NpcType from '#/cache/config/NpcType.js';
 import HuntType from '#/cache/config/HuntType.js';
+import ParamType from '#/cache/config/ParamType.js';
 import ObjType from '#/cache/config/ObjType.js';
 import InvType from '#/cache/config/InvType.js';
 
@@ -91,6 +106,73 @@ function hunts(npc: any, p: any, ticks = 10): boolean {
     return false;
 }
 
+// ---------------------------------------------------------------- 1. the guard, and who carries it
+//
+// DERIVED FROM THE MAP, not from a list. Everything below this section works from names somebody
+// typed, and DeathPlateau-Bugs#46 is exactly what that misses: four hostiles nobody had typed.
+// This walks the npcs the world actually spawned on Ape Atoll and in the dungeon under it and
+// asks each one's own huntmode whether it reads the greegree, so the next hostile placed there on
+// the shared hunt fails here by name.
+console.log('\n1. EVERY HOSTILE ON THE ISLAND READS THE GREEGREE');
+
+const WORN = InvType.WORN;
+const TRANSMOG = ParamType.getId('mm_transmog_npc');
+check('the worn inv and the mm_transmog_npc param both resolve', WORN !== -1 && TRANSMOG !== -1, true);
+
+/** Does this hunt refuse to take a target who is WEARING something with param=mm_transmog_npc? */
+function readsGreegree(h: HuntType): boolean {
+    return h.checkInv === WORN && h.checkObjParam === TRANSMOG && h.checkInvCondition === '<' && h.checkInvVal === 1;
+}
+
+// THE TWO HUNTS DIFFER BY THAT ONE LINE AND NOTHING ELSE, and this is pinned so that "the island
+// leaves a monkey alone" cannot later be achieved by softening the hunt instead - dropping
+// check_vis, or putting check_nottoostrong back on, would make every check below pass while
+// changing what the island does to a human.
+for (const [mine, shared] of [
+    ['mm_aggressive_melee', 'aggressive_melee'],
+    ['mm_aggressive_ranged', 'aggressive_ranged']
+] as const) {
+    const a = HuntType.getByName(mine);
+    const b = HuntType.getByName(shared);
+    if (!a || !b) {
+        check(`  ${mine} and ${shared} both exist`, false, true);
+        continue;
+    }
+    check(`  ${mine.padEnd(22)} reads the greegree`, readsGreegree(a), true);
+    check(`  ${shared.padEnd(22)} does not (so the swap is the fix)`, readsGreegree(b), false);
+    const differs: string[] = [];
+    for (const k of ['type', 'checkVis', 'checkNotTooStrong', 'checkNotBusy', 'findKeepHunting', 'findNewMode', 'nobodyNear', 'checkNotCombat', 'checkNotCombatSelf', 'checkAfk', 'rate', 'checkCategory', 'checkNpc', 'checkObj', 'checkLoc'] as const) {
+        if ((a as unknown as Record<string, unknown>)[k] !== (b as unknown as Record<string, unknown>)[k]) differs.push(k);
+    }
+    check(`  and is otherwise ${shared} line for line`, differs.join(',') || '(identical)', '(identical)');
+}
+
+// The island and the dungeon under it. The dungeon sits at the same x with z+6400, which is where
+// the mm_dungeon zone triggers put it (0_42_142_* and up).
+const ISLAND: [string, number, number, number, number][] = [
+    ['surface', 2690, 2810, 2690, 2810],
+    ['dungeon', 2690, 2810, 9090, 9210]
+];
+let hostiles = 0;
+for (const [where, x0, x1, z0, z1] of ISLAND) {
+    const bad = new Map<string, string>();
+    const good = new Set<string>();
+    for (const npc of World.npcs) {
+        if (!npc || !npc.isActive) continue;
+        if (npc.x < x0 || npc.x > x1 || npc.z < z0 || npc.z > z1) continue;
+        const t = NpcType.get(npc.type) as unknown as { huntmode: number; debugname?: string };
+        if (t.huntmode === -1) continue; // a bird or a bystander: nothing to guard
+        hostiles++;
+        const hunt = HuntType.get(t.huntmode);
+        const nm = t.debugname ?? String(npc.type);
+        if (readsGreegree(hunt)) good.add(nm);
+        else bad.set(nm, `${hunt.debugname} at ${npc.x},${npc.z}`);
+    }
+    check(`  ${where}: all ${good.size + bad.size} hostile types read it`, [...bad.entries()].map(([n, w]) => `${n} (${w})`).join('; ') || '(all)', '(all)');
+    console.log(`         ${where}: ${[...good].sort().join(', ')}`);
+}
+check('there were hostiles there to check at all', hostiles > 0, true);
+
 // ---------------------------------------------------------------- the island's guards
 console.log('\nAPE ATOLL, TO A HUMAN');
 // THE NPC ITSELF, NOT WHERE IT WAS. This list used to hold coordinates read once, and the two
@@ -104,7 +186,27 @@ console.log('\nAPE ATOLL, TO A HUMAN');
 // and never missed. Worse than the failure, a wander of more than two tiles made the radius-2
 // lookup return nothing and the npc was skipped in silence.
 const guards: [string, Npc][] = [];
-for (const name of ['mm_monkey_guard', 'mm_monkey_archer', 'mm_posted_archer', 'mm_ravine_archer', 'mm_religious_guard', 'mm_oipuis', 'mm_ouhai', 'mm_uodai', 'mm_uyoro', 'mm_zombie_monkey_small', 'mm_zombie_monkey_large', 'mm_skeleton']) {
+for (const name of [
+    'mm_monkey_guard',
+    'mm_monkey_archer',
+    'mm_posted_archer',
+    'mm_ravine_archer',
+    'mm_religious_guard',
+    'mm_oipuis',
+    'mm_ouhai',
+    'mm_uodai',
+    'mm_uyoro',
+    'mm_zombie_monkey_small',
+    'mm_zombie_monkey_large',
+    // THE FOUR THIS FILE DID NOT KNOW ABOUT, three on the surface and one more under it. They are
+    // here for the monkey loop, not for the human one: all four already attacked a human perfectly
+    // well. See DeathPlateau-Bugs#46.
+    'mm_zombie_monkey_large_guard',
+    'mm_jungle_snake',
+    'mm_jungle_spider',
+    'mm_jungle_scorpion',
+    'mm_skeleton'
+]) {
     const id = NpcType.getId(name);
     let found: any = null;
     for (const npc of World.npcs) {
@@ -137,7 +239,7 @@ for (const name of ['mm_monkey_guard', 'mm_monkey_archer', 'mm_posted_archer', '
 // who was never there: p.isActive false, and nothing in the output said so. A running index is
 // all the name has to carry.
 let who = 0;
-console.log('\nAND IT COMES FOR A HUMAN WHO WALKS PAST');
+console.log('\n2. AND IT COMES FOR A HUMAN WHO WALKS PAST');
 for (const [name, npc] of guards) {
     // beside it, not inside it and not through a wall - and read off where it is NOW, which is
     // the point of holding the npc rather than a coordinate
@@ -166,11 +268,16 @@ for (const [name, npc] of guards) {
 }
 
 // ---------------------------------------------------------------- and ignores a monkey
-console.log('\nAND LEAVES A MONKEY ALONE');
+console.log('\n3. AND LEAVES A MONKEY ALONE');
 const greegree = 'mm_monkey_greegree_for_normal_monkey';
 let worn = 0;
 for (const [name, npc] of guards) {
-    if (!name.startsWith('mm_') || name.includes('zombie') || name.includes('skeleton')) continue;
+    // EVERY ONE OF THEM, which is the whole of DeathPlateau-Bugs#46. This loop used to skip any
+    // name containing 'zombie' or 'skeleton' - the three undead the loop above had just proved
+    // hostile - and the skip is why a file called mmaggro.ts could be green while four of the
+    // island's hostiles ignored the greegree. Nothing about an undead monkey makes the disguise
+    // not apply: the OSRS wiki's Skeleton (Ape Atoll) page says they are "aggressive to all
+    // players who are not using a greegree", in those words.
     const tile = beside(npc);
     if (!tile) continue;
     const p: any = player('monkey' + ++who, tile[0], tile[1], npc.level);
