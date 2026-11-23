@@ -34523,6 +34523,380 @@
   {
    "stageVarId": 188,
    "stageIsVarbit": false,
+   "id": "hero_phoenix",
+   "name": "HEROES' QUEST (Phoenix side)",
+   "source": "oldschool.runescape.wiki/w/Heroes%27_Quest",
+   "stageVar": "heroquest",
+   "done": 15,
+   "start": [
+    2904,
+    3510,
+    0
+   ],
+   "stages": [
+    {
+     "from": 0,
+     "headings": [
+      {
+       "at": 0,
+       "text": "Achietties, outside the Heroes' Guild."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "talk",
+       "text": "Talk to Achietties.",
+       "why": "She lists the three items.",
+       "target": "achietties",
+       "id": 796,
+       "label": "Achietties",
+       "picks": [
+        "may I apply to join",
+        "I'll start looking for all those things"
+       ]
+      }
+     ],
+     "items": [
+      {
+       "name": "Fishing rod",
+       "id": 307,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Blamish oil",
+       "id": 1582,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Fishing bait",
+       "id": 313,
+       "n": 20,
+       "bring": true
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Logs",
+       "id": 1511,
+       "n": 1,
+       "bring": true
+      }
+     ],
+     "worn": []
+    },
+    {
+     "from": 1,
+     "headings": [
+      {
+       "at": 0,
+       "text": "The Ice Queen, deep under White Wolf Mountain."
+      },
+      {
+       "at": 6,
+       "text": "The firebird on Entrana."
+      },
+      {
+       "at": 8,
+       "text": "The lava eel - oil on the rod, fish the lava in the Taverley dungeon, and cook it."
+      },
+      {
+       "at": 15,
+       "text": "THE BRANCH: Straven in the Phoenix hideout under Varrock, where the Black Arm route goes to Katrine instead."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "obj",
+       "text": "Wield Rune scimitar.",
+       "why": "Wield it for her.",
+       "target": "rune_scimitar",
+       "id": 1333,
+       "label": "Rune scimitar",
+       "op": 2
+      },
+      {
+       "text": "Go through the dwarven tunnel and down to her lair.",
+       "kind": "walk",
+       "at": [
+        2867,
+        9956,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Kill Ice Queen.",
+       "why": "She drops the gloves.",
+       "target": "ice_queen",
+       "id": 795,
+       "label": "Ice Queen"
+      },
+      {
+       "kind": "obj",
+       "text": "Pick up Ice gloves.",
+       "why": "Off the ice.",
+       "target": "ice_gloves",
+       "id": 1580,
+       "label": "Ice gloves"
+      },
+      {
+       "kind": "obj",
+       "text": "Wear Ice gloves.",
+       "target": "ice_gloves",
+       "id": 1580,
+       "label": "Ice gloves",
+       "op": 2,
+       "wears": [
+        1580
+       ]
+      },
+      {
+       "text": "Go to the monks' ship to Entrana.",
+       "kind": "walk",
+       "at": [
+        2850,
+        3385,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Kill Entrana Fire Bird.",
+       "why": "It leaves a feather.",
+       "target": "fire_bird",
+       "id": 139,
+       "label": "Entrana Fire Bird"
+      },
+      {
+       "kind": "obj",
+       "text": "Pick up Fire feather.",
+       "why": "Off the ground.",
+       "target": "hot_feather",
+       "id": 1583,
+       "label": "Fire feather",
+       "gives": [
+        1583
+       ]
+      },
+      {
+       "kind": "obj",
+       "text": "Use Blamish oil on Fishing rod.",
+       "why": "Make the oily rod.",
+       "target": "fishing_rod",
+       "id": 307,
+       "label": "Fishing rod",
+       "item": 1582,
+       "gives": [
+        1585
+       ]
+      },
+      {
+       "text": "Go down into the Taverley dungeon, to the lava.",
+       "kind": "walk",
+       "at": [
+        2890,
+        9767,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Fishing spot.",
+       "why": "Fish it out.",
+       "target": "0_45_152_lavafish",
+       "id": 800,
+       "label": "Fishing spot",
+       "op": 1,
+       "gives": [
+        2148
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go to onto clear ground.",
+       "at": [
+        2890,
+        9768
+       ]
+      },
+      {
+       "kind": "obj",
+       "text": "Use Tinderbox on Logs.",
+       "why": "Light a fire.",
+       "target": "logs",
+       "id": 1511,
+       "label": "Logs",
+       "item": 590
+      },
+      {
+       "kind": "loc",
+       "text": "Use Raw lava eel on Fire.",
+       "why": "Cook it.",
+       "target": "fire",
+       "id": 2732,
+       "label": "Fire",
+       "item": 2148,
+       "at": [
+        2890,
+        9768
+       ],
+       "gives": [
+        2149
+       ]
+      },
+      {
+       "text": "Go into the Phoenix Gang hideout.",
+       "kind": "walk",
+       "at": [
+        3247,
+        9781,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Straven.",
+       "why": "Ask how to get a master thief armband.",
+       "target": "straven",
+       "id": 644,
+       "label": "Straven"
+      }
+     ],
+     "items": [
+      {
+       "name": "Rune scimitar",
+       "id": 1333,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Fire feather",
+       "id": 1583,
+       "n": 1,
+       "bring": false
+      },
+      {
+       "name": "Oily fishing rod",
+       "id": 1585,
+       "n": 1,
+       "bring": false
+      },
+      {
+       "name": "Raw lava eel",
+       "id": 2148,
+       "n": 1,
+       "bring": false
+      },
+      {
+       "name": "Lava eel",
+       "id": 2149,
+       "n": 1,
+       "bring": false
+      }
+     ],
+     "worn": [
+      {
+       "name": "Ice gloves",
+       "id": 1580,
+       "bring": false
+      }
+     ]
+    },
+    {
+     "from": 2,
+     "headings": [
+      {
+       "at": 1,
+       "text": "Alfonse the waiter in the Shrimp and Parrot, Brimhaven."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "text": "Go to by ship to Brimhaven, into the Shrimp and Parrot.",
+       "kind": "walk",
+       "at": [
+        2796,
+        3188,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Alfonse the waiter.",
+       "why": "The password.",
+       "target": "alfonse_the_waiter",
+       "id": 793,
+       "label": "Alfonse the waiter",
+       "picks": [
+        "Do you sell Gherkins?"
+       ]
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 3,
+     "headings": [
+      {
+       "at": 1,
+       "text": "Charlie the cook, round the back, who gives the Phoenix route its one piece of real help - the secret door through Mr Olbors' garden to the mansion's blocked side entrance."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "text": "Go round the back into the kitchen.",
+       "kind": "walk",
+       "at": [
+        2790,
+        3192,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Charlie the cook.",
+       "why": "The secret door.",
+       "target": "charlie_the_cook",
+       "id": 794,
+       "label": "Charlie the cook",
+       "picks": [
+        "I'm looking for a gherkin",
+        "I want to steal Scarface Pete's candlesticks"
+       ]
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 4,
+     "headings": [
+      {
+       "at": 0,
+       "text": "Through the secret door behind the kitchen and Mr Olbors' garden to the mansion's blocked side entrance, which only a Black Arm partner can open from the inside - with the odd key Grip hands his own deputy."
+      }
+     ],
+     "marks": [],
+     "steps": [],
+     "items": [],
+     "worn": []
+    }
+   ]
+  },
+  {
+   "stageVarId": 188,
+   "stageIsVarbit": false,
    "id": "hero",
    "name": "HEROES' QUEST (solo part)",
    "source": "oldschool.runescape.wiki/w/Heroes%27_Quest",
@@ -40496,14 +40870,6 @@
       {
        "at": 0,
        "text": "Winelda will teleport you over the lava for twenty limpwurt roots."
-      },
-      {
-       "at": 3,
-       "text": "Ending B: side with Lucien."
-      },
-      {
-       "at": 11,
-       "text": "Lucien takes it, between Edgeville and the Grand Exchange."
       }
      ],
      "marks": [],
@@ -40527,7 +40893,23 @@
        "picks": [
         "Yes I do!"
        ]
-      },
+      }
+     ],
+     "items": [
+      {
+       "name": "Limpwurt root",
+       "id": 225,
+       "n": 20,
+       "bring": true
+      }
+     ],
+     "worn": []
+    },
+    {
+     "from": 50,
+     "headings": [],
+     "marks": [],
+     "steps": [
       {
        "kind": "talk",
        "text": "Talk to Winelda.",
@@ -40535,7 +40917,25 @@
        "target": "ikov_winelda",
        "id": 276,
        "label": "Winelda"
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 60,
+     "headings": [
+      {
+       "at": 0,
+       "text": "Ending B: side with Lucien."
       },
+      {
+       "at": 8,
+       "text": "Lucien takes it, between Edgeville and the Grand Exchange."
+      }
+     ],
+     "marks": [],
+     "steps": [
       {
        "kind": "walk",
        "text": "Go to the brick wall.",
@@ -40621,12 +41021,6 @@
       }
      ],
      "items": [
-      {
-       "name": "Limpwurt root",
-       "id": 225,
-       "n": 20,
-       "bring": true
-      },
       {
        "name": "Staff of armadyl",
        "id": 84,
