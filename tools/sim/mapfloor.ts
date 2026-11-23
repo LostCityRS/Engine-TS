@@ -135,12 +135,15 @@ export function thinAir(x: number, z: number, level: number): boolean {
     return !drawn(x, z, level) && !onLoc(x, z, level);
 }
 
-// EXITS, because the engine's own timers keep the event loop alive for ever otherwise. This file
-// prints a report rather than asserting anything, so it had no process.exit at all and simply hung
-// once it had finished printing: ten minutes of wall clock using 0.4 seconds of CPU, which is a
-// process waiting rather than working. tools/sim/sweep.sh runs every sim with a cap of 5400s, so
-// fourteen files in this shape could spend the better part of a day being killed one by one.
+// NO process.exit HERE, AND NOTHING MAY BE ADDED AT THE TOP LEVEL. This file is a library: three
+// predicates and the mapsquare cache behind them. It cannot be run on its own and never could -
+// importing #/engine/GameMap.js from an entry point this low in the graph hits a circular import
+// (`Cannot access 'NonPathingEntity' before initialization`) and dies in six seconds.
 //
-// The nightly never noticed because its filter only runs a sim that CAN report a verdict
-// (`grep -qE 'process\.exit\([^0-9)]'`), and a file with no exit at all does not match.
-process.exit(0);
+// A bare `process.exit(0)` sat here from 9d29cbde until it was found, added to stop a standalone
+// run hanging. A module body runs on import, so instead it ended the process the instant any sim
+// imported drawn/onLoc/thinAir - roofall, rooftops, courseland, coursefall, agilityland, plunder,
+// the pyramid set and the werewolf set, fifteen files - each printing nothing and exiting 0.
+// Nothing caught it: tools/sim/sweep.sh only runs a sim that can report a verdict
+// (`grep -qE 'process\.exit\([^0-9)]'`), which exit(0) does not match, so a suite that reported no
+// failures because it never ran looked exactly like a suite that passed.
