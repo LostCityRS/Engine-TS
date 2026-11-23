@@ -22,6 +22,7 @@ import World from '#/engine/World.js';
 import ObjType from '#/cache/config/ObjType.js';
 import NpcType from '#/cache/config/NpcType.js';
 import ParamType from '#/cache/config/ParamType.js';
+import VarPlayerType from '#/cache/config/VarPlayerType.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import JavaRandom from '#/util/JavaRandom.js';
 import { getExpByLevel } from '#/engine/entity/Player.js';
@@ -209,6 +210,126 @@ for (const [roll, plainWant, dragonWant, what] of [
 }
 
 // ------------------------------------------------------------------ the drop
+// ------------------------------------------------------------------ Fishstabber
+//
+// "A visible +3 boost to Fishing. This consumes 100% of the player's special attack energy."
+// It lands no hit and needs no target, so it runs on the spec bar's own click
+// ([if_button,combat_stabsword:specbar], specwep.rs2) rather than through player_special_attack,
+// which refuses before it reads the weapon unless an npc is in front of you.
+const SA_ENERGY = VarPlayerType.getByName('sa_energy')!.id;
+const SPECBAR = 'combat_stabsword:specbar';
+
+// THE BAR HAS TO BE FILLED BY HAND, and that is not a bug in this feature. sa_energy is a perm
+// varp with no default and nothing sets it to full for a new account - [proc,sa_login] only starts
+// the regen timer - so a freshly made player has an EMPTY bar and the energy check refuses
+// everything. That is true of every special weapon in the build, not just this one, and five
+// minutes of regen fixes it for a real account; a sim player lives for a few hundred ticks, so it
+// is filled here the way a player who has been online a while would have it.
+function fullBar(p: Player) {
+    p.setVar(SA_ENERGY, 1000);
+    H.tick(1);
+}
+
+function wielding(name: string, fishing: number): Player {
+    const p = A.player(name, 2600, 3420);
+    setLevel(p, FISHING, fishing);
+    setLevel(p, ATTACK, 60);
+    H.give(p, 'dragon_harpoon', 1);
+    H.opheld(p, 'dragon_harpoon', 2);
+    H.tick(2);
+    if (H.wornName(p, WEARPOS_RHAND) !== 'dragon_harpoon') throw new Error('did not wield');
+    fullBar(p);
+    return p;
+}
+
+{
+    const p = wielding('dh_spec', 80);
+    check('the bar is full to start', p.getVar(SA_ENERGY), 1000);
+    H.clearLogs();
+    H.ifButton(p, SPECBAR);
+    H.tick(2);
+    check('Fishstabber boosts Fishing by 3', p.levels[FISHING] - p.baseLevels[FISHING], 3);
+    check('  and spends the whole bar', p.getVar(SA_ENERGY), 0);
+    check('  and says so', H.says.some(s => s.who === p.username && s.text === 'Here fishy fishies!'), true);
+}
+{
+    // NOT ENOUGH ENERGY: refused with the game's own wording, and no boost.
+    const p = wielding('dh_specpoor', 80);
+    p.setVar(SA_ENERGY, 900);
+    H.clearLogs();
+    H.ifButton(p, SPECBAR);
+    H.tick(2);
+    check('nine tenths of a bar is not enough', p.levels[FISHING] - p.baseLevels[FISHING], 0);
+    check('  and is told so', H.mesgs.some(m => m.text.includes('enough power left')), true);
+    check('  and the bar is untouched', p.getVar(SA_ENERGY), 900);
+}
+{
+    // CARRIED IS NOT WIELDED. "Special attacks require the player to wield the weapon", which is
+    // also how the 60 Attack gate ends up gating the boost: no wield, no Fishstabber.
+    const p = A.player('dh_specheld', 2600, 3420);
+    setLevel(p, FISHING, 80);
+    H.give(p, 'dragon_harpoon', 1);
+    fullBar(p);
+    H.ifButton(p, SPECBAR);
+    H.tick(2);
+    check('a harpoon in the pack cannot spec', p.levels[FISHING] - p.baseLevels[FISHING], 0);
+    check('  and spends nothing', p.getVar(SA_ENERGY), 1000);
+}
+{
+    // IT SHOWS PAST 99, as in Old School, while the rolls treat anything above 99 as 99 - the
+    // engine's stat_random clamps the level itself, which is why speccing at 99 is worthless.
+    const p = wielding('dh_spec99', 99);
+    H.ifButton(p, SPECBAR);
+    H.tick(2);
+    check('99 Fishing becomes a visible 102', p.levels[FISHING], 102);
+}
+{
+    // AND THE BOOST REACHES THE ROLL, which is the only question that really matters. A shark at
+    // level 82 with this harpoon is value 40 and at 85 it is 42, so a pinned roll of 41 is one the
+    // unboosted player can never clear and the boosted one always does.
+    const before = atSpot('dh_specroll_a', 82);
+    H.give(before.p, 'dragon_harpoon', 1);
+    pin(atRoll(41));
+    check('82 Fishing cannot catch it', harpoon(before.p, before.spot), false);
+    pin(null);
+
+    const after = atSpot('dh_specroll_b', 82);
+    setLevel(after.p, ATTACK, 60);
+    H.give(after.p, 'dragon_harpoon', 1);
+    H.opheld(after.p, 'dragon_harpoon', 2);
+    H.tick(2);
+    fullBar(after.p);
+    H.ifButton(after.p, SPECBAR);
+    H.tick(2);
+    check('  the spec takes it to 85', after.p.levels[FISHING], 85);
+    pin(atRoll(41));
+    check('  and then it catches', harpoon(after.p, after.spot), true);
+    pin(null);
+}
+{
+    // "DOES NOT DISRUPT RESOURCE GATHERING if the player is already fishing when the special
+    // attack is activated" - so the fish keep coming after the click, not only before it.
+    const { p, spot } = atSpot('dh_specmid', 85);
+    setLevel(p, ATTACK, 60);
+    H.give(p, 'dragon_harpoon', 1);
+    H.opheld(p, 'dragon_harpoon', 2);
+    H.tick(2);
+    fullBar(p);
+    pin(atRoll(30));
+    H.opNpc(p, spot, 3);
+    H.tick(6); // fishing is under way
+    H.ifButton(p, SPECBAR);
+    const caught = H.invCount(p, 'raw_shark');
+    let more = false;
+    for (let t = 0; t < 20 && !more; t++) {
+        H.tick(1);
+        if (H.invCount(p, 'raw_shark') > caught) more = true;
+    }
+    pin(null);
+    check('speccing mid-catch does not stop the fishing', more, true);
+    check('  and it did boost', p.levels[FISHING] - p.baseLevels[FISHING], 3);
+}
+
 // ------------------------------------------------------------------ the drop, band by band
 //
 // 1/128, the band the dragon axe already has from Rex, and taken OUT OF THE GEM BAND so nothing
