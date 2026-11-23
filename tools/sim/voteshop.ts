@@ -17,7 +17,7 @@
 // THE BUG THIS WAS WRITTEN FOR, before it could happen: ~buy_item lets a purchase through with a
 // full inventory when the price comes to exactly what you are carrying, because the coin stack is
 // about to empty and free its slot. A varp balance frees nothing, so that exemption had to be made
-// wallet-specific - otherwise a player with exactly 50 points and 28 full slots buys a ring with
+// wallet-specific - otherwise a player with exactly the price in points and 28 full slots buys a ring with
 // nowhere to put it.
 import * as H from './harness.js';
 import { drive } from './a1lib.js';
@@ -53,7 +53,11 @@ const check = (what: string, got: unknown, want: unknown) => {
 };
 
 const CLERK: [number, number] = [3091, 3492];
-const RING_PRICE = 50; // ^vote_price_explorers_ring
+// READ OFF THE OBJ, not repeated here. The price is ^vote_price_explorers_ring written into
+// explorers_ring_4's cost= (general/configs/diary_rewards.obj), and a copy of the number in the sim
+// is a copy that goes stale: this was 50 and the shop's price moved to 200 without it. Everything
+// below is arithmetic on the price, so reading it keeps the sim honest at any price.
+const RING_PRICE = ObjType.get(ObjType.getId('explorers_ring_4')).cost;
 const invButtonHandler = new InvButtonHandler();
 
 let bucket = 1;
