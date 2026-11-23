@@ -7,12 +7,14 @@ import Environment from '#/util/Environment.js';
 import { getArtifactManifestPath, getArtifactSourceStamp, loadArtifactManifest, openArtifactStore, saveArtifactManifest } from '#tools/pack/ArtifactCache.js';
 import { didFileSetChange } from '#tools/pack/FsCache.js';
 import { listFilesExt } from '#tools/pack/Parse.js';
-import { AnimSetPack, ModelPack, shouldBuild, shouldBuildFile } from '#tools/pack/PackFile.js';
+import { AnimSetPack, isPackRebuildForced, ModelPack, shouldBuild, shouldBuildFile } from '#tools/pack/PackFile.js';
 import { printWarning } from '#/util/Logger.js';
 
 export function packClientGraphics(cache: FileStream, modelFlags: number[]) {
     const models = listFilesExt(`${Environment.BUILD_SRC_DIR}/models`, '.ob2');
-    const toolChanged = didFileSetChange('data/pack/.stamps/graphics-tools.txt', [import.meta.filename]);
+    // isPackRebuildForced: toolChanged is what bypasses the per-file manifest compare below, so a
+    // forced build has to set it or the models and anims would be skipped one at a time. #81.
+    const toolChanged = isPackRebuildForced() || didFileSetChange('data/pack/.stamps/graphics-tools.txt', [import.meta.filename]);
     const rebuildModelsArchive = shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/model.pack`, 'data/pack/main_file_cache.idx1');
     const needsModelHydration = rebuildModelsArchive || cache.count(1) === 0;
     const needsModelPackWork = rebuildModelsArchive || shouldBuild(`${Environment.BUILD_SRC_DIR}/models`, '.ob2', getArtifactManifestPath('graphics-models')) || toolChanged;

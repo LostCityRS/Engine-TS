@@ -1,6 +1,15 @@
 import { assertClientCache } from '#tools/pack/CacheCheck.js';
 import { packAll } from '#tools/pack/PackAll.js';
+import { forcePackRebuild } from '#tools/pack/PackFile.js';
 import { printError } from '#/util/Logger.js';
+
+// --force PACKS EVERYTHING, skipping every staleness check. For when a wrong "nothing is stale"
+// would be worse than the wait - mutation testing above all, where a skipped repack reports a
+// guard as passing over a mutation that was never compiled in. DeathPlateau-Bugs#81. BUILD_FORCE=1
+// does the same thing for callers that invoke this file directly rather than through npm.
+if (process.argv.includes('--force')) {
+    forcePackRebuild();
+}
 
 try {
     const modelFlags: number[] = [];

@@ -6,12 +6,13 @@ import Environment from '#/util/Environment.js';
 import FileStream from '#/io/FileStream.js';
 import { getArtifactManifestPath, getArtifactSourceStamp, loadArtifactManifest, openArtifactStore, saveArtifactManifest } from '#tools/pack/ArtifactCache.js';
 import { didFileSetChange } from '#tools/pack/FsCache.js';
-import { MidiPack, shouldBuild, shouldBuildFile } from '#tools/pack/PackFile.js';
+import { isPackRebuildForced, MidiPack, shouldBuild, shouldBuildFile } from '#tools/pack/PackFile.js';
 import { listFilesExt } from '#tools/pack/Parse.js';
 
 export function packClientMidi(cache: FileStream) {
     const midis = [...listFilesExt(`${Environment.BUILD_SRC_DIR}/jingles`, '.mid'), ...listFilesExt(`${Environment.BUILD_SRC_DIR}/songs`, '.mid')];
-    const toolChanged = didFileSetChange('data/pack/.stamps/midi-tools.txt', [import.meta.filename]);
+    // isPackRebuildForced: see the same line in graphics/pack.ts. #81.
+    const toolChanged = isPackRebuildForced() || didFileSetChange('data/pack/.stamps/midi-tools.txt', [import.meta.filename]);
     const rebuildMidiArchive = shouldBuildFile(`${Environment.BUILD_SRC_DIR}/pack/midi.pack`, 'data/pack/main_file_cache.idx3');
     const needsMidiHydration = rebuildMidiArchive || cache.count(3) === 0;
     const artifactName = 'midi';

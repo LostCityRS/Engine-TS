@@ -8,7 +8,7 @@ import Environment from '#/util/Environment.js';
 import { printWarning } from '#/util/Logger.js';
 
 import { getArtifactManifestPath, getArtifactSourceStamp, loadArtifactManifest, openArtifactStore, saveArtifactManifest } from '#tools/pack/ArtifactCache.js';
-import { MapPack, shouldBuild, shouldBuildFile } from '#tools/pack/PackFile.js';
+import { isPackRebuildForced, MapPack, shouldBuild, shouldBuildFile } from '#tools/pack/PackFile.js';
 import { didFileSetChange } from '#tools/pack/FsCache.js';
 
 // STATICALLY, and the lint rule above this file says why: package.json's "#/*" key is invalid to
@@ -243,7 +243,8 @@ export async function packMaps(cache, modelFlags) {
     const serverStore = openArtifactStore('maps-server', rebuildMapArchive);
     const artifactManifest = loadArtifactManifest(artifactName, rebuildMapArchive);
     let artifactManifestDirty = false;
-    const toolChanged = didFileSetChange('data/pack/.stamps/map-tools.txt', [import.meta.filename]);
+    // isPackRebuildForced: see the same line in graphics/pack.ts. #81.
+    const toolChanged = isPackRebuildForced() || didFileSetChange('data/pack/.stamps/map-tools.txt', [import.meta.filename]);
     const needsAnyMapPackWork = rebuildMapArchive || shouldBuild(`${Environment.BUILD_SRC_DIR}/maps`, '.jm2', getArtifactManifestPath(artifactName)) || toolChanged;
 
     if (rebuildMapArchive) {
