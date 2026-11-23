@@ -199,18 +199,28 @@ console.log('\n5. and the shared spawn defaults still ran for all of them');
     check(`every one has %npc_start_coord set to where it stands (${unset} do not)`, unset, 0);
 }
 
-// ---- 6. AND THE TELLERS THAT WANDER OFF THEIR BOOTH ARE A KNOWN LIST -------------------------
-// Not a pass and not a failure: a pin. These twelve types have no movement config, so they walk
-// away from the counter a player is using and lose their spawn facing doing it, where banker1 and
-// banker2 are nomove with wanderrange 0. Making them stand still is a change to several quests'
-// npcs - Rum Deal's ghosts, Cabin Fever, Mourning's End, the Mage Arena, Rogues' Den, the TzHaar,
-// Keldagrim, Miscellania, Spirits of the Elid - so it is filed rather than decided here.
+// ---- 6. AND NO TELLER WANDERS OFF ITS BOOTH ---------------------------------------------------
+// THIS SECTION USED TO BE A PIN ON TWELVE TYPES THAT DID. They had no movement config at all, so
+// they took the engine default and walked up to five tiles - away from the counter a player was
+// standing at, and losing the spawn facing section 1 sets, because PathingEntity rewrites an npc's
+// facing on every step. That is how the wrong-way reports in section 1 came about: four tellers
+// were reported facing wrongly and were not; they had simply taken a step.
 //
-// The list is asserted so a NEW wandering teller shows up as a failure in this file rather than as
-// a report from a player a year later.
-console.log('\n6. the teller types that wander off their booth, which is filed separately');
+// It was filed rather than decided (DeathPlateau-Bugs#80) because pinning npcs that belong to nine
+// areas' quests and minigames - Rum Deal's ghosts, Cabin Fever, Mourning's End, the Mage Arena,
+// Rogues' Den, the TzHaar, Keldagrim, Miscellania, Spirits of the Elid - is not a call to make
+// inside a bug about which way a banker looks. What settled it was checking the one thing that
+// could have made it wrong: whether anything in the build wants them to move. Nothing does.
+// Eleven of the twelve are referenced by NO script; magearena_banker is referenced twice, by an
+// [opnpc1] in gundai.rs2 and an [opnpcu] in platinum_token.rs2, and neither is about where it
+// stands. DeathPlateau-Content now gives all twelve banker1's three lines.
+//
+// SO THE PIN BECOMES A ZERO, which is a stronger check than the list ever was: a new teller type
+// added without movement config fails here, and so does one of these twelve losing its lines
+// again.
+console.log('\n6. no teller wanders off its booth');
 {
-    const KNOWN = [
+    const WAS = [
         'ahoy_ghost_banker',
         'dwarf_city_banker1',
         'dwarf_city_banker2',
@@ -226,7 +236,13 @@ console.log('\n6. the teller types that wander off their booth, which is filed s
     ];
     const wander = [...new Set(tellers.filter(n => !staysPut(n)).map(n => NpcType.get(n.type).debugname ?? '?'))].sort();
     console.log(`      (${tellers.filter(n => !staysPut(n)).length} spawns across ${wander.length} types)`);
-    check(`exactly these ${KNOWN.length} types wander: ${wander.join(', ') === KNOWN.join(', ') ? 'unchanged' : wander.join(', ')}`, wander.join(', '), KNOWN.join(', '));
+    check('no teller type wanders', wander.join(', ') || '(none)', '(none)');
+    // AND THE TWELVE BY NAME, so that "none wander" cannot be satisfied by a teller list that has
+    // quietly stopped finding them. Each of the twelve has to be among the tellers AND stand still.
+    const found = WAS.filter(nm => tellers.some(n => (NpcType.get(n.type).debugname ?? '') === nm));
+    check(`all ${WAS.length} of the formerly wandering types are still spawned and found`, found.length, WAS.length);
+    const moving = WAS.filter(nm => tellers.some(n => (NpcType.get(n.type).debugname ?? '') === nm && !staysPut(n)));
+    check('  and every one of them stands still now', moving.join(', ') || '(all still)', '(all still)');
 }
 
 console.log(R.bad ? `\nFAILED: ${R.bad} of ${R.ok + R.bad}` : `\n${R.ok} ok`);
