@@ -34800,6 +34800,18 @@
        "id": 2149,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Blamish oil",
+       "id": 1582,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": [
@@ -53321,6 +53333,15 @@
        ]
       },
       {
+       "kind": "obj",
+       "text": "Hold Monkey greegree.",
+       "why": "A monkey again, at the pen.",
+       "target": "mm_monkey_greegree_for_normal_monkey",
+       "id": 4031,
+       "label": "Monkey greegree",
+       "op": 2
+      },
+      {
        "kind": "talk",
        "text": "Talk to Monkey Minder.",
        "why": "As a monkey, get into the cage.",
@@ -53470,6 +53491,15 @@
        "picks": [
         "1"
        ]
+      },
+      {
+       "kind": "obj",
+       "text": "Hold Monkey greegree.",
+       "why": "A monkey again, back on the island.",
+       "target": "mm_monkey_greegree_for_normal_monkey",
+       "id": 4031,
+       "label": "Monkey greegree",
+       "op": 2
       },
       {
        "kind": "walk",
