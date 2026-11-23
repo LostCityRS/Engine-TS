@@ -599,6 +599,53 @@ console.log('== restocking puts the item back in its OWN slot');
     check('and tops out at the stocked amount', shop.getItemCount(id), target);
 }
 
+// ======================================================================= the seed box (23 November)
+//
+// THE ONE ROW HERE THAT IS NOT A DIARY REWARD, and it is on the shelf for the same reason they are:
+// nothing in the game produced one. Every handler needed to USE a seed box has been in
+// storage_items/scripts/storage_items.rs2 since it was imported - Fill, Empty, Check, Open - and no
+// source for one existed anywhere (tools/obtainable.py). In Old School it comes from Tithe Farm,
+// which this build does not have.
+//
+// IT GOES LAST ON PURPOSE. Written in the middle of the file, between the ring's purchases and the
+// "shelf cannot run out" block, it failed that block: the shelf restocks a row by one every tick,
+// so the dozen ticks this block spends buying a box were enough for the ring row to climb back to a
+// thousand, and `the purchases above came off the shelf` reads the ring's count. Nothing here is
+// wrong with the shop - the check just has to see the shelf before anything else ticks the world.
+console.log('== the seed box');
+{
+    // The price is read off the obj exactly as the ring's is: ^vote_price_seed_box is written into
+    // its cost=, and a copy of the number here is a copy that goes stale - which is what happened
+    // to the ring when its price moved from 50 to 200.
+    const BOX_PRICE = ObjType.get(ObjType.getId('seed_box')).cost;
+    const npc = H.npcNear('vote_clerk', CLERK[0], CLERK[1])!;
+    const p = player('boxbuyer');
+    check('the box is the eleventh row', ObjType.get(World.getInventory(InvType.getId('vote_shop'))!.get(10)!.id).debugname, 'seed_box');
+    check('and costs the floor of the band', BOX_PRICE, 40);
+    check('which is no dearer than the cheapest diary piece', BOX_PRICE <= ObjType.get(ObjType.getId('kandarin_headgear_4')).cost, true);
+    check('the shop opens on Trade', openShop(p, npc), true);
+    H.clearLogs();
+    invButton(p, 'shop_template:inv', 10, 1);
+    H.tick(1);
+    check('the price is quoted in vote points', said(p, `currently costs ${BOX_PRICE} vote points.`), true);
+
+    H.setVar(p, 'vote_points', BOX_PRICE - 1);
+    H.clearLogs();
+    invButton(p, 'shop_template:inv', 10, 2);
+    settle(p);
+    check('one point short: refused', [count(p, 'seed_box'), points(p)], [0, BOX_PRICE - 1]);
+
+    H.setVar(p, 'vote_points', BOX_PRICE);
+    H.clearLogs();
+    invButton(p, 'shop_template:inv', 10, 2);
+    settle(p);
+    check('exactly enough: bought, and the points are gone', [count(p, 'seed_box'), points(p)], [1, 0]);
+    // AND IT IS A USABLE ONE: the box that comes off the shelf answers the Fill handler that has
+    // been waiting for it, and cannot be sold on to anyone.
+    check('the box that arrives is the one with the handlers', ObjType.get(ObjType.getId('seed_box')).iop[0], 'Fill');
+    check('and stays on the account that bought it', ObjType.get(ObjType.getId('seed_box')).tradeable, false);
+}
+
 console.log('');
 console.log(`${R.ok} passed, ${R.bad} failed`);
 process.exit(R.bad ? 1 : 0);
