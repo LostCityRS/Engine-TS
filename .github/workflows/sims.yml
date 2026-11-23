@@ -582,8 +582,11 @@ jobs:
     # judgements need the quest read, so they are written down in the file rather than guessed here.
     # A build that makes a NEW value legless fails; one that fixes a known one says so and passes.
     #
-    # A second or so, and no cache, so it would sit just as well in the engine's push CI - except
-    # that engine.yml checks out no content. It is here because this job already has both.
+    # A second or so, and no cache, so it would sit just as well in the engine's push CI. It used
+    # to be true that engine.yml checked out no content; its quest-table job now does, so this
+    # could move there and catch a new legless value on the PR that writes it rather than that
+    # night. Left here for now because this job already has both and moving it is a change to what
+    # the nightly covers, not a tidy-up.
     - name: Progress values the quest helper has no leg for
       if: always()
       working-directory: engine
