@@ -76,7 +76,7 @@ jobs:
   # reason the check exists - but it does mean a red here is sometimes nobody's PR. The failure
   # prints which content commit it measured against, for exactly that case.
   quest-table:
-    name: The generated quest table is current
+    name: The quest table is current, and has no new gaps
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -107,7 +107,36 @@ jobs:
       working-directory: content
       run: git log --oneline -1
 
+    # EVERY PROGRESS VALUE THE CONTENT CAN WRITE THAT THE HELPER HAS NO LEG FOR. A leg exists only
+    # where a sim route reached that value, so a value the content writes and no route crosses has
+    # no row - and QuestHelperPlugin.stageNow then shows the player the last leg at or below it,
+    # one they have already finished. It does not throw; it misinforms, which is the shape of the
+    # report on DeathPlateau-Bugs#3.
+    #
+    # Its baseline carries a VERDICT per value rather than just a signature, because a legless
+    # value is not automatically a bug - above its quest's `done` the quest already reads as
+    # complete, and a fork usually leaves the player talking to the npc the previous leg names.
+    # Those judgements need the quest read, so they are written down in the file. A build that
+    # makes a NEW value legless fails; one that fixes a known one says so and passes.
+    #
+    # MOVED HERE FROM THE NIGHTLY, where it sat with three sibling ratchets only because that job
+    # had content checked out. It is the one of the four that needs neither the packed cache nor a
+    # booted world - fs and path are its only imports - so it belongs on the PR that writes the
+    # value rather than in that night's run. Two of its three failure modes are an engine PR's own
+    # doing: a `{ stage: N }` marker removed from a manifest, or a new quest row added on a
+    # progress var another row already uses.
+    #
+    # BEFORE THE PACK, deliberately, because it does not need one. A broken pack cannot stop this
+    # answering, and both checks below carry `if: always()` so one failing never hides the other -
+    # a stale table and a new legless value are different problems with different fixes.
+    - name: Progress values the quest helper has no leg for
+      working-directory: engine
+      env:
+        BUILD_SRC_DIR: ../content
+      run: npx tsx tools/quest/StageGaps.ts --check
+
     - name: Pack the content
+      if: always()
       working-directory: engine
       env:
         BUILD_SRC_DIR: ../content
@@ -115,6 +144,7 @@ jobs:
       run: npx tsx tools/pack/Build.ts
 
     - name: data/quests.json is what the exporter writes
+      if: always()
       working-directory: engine
       env:
         BUILD_SRC_DIR: ../content
