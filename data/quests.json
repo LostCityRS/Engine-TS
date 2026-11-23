@@ -58849,19 +58849,20 @@
        "text": "Go to the mud patch behind the house.",
        "at": [
         2567,
-        3332
+        3333
        ]
       },
       {
        "kind": "loc",
-       "text": "Use Bucket of water on Plaguemudpatch2.",
+       "text": "Use Bucket of water on Mud patch.",
        "why": "One.",
-       "target": "plaguemudpatch2",
-       "id": 2532,
+       "target": "plaguemudpatch1",
+       "id": 2531,
+       "label": "Mud patch",
        "item": 1929,
        "at": [
         2566,
-        3332
+        3333
        ]
       }
      ],
@@ -58882,14 +58883,15 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Bucket of water on Plaguemudpatch2.",
+       "text": "Use Bucket of water on Mud patch.",
        "why": "Two.",
-       "target": "plaguemudpatch2",
-       "id": 2532,
+       "target": "plaguemudpatch1",
+       "id": 2531,
+       "label": "Mud patch",
        "item": 1929,
        "at": [
         2566,
-        3332
+        3333
        ]
       }
      ],
@@ -58910,14 +58912,15 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Bucket of water on Plaguemudpatch2.",
+       "text": "Use Bucket of water on Mud patch.",
        "why": "Three.",
-       "target": "plaguemudpatch2",
-       "id": 2532,
+       "target": "plaguemudpatch1",
+       "id": 2531,
+       "label": "Mud patch",
        "item": 1929,
        "at": [
         2566,
-        3332
+        3333
        ]
       }
      ],
@@ -58938,14 +58941,15 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Bucket of water on Plaguemudpatch2.",
+       "text": "Use Bucket of water on Mud patch.",
        "why": "Four.",
-       "target": "plaguemudpatch2",
-       "id": 2532,
+       "target": "plaguemudpatch1",
+       "id": 2531,
+       "label": "Mud patch",
        "item": 1929,
        "at": [
         2566,
-        3332
+        3333
        ]
       }
      ],
@@ -58966,14 +58970,15 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Spade on Plaguemudpatch2.",
+       "text": "Use Spade on Mud patch.",
        "why": "Dig.",
-       "target": "plaguemudpatch2",
-       "id": 2532,
+       "target": "plaguemudpatch1",
+       "id": 2531,
+       "label": "Mud patch",
        "item": 952,
        "at": [
         2566,
-        3332
+        3333
        ]
       }
      ],
