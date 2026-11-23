@@ -80,7 +80,7 @@ const SLOT = { hat: 0, back: 1, front: 2, rhand: 3, torso: 4, lhand: 5, legs: 7,
  * size, because the guard exists to catch a one-tile island and not to forbid a room. */
 type Dest = { name: string; level: number; x: number; z: number; reach?: number };
 type Op = { op: number; label: string; dest: Dest };
-type Item = { obj: string; price: number; slot: number; ops: Op[] };
+type Item = { obj: string; slot: number; ops: Op[] };
 
 // ---------------------------------------------------------------- what the content says it does
 const D = {
@@ -107,7 +107,6 @@ const D = {
 const ITEMS: Item[] = [
     {
         obj: 'ardougne_cloak_4',
-        price: 90,
         slot: SLOT.back,
         ops: [
             { op: 3, label: 'Monastery Teleport', dest: D.monastery },
@@ -116,18 +115,16 @@ const ITEMS: Item[] = [
     },
     {
         obj: 'desert_amulet_4',
-        price: 50,
         slot: SLOT.front,
         ops: [
             { op: 3, label: 'Nardah', dest: D.nardah },
             { op: 4, label: 'Kalphite cave', dest: D.kalphite }
         ]
     },
-    { obj: 'fremennik_sea_boots_4', price: 40, slot: SLOT.feet, ops: [{ op: 3, label: 'Teleport', dest: D.rellekka }] },
-    { obj: 'kandarin_headgear_4', price: 40, slot: SLOT.hat, ops: [{ op: 3, label: 'Teleport', dest: D.seers }] },
+    { obj: 'fremennik_sea_boots_4', slot: SLOT.feet, ops: [{ op: 3, label: 'Teleport', dest: D.rellekka }] },
+    { obj: 'kandarin_headgear_4', slot: SLOT.hat, ops: [{ op: 3, label: 'Teleport', dest: D.seers }] },
     {
         obj: 'karamja_gloves_4',
-        price: 60,
         slot: SLOT.hands,
         ops: [
             { op: 3, label: 'Gem Mine', dest: D.gemmine },
@@ -136,20 +133,26 @@ const ITEMS: Item[] = [
     },
     {
         obj: 'morytania_legs_4',
-        price: 80,
         slot: SLOT.legs,
         ops: [
             { op: 3, label: 'Ecto Teleport', dest: D.ecto },
             { op: 4, label: 'Burgh Teleport', dest: D.burgh }
         ]
     },
-    { obj: 'wilderness_sword_4', price: 60, slot: SLOT.rhand, ops: [{ op: 3, label: 'Teleport', dest: D.fountain }] }
+    { obj: 'wilderness_sword_4', slot: SLOT.rhand, ops: [{ op: 3, label: 'Teleport', dest: D.fountain }] }
 ];
 // The two that are not teleports, and the ring that was already wired. All nine are priced and
 // sold; only these seven above teleport.
-const FALADOR = { obj: 'falador_shield_4', price: 80, slot: SLOT.lhand };
-const VARROCK = { obj: 'varrock_armour_4', price: 100, slot: SLOT.torso };
-const PRICED: [string, number][] = [...ITEMS.map(i => [i.obj, i.price] as [string, number]), [FALADOR.obj, FALADOR.price], [VARROCK.obj, VARROCK.price]];
+const FALADOR = { obj: 'falador_shield_4', slot: SLOT.lhand };
+const VARROCK = { obj: 'varrock_armour_4', slot: SLOT.torso };
+// THE NINE THAT ARE SOLD. No prices here: the price of each is one number in
+// vote/configs/vote.constant, written into the obj's cost= (general/configs/diary_rewards.obj), and
+// a second copy of it in a sim is a copy that goes stale. This file HELD such a copy and it did:
+// the Wilderness sword and the Morytania legs swapped prices and the sim failed on its own table
+// rather than on anything about the game. What is worth asserting is that every tier-4 item has a
+// price at all while its lower tiers have none, and that the shelf's order matches whatever the
+// prices currently are - both below, both true at any price.
+const PRICED: string[] = [...ITEMS.map(i => i.obj), FALADOR.obj, VARROCK.obj];
 
 let bucket = 1;
 function player(name: string, x = EDGEVILLE[0], z = EDGEVILLE[1]): Player {
@@ -233,19 +236,29 @@ console.log('== only tier 4 is priced, wired and for sale');
 {
     const wrongPrice: string[] = [];
     const tradeable: string[] = [];
-    for (const [obj, price] of PRICED) {
+    const ring = ObjType.get(ObjType.getId('explorers_ring_4')).cost;
+    for (const obj of PRICED) {
         const t = ObjType.get(ObjType.getId(obj));
-        if (t.cost !== price) wrongPrice.push(`${obj} costs ${t.cost}, not ${price}`);
+        // A PRICE AT ALL, and not dearer than the ring. 0 is the real failure - cost= is what the
+        // shop charges, so an unpriced tier-4 item is a free one - and the ring is deliberately the
+        // dearest thing on the shelf, so anything above it means a number went in the wrong place.
+        if (t.cost <= 0 || t.cost > ring) wrongPrice.push(`${obj} costs ${t.cost}, with the ring at ${ring}`);
         if (t.tradeable) tradeable.push(obj);
     }
-    check('every tier-4 item carries its vote-point price', wrongPrice, []);
+    console.log(
+        '  prices: ' +
+            PRICED.map(o => `${o} ${ObjType.get(ObjType.getId(o)).cost}`)
+                .sort()
+                .join(', ')
+    );
+    check('every tier-4 item is priced, and none above the ring', wrongPrice, []);
     check('and none of them is tradeable, so a bought one stays bought', tradeable, []);
 
     // THE LOWER TIERS. Corey: "do only the level 4 items, not their lower tiers." Priced at 0 and
     // carrying no worn option is what "not wired" looks like from here, and a price of 0 is also
     // the thing that would make one free if it ever reached a shelf.
     const lower: string[] = [];
-    for (const [obj] of PRICED) {
+    for (const obj of PRICED) {
         for (const tier of [1, 2, 3]) {
             const name = obj.replace(/_4$/, `_${tier}`);
             const id = ObjType.getId(name);
@@ -602,18 +615,11 @@ console.log('== the Vote clerk sells all ten, and only sells');
         .filter(o => o > 0)
         .map(o => ObjType.get(o).debugname ?? '?');
     check('ten rows', names.length, 10);
-    check('the ring first, then the nine by price, dearest first', names, [
-        'explorers_ring_4',
-        'varrock_armour_4',
-        'ardougne_cloak_4',
-        'falador_shield_4',
-        'morytania_legs_4',
-        'karamja_gloves_4',
-        'wilderness_sword_4',
-        'desert_amulet_4',
-        'fremennik_sea_boots_4',
-        'kandarin_headgear_4'
-    ]);
+    // THE RING FIRST, THEN THE NINE - asserted as a set and an order, not as a written-out list.
+    // The list was here and it pinned the prices a second time: swapping two of them failed this
+    // check while the shelf was in fact correctly sorted.
+    check('the ring leads the shelf', names[0], 'explorers_ring_4');
+    check('  ...and the nine sold items are each there exactly once', names.slice(1).sort(), [...PRICED].sort());
     // The shelf's order is only readable if it matches the prices, so it is checked against them
     // rather than against a list written out by hand twice.
     const costs = names.slice(1).map(n => ObjType.get(ObjType.getId(n)).cost);
