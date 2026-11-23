@@ -270,31 +270,35 @@ export class FriendServer {
                         const from = await db.selectFrom('account').selectAll().where('username', '=', fromBase37(username37)).executeTakeFirstOrThrow();
                         const to = await db.selectFrom('account').selectAll().where('username', '=', fromBase37(targetUsername37)).executeTakeFirstOrThrow();
 
-                        await db
-                            .insertInto('private_chat')
-                            .values({
-                                account_id: from.id,
-                                profile: message.profile,
-                                to_account_id: to.id,
-                                timestamp: toDbDate(Date.now()),
-                                coord: message.coord,
-                                message: chat
-                            })
-                            .execute();
+                        if (Environment.friend.logPrivateChat) {
+                            await db
+                                .insertInto('private_chat')
+                                .values({
+                                    account_id: from.id,
+                                    profile: message.profile,
+                                    to_account_id: to.id,
+                                    timestamp: toDbDate(Date.now()),
+                                    coord: message.coord,
+                                    message: chat
+                                })
+                                .execute();
+                        }
 
                         await this.sendPrivateMessage(username37, staffLvl, pmId, targetUsername37, chat);
                     } else if (type === FriendsClientOpcodes.PUBLIC_CHAT_LOG) {
                         const { nodeTime, session_uuid, coord, chat } = message;
 
-                        await db
-                            .insertInto('public_chat')
-                            .values({
-                                session_uuid,
-                                timestamp: toDbDate(nodeTime),
-                                coord,
-                                message: chat
-                            })
-                            .execute();
+                        if (Environment.friend.logPublicChat) {
+                            await db
+                                .insertInto('public_chat')
+                                .values({
+                                    session_uuid,
+                                    timestamp: toDbDate(nodeTime),
+                                    coord,
+                                    message: chat
+                                })
+                                .execute();
+                       }
                     } else if (type === FriendsClientOpcodes.RELAY_MUTE) {
                         const { nodeId, username, muted_until } = message;
 
