@@ -191,6 +191,10 @@ const KNOWN: Area[] = [
     // Four squares, derived from where the atoll's own npcs stand - NOT from a box. m45_42 holds
     // jungle snakes too and is Crash Island, so it is not here.
     { name: 'Ape Atoll', osrs: 'listed', exact: true, boxes: [...sq([0], 42, 42), ...sq([0], 43, 42), ...sq([0], 42, 43), ...sq([0], 43, 43)] },
+    // The maze under the atoll, which the four squares above do not cover: m42_142 and friends
+    // are a separate block in the csv. Plane 0 only - planes 1 and 2 have ground but no spawns,
+    // and the dungeon the Marim ladder reaches is the plane 0 maze.
+    { name: 'Ape Atoll Dungeon', osrs: 'listed', exact: true, boxes: [...sq([0], 42, 142), ...sq([0], 43, 142), ...sq([0], 42, 143), ...sq([0], 43, 143)] },
     { name: 'Piscatoris Fishing Colony', osrs: 'listed', exact: true, boxes: sq([0], 36, 57) },
     // The WHOLE jungle, on Corey's call (13 October). The OSRS list says "western Kharazi
     // Jungle" and defines no boundary for western, so this is deliberately wider than the
@@ -308,6 +312,10 @@ const LIVE: { area: string; npcs: string[]; squares?: string[] }[] = [
     { area: 'Mole Hole', npcs: ['mole_giant', 'mole_baby_01', 'mole_baby_02', 'mole_baby_03'] },
     { area: 'Lighthouse Dungeon', npcs: ['horror_dagannoth_medium', 'horror_dagannoth_medium_darker', 'horror_dagannoth_medium_lighter', 'horror_dagannoth_jr1', 'horror_dagannoth_jr2', 'horror_dagannoth_jr3'] },
     { area: 'Ape Atoll', npcs: ['mm_jungle_spider', 'mm_jungle_scorpion', 'mm_jungle_snake'], squares: ['m42_42', 'm43_42', 'm42_43', 'm43_43'] },
+    // Scoped to the four underground squares because mm_warehouse_spider is shared: it stands in
+    // the maze AND on the atoll surface, so without the filter this entry would be answering for
+    // the island as well as the dungeon.
+    { area: 'Ape Atoll Dungeon', npcs: ['mm_skeleton', 'mm_zombie_monkey_small', 'mm_zombie_monkey_large', 'mm_zombie_monkey_large_guard', 'mm_warehouse_spider'], squares: ['m42_142', 'm43_142', 'm42_143', 'm43_143'] },
     // Scoped to the jungle for a second reason: jungle_savage has wanderrange=38 (maxrange 40),
     // the widest in the cache, so a savage spawned near the jungle's east edge is routinely
     // placed out past x2943 and onto the Karamja coast. That is not a gap - a multi-way area is a
