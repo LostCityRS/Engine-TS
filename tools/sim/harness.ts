@@ -62,6 +62,13 @@ export const spotanims: { tick: number; who: string; spotanim: number; height: n
 // unanswerable from a sim until this existed - the params can all be present and correct and still
 // never reach the client, and a config reader cannot tell the difference.
 export const npcAnims: { tick: number; who: string; seq: number }[] = [];
+// AND AN NPC'S SPOTANIMS, which is how you see what a monster CAST rather than what landed. A spell
+// that misses plays the target's splash instead of its own impact graphic, so a cast read off the
+// player shows up as nothing at all - and "the Jungle Demon alternates between all four wave
+// spells" then looks like it skips, because a quarter of its casts miss. The spotanim the server
+// puts on the NPC is the spell it chose, hit or miss (magic_spell_table:spotanim_origin, played by
+// ~npc_spell_cast before any roll).
+export const npcSpotanims: { tick: number; who: string; spotanim: number; height: number }[] = [];
 export const mesgs: Say[] = [];
 export const sounds: Sound[] = [];
 export const ifaces: Iface[] = [];
@@ -175,6 +182,11 @@ export async function boot() {
         if (spotanim !== -1) spotanims.push({ tick: World.currentTick, who: this.username, spotanim, height });
         return origSpotanim.call(this, spotanim, height, delay);
     };
+    const origNpcSpotanim = (Npc.prototype as any).spotanim;
+    (Npc.prototype as any).spotanim = function (spotanim: number, height: number, delay: number) {
+        if (spotanim !== -1) npcSpotanims.push({ tick: World.currentTick, who: NpcType.get(this.type).debugname ?? String(this.type), spotanim, height });
+        return origNpcSpotanim.call(this, spotanim, height, delay);
+    };
     const origNpcAnim = (Npc.prototype as any).playAnimation;
     (Npc.prototype as any).playAnimation = function (seq: number, delay: number) {
         if (seq !== -1) npcAnims.push({ tick: World.currentTick, who: NpcType.get(this.type).debugname ?? String(this.type), seq });
@@ -240,6 +252,7 @@ export function clearLogs() {
     anims.length = 0;
     spotanims.length = 0;
     npcAnims.length = 0;
+    npcSpotanims.length = 0;
     mesgs.length = 0;
 }
 
