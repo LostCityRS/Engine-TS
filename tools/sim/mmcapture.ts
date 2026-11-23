@@ -281,17 +281,39 @@ console.log('\nAND KARAM KILLS WHAT HE CAN SEE');
         const npc = H.addNpc('mm_duke', karam.x + 2, karam.z);
         H.setNpcVar(npc, 'npc_aggressive_player', p.uid);
         H.setNpcMode(npc, 'OPPLAYER2', p);
-        // Dead OR gone: Karam kills through npc_damage so the ordinary death runs, and a corpse
-        // plays its animation for a few ticks before the world takes it away.
+        // THE DISTANCE IS PINNED, NOT THE TILE, and that is the whole of what this check used to
+        // get wrong. mm_karam has no moverestrict and wanders, and the scene was built once from
+        // the tile he happened to be on - so by the time the loop below ran he had walked off, and
+        // this reported "a captor beside him does not last: hp 130 at 2770,2780, Karam at
+        // 2767,2776" about a captor that was four tiles from him on both axes. The claim being
+        // made is a DISTANCE - mm_capture.rs2 asks `.npc_find(npc_coord, mm_karam,
+        // ^mm_karam_reach, 1)` from the CAPTOR's own tile - so the scene is re-formed around
+        // wherever Karam is each tick. Exactly the lesson tools/sim/mmaggro.ts records at length,
+        // which is why this was worth fixing rather than deleting. DeathPlateau-Bugs#83.
         let dead = false;
         let last = '';
+        let reformed = 0;
         for (let i = 0; i < 40 && !dead; i++) {
+            const k: any = World.getNpc(karam.nid);
+            const n0: any = World.getNpc(npc.nid);
+            if (k && n0 && Math.max(Math.abs(n0.x - k.x), Math.abs(n0.z - k.z)) > 1) {
+                p.teleport(k.x + 1, k.z, k.level);
+                n0.teleport(k.x + 2, k.z, k.level);
+                H.setNpcMode(n0, 'OPPLAYER2', p);
+                reformed++;
+                // A TICK TO LAND IT, as mmaggro needs for the same reason: a teleport moves the
+                // coordinates and nothing else until the entity is processed.
+                H.tick(1);
+            }
             H.tick(1);
             const n: any = World.getNpc(npc.nid);
             dead = !n || n.levels[3] === 0;
-            if (n) last = `hp ${n.levels[3]} at ${n.x},${n.z}, Karam at ${karam.x},${karam.z}`;
+            if (n && k) last = `hp ${n.levels[3]} at ${n.x},${n.z}, Karam at ${k.x},${k.z}, ${Math.max(Math.abs(n.x - k.x), Math.abs(n.z - k.z))} apart`;
         }
         check(`  and a captor beside him does not last (${last})`, dead, true);
+        // AND THE RE-FORMING IS REPORTED, because "it died" over a scene that was never actually
+        // beside Karam would be the same pass for the wrong reason.
+        console.log(`       (Karam wandered, so the scene was re-formed around him ${reformed} times)`);
         H.despawn(p);
     }
 }
