@@ -939,8 +939,44 @@ function stepsOf(raw: unknown[]): { stages: HelperStage[]; dropped: Record<strin
     for (const stage of stages) {
         for (const item of [...stage.items, ...stage.worn]) {
             item.bring = item.handle !== undefined && given.has(item.handle);
-            delete item.handle;
         }
+    }
+
+    // ...AND "IN EVERY LEG THAT ASKS FOR IT" NOW MEANS IT. The line above has said that since it
+    // was written, and it was not true: an item only ever landed in the list of whichever leg the
+    // sim's `give` line happened to sit in, which for most runs is the first one. A player four
+    // legs later, told to "Use Pestle and mortar on Black mushroom", was given no hint that a
+    // pestle and mortar is something they have to go and fetch - it was named on a panel they
+    // last saw at the start of the quest. Reported as "the golem. missing a few steps in helper
+    // how to reprogram the golem" (DeathPlateau-Bugs#59), which is exactly that leg.
+    //
+    // THE STEPS THEMSELVES SAY WHICH LEG ASKS. Every use-step already carries the obj it is used
+    // WITH, so a leg's own shopping list is derivable rather than something a manifest has to
+    // repeat - and derived is the point: 122 of these were missing across 50 of the 108 quests,
+    // and nobody was going to find them by rereading manifests.
+    //
+    // Only items the run was HANDED (`given`) are added. An item the quest itself produces is
+    // already in the leg that produces it, and listing it again in the leg that spends it would
+    // tell a player to go and fetch a golem program.
+    const broughtIds = new Map<number, { name: string; handle: string }>();
+    for (const stage of stages) {
+        for (const item of stage.items) {
+            if (item.bring && item.id >= 0 && item.handle !== undefined) broughtIds.set(item.id, { name: item.name, handle: item.handle });
+        }
+    }
+    for (const stage of stages) {
+        const already = new Set(stage.items.map(x => x.id));
+        for (const step of stage.steps) {
+            const used = (step as { item?: number }).item;
+            if (used === undefined || used < 0 || already.has(used)) continue;
+            const brought = broughtIds.get(used);
+            if (!brought) continue;
+            already.add(used);
+            stage.items.push({ name: brought.name, id: used, n: 1, bring: true });
+        }
+    }
+    for (const stage of stages) {
+        for (const item of [...stage.items, ...stage.worn]) delete item.handle;
     }
     return { stages, dropped };
 }

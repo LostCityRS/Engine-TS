@@ -144,6 +144,14 @@ const m: Manifest = {
         { note: 'says. The panel was naming leg 6, "Go back to the portal. Enter Portal.", which is' },
         { note: 'behind them. DeathPlateau-Bugs#16.' },
         { stage: 7 },
+        // THE VIAL CANNOT BE DERIVED, so it is declared here. The other two things this leg needs
+        // off a player - the pestle and mortar and the papyrus - are named ON its steps, so the
+        // exporter can work out that the leg wants them. The vial is not: [opheldu,golem_mushroom]
+        // in quest_golem.rs2 refuses with "you have no vial to put the dye in and it goes
+        // everywhere!" and nothing about the click mentions one. Without this line the panel at the
+        // golem lists no vial, and a player who banked theirs at the start of the quest has nothing
+        // to tell them why grinding the mushroom will not work. DeathPlateau-Bugs#59.
+        { give: 'vial_empty', why: 'the dye needs somewhere to go, and no step names it' },
         { use: ['pestle_and_mortar', 'golem_mushroom'], why: 'black dye in the vial' },
         { has: 'golem_ink' },
         { use: ['golem_ink', 'golem_phoenixfeather'], why: 'a quill' },

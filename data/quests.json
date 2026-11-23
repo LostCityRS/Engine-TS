@@ -153,6 +153,12 @@
        "id": 6745,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Black mushroom ink",
+       "id": 4622,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -1120,6 +1126,18 @@
        "id": 4277,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Needle",
+       "id": 1733,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Red dye",
+       "id": 1763,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -1637,6 +1655,12 @@
        "id": 4283,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Bucket of slime",
+       "id": 4286,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -2424,6 +2448,12 @@
        "id": 10301,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Hammer",
+       "id": 2347,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -3937,6 +3967,12 @@
        "id": 32,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -4381,6 +4417,12 @@
        "id": 2410,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Cheese",
+       "id": 1985,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -6403,6 +6445,12 @@
        "id": 1967,
        "n": 1,
        "bring": true
+      },
+      {
+       "name": "Cabbage",
+       "id": 1965,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -8112,6 +8160,18 @@
        "id": 1933,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Bucket",
+       "id": 1925,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Pot",
+       "id": 1931,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -8940,7 +9000,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Antipoison(4)",
+       "id": 2446,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -11236,6 +11303,12 @@
        "id": 526,
        "n": 25,
        "bring": true
+      },
+      {
+       "name": "Bucket of water",
+       "id": 1929,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -12071,7 +12144,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bronze bar",
+       "id": 2349,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -12095,6 +12175,12 @@
        "id": 1853,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Feather",
+       "id": 314,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -12864,6 +12950,12 @@
        "id": 6819,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Steel 2h sword",
+       "id": 1311,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -13996,7 +14088,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Plank",
+       "id": 960,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -14724,7 +14823,26 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bread",
+       "id": 2309,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Trout",
+       "id": 333,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Lobster",
+       "id": 379,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -14879,6 +14997,24 @@
        "id": 10433,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Goutweed",
+       "id": 3261,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Hammer",
+       "id": 2347,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Pestle and mortar",
+       "id": 233,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -15003,6 +15139,12 @@
        "id": 10435,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -15335,6 +15477,30 @@
        "id": 525,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Raw beef",
+       "id": 2132,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Raw rat meat",
+       "id": 2134,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Raw bear meat",
+       "id": 2136,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Raw chicken",
+       "id": 2138,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -18783,6 +18949,18 @@
        "id": 3262,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Pestle and mortar",
+       "id": 233,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Vial of water",
+       "id": 227,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -21152,6 +21330,12 @@
        "id": 6789,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Needle",
+       "id": 1733,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -21458,6 +21642,12 @@
        "id": 6792,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Bronze arrow",
+       "id": 882,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -21591,6 +21781,12 @@
        "id": 6791,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Knife",
+       "id": 946,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -22463,6 +22659,12 @@
        "id": 6994,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -26046,6 +26248,12 @@
        "id": 4604,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Coins",
+       "id": 995,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -27230,7 +27438,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Garlic",
+       "id": 1550,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -27573,7 +27788,14 @@
        "item": 1927
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bucket of milk",
+       "id": 1927,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -27941,7 +28163,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Hammer",
+       "id": 2347,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -28585,6 +28814,12 @@
        "id": 6456,
        "n": 4,
        "bring": false
+      },
+      {
+       "name": "Plant cure",
+       "id": 6036,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -29173,7 +29408,26 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Rake",
+       "id": 5341,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Watering can(8)",
+       "id": 5340,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Compost",
+       "id": 6032,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -29755,6 +30009,12 @@
        "id": 286,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Orange dye",
+       "id": 1769,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -29796,6 +30056,12 @@
        "id": 287,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Blue dye",
+       "id": 1767,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -29942,7 +30208,14 @@
        "item": 1761
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Soft clay",
+       "id": 1761,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -30579,6 +30852,12 @@
      ],
      "items": [
       {
+       "name": "Vial",
+       "id": 229,
+       "n": 1,
+       "bring": true
+      },
+      {
        "name": "Black mushroom ink",
        "id": 4622,
        "n": 1,
@@ -30595,6 +30874,18 @@
        "id": 4624,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Pestle and mortar",
+       "id": 233,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Papyrus",
+       "id": 970,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -34530,6 +34821,18 @@
        "id": 2149,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Blamish oil",
+       "id": 1582,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": [
@@ -35411,6 +35714,66 @@
        "id": 3847,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Plank",
+       "id": 960,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Swamp tar",
+       "id": 1939,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Molten glass",
+       "id": 1775,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Fire rune",
+       "id": 554,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Air rune",
+       "id": 556,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Water rune",
+       "id": 555,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Earth rune",
+       "id": 557,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Bronze sword",
+       "id": 1277,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Bronze arrow",
+       "id": 882,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -39006,6 +39369,12 @@
        "id": 4689,
        "n": 2,
        "bring": false
+      },
+      {
+       "name": "Bucket",
+       "id": 1925,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -40906,6 +41275,12 @@
        "id": 1609,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Chisel",
+       "id": 1755,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -41985,6 +42360,18 @@
        "id": 707,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Rope",
+       "id": 954,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Vial",
+       "id": 229,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -42008,7 +42395,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -45035,7 +45429,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bronze pickaxe",
+       "id": 1265,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -46565,6 +46966,24 @@
        "id": 10425,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Guam leaf",
+       "id": 249,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Marrentill",
+       "id": 251,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Pestle and mortar",
+       "id": 233,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -46724,6 +47143,12 @@
        "id": 10401,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Dramen staff",
+       "id": 772,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -47277,6 +47702,12 @@
        "id": 10425,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Needle",
+       "id": 1733,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -47430,6 +47861,12 @@
        "id": 10427,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": [
@@ -53075,6 +53512,12 @@
        "id": 6638,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Chisel",
+       "id": 1755,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -56621,7 +57064,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bread",
+       "id": 2309,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -56782,7 +57232,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Hammer",
+       "id": 2347,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -58408,7 +58865,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bucket of water",
+       "id": 1929,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -58429,7 +58893,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bucket of water",
+       "id": 1929,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -58450,7 +58921,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bucket of water",
+       "id": 1929,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -58471,7 +58949,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bucket of water",
+       "id": 1929,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -58492,7 +58977,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Spade",
+       "id": 952,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -58538,7 +59030,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Rope",
+       "id": 954,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -58906,6 +59405,18 @@
        "id": 1504,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Chocolate dust",
+       "id": 1975,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Snape grass",
+       "id": 231,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -59627,6 +60138,12 @@
        "id": 2954,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Bucket",
+       "id": 1925,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -60207,7 +60724,14 @@
        "item": 954
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Rope",
+       "id": 954,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -60781,6 +61305,18 @@
        "id": 7826,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Jug of vinegar",
+       "id": 7810,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -60888,7 +61424,14 @@
        "item": 1561
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Pet cat",
+       "id": 1561,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -60969,7 +61512,14 @@
        "item": 1561
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Pet cat",
+       "id": 1561,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -61529,6 +62079,12 @@
        "id": 6766,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Pet cat",
+       "id": 1561,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -63366,6 +63922,24 @@
        "id": 3219,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Pestle and mortar",
+       "id": 233,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Cooked rabbit",
+       "id": 3228,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -64912,6 +65486,12 @@
        "id": 4205,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Glarial's pebble",
+       "id": 294,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -66012,6 +66592,18 @@
        "id": 1941,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Swamp tar",
+       "id": 1939,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -66675,6 +67267,12 @@
        "name": "Ball of wool",
        "id": 1759,
        "n": 20,
+       "bring": true
+      },
+      {
+       "name": "Shears",
+       "id": 1735,
+       "n": 1,
        "bring": true
       }
      ],
@@ -67512,7 +68110,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Spade",
+       "id": 952,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -67534,7 +68139,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Lit candle",
+       "id": 33,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -67556,7 +68168,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Rope",
+       "id": 954,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -68005,6 +68624,18 @@
        "id": 605,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Chisel",
+       "id": 1755,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Bronze wire",
+       "id": 1794,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": [
@@ -68133,7 +68764,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bones",
+       "id": 526,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -68363,7 +69001,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Rope",
+       "id": 954,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -69462,6 +70107,18 @@
        "id": 7941,
        "n": 5,
        "bring": false
+      },
+      {
+       "name": "Logs",
+       "id": 1511,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Iron bar",
+       "id": 2351,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -69896,6 +70553,12 @@
        "id": 7951,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Bones",
+       "id": 526,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -70919,6 +71582,12 @@
        "id": 11500,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -73684,6 +74353,48 @@
        "id": 6545,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Logs",
+       "id": 1511,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Bucket of milk",
+       "id": 1927,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Chocolate cake",
+       "id": 1897,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Shears",
+       "id": 1735,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Rake",
+       "id": 5341,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Potato seed",
+       "id": 5318,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -74836,6 +75547,12 @@
        "id": 1492,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Bucket",
+       "id": 1925,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -75209,6 +75926,12 @@
        "id": 1496,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": [
@@ -78648,6 +79371,18 @@
        "id": 2373,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Rope",
+       "id": 954,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Dragon bones",
+       "id": 536,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -78873,7 +79608,14 @@
        "item": 560
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Death rune",
+       "id": 560,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -79391,6 +80133,18 @@
        "id": 2394,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Guam leaf",
+       "id": 249,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Pestle and mortar",
+       "id": 233,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -80155,6 +80909,12 @@
        "id": 295,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Rope",
+       "id": 954,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -80749,6 +81509,12 @@
        "id": 771,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Knife",
+       "id": 946,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
