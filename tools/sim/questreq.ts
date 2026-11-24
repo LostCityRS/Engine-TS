@@ -9,7 +9,6 @@
 import * as H from './harness.ts';
 import ScriptProvider from '#/engine/script/ScriptProvider.js';
 import ScriptRunner from '#/engine/script/ScriptRunner.js';
-import ScriptState from '#/engine/script/ScriptState.js';
 import DbTableType from '#/cache/config/DbTableType.js';
 import DbRowType from '#/cache/config/DbRowType.js';
 
@@ -37,14 +36,15 @@ for (let id = 0; id < DbRowType.count; id++) {
     if (!row || !row.debugname?.startsWith('quest_req_')) continue;
     const table = DbTableType.getId('quest_requirement');
     if (row.tableId !== table) continue;
-    const nameCol = row.types?.[1] !== undefined ? 1 : 1;
-    const v = row.columnValues?.[nameCol]?.[0];
+    // column 1 is `name`, the quest list's own label - see quest_requirement.dbtable
+    const v = row.columnValues?.[1]?.[0];
     if (typeof v === 'string') names.push(v);
 }
 names.sort();
 
-const fresh = H.makePlayer('reqfresh');
-const maxed = H.makePlayer('reqmaxed');
+// makePlayer wants a tile: these two never move, so Lumbridge will do for both.
+const fresh = H.makePlayer('reqfresh', 3222, 3218);
+const maxed = H.makePlayer('reqmaxed', 3222, 3218);
 H.maxOut(maxed);
 
 let shown = 0;
