@@ -953,6 +953,33 @@ async function relayToReporters() {
                     // fires is the reporter's own, added above.
                     allowedMentions: { users: t.opener_id ? [t.opener_id] : [] }
                 });
+                // AND TIDIED AWAY AGAIN, when all this had to say was that the bug is fixed.
+                //
+                // Delivering means unarchiving, and before this the thread was then just left open
+                // - so announcing eighteen old fixes reopened eighteen long-settled threads and
+                // Corey closed the first one by hand. An update ENDS a conversation; a question
+                // starts one. So a message that was only updates archives the thread behind
+                // itself, and a message carrying any question leaves it open, because the whole
+                // point of asking is that they answer.
+                //
+                // NOT RE-LOCKED, deliberately, and that is Corey's call of 2026-11-24. Archiving
+                // takes it out of the channel list; locking would take away their reply. A player
+                // posting in an archived-but-unlocked thread reopens it, which is exactly the
+                // path "it still happens to me" needs - the single most useful sentence anybody
+                // can send about a fix, and one nobody would hear if this re-locked.
+                //
+                // It still does not touch the TICKET. The row stays whatever it was and Reopen is
+                // still staff's button; only the Discord thread is put away.
+                if (!blocks.some(b => b.kind === 'ask')) {
+                    try {
+                        await thread.setArchived(true, 'the reporter was told their report is fixed');
+                    } catch (err) {
+                        // The message is already delivered, which is the part that mattered. A
+                        // thread left open is untidy; losing the record of a delivered update
+                        // would mean sending it again.
+                        console.log(`Ticket bot: told ${number(t.id)} but could not archive its thread: ${(err as Error).message}`);
+                    }
+                }
                 // The outcome column says WHICH kinds went, rather than the older bare 'relayed',
                 // so that a thread nobody can find afterwards can still be traced to a question or
                 // to an announcement. Nothing reads this column; it is there to be read by a person.

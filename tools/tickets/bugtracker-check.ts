@@ -355,6 +355,21 @@ for (const action of [...posted].sort()) {
 }
 check('and all four are posted somewhere', [...posted].sort().join(' '), 'claim close hand reopen');
 
+// ------------------------------------------------- what the relay does to the thread afterwards
+//
+// READ AS TEXT for the same reason the buttons above are: importing TicketBot.ts opens the live
+// ticket database and builds a Discord client. These three are a decision of Corey's rather than
+// an implementation detail, and all three fail silently if they regress - the thread is simply
+// left in the wrong state, which nobody notices until a player cannot reply or a channel fills up.
+const relay = /async function relayToReporters\(\)([\s\S]*?)\n}\n/.exec(bot)?.[1] ?? '';
+checkThat('the relay function was found to read', relay.length > 0);
+checkThat('an update archives the thread behind itself', /setArchived\(true/.test(relay));
+checkThat('and only when the message carried no question', /!blocks\.some\(b => b\.kind === 'ask'\)/.test(relay));
+// COREY'S CALL, 2026-11-24: archiving takes the thread out of the list, locking would take away
+// the reply. "It still happens to me" is the most useful sentence anybody can send about a fix,
+// and re-locking here is how nobody would ever hear it.
+checkThat('and it never locks a thread, so the reporter can still answer', !/setLocked\(true/.test(relay));
+
 // THE CLOSE BUTTON ON THE LOG MESSAGE is this file's own subject only in that it sits in the same
 // row as Hand to Claude. Pinned here because the row is built in one place and read by nobody else:
 // deleting the button would otherwise be silent.
