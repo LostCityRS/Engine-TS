@@ -130,8 +130,22 @@ function fail(msg: string): never {
     process.exit(1);
 }
 
+// toSafeName, NOT toLowerCase, AND THAT ONE WORD IS THE WHOLE BUG. A RuneScape name treats a
+// space and an underscore as the same character - "iron sgt", "Iron Sgt" and "IRON_SGT" are one
+// account, and base37 encodes all three identically - but the save file on disk is always written
+// with the underscore. Lowercasing alone therefore looked for `iron sgt.sav`, which does not
+// exist and never will.
+//
+// WHAT THAT DID, because it did not fail. readSave below treats a missing file as a FRESH
+// character, so `export "iron sgt"` wrote out a blank 293-byte save and said `wrote ...` as if it
+// had worked, and `set "iron sgt" save.vars.x 1` edited that blank and wrote it to a stray
+// `iron sgt.sav` beside the real one - reporting success while the actual character was never
+// touched. It cost an evening chasing a player's quest state that the tool was never reading.
+//
+// toSafeName is the engine's own normalisation (fromBase37(toBase37(name))), so this now agrees
+// with the name the login server resolves and with the file the server writes.
 function savePath(username: string) {
-    return path.join('data/players', profile, `${username.toLowerCase()}.sav`);
+    return path.join('data/players', profile, `${toSafeName(username)}.sav`);
 }
 
 // ---------------------------------------------------------------- the database half
@@ -198,8 +212,16 @@ function loadCache() {
 function readSave(username: string): Player {
     loadCache();
     const file = savePath(username);
-    const raw = fs.existsSync(file) ? new Uint8Array(fs.readFileSync(file)) : new Uint8Array(0);
-    return PlayerLoading.load(username.toLowerCase(), new Packet(raw), null);
+    // AND SAY SO WHEN THERE IS NOTHING THERE. A fresh character is the right thing to hand back -
+    // `show` prints a line of its own about it, and a save has to be creatable - but doing it
+    // SILENTLY is what let a typo'd name read as an empty player and then be written back out as
+    // one. Every caller now gets the warning, not just the one that remembered to look.
+    const missing = !fs.existsSync(file);
+    if (missing) {
+        console.log(`  NO SAVE FILE at ${file} - everything read here is a fresh character, not ${toSafeName(username)}`);
+    }
+    const raw = missing ? new Uint8Array(0) : new Uint8Array(fs.readFileSync(file));
+    return PlayerLoading.load(toSafeName(username), new Packet(raw), null);
 }
 
 /**
@@ -1260,7 +1282,9 @@ async function cmdChat(username: string) {
             for (const row of rows) lines.push({ timestamp: row.timestamp as unknown as string, who: account.username, message: row.message, coord: row.coord, kind: 'public' });
         }
         if (uuids.length && wantClan) {
-            const rows = await tryDb('clan chat', () => db.selectFrom('clan_chat').select(['timestamp', 'coord', 'message', 'channel']).where('session_uuid', 'in', uuids).where('timestamp', '>=', since).orderBy('timestamp', 'desc').limit(limit).execute());
+            const rows = await tryDb('clan chat', () =>
+                db.selectFrom('clan_chat').select(['timestamp', 'coord', 'message', 'channel']).where('session_uuid', 'in', uuids).where('timestamp', '>=', since).orderBy('timestamp', 'desc').limit(limit).execute()
+            );
             if (rows === null) return;
             for (const row of rows) lines.push({ timestamp: row.timestamp as unknown as string, who: `${account.username} @${row.channel}`, message: row.message, coord: row.coord, kind: 'clan' });
         }
@@ -1427,7 +1451,9 @@ async function cmdWhois(username: string) {
     const unreadable = mine.filter(s => !usableAddress(s.ip)).length;
 
     console.log(`  ${account.username} (account ${account.id}) - ${mine.length} login${mine.length === 1 ? '' : 's'} recorded`);
-    console.log(`    addresses:      ${ips.length ? ips.map(ip => `${ip} (${ipLogins.get(ip)})`).join(', ') : 'none usable'}${unreadable ? `  (and ${unreadable} login${unreadable === 1 ? '' : 's'} whose socket had no address - not matchable)` : ''}`);
+    console.log(
+        `    addresses:      ${ips.length ? ips.map(ip => `${ip} (${ipLogins.get(ip)})`).join(', ') : 'none usable'}${unreadable ? `  (and ${unreadable} login${unreadable === 1 ? '' : 's'} whose socket had no address - not matchable)` : ''}`
+    );
     console.log(`    client installs: ${uids.length ? uids.join(', ') : 'none usable'}${mine.some(s => s.uid === 0) ? '  (some logins reported uid 0 - unknown, not matchable)' : ''}`);
     console.log('');
 
