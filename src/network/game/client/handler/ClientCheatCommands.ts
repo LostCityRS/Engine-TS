@@ -54,6 +54,7 @@ export const CHEATS: Cheat[] = [
 
     // MODERATOR.
     { name: 'sz', what: 'teleport to the staff zone - ::home is the way out of it', rank: 2, helper: true },
+    { name: 'ticks', what: 'how the world is keeping up - say whether something slow is the server or the skill', rank: 2, helper: true },
     { name: 'getcoord', what: 'print the coordinate you are standing on', rank: 2 },
     { name: 'tele', args: '<level,mx,mz[,lx,lz]>', what: 'teleport to a coordinate, as ::getcoord prints it', rank: 2 },
     { name: 'teleto', args: '<username>', what: 'teleport yourself to a player', rank: 2, staffWorld: true },

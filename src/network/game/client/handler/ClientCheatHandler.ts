@@ -1173,6 +1173,23 @@ export default class ClientCheatHandler extends ClientGameMessageHandler<ClientC
         // in the staff zone. Asked for on 14 November; written here because the comment it
         // contradicts is two files away.
         if (player.staffModLevel >= 2 || player.helper) {
+            // custom (2026-11-24) - ::ticks, how the world is keeping up, in game. Read-only and
+            // moderator-and-above because the question it answers - "is the server lagging, or is
+            // this skill just slow?" - is the one staff get asked and could not answer. The only
+            // existing signal was a journal line, written when a tick went over budget, throttled to
+            // one every 30 seconds, and visible to nobody holding a client.
+            //
+            // It earned its place the long way round: every fishing catch rate was checked against
+            // the wiki and every cadence measured before anyone could say whether the tick itself was
+            // late, and a world running at 1000ms a tick would have made all of that work beside the
+            // point. World.cycleReport has the numbers; this is only who may ask for them.
+            if (cmd === 'ticks' || cmd === 'lag') {
+                for (const line of World.cycleReport()) {
+                    player.messageGame(line);
+                }
+                return true;
+            }
+
             if (cmd === 'sz') {
                 // custom (2026-11-11) - the staff zone: map square 22_56, which nothing on the map
                 // borders and no path reaches. Content builds the square (content/tools/genstaffzone.py)

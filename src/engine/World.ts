@@ -205,6 +205,18 @@ class World {
     readonly lastCycleStats: Uint32Array = new Uint32Array(13);
     readonly cycleStats: Uint32Array = new Uint32Array(13);
 
+    // custom (2026-11-24) - THE LAST FIVE MINUTES OF CYCLE TIMES, so somebody can ask the world how
+    // it is keeping up instead of being told the game feels laggy. The slow-tick warning below
+    // already writes to the journal, but only when a tick is over budget, only every 30 seconds, and
+    // nobody in game can read it - which is how "fishing is slow" and "the world is slow" stayed
+    // indistinguishable while fishing's rates were measured three times over. ::ticks reads this.
+    //
+    // A ring, not a list: 500 entries is five minutes at 600ms and the oldest is simply overwritten,
+    // so it costs 2KB and never grows.
+    private static readonly CYCLE_HISTORY: number = 500;
+    private readonly cycleHistory: Uint32Array = new Uint32Array(World.CYCLE_HISTORY);
+    private cycleHistoryWrites: number = 0;
+
     tickRate: number = World.TICKRATE; // speeds up when we're processing server shutdown
     currentTick: number = 0; // the current tick of the game world.
     nextTick: number = 0; // the next time the game world should tick.
@@ -532,6 +544,39 @@ class World {
 
     // ----
 
+    /** The recent cycle times in the order they happened, oldest first. Empty on a world that has not ticked. */
+    recentCycles(): number[] {
+        const n = Math.min(this.cycleHistoryWrites, World.CYCLE_HISTORY);
+        const out: number[] = [];
+        for (let i = 0; i < n; i++) {
+            out.push(this.cycleHistory[(this.cycleHistoryWrites - n + i) % World.CYCLE_HISTORY]);
+        }
+        return out;
+    }
+
+    /** How the world is keeping up, in the lines ::ticks prints. */
+    cycleReport(): string[] {
+        const cycles = this.recentCycles();
+        if (cycles.length === 0) {
+            return ['The world has not completed a tick yet.'];
+        }
+        const budget = this.tickRate;
+        const sorted = [...cycles].sort((a, b) => a - b);
+        const mean = cycles.reduce((a, b) => a + b, 0) / cycles.length;
+        const median = sorted[Math.floor(sorted.length / 2)];
+        const p95 = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))];
+        const over = budget > 0 ? cycles.filter(c => c > budget).length : 0;
+        const window = ((cycles.length * budget) / 1000).toFixed(0);
+        const last = this.lastCycleStats;
+        return [
+            `Last ${cycles.length} ticks (about ${window}s): mean ${mean.toFixed(1)}ms, median ${median}ms, 95th ${p95}ms, worst ${sorted[sorted.length - 1]}ms.`,
+            `Budget ${budget}ms. ${over} tick${over === 1 ? '' : 's'} over it (${((over / cycles.length) * 100).toFixed(1)}%).` +
+                (over === 0 ? ' The world is keeping up, so whatever feels slow is not the tick rate.' : ' Everything in the game runs late by this much.'),
+            `Last tick ${last[WorldStat.CYCLE]}ms: world ${last[WorldStat.WORLD]}, in ${last[WorldStat.CLIENT_IN]}, npcs ${last[WorldStat.NPC]}, players ${last[WorldStat.PLAYER]}, zones ${last[WorldStat.ZONE]}, out ${last[WorldStat.CLIENT_OUT]}, cleanup ${last[WorldStat.CLEANUP]}.`,
+            `${this.getHumanPlayerCount()} players, up to ${last[WorldStat.PACKETS_OUT_MAX]} packets to one client.`
+        ];
+    }
+
     cycle(): void {
         try {
             const start: number = Date.now();
@@ -658,6 +703,8 @@ class World {
             }
 
             this.cycleStats[WorldStat.CYCLE] = Date.now() - start; // set the main logic stat here, before telemetry.
+            this.cycleHistory[this.cycleHistoryWrites % World.CYCLE_HISTORY] = this.cycleStats[WorldStat.CYCLE];
+            this.cycleHistoryWrites++;
 
             // custom (2026-11-03) - say so when the world runs late. A tick is 600ms; longer than that
             // and every player feels it, wherever they are. Nothing used to be logged at all, so the
