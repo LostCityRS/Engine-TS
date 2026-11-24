@@ -387,84 +387,214 @@ console.log('\n=== and the engine really rolls what the formula says');
 }
 
 console.log('\n=== HOW OFTEN YOU GET A ROLL AT ALL, which the rates above cannot see');
+// A correct success chance on a roll you only get half as often is still half the fish, and nothing
+// above this would notice. Corey reported 10 tuna in 10 minutes at level 39, then 27 in 20-30, then
+// 26 harpoon swings in a minute, and none of those three numbers can be read off the rates.
+//
+// THE CADENCE IS PER METHOD, not one number for fishing. An earlier version of this file measured a
+// NET spot at 6 ticks and wrote that up as "the" cadence, which is wrong twice over: the steady loop
+// in each handler sets %action_delay = map_clock + N and rolls when the clock reaches it, then
+// spends the next tick re-arming, so a roll lands every N+1 ticks - and N is 4 in some handlers and
+// 5 in others. Old School is the same way, and the two figures it publishes both match:
+//
+//   HARPOON        6 ticks   Lantern harpooning: tick manipulation speeds it up "from a six-tick
+//                            action (with a regular harpoon)"
+//   FLY FISHING    5 ticks   Tick manipulation: "Barbarian fishing and fly fishing are both
+//   BARBARIAN      5 ticks   normally a 5-tick action. This means that a roll to catch a fish
+//                            normally happens every five ticks."
+//
+// Net, bait and cage have no published figure I could find, so they are recorded at what they are
+// rather than held to a number nobody can cite - a change to one still fails this check and has to
+// be argued for rather than slipped in.
 {
-    // A correct success chance on a roll you only get half as often is still half the fish, and
-    // nothing above this would notice. Corey reported 10 tuna in 10 minutes at level 39 and 11.33%
-    // a roll predicts about 19, so the cadence had to be measured rather than read off the
-    // %action_delay arithmetic.
-    //
-    // MEASURED WHERE IT CANNOT HIDE: at 99 a net spot rolls anchovies at 50.4% and falls through to
-    // shrimps at 100.4%, and shrimps cannot fail - so every roll yields exactly one fish and the
-    // fish count IS the roll count. No statistics, no variance: ticks divided by fish is the real
-    // seconds per cast.
-    const spot = (() => {
+    const SPOT = 'skill_fishing/scripts/fishing_spots/';
+    // The SECOND delay in each handler is the steady loop's; the first is the opening click's.
+    const steady = (file: string, label: string): number | null => {
+        const text = src(file);
+        const at = text.indexOf(`[label,${label}]`);
+        if (at === -1) return null;
+        const next = text.indexOf('\n[', at + 1);
+        const block = text.slice(at, next === -1 ? undefined : next);
+        const m = block.match(/%action_delay = calc\(map_clock \+ (\d+)\)/);
+        return m ? Number(m[1]) + 1 : null;
+    };
+    const METHODS: [string, string, string, number, string][] = [
+        ['harpoon, tuna and swordfish', SPOT + 'rarefish.rs2', 'fish_swordfish', 6, 'Lantern harpooning'],
+        ['harpoon, shark', SPOT + 'memberfish.rs2', 'fish_shark', 6, 'Lantern harpooning'],
+        ['harpoon, the Wilderness pair', SPOT + 'wildyfish.rs2', 'fish_wildy', 6, 'Lantern harpooning'],
+        ['fly fishing, trout and salmon', SPOT + 'freshfish.rs2', 'fish_trout_salmon', 5, 'Tick manipulation'],
+        ['barbarian, leaping fish', SPOT + 'barbarian.rs2', 'barbfish_catch', 5, 'Tick manipulation'],
+        // no published figure for these; recorded, not asserted against the wiki
+        ['bait, sardine and herring', SPOT + 'saltfish.rs2', 'fish_sardine', 5, '(unsourced)'],
+        ['bait, pike', SPOT + 'freshfish.rs2', 'fish_pike', 5, '(unsourced)'],
+        ['net, shrimps', SPOT + 'saltfish.rs2', 'fish_shrimp', 6, '(unsourced)'],
+        ['cage, lobster', SPOT + 'rarefish.rs2', 'fish_lobster', 6, '(unsourced)'],
+        ['big net', SPOT + 'memberfish.rs2', 'fish_mackerel', 6, '(unsourced)']
+    ];
+    // The waterfall's fly fishing has no [label,...] - its loop sits in [oploc3,loc_2027] - so the
+    // same read is done by trigger. It is still fly fishing and still has to be 5.
+    const steadyAt = (file: string, header: string): number | null => {
+        const text = src(file);
+        const at = text.indexOf(`[${header}]`);
+        if (at === -1) return null;
+        const next = text.indexOf('\n[', at + 1);
+        const block = text.slice(at, next === -1 ? undefined : next);
+        const ms = [...block.matchAll(/%action_delay = calc\(map_clock \+ (\d+)\)/g)];
+        return ms.length ? Number(ms[ms.length - 1][1]) + 1 : null;
+    };
+    const wrong: string[] = [];
+    {
+        const got = steadyAt(SPOT + 'waterfall.rs2', 'oploc3,loc_2027');
+        console.log(`  ${'fly fishing, the waterfall'.padEnd(30)} ${got === null ? 'NOT FOUND' : got + ' ticks a cast'}  Tick manipulation`);
+        if (got !== 5) wrong.push(`fly fishing, the waterfall: ${got} ticks a cast, expected 5`);
+    }
+    for (const [label, file, name, want, source] of METHODS) {
+        const got = steady(file, name);
+        console.log(`  ${label.padEnd(30)} ${got === null ? 'NOT FOUND' : got + ' ticks a cast'}  ${source}`);
+        if (got !== want) wrong.push(`${label}: ${got} ticks a cast, expected ${want} (${source})`);
+    }
+    check('every method rolls on its own cadence, and the three published ones match', wrong, []);
+}
+
+console.log('\n=== measured, by counting the casts the engine actually animates');
+{
+    // One anim call per roll, so the modal animation count IS the cast count - no guessing from the
+    // screen. Corey counted 26 harpoon swings in a minute against the 16.8 casts measured here, and
+    // the two agree: human_harpoon carries loops=20 maxloops=4, so one cast shows SEVERAL visible
+    // swings and a swing is not a cast. That is worth leaving written down - the swing count was
+    // proposed as a diagnostic and it cannot be one.
+    const spotOf = (suffix: string, x: number, z: number): Npc => {
         let best: Npc | null = null;
         let bestD = Infinity;
         for (const n of World.npcs) {
-            if (!(NpcType.get(n.type).debugname ?? '').endsWith('_saltfish')) continue;
-            const d = Math.max(Math.abs(n.x - 3242), Math.abs(n.z - 3155));
+            if (!(NpcType.get(n.type).debugname ?? '').endsWith(suffix)) continue;
+            const d = Math.max(Math.abs(n.x - x), Math.abs(n.z - z));
             if (d < bestD) {
                 bestD = d;
                 best = n;
             }
         }
-        if (!best) throw new Error('no net fishing spot in the world');
+        if (!best) throw new Error('no ' + suffix + ' spot near ' + x + ',' + z);
+        return best;
+    };
+    // KEEP LIST, not just the tool: fly fishing needs feathers (~check_fish_equipment reads
+    // baitrequired off the equipment's struct and bails out with "You don't have any feathers left"),
+    // and the first run of this deleted them on the first tick and measured zero casts.
+    const measure = (name: string, suffix: string, op: number, tool: string, level: number, near: [number, number], ticks: number, keep: string[] = []): number => {
+        const spot = spotOf(suffix, near[0], near[1]);
+        const p: any = H.makePlayer('cad_' + name.replace(/\W/g, ''), spot.x + 1, spot.z);
+        H.loginOrder(p);
+        p.teleport(spot.x + 1, spot.z, spot.level);
+        H.tick(1);
+        p.setLevel(PlayerStat.FISHING, level);
+        H.clearInv(p);
+        H.give(p, tool, 1);
+        for (const k of keep) H.give(p, k, 2000);
+        const keepIds = new Set([ObjType.getId(tool), ...keep.map(k => ObjType.getId(k))]);
+        const invId = InvType.getId('inv');
+        H.clearLogs();
+        H.opNpc(p, spot, op);
+        for (let t = 0; t < ticks; t++) {
+            H.tick(1);
+            // the pack must never fill, or fishing stops with "You can't carry any more fish" and the
+            // spot reads far slower than it is - which is exactly what the first run of this said
+            for (let slot = 0; slot < 28; slot++) {
+                const held = p.getInventory(invId)?.get(slot);
+                if (held && !keepIds.has(held.id)) p.invDelSlot(invId, slot);
+            }
+        }
+        // THE GAP BETWEEN CONSECUTIVE CASTS, not ticks divided by casts. The opening click runs a
+        // staged animation through its own branches before the steady loop takes over, so dividing
+        // the whole window by the cast count charges that startup to every cast and reported fly
+        // fishing as 5.6 ticks when its loop is a clean 5. The median gap ignores the start.
+        const tally = new Map<number, number>();
+        for (const a of H.anims) if (a.who === p.username) tally.set(a.seq, (tally.get(a.seq) ?? 0) + 1);
+        let best = -1;
+        let bestN = 0;
+        for (const [seq, n] of tally)
+            if (n > bestN) {
+                bestN = n;
+                best = seq;
+            }
+        const at = H.anims.filter(a => a.who === p.username && a.seq === best).map(a => a.tick);
+        const gaps = at
+            .slice(1)
+            .map((t, i) => t - at[i])
+            .sort((a, b) => a - b);
+        const median = gaps.length ? gaps[Math.floor(gaps.length / 2)] : NaN;
+        console.log(`  ${name.padEnd(18)} ${at.length} casts in ${ticks} ticks, median gap ${median} ticks, ${(60 / (median * 0.6)).toFixed(1)} a minute`);
+        return median;
+    };
+    const TICKS = 420;
+    const harpoon = measure('harpoon @39', '_rarefish', 3, 'harpoon', 39, [2845, 3145], TICKS);
+    const fly = measure('fly fishing @30', '_freshfish', 1, 'fly_fishing_rod', 30, [2714, 3532], TICKS, ['feather']);
+    check('a harpoon cast measures 6 ticks, as the handler and the wiki both say', harpoon, 6);
+    check('a fly fishing cast measures 5, which is the faster cadence and correct', fly, 5);
+    check('  ...so fly fishing really is quicker per cast than harpooning', fly < harpoon, true);
+}
+
+console.log('\n=== a whole trip, the way a player actually fishes one');
+{
+    // COREY'S OWN TRIP: level 39, a harpoon, click once, fish until the pack is full. Nothing empties
+    // it from outside, so if a real trip costs time that the per-cast measurements above cannot see,
+    // it shows up here. 27 tuna is a full pack beside the harpoon.
+    //
+    // The expected time is negative-binomial, not a point: 27 catches at 11.33% a cast wants about
+    // 238 casts, which at 6 ticks is 14.3 minutes, and the spread is wide - a single trip anywhere
+    // from about 9 to 20 minutes is ordinary luck. The check below is therefore deliberately loose;
+    // it is here to catch a trip that takes twice as long as it should, not to pin a median.
+    const spot = (() => {
+        let best: Npc | null = null;
+        let bestD = Infinity;
+        for (const n of World.npcs) {
+            if (!(NpcType.get(n.type).debugname ?? '').endsWith('_rarefish')) continue;
+            const d = Math.max(Math.abs(n.x - 2845), Math.abs(n.z - 3145));
+            if (d < bestD) {
+                bestD = d;
+                best = n;
+            }
+        }
+        if (!best) throw new Error('no harpoon spot');
         return best;
     })();
-    const p: any = H.makePlayer('cadence', spot.x + 1, spot.z);
+    const p: any = H.makePlayer('trip', spot.x + 1, spot.z);
     H.loginOrder(p);
     p.teleport(spot.x + 1, spot.z, spot.level);
     H.tick(1);
-    p.setLevel(PlayerStat.FISHING, 99);
+    p.setLevel(PlayerStat.FISHING, 39);
     H.clearInv(p);
-    H.give(p, 'net', 1);
-    // EVERY fish is emptied out each tick, not just the one being counted. Leaving the anchovies to
-    // pile up fills the pack, fishing stops with "You can't carry any more fish", and the spot reads
-    // as five times slower than it is - which is exactly what the first run of this measurement
-    // said before the pack was being emptied.
-    const invId = InvType.getId('inv');
-    const ids = ['raw_shrimp', 'raw_anchovies'].map(n => ObjType.getId(n));
-    const TICKS = 600;
-    let rolls = 0;
-    H.opNpc(p, spot, 1);
-    for (let t = 0; t < TICKS; t++) {
+    H.give(p, 'harpoon', 1);
+    H.clearLogs();
+    H.opNpc(p, spot, 3);
+    const LIMIT = 4000;
+    let ticks = LIMIT;
+    for (let t = 0; t < LIMIT; t++) {
         H.tick(1);
-        for (const id of ids) {
-            const held = p.invTotal(invId, id);
-            if (held > 0) {
-                rolls += held;
-                p.invDel(invId, id, held);
-            }
+        if (H.invCount(p, 'raw_tuna') >= 27) {
+            ticks = t + 1;
+            break;
         }
     }
-    const ticksPerRoll = TICKS / rolls;
-    console.log(`  ${rolls} rolls in ${TICKS} ticks = ${ticksPerRoll.toFixed(2)} ticks a roll (${(ticksPerRoll * 0.6).toFixed(1)}s)`);
-    // SIX, not five. The spot's loop sets %action_delay = map_clock + 5 and rolls when the clock
-    // reaches it, then spends the next tick re-arming - so rolls land 6 ticks apart, not 5. That is
-    // one cast every 3.6s, which is what the commonly cited Old School shark figures imply: 16.02%
-    // a roll at 99 gives 160 sharks an hour and 17.6k experience with a plain harpoon, and 19.14%
-    // with a dragon harpoon gives 21k. A 5-tick cadence would make the dragon harpoon 25k, which is
-    // higher than anything published for sharks.
-    check('a cast lands every 6 ticks', Math.round(ticksPerRoll), 6);
-    // 1000 ticks is ten minutes, and 1000/6 is 166 whole casts - floor, not round, because a
-    // seventeenth of a cast catches nothing.
-    check('  ...so 10 minutes of uninterrupted fishing is 166 casts', Math.floor(1000 / ticksPerRoll), 166);
-    // What that comes to per fish, for comparing against a real session.
-    for (const f of TABLE.filter(f => ['tuna', 'shark', 'lobster'].includes(f.fish))) {
-        const per10 = (1000 / ticksPerRoll) * (pct(f.low, f.high, Math.max(f.level, 39)) / 100);
-        console.log(`  ${f.fish.padEnd(8)} at level ${Math.max(f.level, 39)}: ${per10.toFixed(0)} per 10 minutes, ${(per10 * 6).toFixed(0)} an hour`);
-    }
+    const tally = new Map<number, number>();
+    for (const a of H.anims) if (a.who === p.username) tally.set(a.seq, (tally.get(a.seq) ?? 0) + 1);
+    const casts = Math.max(0, ...tally.values());
+    const mins = (ticks * 0.6) / 60;
+    console.log(`  27 tuna in ${ticks} ticks (${mins.toFixed(1)} min), ${casts} casts, ${((H.invCount(p, 'raw_tuna') / casts) * 100).toFixed(1)}% hit rate`);
+    check('a pack of 27 tuna at level 39 fills', H.invCount(p, 'raw_tuna'), 27);
+    check('  ...in under 25 minutes, which is twice what it should take', mins < 25, true);
+    // ticks/casts rather than a median here, so the whole trip's overheads are included - it is a
+    // trip measurement, not a cadence one, and 6.3 would still pass where 12 would not.
+    check('  ...at about 6 ticks a cast even with the pack filling up', ticks / casts < 7, true);
 }
 
 console.log('\n=== and the spots themselves, which do not move');
 {
     // ORDINARY FISHING SPOTS NEVER RELOCATE in this build, which barbarian_fishing.npc already says
     // out loud: fishing_movement.rs2 hangs @move_fishing_spot off [ai_timer,...] for six spot types,
-    // but an ai_timer only ever fires if the npc config carries timer=, and only the barbarian
-    // spots do. Recorded here because it was the first explanation reached for a slow session, and
-    // it is the wrong one - a spot that never moves is more generous, not less.
-    const hasTimer = (file: string) => /^timer=\d+/m.test(src(file));
-    check('the barbarian spots carry a timer, so they do move', hasTimer('skill_fishing/configs/barbarian_fishing.npc'), true);
+    // but an ai_timer only ever fires if the npc config carries timer=, and only the barbarian spots
+    // do. Recorded because it was the first explanation reached for a slow session and it is the
+    // wrong one - a spot that never moves is more generous, not less.
+    check('the barbarian spots carry a timer, so they do move', /^timer=\d+/m.test(src('skill_fishing/configs/barbarian_fishing.npc')), true);
     check('  ...and fishing_movement is still wired to six spot types', (src('skill_fishing/scripts/fishing_movement.rs2').match(/^\[ai_timer,/gm) ?? []).length, 6);
 }
 
