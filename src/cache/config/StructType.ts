@@ -5,7 +5,7 @@ import { ParamHelper, ParamHolder, ParamMap } from '#/cache/config/ParamHelper.j
 import Packet from '#/io/Packet.js';
 
 export default class StructType extends ConfigType implements ParamHolder {
-    private static configNames = new Map<string, number>();
+    static configNames = new Map<string, number>();
     private static configs: StructType[] = [];
 
     static load(dir: string) {
