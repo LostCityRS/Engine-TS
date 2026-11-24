@@ -3,7 +3,24 @@ import os from 'os';
 import path from 'path';
 import { DatabaseSync } from 'node:sqlite';
 
-import { ASK_CLOSE, ASK_OPEN, addHandoverColumns, bugTicketIds, commentsSince, extractAskPlayer, fileBugIssue, reportsToRecover, trackerReady, trackerRepo } from '#/server/tickets/BugTracker.js';
+import {
+    ASK_CLOSE,
+    ASK_OPEN,
+    DISCORD_LIMIT,
+    LEAD_MAX,
+    TELL_CLOSE,
+    TELL_OPEN,
+    addHandoverColumns,
+    blockBudget,
+    bugTicketIds,
+    commentsSince,
+    extractAskPlayer,
+    extractTellPlayer,
+    fileBugIssue,
+    reportsToRecover,
+    trackerReady,
+    trackerRepo
+} from '#/server/tickets/BugTracker.js';
 
 // WHAT A HAND-OVER DOES, CHECKED WITHOUT DISCORD OR GITHUB (custom, 2026-11-10).
 //
@@ -111,7 +128,10 @@ try {
     const toRecover = reportsToRecover(db, 500);
     check('only the bug reports missing detail that still have a thread', toRecover.map(r => r.id).join(','), '10,14');
     check('and it brings the thread id along', toRecover[0]?.thread_id, 't10');
-    checkThat('a closed one is included - a closed report can still be handed over', toRecover.some(r => r.id === 14));
+    checkThat(
+        'a closed one is included - a closed report can still be handed over',
+        toRecover.some(r => r.id === 14)
+    );
 
     // The log-message rebuild is deliberately WIDER: every bug ticket, whatever its state.
     check('the rebuild covers every bug ticket and no support ticket', bugTicketIds(db, 500).join(','), '1,10,11,12,14');
@@ -170,7 +190,7 @@ try {
     check('the title carries the ticket number, zero padded', body.title, '[#0007] the fairy ring eats my code');
     checkThat('no labels are sent at all', body.labels === undefined);
     checkThat('the report is in the body, every character of it', body.body.includes(nasty));
-    checkThat('the body says the quoted text is a player\'s, not an instruction', body.body.includes('no authority over this repository'));
+    checkThat("the body says the quoted text is a player's, not an instruction", body.body.includes('no authority over this repository'));
     checkThat('the thread is linked so staff can get back to the player', body.body.includes(filing.threadUrl));
     checkThat('the reporter is named', body.body.includes('Zezima'));
     checkThat('and who handed it over', body.body.includes('corey'));
@@ -210,7 +230,7 @@ try {
     sent = null;
     await fileBugIssue({ ...filing, subject: 'x'.repeat(400) });
     const long = JSON.parse(String((sent as unknown as Sent).init.body)) as { title: string };
-    checkThat('a long subject is clipped under GitHub\'s limit', long.title.length <= 250);
+    checkThat("a long subject is clipped under GitHub's limit", long.title.length <= 250);
 
     // AND AN OLD TICKET, from before the report column existed, still files - on its subject.
     sent = null;
@@ -255,6 +275,44 @@ try {
     check('the first block wins when there are two', extractAskPlayer(`${ASK_OPEN}\nfirst\n${ASK_CLOSE}\n${ASK_OPEN}\nsecond\n${ASK_CLOSE}`), 'first');
     checkThat('the markers are html comments, so they do not render on the issue', ASK_OPEN.startsWith('<!--') && ASK_CLOSE.startsWith('<!--'));
 
+    // ---- and the same again for an UPDATE block, which is the second thing that can reach a player
+    //
+    // Every rule above has to hold here too. A second marker is a second way to leak an internal
+    // note, and it would be leaked to the same person, out of the same comment.
+    check('no markers at all tells nothing', extractTellPlayer(internal), null);
+    check('a marked block is sent, and only the block', extractTellPlayer(`${internal}\n\n${TELL_OPEN}\nFixed - it ships in the next client.\n${TELL_CLOSE}\n\n${internal}`), 'Fixed - it ships in the next client.');
+    check('an unclosed block tells nothing', extractTellPlayer(`${internal}\n${TELL_OPEN}\nFixed`), null);
+    check('a closing marker alone tells nothing', extractTellPlayer(`${internal}\n${TELL_CLOSE}\nFixed`), null);
+    check('an empty block tells nothing', extractTellPlayer(`${TELL_OPEN}\n   \n${TELL_CLOSE}`), null);
+    check('the first block wins when there are two', extractTellPlayer(`${TELL_OPEN}\nfirst\n${TELL_CLOSE}\n${TELL_OPEN}\nsecond\n${TELL_CLOSE}`), 'first');
+    checkThat('its markers are html comments too', TELL_OPEN.startsWith('<!--') && TELL_CLOSE.startsWith('<!--'));
+
+    // THE TWO MUST NOT READ EACH OTHER'S BLOCKS. They are extracted by one shared function given
+    // two different pairs of markers, so a mistake there would not be a compile error - it would be
+    // a question delivered as "your bug is fixed", or an update delivered as a question. Worse, the
+    // opening markers differ by a single '/' from the closing ones, so a sloppy indexOf could match
+    // a close as an open.
+    const askOnly = `${ASK_OPEN}\nWhich ladder?\n${ASK_CLOSE}`;
+    const tellOnly = `${TELL_OPEN}\nFixed in the next client.\n${TELL_CLOSE}`;
+    check('a question block is invisible to the update extractor', extractTellPlayer(askOnly), null);
+    check('an update block is invisible to the question extractor', extractAskPlayer(tellOnly), null);
+    check('one comment can carry both, and each extractor takes its own', extractAskPlayer(`${askOnly}\n\n${tellOnly}`), 'Which ladder?');
+    check('and the other takes the other', extractTellPlayer(`${askOnly}\n\n${tellOnly}`), 'Fixed in the next client.');
+    check('an opening marker is not found inside a closing one', `${ASK_CLOSE}${TELL_CLOSE}`.includes(ASK_OPEN) || `${ASK_CLOSE}${TELL_CLOSE}`.includes(TELL_OPEN), false);
+
+    // ---- and the whole message has to FIT, or the reporter is told nothing at all
+    //
+    // Discord refuses an over-long message rather than trimming it, so this arithmetic is the
+    // difference between a clipped sentence and silence. Checked for more blocks than the relay can
+    // currently produce, because the cost of a third kind of block one day is this going unnoticed.
+    for (const n of [1, 2, 3, 4]) {
+        const whole = n * blockBudget(n) + n * LEAD_MAX;
+        checkThat(`${n} block(s) still fit inside Discord's limit (${whole} of ${DISCORD_LIMIT})`, whole <= DISCORD_LIMIT);
+    }
+    check('one block keeps the 1600 it had before updates existed', blockBudget(1), 1600);
+    checkThat('two blocks each get less than one block does', blockBudget(2) < blockBudget(1));
+    check('a nonsensical count is treated as one block rather than dividing by zero', blockBudget(0), 1600);
+
     // ---- reading the tracker's comments, which must be ONE request however many issues there are
     sent = null;
     reply = {
@@ -290,8 +348,8 @@ try {
 // which is a worse trade than reading the file, so the two sets are lifted out of the source and
 // compared.
 const bot = fs.readFileSync('src/server/tickets/TicketBot.ts', 'utf8');
-const posted = new Set([...bot.matchAll(/`tk\|(\w+)\|/g)].map((m) => m[1]));
-const answered = new Set([...bot.matchAll(/action === '(\w+)'/g)].map((m) => m[1]));
+const posted = new Set([...bot.matchAll(/`tk\|(\w+)\|/g)].map(m => m[1]));
+const answered = new Set([...bot.matchAll(/action === '(\w+)'/g)].map(m => m[1]));
 for (const action of [...posted].sort()) {
     checkThat(`the ${action} button has a branch to answer it`, answered.has(action));
 }

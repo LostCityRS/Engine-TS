@@ -30,7 +30,7 @@ import {
     ThreadChannel
 } from 'discord.js';
 
-import { addHandoverColumns, bugTicketIds, commentsSince, extractAskPlayer, fileBugIssue, reportsToRecover, trackerReady, trackerRepo } from '#/server/tickets/BugTracker.js';
+import { addHandoverColumns, blockBudget, bugTicketIds, commentsSince, extractAskPlayer, extractTellPlayer, fileBugIssue, reportsToRecover, trackerReady, trackerRepo } from '#/server/tickets/BugTracker.js';
 import { INBOX_SCHEMA, TICKET_DB_PATH } from '#/server/tickets/TicketInbox.js';
 import Environment from '#/util/Environment.js';
 import { toDisplayName } from '#/util/JString.js';
@@ -442,7 +442,9 @@ async function openTicket(o: Opening): Promise<{ id: number; thread: ThreadChann
         throw new NotSetUp();
     }
 
-    const id = Number(db.prepare('INSERT INTO ticket (kind, source, opener_id, username, subject, report, created) VALUES (?, ?, ?, ?, ?, ?, ?)').run(o.kind, o.source, o.openerId, o.username, o.subject, embedToText(o.embed), Date.now()).lastInsertRowid);
+    const id = Number(
+        db.prepare('INSERT INTO ticket (kind, source, opener_id, username, subject, report, created) VALUES (?, ?, ?, ?, ?, ?, ?)').run(o.kind, o.source, o.openerId, o.username, o.subject, embedToText(o.embed), Date.now()).lastInsertRowid
+    );
 
     let thread: ThreadChannel;
     try {
@@ -840,25 +842,41 @@ async function readOnlyThread(threadId: string): Promise<ThreadChannel | null> {
     }
 }
 
-// ---- relaying a tracker question back to the player ----
+// ---- relaying a marked tracker block back to the player ----
 //
 // A tracker comment can carry a block marked for the player (see BugTracker.ts). This posts those
 // blocks into the ticket's private thread, so a needs-repro question actually reaches the person who
-// can answer it. Nothing else from the issue is ever relayed.
+// can answer it - and, since 2026-11-24, so does the news that their bug has been fixed. Nothing
+// else from the issue is ever relayed.
 let relaying = false;
+
+// WHAT THE PLAYER IS TOLD THEY ARE READING. A question asks something of them and an update does
+// not, so one sentence cannot serve both: "a question about your bug report" printed above a fix
+// leaves them hunting for the question.
+//
+// WHEN THEY ARE NOT ON DISCORD the thread still gets the message, because staff read it and can
+// pass it on in game. The wording has to say so, or it reads as words addressed to nobody.
+function relayLead(kind: 'tell' | 'ask', t: Ticket): string {
+    if (kind === 'tell') {
+        return t.opener_id ? `<@${t.opener_id}> - an update on your ${NOUN[t.kind]} ${number(t.id)}, from whoever looked into it:` : `An update on ${number(t.id)}. This player has no Discord linked, so somebody will have to pass it on in game:`;
+    }
+    return t.opener_id
+        ? `<@${t.opener_id}> - a question about your ${NOUN[t.kind]} ${number(t.id)}, from whoever is looking into it:`
+        : `A question about ${number(t.id)}, from whoever is looking into it. This player has no Discord linked, so somebody will have to ask them in game:`;
+}
 
 function ticketByIssue(issueNumber: number): Ticket | undefined {
     return db.prepare('SELECT * FROM ticket WHERE issue_number = ?').get(issueNumber) as Ticket | undefined;
 }
 
-async function relayQuestions() {
+async function relayToReporters() {
     if (relaying || !client.isReady() || !trackerReady()) {
         return;
     }
     relaying = true;
     try {
         // FIRST RUN STARTS FROM NOW, not from the beginning of the tracker. Otherwise switching this
-        // on would relay every question ever written, into threads whose reports are long closed.
+        // on would relay every marked block ever written, into threads whose reports are long closed.
         let watermark = config('relay_watermark');
         if (!watermark) {
             setConfig('relay_watermark', new Date().toISOString());
@@ -873,8 +891,18 @@ async function relayQuestions() {
             if (comment.createdAt > watermark) {
                 watermark = comment.createdAt;
             }
+            // BOTH KINDS OF BLOCK, update first because it is the news and a question about a
+            // bug that has just been fixed reads oddly above it.
+            const blocks: { kind: 'tell' | 'ask'; text: string }[] = [];
+            const tell = extractTellPlayer(comment.body);
+            if (tell) {
+                blocks.push({ kind: 'tell', text: tell });
+            }
             const ask = extractAskPlayer(comment.body);
-            if (!ask || seen.get(comment.id)) {
+            if (ask) {
+                blocks.push({ kind: 'ask', text: ask });
+            }
+            if (blocks.length === 0 || seen.get(comment.id)) {
                 continue;
             }
             const t = ticketByIssue(comment.issueNumber);
@@ -893,36 +921,42 @@ async function relayQuestions() {
             }
             try {
                 // A thread archives itself after a week, and a closed ticket's is archived on
-                // purpose. Either way the player cannot read a question in an archived thread, so
-                // it is opened again - which is the honest thing: somebody is asking them something.
+                // purpose. Either way the player cannot read an archived thread, so it is opened
+                // again - which is the honest thing: somebody has something to say to them. That
+                // is truer still of an update than of a question, because the bug reports worth
+                // announcing a fix for are exactly the ones old enough to have archived.
                 if (thread.archived) {
                     await thread.setArchived(false);
                 }
                 // AND UNLOCKED, for the same reason one line up. closeTicket locks as well as
                 // archives, so unarchiving alone left a closed ticket's thread in the one state
-                // that is worse than either: the question is delivered, the reporter reads it, and
+                // that is worse than either: the message is delivered, the reporter reads it, and
                 // the thread will not let them answer. Asking somebody something and then holding
-                // the door shut is not a kindness to the ticket's tidiness.
+                // the door shut is not a kindness to the ticket's tidiness - and telling somebody
+                // their bug is fixed is worth a reply too, because "it still happens to me" is the
+                // single most useful sentence anyone can send about a fix.
                 //
                 // It does NOT reopen the ticket. The row stays closed and the log still says
                 // closed; only the thread can be typed in, and the Reopen button in it is still
                 // the only way to change that - which is staff's call, not this poll's.
                 if (thread.locked) {
-                    await thread.setLocked(false, 'a question was relayed to the reporter');
+                    await thread.setLocked(false, 'the tracker had something for the reporter');
                 }
-                // WHEN THEY ARE NOT ON DISCORD the thread still gets the question, because staff
-                // read it and can ask them in game. The wording has to say so, or it reads as a
-                // question to nobody.
-                const lead = t.opener_id
-                    ? `<@${t.opener_id}> - a question about your ${NOUN[t.kind]} ${number(t.id)}, from whoever is looking into it:`
-                    : `A question about ${number(t.id)}, from whoever is looking into it. This player has no Discord linked, so somebody will have to ask them in game:`;
+                // ONE MESSAGE HOWEVER MANY BLOCKS, on a budget that shrinks to fit. Discord
+                // refuses a message over 2000 characters outright, so two blocks clipped at 1600
+                // each would not be a long message - it would be no message at all, and the
+                // reporter would never hear that their bug was fixed.
+                const budget = blockBudget(blocks.length);
                 await thread.send({
-                    content: `${lead}\n\n${clip(ask, 1600)}`,
+                    content: blocks.map(b => `${relayLead(b.kind, t)}\n\n${clip(b.text, budget)}`).join('\n\n'),
                     // Nothing in a relayed block can ping a role or everyone: the only mention that
                     // fires is the reporter's own, added above.
                     allowedMentions: { users: t.opener_id ? [t.opener_id] : [] }
                 });
-                record.run(comment.id, t.id, Date.now(), 'relayed');
+                // The outcome column says WHICH kinds went, rather than the older bare 'relayed',
+                // so that a thread nobody can find afterwards can still be traced to a question or
+                // to an announcement. Nothing reads this column; it is there to be read by a person.
+                record.run(comment.id, t.id, Date.now(), blocks.map(b => (b.kind === 'tell' ? 'update' : 'question')).join('+'));
             } catch (err) {
                 // NOT recorded: a failure here is Discord being unavailable or a permission being
                 // missing, both of which can pass. This one is worth retrying on the next tick.
@@ -955,9 +989,7 @@ async function backfillBugReports(i: RepliableInteraction) {
             // openTicket sent. Picking it by author and embed rather than by position, because a
             // player can have posted a screenshot before it in a thread that was reopened.
             const messages = await thread.messages.fetch({ limit: 100 });
-            const detail = [...messages.values()]
-                .filter(m => m.author.id === client.user?.id && m.embeds.length > 0)
-                .sort((a, b) => a.createdTimestamp - b.createdTimestamp)[0];
+            const detail = [...messages.values()].filter(m => m.author.id === client.user?.id && m.embeds.length > 0).sort((a, b) => a.createdTimestamp - b.createdTimestamp)[0];
             if (!detail) {
                 unreadable.push(t.id);
                 continue;
@@ -986,7 +1018,9 @@ async function backfillBugReports(i: RepliableInteraction) {
     const lines = [
         `Looked at **${missing.length}** bug report${missing.length === 1 ? '' : 's'} with no stored detail.`,
         `Recovered **${filled}** from their threads.`,
-        unreadable.length ? `Could not read **${unreadable.length}**: ${unreadable.map(id => number(id)).join(', ')} - the thread is gone, or its first message is not there any more. They can still be handed over; the issue will carry the subject only.` : null,
+        unreadable.length
+            ? `Could not read **${unreadable.length}**: ${unreadable.map(id => number(id)).join(', ')} - the thread is gone, or its first message is not there any more. They can still be handed over; the issue will carry the subject only.`
+            : null,
         `Rebuilt **${all.length}** staff log message${all.length === 1 ? '' : 's'}, so the hand-over button shows on them${trackerReady() ? '' : ' - except it will not, because no bug tracker is configured yet'}.`
     ].filter(Boolean);
     await i.editReply(lines.join('\n'));
@@ -1168,7 +1202,7 @@ client.once(Events.ClientReady, async ready => {
         console.error('  then restart the ticket bot.');
     }
     setInterval(() => void drainInbox(), INBOX_POLL_MS);
-    setInterval(() => void relayQuestions(), RELAY_POLL_MS);
+    setInterval(() => void relayToReporters(), RELAY_POLL_MS);
 });
 
 client.on(Events.InteractionCreate, async i => {

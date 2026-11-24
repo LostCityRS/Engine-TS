@@ -80,21 +80,82 @@ export function bugTicketIds(db: DatabaseSync, limit: number): number[] {
 export const ASK_OPEN = '<!-- ask-player -->';
 export const ASK_CLOSE = '<!-- /ask-player -->';
 
+// TELLING THE REPORTER THEIR BUG IS FIXED (custom, 2026-11-24). The same gap as the questions
+// above, pointed the other way. A player reports something, it is fixed days later in a repository
+// they cannot see, on a tracker they cannot read, and nobody ever tells them. On 2026-11-24 a sweep
+// closed eighteen issues that had been fixed and left open for want of someone to close them; not
+// one of those eighteen reporters was told, because there was no way to tell them.
+//
+// WHY A SECOND MARKER RATHER THAN "ANNOUNCE WHEN THE ISSUE CLOSES". Closing is not fixing. An issue
+// closes as a duplicate, as not-a-bug, as cannot-reproduce, and as a question nobody answered - and
+// announcing "your report is fixed" on any of those is worse than saying nothing. Worse still,
+// closing-as-relay would be an announcement nobody opted into, which is exactly the discipline the
+// block above exists to keep: silence is the default, and marking is the deliberate act.
+//
+// SO IT IS THE SAME SHAPE AS A QUESTION, for the same reasons: a block the author wraps on purpose,
+// in HTML comments that GitHub does not render, extracted by the same function and carried by the
+// same relay. The only thing that differs is the sentence the player is sent, because "a question
+// about your bug report" and "an update on your bug report" ask different things of them.
+export const TELL_OPEN = '<!-- tell-player -->';
+export const TELL_CLOSE = '<!-- /tell-player -->';
+
 // The first marked block in a comment, or null. An opening marker with no closing one returns null
 // rather than everything after it: a half-written block is a mistake, and relaying the rest of an
 // internal comment is exactly the thing this is built to avoid.
 export function extractAskPlayer(body: string): string | null {
-    const start = body.indexOf(ASK_OPEN);
+    return firstMarkedBlock(body, ASK_OPEN, ASK_CLOSE);
+}
+
+// The same, for an update rather than a question. Separate function rather than a parameter at the
+// call site so that the relay reads as two named intentions and neither can be passed the other's
+// markers by a typo.
+export function extractTellPlayer(body: string): string | null {
+    return firstMarkedBlock(body, TELL_OPEN, TELL_CLOSE);
+}
+
+// ONE EXTRACTOR, so there is one place where "what escapes to a player" is decided. Two copies of
+// this would be two chances for one of them to grow a subtly kinder reading of a half-written
+// block, and the dangerous direction here is leniency: every rule below exists to relay LESS.
+//
+// An opening marker with no closing one returns null rather than everything after it - that case is
+// the leak this whole mechanism is built to prevent, and it is checked by name in tickets:check.
+function firstMarkedBlock(body: string, open: string, close: string): string | null {
+    const start = body.indexOf(open);
     if (start === -1) {
         return null;
     }
-    const from = start + ASK_OPEN.length;
-    const end = body.indexOf(ASK_CLOSE, from);
+    const from = start + open.length;
+    const end = body.indexOf(close, from);
     if (end === -1) {
         return null;
     }
     const text = body.slice(from, end).trim();
     return text === '' ? null : text;
+}
+
+// HOW MUCH OF EACH BLOCK FITS IN ONE DISCORD MESSAGE.
+//
+// Discord does not truncate a message over 2000 characters - it REFUSES it, with an error, and the
+// relay's catch logs a line nobody is watching. So the failure mode of getting this wrong is not a
+// clipped sentence; it is a reporter who is never told anything, which is the exact outcome this
+// whole feature exists to end. Two blocks clipped at the old single-block 1600 would have been
+// 3200 characters and would have sent nothing at all.
+//
+// It lives here, exported and arithmetic-only, because it is the one part of composing that message
+// that can be checked without a Discord client in the room.
+export const DISCORD_LIMIT = 2000;
+
+// The longest sentence relayLead can produce, rounded well up, and the slack for the blank lines
+// between blocks and the ellipsis that clip() adds.
+export const LEAD_MAX = 200;
+const MARGIN = 100;
+
+// A single block keeps the 1600 it had before any of this, so the questions that were already
+// being relayed are not quietly clipped shorter by the arrival of a second kind of block.
+export function blockBudget(blocks: number): number {
+    const n = Math.max(1, blocks);
+    const usable = DISCORD_LIMIT - MARGIN - LEAD_MAX * n;
+    return Math.min(1600, Math.max(100, Math.floor(usable / n)));
 }
 
 export type TrackerComment = { id: number; issueNumber: number; body: string; createdAt: string };
@@ -124,7 +185,11 @@ export async function commentsSince(iso: string): Promise<TrackerComment[]> {
         const out: TrackerComment[] = [];
         for (const row of rows) {
             // The issue number is only in the url - the comment payload has no issue_number field.
-            const number = Number(String(row.issue_url ?? '').split('/').pop());
+            const number = Number(
+                String(row.issue_url ?? '')
+                    .split('/')
+                    .pop()
+            );
             if (typeof row.id !== 'number' || !Number.isFinite(number) || number <= 0 || typeof row.body !== 'string' || typeof row.created_at !== 'string') {
                 continue;
             }
