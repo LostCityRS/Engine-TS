@@ -18,7 +18,8 @@
  */
 import * as H from './harness.js';
 import { check, R, player } from './a1lib.js';
-import { isMapBlocked } from '#/engine/GameMap.js';
+import { isMapBlocked, canTravel } from '#/engine/GameMap.js';
+import { CollisionFlag, CollisionType } from '#/engine/routefinder/index.js';
 import LocType from '#/cache/config/LocType.js';
 import World from '#/engine/World.js';
 import type Player from '#/engine/entity/Player.js';
@@ -28,7 +29,34 @@ await H.boot();
 const ENTRANCE: [number, number] = [2743, 3153];
 const OUTSIDE: [number, number] = [2744, 3152];
 const EXIT: [number, number] = [2714, 9564];
-const INSIDE: [number, number] = [2715, 9564];
+const INSIDE: [number, number] = [2713, 9564];
+
+/**
+ * The tiles a player can actually walk to from here, by the engine's own step test.
+ *
+ * Deliberately not a terrain flood: the thing that got past this file was an unallocated tile,
+ * which no terrain test calls blocked. canTravel answers the question a player's foot asks.
+ */
+function walkableRegion(sx: number, sz: number, level = 0, cap = 50000): Set<string> {
+    const seen = new Set<string>([`${sx},${sz}`]);
+    const queue: [number, number][] = [[sx, sz]];
+    while (queue.length && seen.size < cap) {
+        const [x, z] = queue.shift()!;
+        for (const [dx, dz] of [
+            [1, 0],
+            [-1, 0],
+            [0, 1],
+            [0, -1]
+        ] as const) {
+            if (!canTravel(level, x, z, dx, dz, 1, CollisionFlag.BLOCK_NPC_AND_PLAYERS, CollisionType.NORMAL)) continue;
+            const key = `${x + dx},${z + dz}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            queue.push([x + dx, z + dz]);
+        }
+    }
+    return seen;
+}
 
 function atOutside(who: string) {
     const p = player(who, OUTSIDE[0], OUTSIDE[1], 0);
@@ -50,10 +78,32 @@ function heldOver(p: Player, n: number) {
 {
     check('the entrance is placed', H.locAt(0, ENTRANCE[0], ENTRANCE[1], 'dungeon_tree_closed'), true);
     check('  ...and the exit is too', H.locAt(0, EXIT[0], EXIT[1], 'karam_dungeon_exit'), true);
-    // THE LANDING TILES, checked rather than trusted. A door that drops a player inside a wall is
-    // worse than a door that does nothing.
+    // THE LANDING TILES, and "not blocked" IS NOT THE QUESTION. This asked isMapBlocked and was
+    // satisfied, and the door still dropped players somewhere they could not get out of: an
+    // UNALLOCATED tile carries no blocking flag at all, so empty space off the end of the map
+    // reads exactly like open floor. The old landing, 2715,9564, sat in a 39,191-tile region
+    // spanning x 2432-2879 - the void between this dungeon's rooms - and passed this check every
+    // night (DeathPlateau-Bugs#102).
+    //
+    // What a landing tile has to be is INSIDE A ROOM, and the room has to contain the way out. So
+    // the region is flooded with the engine's own step test and held to both: small enough to be
+    // a room rather than the void, and joined to the exit on foot.
     check(`the inside landing is walkable (${INSIDE})`, isMapBlocked(INSIDE[0], INSIDE[1], 0), false);
     check(`  ...and the outside one is (${OUTSIDE})`, isMapBlocked(OUTSIDE[0], OUTSIDE[1], 0), false);
+    {
+        const room = walkableRegion(INSIDE[0], INSIDE[1]);
+        check(`the landing is in a room, not the void (${room.size} tiles)`, room.size > 8 && room.size < 5000, true);
+        const beside = (
+            [
+                [0, 0],
+                [1, 0],
+                [-1, 0],
+                [0, 1],
+                [0, -1]
+            ] as const
+        ).some(([dx, dz]) => room.has(`${EXIT[0] + dx},${EXIT[1] + dz}`));
+        check('  ...and the way out can be walked to from it', beside, true);
+    }
 }
 
 // ---- 2. in, and out again --------------------------------------------------------------------
@@ -62,7 +112,10 @@ function heldOver(p: Player, n: number) {
     H.opLoc(p, ENTRANCE[0], ENTRANCE[1], 'dungeon_tree_closed', 1);
     H.tick(6);
     check(`Enter puts the player in the dungeon (${p.x},${p.z})`, p.z > 9000, true);
+    // IN THE SAME ROOM AS THE WAY OUT, not merely within two tiles of it. Two tiles of slack let
+    // the player stand on the far SIDE of the exit, outside the room, and called it beside.
     check('  ...beside the way out', Math.abs(p.x - EXIT[0]) <= 2 && Math.abs(p.z - EXIT[1]) <= 2, true);
+    check('  ...and in the same room as it', walkableRegion(p.x, p.z).has(`${EXIT[0] - 1},${EXIT[1]}`), true);
 }
 
 // ---- 2b. and out, from a player who STARTED inside -------------------------------------------
