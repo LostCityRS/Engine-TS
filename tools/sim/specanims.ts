@@ -264,5 +264,59 @@ console.log('\n== and the ORDINARY attack animations are the ones Old School pla
     }
 }
 
+// ---------------------------------------------------------------------------------------------
+// THE TOOL SPECIALS, which this file did not cover and should have (23 November).
+//
+// Lumber Up, Rock Knocker and Fishstabber are the same rule as every row above - a special must
+// play its OWN animation and not the weapon's ordinary swing - but they are a different shape:
+// they take no target and land no hit, so they run from the spec bar's own click in specwep.rs2
+// rather than through player_special_attack, and the table at the top of this file cannot reach
+// them. That gap is not academic. The dragon harpoon shipped playing human_sword_stab, which IS
+// its param=stabattack_anim, so Fishstabber looked like an ordinary poke; it was reported from
+// play, exactly as the dragon warhammer's Smash was.
+//
+// ONE FLOURISH, NINE IDS. Old School registers the tool-special animation under nine byte-identical
+// seqs (334, 3410, 7138, 7267, 8329, 8330, 8781, 11821, 11822 - all frames 53-63 of group 10975),
+// one per tool that has a boosting special. 7138 is the one this build imported, under the name
+// osrs_dpick_spec, so the harpoon playing it is not borrowing the pickaxe's animation: it is the
+// same frames Old School plays for the harpoon.
+console.log('\n== the tool specials play a flourish, not the tool\'s ordinary swing');
+{
+    const StatId: Record<string, number> = { woodcutting: 8, mining: 14, fishing: 10 };
+    type Tool = { weapon: string; stat: string; bar: string; anim: string; ordinary: string[] };
+    const TOOLS: Tool[] = [
+        { weapon: 'dragon_axe', stat: 'woodcutting', bar: 'combat_axe:specbar', anim: 'dragon_smallaxe_anim', ordinary: ['slashattack_anim', 'crushattack_anim'] },
+        { weapon: 'dragon_pickaxe', stat: 'mining', bar: 'combat_pickaxe:specbar', anim: 'osrs_dpick_spec', ordinary: ['stabattack_anim', 'crushattack_anim'] },
+        { weapon: 'dragon_harpoon', stat: 'fishing', bar: 'combat_stabsword:specbar', anim: 'osrs_dpick_spec', ordinary: ['stabattack_anim', 'slashattack_anim'] }
+    ];
+    for (const t of TOOLS) {
+        if (ObjType.getId(t.weapon) === -1) {
+            check(`${t.weapon} exists`, false, true);
+            continue;
+        }
+        const p = player(`tool_${t.weapon}`, 3250, 3250);
+        H.clearInv(p);
+        H.give(p, t.weapon);
+        H.opheld(p, t.weapon, 2);
+        H.tick(1);
+        // sa_energy is a perm varp with no default, so a fresh player's bar is only full because
+        // login.rs2 fills it for a character that has not started the tutorial (specbarstart.ts).
+        H.setVar(p, 'sa_energy', 1000);
+        const mark = H.anims.length;
+        H.ifButton(p, t.bar);
+        H.tick(2);
+        const played = H.anims
+            .slice(mark)
+            .filter(a => a.who === p.username)
+            .map(a => seqName(a.seq));
+        check(`${t.weapon}: plays ${t.anim}`, played.includes(t.anim), true);
+        const swings = t.ordinary.map(k => seqName(param(t.weapon, k) as number)).filter(s => s !== '-');
+        const clash = swings.filter(s => played.includes(s));
+        check(`${t.weapon}: does not play its ordinary swing (${swings.join('/')})`, clash, []);
+        // and the boost it exists for actually landed
+        check(`${t.weapon}: boosts ${t.stat} by 3`, p.levels[StatId[t.stat]] - p.baseLevels[StatId[t.stat]], 3);
+    }
+}
+
 console.log(`\n${R.ok} ok, ${R.bad} failed`);
 process.exit(R.bad ? 1 : 0);
