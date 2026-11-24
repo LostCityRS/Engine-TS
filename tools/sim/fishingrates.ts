@@ -110,7 +110,14 @@ console.log('\n=== every struct carries the wiki rate and the wiki experience');
 
     // EVERY STRUCT IN THE BUILD IS IN THE TABLE, so a fish added later cannot slip past unchecked.
     const known = new Set(TABLE.map(f => f.struct).filter(Boolean));
-    const all = [...StructType.configNames.keys()].filter(n => n.startsWith('fishing_struct_'));
+    // Walked by id rather than read off StructType.configNames, which is private - tsx does not
+    // typecheck, so this compiled here and failed `tsc --noEmit` in CI.
+    const all: string[] = [];
+    for (let id = 0; ; id++) {
+        const t = StructType.get(id);
+        if (!t) break;
+        if (t.debugname?.startsWith('fishing_struct_')) all.push(t.debugname);
+    }
     check(
         'and every fishing struct in the build is in the table',
         all.filter(n => !known.has(n)),

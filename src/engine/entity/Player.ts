@@ -72,6 +72,7 @@ import ServerGameMessage from '#/network/game/server/ServerGameMessage.js';
 import { LoggerEventType } from '#/server/logger/LoggerEventType.js';
 import { ChatModePrivate, ChatModePublic, ChatModeTradeDuel } from '#/engine/entity/ChatModes.js';
 import Environment from '#/util/Environment.js';
+import { printWarning } from '#/util/Logger.js';
 import { toDisplayName } from '#/util/JString.js';
 import LinkList from '#/datastruct/LinkList.js';
 import VarBitType from '#/cache/config/VarBitType.js';
@@ -1442,18 +1443,83 @@ export default class Player extends PathingEntity {
         return false;
     }
 
+    // custom (2026-11-24) - SAY WHY A TARGET WAS DROPPED. processInteraction calls this and, when it
+    // is false, calls clearInteraction() and returns - with no message to the player and no record
+    // anywhere. So a player's fishing, woodcutting or mining can stop dead mid-trip and the only
+    // evidence is that the fish stopped arriving, which is why "fishing is slow" could not be told
+    // apart from "fishing keeps stopping" (Corey, 2026-11-24: 27 tuna in 20-30 minutes where the
+    // measured rate says 14).
+    //
+    // Of the engine's 21 clearInteraction() calls, exactly one says anything to the player ("I can't
+    // reach that!"). These three are silent, and the middle one is reachable in ordinary play: the
+    // whirlpool random event runs npc_changetype on the fishing spot, which is a type change, which
+    // drops the interaction here.
     validateTarget(): boolean {
         // Validate that the target is on the same floor
         if (this.target?.level !== this.level) {
+            this.reportTargetDropped('on another level');
             return false;
         }
 
         // This is effectively checking if the Npc or Loc did a changetype
         if ((this.target instanceof Npc || this.target instanceof Loc) && this.targetSubject.type !== this.target.type) {
+            this.reportTargetDropped(`changed type (was ${this.targetSubject.type}, now ${this.target.type})`);
             return false;
         }
 
-        return this.target.isValid(this.hash64);
+        if (!this.target.isValid(this.hash64)) {
+            this.reportTargetDropped('no longer valid');
+            return false;
+        }
+
+        return true;
+    }
+
+    /** What the dropped target was, for the journal: a name where there is one, else the kind and id. */
+    private targetDescription(): string {
+        const t = this.target;
+        if (t instanceof Npc) {
+            return `npc ${NpcType.get(t.type).debugname ?? t.type}`;
+        }
+        if (t instanceof Loc) {
+            return `loc ${LocType.get(t.type).debugname ?? t.type}`;
+        }
+        if (t instanceof Obj) {
+            return `obj ${ObjType.get(t.type).debugname ?? t.type}`;
+        }
+        if (t instanceof Player) {
+            return `player ${t.username}`;
+        }
+        return 'nothing';
+    }
+
+    // ONE LINE EVERY 30 SECONDS, NOT ONE PER DROP, and with the counts of what was swallowed in
+    // between - the same shape as the slow-tick warning, and for the same reason: a world where this
+    // fires constantly would otherwise write a line a tick and make the journal part of the problem.
+    // The breakdown by reason is what makes it diagnostic; the example names the last player and
+    // target so there is something to go and look at.
+    private static targetDropCounts: Map<string, number> = new Map();
+    private static targetDropExample: string = '';
+    private static lastTargetDropReport: number = 0;
+    private static readonly TARGET_DROP_REPORT_INTERVAL: number = 30000;
+
+    private reportTargetDropped(reason: string): void {
+        Player.targetDropCounts.set(reason, (Player.targetDropCounts.get(reason) ?? 0) + 1);
+        Player.targetDropExample = `${this.username} op${this.targetOp} on ${this.targetDescription()} - ${reason}`;
+
+        const now = Date.now();
+        if (now - Player.lastTargetDropReport < Player.TARGET_DROP_REPORT_INTERVAL) {
+            return;
+        }
+        Player.lastTargetDropReport = now;
+        let total = 0;
+        const parts: string[] = [];
+        for (const [why, count] of Player.targetDropCounts) {
+            total += count;
+            parts.push(`${count} ${why}`);
+        }
+        Player.targetDropCounts.clear();
+        printWarning(`interaction dropped silently ${total} time${total === 1 ? '' : 's'} in the last 30s: ${parts.join(', ')}. last: ${Player.targetDropExample}`);
     }
 
     processInteraction() {
