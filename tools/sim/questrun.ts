@@ -61,7 +61,10 @@ function groundObj(p: Player, objName: string, radius: number): [number, number]
 
 export type Step =
     | { go: [number, number] | [number, number, number]; why?: string; r?: number; exact?: boolean }
-    | { talk: string; picks?: (number | string)[]; op?: number; want?: string; why?: string; tries?: number; until?: string; soft?: boolean }
+    // `stopvar`/`stopto`: break the conversation off the moment that var reads that value, and
+    // abandon it the way a player does by walking away. For a quest stage written in the MIDDLE of
+    // a dialogue - the only kind a driven talk can never stand still on - see drive()'s `stop`.
+    | { talk: string; picks?: (number | string)[]; op?: number; want?: string; why?: string; tries?: number; until?: string; soft?: boolean; stopvar?: string; stopto?: number }
     | {
           loc: string;
           at: [number, number];
@@ -1908,9 +1911,9 @@ export function play(m: Manifest, p: Player): Result[] {
                 .map(i => i.text as string);
         let lines: string[] = [];
         let unreached = '';
-        const run = (picks: (number | string)[]) => {
+        const run = (picks: (number | string)[], stop?: () => boolean) => {
             try {
-                return drive(p, picks);
+                return drive(p, picks, 3, stop);
             } catch (e) {
                 const msg = String(e);
                 if (msg.includes('unexpected menu')) {
@@ -1994,12 +1997,26 @@ export function play(m: Manifest, p: Player): Result[] {
                 // is handed, so passing s.picks itself emptied it on the first try and every
                 // retry then met the same menu with nothing to answer it - "an unexpected menu:
                 // multi2: Draw. | Not now.", forty times, which is exactly what ate Rune-Draw.
-                lines = run([...(('picks' in s ? s.picks : undefined) ?? [])]);
+                const stopvar = 'stopvar' in s ? s.stopvar : undefined;
+                const stopto = 'stopto' in s ? s.stopto : undefined;
+                lines = run([...(('picks' in s ? s.picks : undefined) ?? [])], stopvar === undefined ? undefined : () => stageOf(p, stopvar) === stopto);
+                if (stopvar !== undefined) {
+                    // ABANDONED ON PURPOSE, so the next step does not inherit a suspended script.
+                    // This is the cleanup the retry path above does, for the same reason: the engine
+                    // throws the next click away while one is parked on the player.
+                    (p as unknown as { closeModal: (c?: boolean) => void }).closeModal(false);
+                    p.activeScript = null;
+                    (p as unknown as { delayed: boolean; delayedUntil: number }).delayed = false;
+                    (p as unknown as { delayed: boolean; delayedUntil: number }).delayedUntil = -1;
+                    H.tick(2);
+                }
                 dbg('said ' + JSON.stringify(lines.slice(0, 2)) + ' unreached=' + JSON.stringify(unreached));
                 // With until, the item arriving is the signal and a leftover pick is not a
                 // fault: Robin deals one hand per click, so most clicks consume one menu and
                 // the run simply clicks again.
-                const stalled = s.until ? H.invCount(p, s.until) === 0 : unreached !== '';
+                // With stopvar the picks are deliberately left unconsumed - the conversation was
+                // cut off before the menu that wanted them - so an unreached pick is not a fault.
+                const stalled = s.until ? H.invCount(p, s.until) === 0 : 'stopvar' in s ? false : unreached !== '';
                 if (!stalled) {
                     if (a > 0) what = what + ' [took ' + (a + 1) + ' attempts]';
                     break;

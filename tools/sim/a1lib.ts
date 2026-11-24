@@ -70,11 +70,23 @@ export const mesSince = (p: Player, from: number) =>
 export const said = (p: Player, from: number, s: string) => mesSince(p, from).some(m => m.includes(s));
 
 export let chatLog: string[] = [];
-/** Let a script run out, clicking through any chat pages and taking `picks` at menus (1-based). */
-export function drive(p: Player, picks: (number | string)[] = [], guardTicks = 3): string[] {
+/**
+ * Let a script run out, clicking through any chat pages and taking `picks` at menus (1-based).
+ *
+ * `stop` IS FOR WALKING OUT PART-WAY, which is a thing players do and sims could not. A quest
+ * stage written in the middle of a conversation - Swan Song's ^swan_fed, written three lines before
+ * the letter goes out - is a stage a driven dialogue never stands still on, so there was no way to
+ * assert it and no way to give the quest helper a leg for it. With `stop` the caller gets to say
+ * "that far and no further": it is checked before every click, and a true return leaves the
+ * conversation open exactly where it was. The caller is then responsible for abandoning it, the way
+ * a player does by walking away - questrun's talk step clears the suspended script and closes the
+ * window, which is what the engine does to a player who leaves.
+ */
+export function drive(p: Player, picks: (number | string)[] = [], guardTicks = 3, stop?: () => boolean): string[] {
     const from = H.ifaces.length;
     let idle = 0;
     for (let guard = 0; guard < 600 && idle < guardTicks; guard++) {
+        if (stop && stop()) break;
         const s = p.activeScript;
         if (!s || s.execution !== ScriptState.PAUSEBUTTON) {
             // A WORLD_SUSPENDED SCRIPT IS NOT THE PLAYER'S BUSINESS. world_delay parks a script

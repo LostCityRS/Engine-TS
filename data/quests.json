@@ -72377,7 +72377,29 @@
       {
        "kind": "talk",
        "text": "Talk to Herman Caranos.",
-       "why": "Fed, and the letter.",
+       "why": "He counts the fish, and you walk out before the letter.",
+       "target": "swan_multioutside",
+       "id": 3832,
+       "label": "Herman Caranos"
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 15,
+     "headings": [
+      {
+       "at": 0,
+       "text": "The colony is fed, and the letter to the magician still has to go out on the boat, so Herman wants one more word."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "talk",
+       "text": "Talk to Herman Caranos.",
+       "why": "Back to him, and this time hear him out.",
        "target": "swan_multioutside",
        "id": 3832,
        "label": "Herman Caranos"

@@ -137,7 +137,17 @@ const m: Manifest = {
         { go: [HOLE_IN[0], HOLE_IN[1] + 1], exact: true, r: 80, why: 'back to the hole' },
         { loc: 'loc_14922', at: HOLE_IN, want: 'crawl back out', soft: true, why: 'out' },
         { go: [OUTSIDE[0] + 1, OUTSIDE[1]], r: 40, why: 'to Herman' },
-        { talk: 'swan_multioutside', want: 'letter goes out', why: 'fed, and the letter' },
+        // STAGE 15 IS WRITTEN THREE LINES INTO THIS CONVERSATION and the next thing the script
+        // does is write 20, so a driven talk never stands still on it: ^swan_fed had no leg in the
+        // helper table, and a player who walked out of Herman between the count and the letter was
+        // sent back to net a fishing spot they had just finished. DeathPlateau-Bugs#16 listed it as
+        // the one real-and-unfixed value, "unassertable ... needs a harness that can abandon a
+        // conversation". This is that: stop the moment the var moves, then walk away.
+        { talk: 'swan_multioutside', stopvar: 'swansong', stopto: 15, want: 'Seventy-one people fed', why: 'he counts the fish, and you walk out before the letter' },
+        { stage: 15, why: '^swan_fed - the colony is fed and the letter is still unwritten' },
+        { note: 'wiki: the colony is fed, and the letter to the magician still has to go out on the' },
+        { note: 'boat, so Herman wants one more word' },
+        { talk: 'swan_multioutside', want: 'letter goes out', why: 'back to him, and this time hear him out' },
         { stage: 20 },
 
         { note: 'wiki step 2: the man the letter is addressed to, who is in Draynor pretending to' },

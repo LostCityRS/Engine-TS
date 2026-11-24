@@ -40,7 +40,6 @@ SHADOW OF THE STORM          | 100 | transient    | [proc,agrith_naar_fight] is 
 SHILO VILLAGE                |   2 | benign       | ^zombiequeen_found_mound is misnamed: it is set by ASKING Trufitus where to look. Leg 1 "Search Mound of earth" is right
 SHILO VILLAGE                |  16 | above-done   | done is 15 - a post-completion Trufitus chat
 SHILO VILLAGE                |  17 | above-done   | done is 15 - a post-completion Trufitus chat
-SWAN SONG                    |  15 | unassertable | REAL: walk out of Herman and the panel sends you back to net a fishing spot you just finished. But 15 to 20 has no player decision, only continue-clicks and an if_close, so no manifest can break off there. Needs a harness that can abandon a conversation
 TEMPLE OF IKOV               |  70 | benign       | ^ikov_helping_armadyl - the Armadyl ending; the TEMPLE OF IKOV (Armadyl) row HAS a leg for 70. The two rows share one varp, so each reports the other branch's values. Was blocked until quest_ikov_armadyl_run.ts played that ending end to end. DeathPlateau-Bugs#16 step 4
 TEMPLE OF IKOV               |  90 | above-done   | done is 80 - the Armadyl completion value, past it either way
 TEMPLE OF IKOV (Armadyl)     |  90 | above-done   | ^ikov_completed_lucien, the other ending's completion value. done is 80, so this row reads complete here too
