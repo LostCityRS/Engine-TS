@@ -264,8 +264,37 @@ export { fitName };
  *
  * The name is put through fitName first, so two labels can never quietly become one account.
  */
+/**
+ * A SIM STARTS FROM NOTHING, and until this it did not.
+ *
+ * LoginServer keeps an account at data/players/<profile>/<username>.sav and writes it back as the
+ * player logs out, so the SECOND run of a sim loads whatever the first one left behind. A run that
+ * died partway leaves a half-finished quest on disk, and every run after it starts from there - a
+ * different stage, a different step list, a different answer, for ever, with nothing on screen to
+ * say so.
+ *
+ * It cost a day to find (DeathPlateau-Bugs#101). quest_biohazard_run failed the same check three
+ * runs out of three and passed on a tree one commit away, so the commit looked responsible; it was
+ * a stale biorun.sav from an earlier run that had been killed in a parallel batch. The real sim
+ * passes on both trees once the save is gone. Worse, the false result was reported as a regression
+ * against a pull request that never had one.
+ *
+ * CI never saw any of it, because data/players/ is gitignored and a fresh checkout has none - which
+ * is exactly why a local run has to start the same way.
+ */
+function clearSave(username: string) {
+    const path = `data/players/${Environment.NODE_PROFILE}/${username}.sav`;
+    try {
+        if (fs.existsSync(path)) fs.unlinkSync(path);
+    } catch {
+        // A save we cannot remove is not worth stopping a sim for; it only risks the staleness
+        // above, which is what the comment is for.
+    }
+}
+
 export function makePlayer(name: string, x: number, z: number, ip: number = 2130706433): Player {
     const username = fitName(name);
+    clearSave(username);
     const p = new Player(username, toBase37(username), BigInt(Math.floor(Math.random() * 1e9)));
     p.teleport(x, z, 0);
     (p as any).__ip = ip;
