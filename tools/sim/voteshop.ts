@@ -444,6 +444,15 @@ console.log('== the shop');
     invButton(p, 'shop_template:inv', 0, 2);
     settle(p);
     check('exactly enough: bought, and the points are gone', [count(p, 'explorers_ring_4'), points(p)], [1, 0]);
+    // AND THE LOG'S VOTE SHOP PAGE RECORDS IT. It could not until 23 November: shop.rs2 logged a
+    // purchase only at the Undertaker's shelf, so all ten of the elite diary slots on that page
+    // were unfillable and nothing reported it. A pure read of the log, no ticks - the restock check
+    // below reads the shelf and anything that ticks the world first spoils it.
+    const ringLog = p.getInventory(InvType.getId('collection_log'));
+    const ringId = ObjType.getId('explorers_ring_4');
+    let ringLogged = false;
+    if (ringLog) for (let i = 0; i < ringLog.capacity; i++) if (ringLog.get(i)?.id === ringId) ringLogged = true;
+    check('and the collection log records the ring', ringLogged, true);
 }
 console.log('== the shelf cannot run out');
 {
@@ -644,6 +653,16 @@ console.log('== the seed box');
     // been waiting for it, and cannot be sold on to anyone.
     check('the box that arrives is the one with the handlers', ObjType.get(ObjType.getId('seed_box')).iop[0], 'Fill');
     check('and stays on the account that bought it', ObjType.get(ObjType.getId('seed_box')).tradeable, false);
+
+    // THE COLLECTION LOG. Buying anything from any shop calls ~collection_log_add (shop.rs2), and
+    // that proc returns quietly for an item the log does not list - so a row on the shelf with no
+    // slot in the log records nothing and says nothing about it. The Vote Shop page now lists the
+    // box beside the ten diary rewards.
+    const log = p.getInventory(InvType.getId('collection_log'));
+    const boxId = ObjType.getId('seed_box');
+    let logged = false;
+    if (log) for (let i = 0; i < log.capacity; i++) if (log.get(i)?.id === boxId) logged = true;
+    check('and buying one records it in the collection log', logged, true);
 }
 
 console.log('');
