@@ -446,8 +446,14 @@
        "bring": true
       },
       {
-       "name": "Cup of tea",
-       "id": 4246,
+       "name": "Nettle tea",
+       "id": 4239,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Bucket of milk",
+       "id": 1927,
        "n": 1,
        "bring": true
       },
@@ -691,13 +697,61 @@
       {
        "kind": "talk",
        "text": "Talk to Old crone.",
-       "why": "China cup, with milk.",
+       "why": "Hands over her own porcelain cup.",
+       "target": "ahoy_crone",
+       "id": 1695,
+       "label": "Old crone",
+       "gives": [
+        4244
+       ]
+      },
+      {
+       "kind": "obj",
+       "text": "Use Nettle tea on Porcelain cup.",
+       "why": "Pour the tea into her cup.",
+       "target": "chinacup_empty",
+       "id": 4244,
+       "label": "Porcelain cup",
+       "item": 4239
+      },
+      {
+       "kind": "obj",
+       "text": "Use Bucket of milk on Cup of tea.",
+       "why": "The milk she insists on.",
+       "target": "chinacup_of_nettletea",
+       "id": 4245,
+       "label": "Cup of tea",
+       "item": 1927
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Old crone.",
+       "why": "Her cup, with milk in it.",
        "target": "ahoy_crone",
        "id": 1695,
        "label": "Old crone"
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Porcelain cup",
+       "id": 4244,
+       "n": 1,
+       "bring": false
+      },
+      {
+       "name": "Nettle tea",
+       "id": 4239,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Bucket of milk",
+       "id": 1927,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {

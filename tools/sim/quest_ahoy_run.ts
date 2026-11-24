@@ -49,9 +49,15 @@ const m: Manifest = {
     steps: [
         { give: 'amulet_of_ghostspeak' },
         { give: 'ectotoken', n: 30 },
-        // the tea is made outside the quest - nettles, gloves, a fire and a bowl of water - so the
-        // run is handed the finished article. The crone's fuss about the cup is tested, not skipped.
-        { give: 'chinacup_of_nettletea_milky' },
+        // The tea is made outside the quest - nettles, gloves, a fire and a bowl of water - so the
+        // run starts from the boiled bowl. NOT FROM THE FINISHED CUP, which is what it used to be
+        // handed, under a comment claiming "the crone's fuss about the cup is tested, not skipped".
+        // The fuss was tested. WHERE THE CUP COMES FROM was the part being skipped, and that was
+        // the part that did not work: nothing in the game produced a chinacup_empty, so the quest
+        // could not be finished by any player (DeathPlateau-Bugs#92). The cup now has to come out
+        // of her, as it does for a player.
+        { give: 'bowl_nettletea' },
+        { give: 'bucket_milk' },
         { give: 'needle' },
         { give: 'thread' },
         { give: 'silk' },
@@ -90,7 +96,11 @@ const m: Manifest = {
         { loc: 'ahoy_harbour_door', at: [3461, 3555], why: 'open the hut door', soft: true },
         { go: [3463, 3556], r: 32 },
         { talk: 'ahoy_crone', why: 'she asks for nettle tea' },
-        { talk: 'ahoy_crone', why: 'china cup, with milk' },
+        { talk: 'ahoy_crone', why: 'and hands over her own porcelain cup' },
+        { has: 'chinacup_empty' },
+        { use: ['bowl_nettletea', 'chinacup_empty'], why: 'pour the tea into her cup' },
+        { use: ['bucket_milk', 'chinacup_of_nettletea'], why: 'and the milk she insists on' },
+        { talk: 'ahoy_crone', why: 'her cup, with milk in it' },
         { hasnt: 'chinacup_of_nettletea_milky' },
         { stage: 4 },
 
