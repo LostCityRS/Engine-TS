@@ -283,11 +283,16 @@ console.log('\n== and the ORDINARY attack animations are the ones Old School pla
 console.log('\n== the tool specials play a flourish, not the tool\'s ordinary swing');
 {
     const StatId: Record<string, number> = { woodcutting: 8, mining: 14, fishing: 10 };
-    type Tool = { weapon: string; stat: string; bar: string; anim: string; ordinary: string[] };
+    // `anim: null` means the special deliberately plays NOTHING. The dragon harpoon is in that
+    // state on purpose: Old School's Fishstabber animation is not in this build, two substitutes
+    // were wrong in play - its own attack animation, then the axe/pickaxe flourish - and the note
+    // in specwep.rs2 records how to find the real one. Playing nothing is the one choice that
+    // cannot look like another weapon, and the row below still holds it to the rule that matters.
+    type Tool = { weapon: string; stat: string; bar: string; anim: string | null; ordinary: string[] };
     const TOOLS: Tool[] = [
         { weapon: 'dragon_axe', stat: 'woodcutting', bar: 'combat_axe:specbar', anim: 'dragon_smallaxe_anim', ordinary: ['slashattack_anim', 'crushattack_anim'] },
         { weapon: 'dragon_pickaxe', stat: 'mining', bar: 'combat_pickaxe:specbar', anim: 'osrs_dpick_spec', ordinary: ['stabattack_anim', 'crushattack_anim'] },
-        { weapon: 'dragon_harpoon', stat: 'fishing', bar: 'combat_stabsword:specbar', anim: 'osrs_dpick_spec', ordinary: ['stabattack_anim', 'slashattack_anim'] }
+        { weapon: 'dragon_harpoon', stat: 'fishing', bar: 'combat_stabsword:specbar', anim: null, ordinary: ['stabattack_anim', 'slashattack_anim'] }
     ];
     for (const t of TOOLS) {
         if (ObjType.getId(t.weapon) === -1) {
@@ -309,7 +314,13 @@ console.log('\n== the tool specials play a flourish, not the tool\'s ordinary sw
             .slice(mark)
             .filter(a => a.who === p.username)
             .map(a => seqName(a.seq));
-        check(`${t.weapon}: plays ${t.anim}`, played.includes(t.anim), true);
+        if (t.anim === null) {
+            check(`${t.weapon}: plays no animation at all, as intended`, played, []);
+        } else {
+            check(`${t.weapon}: plays ${t.anim}`, played.includes(t.anim), true);
+        }
+        // THE RULE THAT HOLDS EITHER WAY, and the one both of the harpoon's wrong animations broke
+        // in turn: whatever a special plays, it must not be the weapon's own swing.
         const swings = t.ordinary.map(k => seqName(param(t.weapon, k) as number)).filter(s => s !== '-');
         const clash = swings.filter(s => played.includes(s));
         check(`${t.weapon}: does not play its ordinary swing (${swings.join('/')})`, clash, []);
