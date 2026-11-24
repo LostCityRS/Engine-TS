@@ -25,12 +25,13 @@ const xp = (p: any, stat: number) => p.stats[stat];
 
 console.log('== handing the hat over pays Slayer, and only Slayer');
 {
-    const p: any = player('wreward', 2997, 3374, 0); // Falador park, where Sir Tiffy stands
+    // THE HAT GOES TO SIR AMIK VARZE, not to Sir Tiffy, and this file used to take it to Tiffy.
+    // Old School's ending is "Return to Falador. Talk to Sir Amik Varze in the White Knights'
+    // Castle, and hand over the hat" and the page gives Tiffy no part in it at all; the quest was
+    // awarding itself on his bench. Moved with the fix that moved the hand-in.
+    const p: any = player('wreward', 2960, 3338, 0); // the White Knights' Castle
     H.maxOut(p);
     H.clearInv(p);
-    // SIR TIFFY IS rd_teleporter_guy. He already has an [opnpc1] in Recruitment Drive and a trigger
-    // cannot be declared twice, so Wanted! hooks in ahead of it - and that hook only engages once
-    // Recruitment Drive is complete (^recruitmentdrive_complete = 2).
     H.setVarBit(p, 'rd_main', 2);
     // ^wanted_cornered - the hunt is done and the trophy is in hand, one conversation from the end.
     H.setVarBit(p, 'wanted_main', 40);
@@ -39,10 +40,12 @@ console.log('== handing the hat over pays Slayer, and only Slayer');
 
     const before = [xp(p, PlayerStat.SLAYER), xp(p, PlayerStat.MAGIC), xp(p, PlayerStat.HITPOINTS)];
     H.clearLogs();
-    const said = A.talk(p, 'rd_teleporter_guy');
-    H.tick(12);
+    // Sir Amik offers the topic rather than being taken over by it - he is also the start of Black
+    // Knights' Fortress - so the conversation has to be asked for by name.
+    const said = A.talk(p, 'sir_amik_varze', ['Solus Dellagar']);
+    H.tick(14);
     A.drive(p);
-    H.tick(6);
+    H.tick(8);
 
     const gained = [xp(p, PlayerStat.SLAYER) - before[0], xp(p, PlayerStat.MAGIC) - before[1], xp(p, PlayerStat.HITPOINTS) - before[2]];
     console.log(`  gained: slayer ${gained[0] / 10}, magic ${gained[1] / 10}, hitpoints ${gained[2] / 10}`);
