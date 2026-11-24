@@ -3281,6 +3281,391 @@
    ]
   },
   {
+   "stageVarId": 146,
+   "stageIsVarbit": false,
+   "id": "arrav_blackarm",
+   "name": "SHIELD OF ARRAV (BLACK ARM GANG)",
+   "source": "oldschool.runescape.wiki/w/Shield_of_Arrav",
+   "stageVar": "blackarmgang",
+   "done": 4,
+   "start": [
+    3211,
+    3493,
+    0
+   ],
+   "stages": [
+    {
+     "from": 0,
+     "headings": [
+      {
+       "at": 0,
+       "text": "Food and a weapon that can kill a level 23, which is the Weaponsmaster."
+      },
+      {
+       "at": 1,
+       "text": "Reldo in the Varrock palace library starts it for either gang."
+      },
+      {
+       "at": 2,
+       "text": "The book itself, and reading it is the step rather than taking it."
+      },
+      {
+       "at": 5,
+       "text": "Charlie the Tramp, by the alleyway, is where the two gangs part."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "obj",
+       "text": "Wield Rune scimitar.",
+       "target": "rune_scimitar",
+       "id": 1333,
+       "label": "Rune scimitar",
+       "op": 2
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Reldo.",
+       "why": "He points at a book.",
+       "target": "reldo",
+       "id": 647,
+       "label": "Reldo",
+       "picks": [
+        "in search of a quest"
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Check Bookcase.",
+       "why": "Search the case.",
+       "target": "questbookcase",
+       "id": 2402,
+       "label": "Bookcase",
+       "at": [
+        3212,
+        3493
+       ],
+       "op": 2,
+       "gives": [
+        757
+       ]
+      },
+      {
+       "kind": "obj",
+       "text": "Read Book.",
+       "target": "the_shield_of_arrav",
+       "id": 757,
+       "label": "Book",
+       "op": 1
+      },
+      {
+       "text": "Go south-west to the alleyway.",
+       "kind": "walk",
+       "at": [
+        3208,
+        3391,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Tramp.",
+       "why": "He names Katrine and the alleyway.",
+       "target": "tramppg",
+       "id": 641,
+       "label": "Tramp",
+       "picks": [
+        "Is there anything down this alleyway?",
+        "Do you think they would let me join?"
+       ]
+      }
+     ],
+     "items": [
+      {
+       "name": "Rune scimitar",
+       "id": 1333,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Book",
+       "id": 757,
+       "n": 1,
+       "bring": false
+      }
+     ],
+     "worn": []
+    },
+    {
+     "from": 1,
+     "headings": [
+      {
+       "at": 1,
+       "text": "Katrine, in the headquarters down the alleyway."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "text": "Go to the headquarters.",
+       "kind": "walk",
+       "at": [
+        3186,
+        3385,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Katrine.",
+       "why": "She sets the test.",
+       "target": "katrine",
+       "id": 642,
+       "label": "Katrine",
+       "picks": [
+        "I've heard you're the Black Arm Gang.",
+        "It was the tramp outside.",
+        "I want to become a member of your gang.",
+        "Well, you can give me a try can't you?",
+        "Ok, no problem."
+       ]
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 2,
+     "headings": [
+      {
+       "at": 0,
+       "text": "The crossbows are upstairs in the weapon store, and the Weaponsmaster will prevent you and attack rather than let you take one, so he has to be killed first."
+      },
+      {
+       "at": 1,
+       "text": "The store door is locked and its key is the Phoenix Gang's, so it has to come from your partner, who can hand one over without losing their own."
+      },
+      {
+       "at": 8,
+       "text": "Back to Katrine, who makes you a Black Arm."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "text": "Go east to the weapon store.",
+       "kind": "walk",
+       "at": [
+        3251,
+        3386,
+        0
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Use Key on Door.",
+       "why": "Unlock it.",
+       "target": "phoenixdoor2",
+       "id": 2398,
+       "label": "Door",
+       "item": 759,
+       "at": [
+        3251,
+        3385
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Climb-up Ladder.",
+       "why": "Up the ladder.",
+       "target": "ladder",
+       "id": 1747,
+       "label": "Ladder",
+       "at": [
+        3252,
+        3384
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Kill Weaponsmaster.",
+       "target": "weaponsmaster",
+       "id": 643,
+       "label": "Weaponsmaster"
+      },
+      {
+       "kind": "obj",
+       "text": "Pick up Phoenix crossbow.",
+       "why": "Take the first crossbow.",
+       "target": "phoenix_crossbow",
+       "id": 767,
+       "label": "Phoenix crossbow"
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the second one.",
+       "at": [
+        3243,
+        3383
+       ]
+      },
+      {
+       "kind": "obj",
+       "text": "Pick up Phoenix crossbow.",
+       "why": "The second.",
+       "target": "phoenix_crossbow",
+       "id": 767,
+       "label": "Phoenix crossbow",
+       "gives": [
+        767
+       ]
+      },
+      {
+       "text": "Go back to the headquarters.",
+       "kind": "walk",
+       "at": [
+        3186,
+        3385,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Katrine.",
+       "why": "She takes the crossbows.",
+       "target": "katrine",
+       "id": 642,
+       "label": "Katrine"
+      }
+     ],
+     "items": [
+      {
+       "name": "Key",
+       "id": 759,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Phoenix crossbow",
+       "id": 767,
+       "n": 2,
+       "bring": false
+      }
+     ],
+     "worn": []
+    },
+    {
+     "from": 3,
+     "headings": [
+      {
+       "at": 1,
+       "text": "The right half of the shield is in a cupboard upstairs in the headquarters, which only a member can reach."
+      },
+      {
+       "at": 4,
+       "text": "The Curator at the museum writes the certificate."
+      },
+      {
+       "at": 6,
+       "text": "The certificate to King Roald."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "text": "Go upstairs.",
+       "kind": "walk",
+       "at": [
+        3189,
+        3386,
+        1
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Open Cupboard.",
+       "target": "blackarmcupboardshut",
+       "id": 2400,
+       "label": "Cupboard",
+       "at": [
+        3189,
+        3385
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Cupboard.",
+       "why": "Search it.",
+       "target": "blackarmcupboardopen",
+       "id": 2401,
+       "label": "Cupboard",
+       "at": [
+        3189,
+        3385
+       ],
+       "op": 2,
+       "gives": [
+        765
+       ]
+      },
+      {
+       "text": "Go north to the museum.",
+       "kind": "walk",
+       "at": [
+        3255,
+        3445,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Curator.",
+       "why": "He takes the half shield.",
+       "target": "curator",
+       "id": 646,
+       "label": "Curator",
+       "gives": [
+        769
+       ]
+      },
+      {
+       "text": "Go west to the palace.",
+       "kind": "walk",
+       "at": [
+        3222,
+        3476,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to King Roald.",
+       "why": "The reward.",
+       "target": "king_roald",
+       "id": 648,
+       "label": "King Roald"
+      }
+     ],
+     "items": [
+      {
+       "name": "Broken shield",
+       "id": 765,
+       "n": 1,
+       "bring": false
+      },
+      {
+       "name": "Certificate",
+       "id": 769,
+       "n": 1,
+       "bring": false
+      }
+     ],
+     "worn": []
+    }
+   ]
+  },
+  {
    "stageVarId": 145,
    "stageIsVarbit": false,
    "id": "arrav",
