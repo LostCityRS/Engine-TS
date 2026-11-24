@@ -28,6 +28,10 @@ import { check, R } from './a1lib.ts';
 import ObjType from '#/cache/config/ObjType.js';
 import ParamType from '#/cache/config/ParamType.js';
 import StructType from '#/cache/config/StructType.js';
+import InvType from '#/cache/config/InvType.js';
+import NpcType from '#/cache/config/NpcType.js';
+import Npc from '#/engine/entity/Npc.js';
+import World from '#/engine/World.js';
 import Environment from '#/util/Environment.js';
 import { PlayerStat } from '#/engine/entity/PlayerStat.js';
 import fs from 'fs';
@@ -380,6 +384,88 @@ console.log('\n=== and the engine really rolls what the formula says');
     if (drag <= plain) wrong.push(`the dragon harpoon caught no more than the plain one (${drag} against ${plain})`);
     for (const r of rows) console.log(r);
     check('measured rates match the formula at levels 1, 50 and 99', wrong, []);
+}
+
+console.log('\n=== HOW OFTEN YOU GET A ROLL AT ALL, which the rates above cannot see');
+{
+    // A correct success chance on a roll you only get half as often is still half the fish, and
+    // nothing above this would notice. Corey reported 10 tuna in 10 minutes at level 39 and 11.33%
+    // a roll predicts about 19, so the cadence had to be measured rather than read off the
+    // %action_delay arithmetic.
+    //
+    // MEASURED WHERE IT CANNOT HIDE: at 99 a net spot rolls anchovies at 50.4% and falls through to
+    // shrimps at 100.4%, and shrimps cannot fail - so every roll yields exactly one fish and the
+    // fish count IS the roll count. No statistics, no variance: ticks divided by fish is the real
+    // seconds per cast.
+    const spot = (() => {
+        let best: Npc | null = null;
+        let bestD = Infinity;
+        for (const n of World.npcs) {
+            if (!(NpcType.get(n.type).debugname ?? '').endsWith('_saltfish')) continue;
+            const d = Math.max(Math.abs(n.x - 3242), Math.abs(n.z - 3155));
+            if (d < bestD) {
+                bestD = d;
+                best = n;
+            }
+        }
+        if (!best) throw new Error('no net fishing spot in the world');
+        return best;
+    })();
+    const p: any = H.makePlayer('cadence', spot.x + 1, spot.z);
+    H.loginOrder(p);
+    p.teleport(spot.x + 1, spot.z, spot.level);
+    H.tick(1);
+    p.setLevel(PlayerStat.FISHING, 99);
+    H.clearInv(p);
+    H.give(p, 'net', 1);
+    // EVERY fish is emptied out each tick, not just the one being counted. Leaving the anchovies to
+    // pile up fills the pack, fishing stops with "You can't carry any more fish", and the spot reads
+    // as five times slower than it is - which is exactly what the first run of this measurement
+    // said before the pack was being emptied.
+    const invId = InvType.getId('inv');
+    const ids = ['raw_shrimp', 'raw_anchovies'].map(n => ObjType.getId(n));
+    const TICKS = 600;
+    let rolls = 0;
+    H.opNpc(p, spot, 1);
+    for (let t = 0; t < TICKS; t++) {
+        H.tick(1);
+        for (const id of ids) {
+            const held = p.invTotal(invId, id);
+            if (held > 0) {
+                rolls += held;
+                p.invDel(invId, id, held);
+            }
+        }
+    }
+    const ticksPerRoll = TICKS / rolls;
+    console.log(`  ${rolls} rolls in ${TICKS} ticks = ${ticksPerRoll.toFixed(2)} ticks a roll (${(ticksPerRoll * 0.6).toFixed(1)}s)`);
+    // SIX, not five. The spot's loop sets %action_delay = map_clock + 5 and rolls when the clock
+    // reaches it, then spends the next tick re-arming - so rolls land 6 ticks apart, not 5. That is
+    // one cast every 3.6s, which is what the commonly cited Old School shark figures imply: 16.02%
+    // a roll at 99 gives 160 sharks an hour and 17.6k experience with a plain harpoon, and 19.14%
+    // with a dragon harpoon gives 21k. A 5-tick cadence would make the dragon harpoon 25k, which is
+    // higher than anything published for sharks.
+    check('a cast lands every 6 ticks', Math.round(ticksPerRoll), 6);
+    // 1000 ticks is ten minutes, and 1000/6 is 166 whole casts - floor, not round, because a
+    // seventeenth of a cast catches nothing.
+    check('  ...so 10 minutes of uninterrupted fishing is 166 casts', Math.floor(1000 / ticksPerRoll), 166);
+    // What that comes to per fish, for comparing against a real session.
+    for (const f of TABLE.filter(f => ['tuna', 'shark', 'lobster'].includes(f.fish))) {
+        const per10 = (1000 / ticksPerRoll) * (pct(f.low, f.high, Math.max(f.level, 39)) / 100);
+        console.log(`  ${f.fish.padEnd(8)} at level ${Math.max(f.level, 39)}: ${per10.toFixed(0)} per 10 minutes, ${(per10 * 6).toFixed(0)} an hour`);
+    }
+}
+
+console.log('\n=== and the spots themselves, which do not move');
+{
+    // ORDINARY FISHING SPOTS NEVER RELOCATE in this build, which barbarian_fishing.npc already says
+    // out loud: fishing_movement.rs2 hangs @move_fishing_spot off [ai_timer,...] for six spot types,
+    // but an ai_timer only ever fires if the npc config carries timer=, and only the barbarian
+    // spots do. Recorded here because it was the first explanation reached for a slow session, and
+    // it is the wrong one - a spot that never moves is more generous, not less.
+    const hasTimer = (file: string) => /^timer=\d+/m.test(src(file));
+    check('the barbarian spots carry a timer, so they do move', hasTimer('skill_fishing/configs/barbarian_fishing.npc'), true);
+    check('  ...and fishing_movement is still wired to six spot types', (src('skill_fishing/scripts/fishing_movement.rs2').match(/^\[ai_timer,/gm) ?? []).length, 6);
 }
 
 console.log(`\n${R.ok} ok, ${R.bad} FAIL`);
