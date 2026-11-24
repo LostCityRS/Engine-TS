@@ -22,6 +22,7 @@ import World from '#/engine/World.js';
 import ObjType from '#/cache/config/ObjType.js';
 import NpcType from '#/cache/config/NpcType.js';
 import ParamType from '#/cache/config/ParamType.js';
+import InvType from '#/cache/config/InvType.js';
 import VarPlayerType from '#/cache/config/VarPlayerType.js';
 import ServerTriggerType from '#/engine/script/ServerTriggerType.js';
 import JavaRandom from '#/util/JavaRandom.js';
@@ -359,7 +360,17 @@ function objsAround(nx: number, nz: number, nl: number): string[] {
     return out;
 }
 
-function dropAt(band: number): string[] {
+/** The hero's collection log, which the drop table writes to with ~collection_log_add. */
+const LOG = InvType.getId('collection_log');
+function inLog(p: Player, objName: string): boolean {
+    const id = ObjType.getId(objName);
+    const inv = p.getInventory(LOG);
+    if (!inv) return false;
+    for (let i = 0; i < inv.capacity; i++) if (inv.get(i)?.id === id) return true;
+    return false;
+}
+
+function dropAt(band: number): { got: string[]; p: Player } {
     const p = A.player(`dh_drop${band}`, 2444, 10147);
     const npc = H.addNpc('dagcave_ranged_boss', p.x + 2, p.z);
     H.tick(1);
@@ -376,20 +387,28 @@ function dropAt(band: number): string[] {
         const i = after.indexOf(was);
         if (i !== -1) after.splice(i, 1);
     }
-    return after;
+    return { got: after, p };
 }
 {
     const band74 = dropAt(74);
-    check('74 is still the raw sharks', band74.includes('shark'), true);
-    check('  and not the harpoon', band74.includes('cert_dragon_harpoon'), false);
+    check('74 is still the raw sharks', band74.got.includes('shark'), true);
+    check('  and not the harpoon', band74.got.includes('cert_dragon_harpoon'), false);
+    check('  and nothing is logged', inLog(band74.p, 'dragon_harpoon'), false);
 
     const band75 = dropAt(75);
-    check('75 drops the dragon harpoon', band75.includes('cert_dragon_harpoon'), true);
-    check('  noted, as the axe is', band75.includes('dragon_harpoon'), false);
-    check('  and the king bones every kill gives', band75.includes('dagannoth_king_bones'), true);
+    check('75 drops the dragon harpoon', band75.got.includes('cert_dragon_harpoon'), true);
+    check('  noted, as the axe is', band75.got.includes('dragon_harpoon'), false);
+    check('  and the king bones every kill gives', band75.got.includes('dagannoth_king_bones'), true);
+    // THE COLLECTION LOG, which the drop table has always tried to write and could not. The table
+    // called ~collection_log_add(cert_dragon_harpoon, 1) from the day the drop was added, but the
+    // log had no slot for the harpoon - and that proc looks the item up and RETURNS QUIETLY when it
+    // is not listed, so the call did nothing at all and nothing said so. The Dagannoth Kings page
+    // now lists it beside the dragon axe. Listed UNNOTED, because the proc reads oc_uncert first,
+    // which is why the axe is unnoted there too while both are dropped as notes.
+    check('  and the Dagannoth Kings page records it', inLog(band75.p, 'dragon_harpoon'), true);
 
     const band76 = dropAt(76);
-    check('76 is the gem table, not the harpoon', band76.includes('cert_dragon_harpoon'), false);
+    check('76 is the gem table, not the harpoon', band76.got.includes('cert_dragon_harpoon'), false);
 }
 
 console.log(`\n${R.ok} ok, ${R.bad} FAIL`);
