@@ -210,10 +210,20 @@ for (const [name, sx, sz] of STONES) {
     }
     // southbound with the level: across
     {
+        // RETRIED, because southbound has a fail roll and a failure leaves you on the starting
+        // side - so a single click proves nothing when it comes up short. This check was green for
+        // one roll and went red the day an unrelated map change shifted the seeded dice under it
+        // (eighteen npc spawns moved in DeathPlateau-Bugs#98), which is red over nothing in the
+        // same way a one-roll pass is green over nothing. What the gate actually promises is that
+        // 12 gets across and 11 never does, so 12 is given the attempts to show it.
         const p = atStone(`st_${sz}_ok`, sx, sz, 'N', 12);
-        H.opLoc(p, sx, sz, name, 1);
-        H.tick(10);
-        check(`  ...and exactly 12 does (${p.x},${p.z})`, p.z === sz - 1, true);
+        let tries = 0;
+        while (p.z !== sz - 1 && tries < 15) {
+            tries++;
+            H.opLoc(p, sx, sz, name, 1);
+            H.tick(10);
+        }
+        check(`  ...and 12 does, in ${tries} attempt(s) (${p.x},${p.z})`, p.z === sz - 1, true);
     }
     // northbound at level 1: free, and it must LAND - the roll is southbound only, or the player
     // who got down here with no Agility could never get back out
