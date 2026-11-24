@@ -217,6 +217,12 @@ const m: Manifest = {
             why: 'Ardougne. The Tree Gnome Stronghold has no walkable exit on level 0 in this build - you leave by gnome glider, which is world travel rather than this quest. The glider carries the monkey: gnome_glider.rs2 has no teleport gate at all.'
         },
         { go: [2596, 3275], r: 250, why: 'the zoo' },
+        // AND HOLD THE GREEGREE UP AGAIN, because leaving Ape Atoll took it off - which is the
+        // whole of DeathPlateau-Bugs#49. Zooknock's magic reaches the island, the dungeon under it
+        // and this monkey pen, and the walk back through the Grand Tree is none of those, so the
+        // carving went back in the pack somewhere over the Feldip Hills. This step is what an OSRS
+        // player does at the zoo gate and what this run was quietly not having to do.
+        { held: 'mm_monkey_greegree_for_normal_monkey', op: 2, why: 'a monkey again, at the pen' },
         { talk: 'mm_monkey_minder', why: 'as a monkey, get into the cage' },
         { talk: 'mm_zoo_monkey', picks: [1], why: 'into the backpack' },
         { has: 'mm_monkey_in_backpack' },
@@ -237,6 +243,9 @@ const m: Manifest = {
         { note: 'real steps 53-58: the sigil, the Jungle Demon and the King' },
         { go: [2892, 2724], r: 64 },
         { talk: 'mm_lumdo', picks: [1] },
+        // And once more, for the same reason: the zoo is not Ape Atoll either, so the greegree came
+        // off on the way out of Ardougne.
+        { held: 'mm_monkey_greegree_for_normal_monkey', op: 2, why: 'a monkey again, back on the island' },
         { go: [2722, 2763], r: 250, why: 'Kruk again, from the only standable side' },
         // NO PICK THE SECOND TIME. By now you are a monkey with Awowogei's business to finish, and
         // Kruk does not ask - he picks you up by the scruff of the neck and puts you through the

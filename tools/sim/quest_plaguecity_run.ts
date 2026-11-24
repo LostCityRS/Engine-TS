@@ -14,7 +14,21 @@ const GARDEN: [number, number, number] = [2569, 3334, 0];
 const ALRENA_DOOR: [number, number] = [2570, 3333];
 const TABLE_DOOR: [number, number] = [2578, 3333];
 const PICTURE: [number, number] = [2576, 3333]; // beside the round table, not on it
-const MUD_PATCH: [number, number] = [2566, 3332];
+// THE ONE A PLAYER CAN SEE, which is not the one this used to click.
+//
+// Edmond's garden has three locs in a column at x=2566, and only two of them are the mud patch:
+//
+//   2566,3331   plaguemudpatch1   name="Mud patch"  "Looks like someone's tried digging here."
+//   2566,3332   plaguemudpatch2   NO NAME AT ALL    (and an op1=Climb-down nothing answers)
+//   2566,3333   plaguemudpatch1   name="Mud patch"
+//
+// This clicked the middle one. Both locs take the bucket and the spade - quest_elena/mud_patch.rs2
+// has an [oplocu] for each - so the run passed and the quest worked, but the manifest is what
+// ExportHelper turns into the quest helper's highlight, so the panel pointed players at the one
+// tile in that column with no name on it, between the two that are actually called Mud patch.
+// Reported as "highlights wrong mud patch. should be 1 tile up" (DeathPlateau-Bugs#78), and one
+// tile up from 3332 is exactly the north plaguemudpatch1.
+const MUD_PATCH: [number, number] = [2566, 3333];
 const MUD_PILE: [number, number] = [2519, 9759];
 const GRILL: [number, number] = [2514, 9739];
 const PIPE: [number, number] = [2514, 9737];
@@ -77,15 +91,15 @@ const m: Manifest = {
 
         { note: 'wiki steps 5-6: four buckets of water, then the spade' },
         { go: [MUD_PATCH[0] + 1, MUD_PATCH[1]], exact: true, r: 24, why: 'to the mud patch behind the house' },
-        { useLoc: 'plaguemudpatch2', at: MUD_PATCH, obj: 'bucket_water', want: 'softens slightly', why: 'one' },
+        { useLoc: 'plaguemudpatch1', at: MUD_PATCH, obj: 'bucket_water', want: 'softens slightly', why: 'one' },
         { stage: 4 },
-        { useLoc: 'plaguemudpatch2', at: MUD_PATCH, obj: 'bucket_water', want: 'softens slightly', why: 'two' },
+        { useLoc: 'plaguemudpatch1', at: MUD_PATCH, obj: 'bucket_water', want: 'softens slightly', why: 'two' },
         { stage: 5 },
-        { useLoc: 'plaguemudpatch2', at: MUD_PATCH, obj: 'bucket_water', want: 'softens slightly', why: 'three' },
+        { useLoc: 'plaguemudpatch1', at: MUD_PATCH, obj: 'bucket_water', want: 'softens slightly', why: 'three' },
         { stage: 6 },
-        { useLoc: 'plaguemudpatch2', at: MUD_PATCH, obj: 'bucket_water', want: 'soft enough to dig', why: 'four' },
+        { useLoc: 'plaguemudpatch1', at: MUD_PATCH, obj: 'bucket_water', want: 'soft enough to dig', why: 'four' },
         { stage: 7 },
-        { useLoc: 'plaguemudpatch2', at: MUD_PATCH, obj: 'spade', hop: true, want: 'crumbles away', why: 'and dig' },
+        { useLoc: 'plaguemudpatch1', at: MUD_PATCH, obj: 'spade', hop: true, want: 'crumbles away', why: 'and dig' },
         { stage: 8 },
 
         { note: 'wiki steps 7-10: the grill at the far end of the sewer, and the rope' },

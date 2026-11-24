@@ -216,6 +216,20 @@ export default {
     BUILD_VERIFY_FOLDER: tryParseBoolean(process.env.BUILD_VERIFY_FOLDER, true),
     // used for unpacking/custom development
     BUILD_VERIFY_PACK: tryParseBoolean(process.env.BUILD_VERIFY_PACK, true),
+    // BUILD_FORCE packs everything, skipping every "is this stale?" check. It exists because those
+    // checks can answer NO when the answer is yes, and the build then reports success having done
+    // nothing - leaving the PREVIOUS cache in place for whatever runs next. Deleting a .rs2 is the
+    // clearest case: nothing the packer compares mtimes on got newer, so the compiled script
+    // outlives the file that defined it. See DeathPlateau-Bugs#81.
+    //
+    // That is survivable for a normal edit-and-reload loop, which is what the incremental checks
+    // are for. It is NOT survivable for mutation testing, where the whole exercise is to break the
+    // content on purpose and trust the red - a skipped repack there reports the guard as passing
+    // over a mutation that was never compiled in, which is the one answer that must not be wrong.
+    //
+    // So: off by default, nothing changes unless you ask for it. `npm run build -- --force` sets it
+    // too, and tools/sim/simmutate.sh uses it for every build it runs.
+    BUILD_FORCE: tryParseBoolean(process.env.BUILD_FORCE, false),
     // used for unpacking/custom development
     BUILD_SRC_DIR: tryParseString(process.env.BUILD_SRC_DIR, '../content'),
 

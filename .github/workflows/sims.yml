@@ -467,7 +467,7 @@ jobs:
         if-no-files-found: ignore
         retention-days: 7
 
-  # ---------------------------------------------------------------------------- the four ratchets
+  # --------------------------------------------------------------------------- the three ratchets
   # tools/sim/opsweep.ts and tools/sim/orphans.ts cross-reference the cache against the script
   # table in both directions - an option with no script, and a script no option can fire - and
   # tools/sim/ifselect.ts asks the question neither of those can, which is whether a radio button's
@@ -476,13 +476,16 @@ jobs:
   # a build that adds a dead option or an unreachable trigger fails here instead of waiting for a
   # playtest report.
   #
-  # A SEPARATE JOB, not a shard. The sharded job above runs every sim bare, and bare the three that
-  # live in tools/sim/ print a report and exit 0 - they only ratchet with --check, which no shard
-  # would pass. StageGaps is in tools/quest/ and the shard glob never sees it at all. It also
+  # A SEPARATE JOB, not a shard. The sharded job above runs every sim bare, and bare all three
+  # print a report and exit 0 - they only ratchet with --check, which no shard would pass. It also
   # means a red ratchet is legible on its own rather than buried in one shard of eight.
   #
+  # THERE WERE FOUR. tools/quest/StageGaps.ts moved to engine.yml's quest-table job: it was the one
+  # that needed neither the packed cache nor a booted world, so it can run on the PR that writes a
+  # legless value rather than that night.
+  #
   # AND NOT ON known-failing.txt EITHER. That list is for sims already broken when the nightly was
-  # switched on; all four are green today by construction, because their baselines were written
+  # switched on; all three are green today by construction, because their baselines were written
   # from today's build.
   #
   # WHERE THIS REALLY BELONGS is the content repository's own push CI: a dead option is almost
@@ -492,7 +495,7 @@ jobs:
   # which is the right friction for a ratchet and the wrong friction for somebody editing a .loc.
   # Nightly in this repository is the version that costs nobody anything.
   ratchets:
-    name: no new dead options, unreachable triggers, mis-wired buttons or legless quest stages
+    name: no new dead options, unreachable triggers or mis-wired buttons
     # Skipped on a notifier test, the same way the sims job is: that dispatch exists to prove the
     # Discord secret, and packing a cache to prove it is two minutes of nothing. It also keeps
     # needs.ratchets.result at 'skipped' there rather than 'success', so the notify condition reads
@@ -569,27 +572,12 @@ jobs:
         BUILD_SRC_DIR: ../content
       run: npx tsx tools/sim/ifselect.ts --check
 
-    # The fourth, and the only one that reads no cache at all: tools/quest/StageGaps.ts compares
-    # every progress value the CONTENT can write against the legs in data/quests.json. A leg exists
-    # only where a sim route reached that value, so a value the content writes and no route crosses
-    # has no row, and QuestHelperPlugin.stageNow then shows the player the last leg at or below it -
-    # one they have already finished. It does not throw; it misinforms, which is the shape of the
-    # report on DeathPlateau-Bugs#3.
-    #
-    # Its baseline carries a VERDICT per value and not just a signature, because a legless value is
-    # not automatically a bug - above its quest's `done` the quest already reads as complete, and a
-    # fork usually leaves the player talking to the same npc the previous leg already names. Those
-    # judgements need the quest read, so they are written down in the file rather than guessed here.
-    # A build that makes a NEW value legless fails; one that fixes a known one says so and passes.
-    #
-    # A second or so, and no cache, so it would sit just as well in the engine's push CI - except
-    # that engine.yml checks out no content. It is here because this job already has both.
-    - name: Progress values the quest helper has no leg for
-      if: always()
-      working-directory: engine
-      env:
-        BUILD_SRC_DIR: ../content
-      run: npx tsx tools/quest/StageGaps.ts --check
+    # THE FOURTH RATCHET USED TO BE HERE. tools/quest/StageGaps.ts moved to engine.yml's
+    # quest-table job, because it was the only one of the four that needs neither the packed cache
+    # nor a booted world - it reads content script text and data/quests.json as files - and it was
+    # here only because this job happened to have content checked out. engine.yml's quest-table job
+    # now does too, so it catches a new legless value on the PR that writes it rather than that
+    # night. The other three stay: they all read the cache.
 
   # ------------------------------------------------------------------ and the bots, which run nowhere else
   # WHY THIS JOB EXISTS. The ratchets above read the cache against the script table and find what was

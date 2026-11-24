@@ -194,7 +194,15 @@ const m: Manifest = {
         { give: 'limpwurt_root', n: 20 },
         { setpos: WINELDA, why: 'to the witch by the lava' },
         { talk: 'ikov_winelda', picks: ['Yes I do!'], want: 'limpwurt', why: 'she wants roots' },
+        // NOT THE ARMADYL BRANCH, which is what these two were written off as. Winelda's teleport
+        // is how you cross the lava on EITHER ending, so this run has always walked through 50 and
+        // 60 - it just never wrote them down. DeathPlateau-Bugs#16 had both filed as step 4,
+        // blocked behind a decision about branching quests; only 70 is actually branch-specific.
+        // A player at 50 was shown leg 40, "Go to the witch by the lava. Talk to Winelda." - which
+        // is exactly what they had just done.
+        { stage: 50, why: '^ikov_spoken_winelda - she has named her price' },
         { talk: 'ikov_winelda', want: 'potion is nearly ready', why: 'and takes all twenty' },
+        { stage: 60, why: '^ikov_paid_winelda - paid, and teleported over the lava' },
         { hasnt: 'limpwurt_root' },
 
         { note: 'wiki step 8, ending B: side with Lucien. The staff is on the table in the north' },

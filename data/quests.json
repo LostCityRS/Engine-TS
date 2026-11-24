@@ -153,6 +153,12 @@
        "id": 6745,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Black mushroom ink",
+       "id": 4622,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -234,10 +240,11 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Agrith Kiln 1.",
+       "text": "Use Broken kiln.",
        "why": "Take the sigil.",
        "target": "agrith_kiln_1",
        "id": 10242,
+       "label": "Broken kiln",
        "at": [
         3467,
         3123
@@ -1120,6 +1127,18 @@
        "id": 4277,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Needle",
+       "id": 1733,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Red dye",
+       "id": 1763,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -1637,6 +1656,12 @@
        "id": 4283,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Bucket of slime",
+       "id": 4286,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -2424,6 +2449,12 @@
        "id": 10301,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Hammer",
+       "id": 2347,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -3937,6 +3968,12 @@
        "id": 32,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -4381,6 +4418,12 @@
        "id": 2410,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Cheese",
+       "id": 1985,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -6403,6 +6446,12 @@
        "id": 1967,
        "n": 1,
        "bring": true
+      },
+      {
+       "name": "Cabbage",
+       "id": 1965,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -7438,10 +7487,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Raw chompy on Multi Chompybird Spitroast Entity.",
+       "text": "Use Raw chompy on Ogre spit-roast.",
        "why": "Cook the chompy.",
        "target": "multi_chompybird_spitroast_entity",
        "id": 6895,
+       "label": "Ogre spit-roast",
        "item": 2876,
        "at": [
         2630,
@@ -8057,10 +8107,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Pot on Millbase.",
+       "text": "Use Pot on Flour bin.",
        "why": "Fill the pot from the bin.",
        "target": "millbase",
        "id": 1781,
+       "label": "Flour bin",
        "item": 1931,
        "at": [
         3166,
@@ -8112,6 +8163,18 @@
        "id": 1933,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Bucket",
+       "id": 1925,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Pot",
+       "id": 1931,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -8940,7 +9003,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Antipoison(4)",
+       "id": 2446,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -9231,10 +9301,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Deal Blindweed.",
+       "text": "Use Rake on Blindweed Patch.",
        "why": "First pass.",
        "target": "deal_blindweed",
        "id": 10096,
+       "label": "Blindweed Patch",
        "item": 5341,
        "at": [
         2162,
@@ -9243,10 +9314,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Deal Blindweed.",
+       "text": "Use Rake on Blindweed Patch.",
        "why": "Second pass.",
        "target": "deal_blindweed",
        "id": 10096,
+       "label": "Blindweed Patch",
        "item": 5341,
        "at": [
         2162,
@@ -9255,10 +9327,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Deal Blindweed.",
+       "text": "Use Rake on Blindweed Patch.",
        "why": "Third pass.",
        "target": "deal_blindweed",
        "id": 10096,
+       "label": "Blindweed Patch",
        "item": 5341,
        "at": [
         2162,
@@ -9267,10 +9340,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Blindweed seed on Deal Blindweed.",
+       "text": "Use Blindweed seed on Blindweed Patch.",
        "why": "Plant it.",
        "target": "deal_blindweed",
        "id": 10096,
+       "label": "Blindweed Patch",
        "item": 6710,
        "at": [
         2162,
@@ -9279,10 +9353,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Deal Blindweed.",
+       "text": "Use Blindweed Patch.",
        "why": "Pick it.",
        "target": "deal_blindweed",
        "id": 10096,
+       "label": "Blindweed Patch",
        "at": [
         2162,
         5069
@@ -9835,10 +9910,11 @@
       },
       {
        "kind": "loc",
-       "text": "Pull Deal Multi Lever.",
+       "text": "Pull Pressure Lever.",
        "why": "The one pull.",
        "target": "deal_multi_lever",
        "id": 10164,
+       "label": "Pressure Lever",
        "at": [
         2141,
         5103
@@ -9944,10 +10020,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Holy wrench on Deal Multicontrol.",
+       "text": "Use Holy wrench on Brewing control.",
        "why": "The exorcism, and the fight it starts.",
        "target": "deal_multicontrol",
        "id": 10104,
+       "label": "Brewing control",
        "item": 6714,
        "at": [
         2143,
@@ -11236,6 +11313,12 @@
        "id": 526,
        "n": 25,
        "bring": true
+      },
+      {
+       "name": "Bucket of water",
+       "id": 1929,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -12071,7 +12154,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bronze bar",
+       "id": 2349,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -12095,6 +12185,12 @@
        "id": 1853,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Feather",
+       "id": 314,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -12864,6 +12960,12 @@
        "id": 6819,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Steel 2h sword",
+       "id": 1311,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -12937,10 +13039,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Devious Altar.",
+       "text": "Use Altar.",
        "why": "Leave it behind the altar.",
        "target": "devious_altar",
        "id": 10638,
+       "label": "Altar",
        "at": [
         2853,
         3348
@@ -13996,7 +14099,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Plank",
+       "id": 960,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -14724,7 +14834,26 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bread",
+       "id": 2309,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Trout",
+       "id": 333,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Lobster",
+       "id": 379,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -14879,6 +15008,24 @@
        "id": 10433,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Goutweed",
+       "id": 3261,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Hammer",
+       "id": 2347,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Pestle and mortar",
+       "id": 233,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -15003,6 +15150,12 @@
        "id": 10435,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -15335,6 +15488,30 @@
        "id": 525,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Raw beef",
+       "id": 2132,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Raw rat meat",
+       "id": 2134,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Raw bear meat",
+       "id": 2136,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Raw chicken",
+       "id": 2138,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -17083,10 +17260,11 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Sword Mirror1.",
+       "text": "Use Cactus.",
        "why": "Look into the first mirror.",
        "target": "sword_mirror1",
        "id": 6422,
+       "label": "Cactus",
        "at": [
         3214,
         2951
@@ -17400,10 +17578,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 4d Standing Torch1.",
+       "text": "Use Standing Torch.",
        "why": "Light it.",
        "target": "4d_standing_torch1",
        "id": 6405,
+       "label": "Standing Torch",
        "at": [
         3323,
         9398
@@ -17420,10 +17599,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 4d Standing Torch2.",
+       "text": "Use Standing Torch.",
        "why": "Light it.",
        "target": "4d_standing_torch2",
        "id": 6407,
+       "label": "Standing Torch",
        "at": [
         3321,
         9355
@@ -17440,10 +17620,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 4d Standing Torch3.",
+       "text": "Use Standing Torch.",
        "why": "Light it.",
        "target": "4d_standing_torch3",
        "id": 6409,
+       "label": "Standing Torch",
        "at": [
         3204,
         9350
@@ -17460,10 +17641,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 4d Standing Torch4.",
+       "text": "Use Standing Torch.",
        "why": "Light it.",
        "target": "4d_standing_torch4",
        "id": 6411,
+       "label": "Standing Torch",
        "at": [
         3207,
         9395
@@ -17620,10 +17802,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Fd Shadowladder1.",
+       "text": "Use Ladder.",
        "why": "Down it.",
        "target": "fd_shadowladder1",
        "id": 6560,
+       "label": "Ladder",
        "at": [
         2547,
         3421
@@ -17673,10 +17856,11 @@
       },
       {
        "kind": "loc",
-       "text": "Activate Desert Treasure Oblix1.",
+       "text": "Activate Obelisk.",
        "why": "Place the diamond.",
        "target": "desert_treasure_oblix1",
        "id": 6482,
+       "label": "Obelisk",
        "at": [
         3220,
         2909
@@ -17693,10 +17877,11 @@
       },
       {
        "kind": "loc",
-       "text": "Activate Desert Treasure Oblix2.",
+       "text": "Activate Obelisk.",
        "why": "Place the diamond.",
        "target": "desert_treasure_oblix2",
        "id": 6485,
+       "label": "Obelisk",
        "at": [
         3244,
         2909
@@ -17713,10 +17898,11 @@
       },
       {
        "kind": "loc",
-       "text": "Activate Desert Treasure Oblix3.",
+       "text": "Activate Obelisk.",
        "why": "Place the diamond.",
        "target": "desert_treasure_oblix3",
        "id": 6488,
+       "label": "Obelisk",
        "at": [
         3244,
         2885
@@ -17733,10 +17919,11 @@
       },
       {
        "kind": "loc",
-       "text": "Activate Desert Treasure Oblix4.",
+       "text": "Activate Obelisk.",
        "why": "Place the diamond.",
        "target": "desert_treasure_oblix4",
        "id": 6491,
+       "label": "Obelisk",
        "at": [
         3220,
         2885
@@ -18783,6 +18970,18 @@
        "id": 3262,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Pestle and mortar",
+       "id": 233,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Vial of water",
+       "id": 227,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -19031,10 +19230,11 @@
       },
       {
        "kind": "loc",
-       "text": "Inspect Eagle Camp Fire.",
+       "text": "Inspect Campfire.",
        "why": "The fire is still warm.",
        "target": "eagle_camp_fire",
        "id": 17164,
+       "label": "Campfire",
        "at": [
         2318,
         3505
@@ -19042,10 +19242,11 @@
       },
       {
        "kind": "loc",
-       "text": "Inspect Eagle Camp Equipment.",
+       "text": "Inspect Camping equipment.",
        "why": "The gear is trampled.",
        "target": "eagle_camp_equipment",
        "id": 17163,
+       "label": "Camping equipment",
        "at": [
         2318,
         3507
@@ -19053,10 +19254,11 @@
       },
       {
        "kind": "loc",
-       "text": "Inspect Eagle Camp Books.",
+       "text": "Inspect Books.",
        "why": "Search the books.",
        "target": "eagle_camp_books",
        "id": 17161,
+       "label": "Books",
        "at": [
         2319,
         3506
@@ -19118,10 +19320,11 @@
       },
       {
        "kind": "loc",
-       "text": "Inspect Eagle Outcrop.",
+       "text": "Inspect Rocky outcrop.",
        "why": "Study the outcrop.",
        "target": "eagle_outcrop",
        "id": 17173,
+       "label": "Rocky outcrop",
        "at": [
         2328,
         3494
@@ -19130,10 +19333,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Metal feather on Eagle Outcrop.",
+       "text": "Use Metal feather on Rocky outcrop.",
        "why": "The feather opens it.",
        "target": "eagle_outcrop",
        "id": 17173,
+       "label": "Rocky outcrop",
        "item": 9607,
        "at": [
         2328,
@@ -19163,10 +19367,11 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Enter Eagle Outcrop.",
+       "text": "Enter Rocky outcrop.",
        "why": "In.",
        "target": "eagle_outcrop",
        "id": 17173,
+       "label": "Rocky outcrop",
        "at": [
         2328,
         3494
@@ -20088,10 +20293,11 @@
       },
       {
        "kind": "loc",
-       "text": "Open Eagle Door South.",
+       "text": "Open Stone door.",
        "why": "It has an eagle engraved on it.",
        "target": "eagle_door_south",
        "id": 17168,
+       "label": "Stone door",
        "at": [
         2003,
         4947
@@ -20099,10 +20305,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Bronze feather on Eagle Door South.",
+       "text": "Use Bronze feather on Stone door.",
        "why": "The bronze feather.",
        "target": "eagle_door_south",
        "id": 17168,
+       "label": "Stone door",
        "item": 9610,
        "at": [
         2003,
@@ -20111,10 +20318,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Silver feather on Eagle Door South.",
+       "text": "Use Silver feather on Stone door.",
        "why": "The silver one.",
        "target": "eagle_door_south",
        "id": 17168,
+       "label": "Stone door",
        "item": 9609,
        "at": [
         2003,
@@ -20123,10 +20331,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Golden feather on Eagle Door South.",
+       "text": "Use Golden feather on Stone door.",
        "why": "The golden one.",
        "target": "eagle_door_south",
        "id": 17168,
+       "label": "Stone door",
        "item": 9608,
        "at": [
         2003,
@@ -20135,10 +20344,11 @@
       },
       {
        "kind": "loc",
-       "text": "Open Eagle Door South.",
+       "text": "Open Stone door.",
        "why": "Through the door.",
        "target": "eagle_door_south",
        "id": 17168,
+       "label": "Stone door",
        "at": [
         2003,
         4947
@@ -21152,6 +21362,12 @@
        "id": 6789,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Needle",
+       "id": 1733,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -21373,10 +21589,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Elid Waterchannel Mining Multiloc.",
+       "text": "Use Water Channel.",
        "why": "37 Mining and a pickaxe.",
        "target": "elid_waterchannel_mining_multiloc",
        "id": 10396,
+       "label": "Water Channel",
        "at": [
         3378,
         9547
@@ -21404,10 +21621,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Elid Waterchannel Thieving Multiloc.",
+       "text": "Use Water Channel.",
        "why": "37 Thieving.",
        "target": "elid_waterchannel_thieving_multiloc",
        "id": 10399,
+       "label": "Water Channel",
        "at": [
         3365,
         9538
@@ -21458,6 +21676,12 @@
        "id": 6792,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Bronze arrow",
+       "id": 882,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -21591,6 +21815,12 @@
        "id": 6791,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Knife",
+       "id": 946,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -21675,10 +21905,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Statuette on Elid Statuette Multiloc.",
+       "text": "Use Statuette on Statuette Plinth.",
        "why": "Put her back.",
        "target": "elid_statuette_multiloc",
        "id": 10389,
+       "label": "Statuette Plinth",
        "item": 6785,
        "at": [
         3426,
@@ -21855,10 +22086,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Sandstone base on Enakh Statue East Multiloc.",
+       "text": "Use Sandstone base on Flat ground.",
        "why": "The base.",
        "target": "enakh_statue_east_multiloc",
        "id": 10952,
+       "label": "Flat ground",
        "item": 6988,
        "at": [
         3189,
@@ -21867,10 +22099,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Sandstone body on Enakh Statue East Multiloc.",
+       "text": "Use Sandstone body on Flat ground.",
        "why": "The body.",
        "target": "enakh_statue_east_multiloc",
        "id": 10952,
+       "label": "Flat ground",
        "item": 6987,
        "at": [
         3189,
@@ -21977,10 +22210,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Stone head on Enakh Statue East Multiloc.",
+       "text": "Use Stone head on Flat ground.",
        "why": "Put the head on.",
        "target": "enakh_statue_east_multiloc",
        "id": 10952,
+       "label": "Flat ground",
        "item": 6990,
        "at": [
         3189,
@@ -22031,10 +22265,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Enakh Secret Boulder Multiloc S.",
+       "text": "Use Boulder.",
        "why": "Lower yourself in.",
        "target": "enakh_secret_boulder_multiloc_s",
        "id": 11047,
+       "label": "Boulder",
        "at": [
         3189,
         2888
@@ -22093,10 +22328,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Chisel on Enakh Fallen Statue East Multiloc.",
+       "text": "Use Chisel on Fallen statue.",
        "why": "The left arm.",
        "target": "enakh_fallen_statue_east_multiloc",
        "id": 10970,
+       "label": "Fallen statue",
        "item": 7004,
        "at": [
         3129,
@@ -22105,10 +22341,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Chisel on Enakh Fallen Statue East Multiloc.",
+       "text": "Use Chisel on Fallen statue.",
        "why": "The right arm.",
        "target": "enakh_fallen_statue_east_multiloc",
        "id": 10970,
+       "label": "Fallen statue",
        "item": 7004,
        "at": [
         3129,
@@ -22117,10 +22354,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Chisel on Enakh Fallen Statue East Multiloc.",
+       "text": "Use Chisel on Fallen statue.",
        "why": "The left leg.",
        "target": "enakh_fallen_statue_east_multiloc",
        "id": 10970,
+       "label": "Fallen statue",
        "item": 7004,
        "at": [
         3129,
@@ -22129,10 +22367,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Chisel on Enakh Fallen Statue East Multiloc.",
+       "text": "Use Chisel on Fallen statue.",
        "why": "The right leg.",
        "target": "enakh_fallen_statue_east_multiloc",
        "id": 10970,
+       "label": "Fallen statue",
        "item": 7004,
        "at": [
         3129,
@@ -22292,10 +22531,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tinderbox on Enakh Brazier 1 Multiloc.",
+       "text": "Use Tinderbox on Brazier.",
        "why": "Light brazier 1.",
        "target": "enakh_brazier_1_multiloc",
        "id": 11011,
+       "label": "Brazier",
        "item": 590,
        "at": [
         3114,
@@ -22312,10 +22552,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tinderbox on Enakh Brazier 2 Multiloc.",
+       "text": "Use Tinderbox on Brazier.",
        "why": "Light brazier 2.",
        "target": "enakh_brazier_2_multiloc",
        "id": 11012,
+       "label": "Brazier",
        "item": 590,
        "at": [
         3116,
@@ -22332,10 +22573,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tinderbox on Enakh Brazier 3 Multiloc.",
+       "text": "Use Tinderbox on Brazier.",
        "why": "Light brazier 3.",
        "target": "enakh_brazier_3_multiloc",
        "id": 11013,
+       "label": "Brazier",
        "item": 590,
        "at": [
         3118,
@@ -22352,10 +22594,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tinderbox on Enakh Brazier 4 Multiloc.",
+       "text": "Use Tinderbox on Brazier.",
        "why": "Light brazier 4.",
        "target": "enakh_brazier_4_multiloc",
        "id": 11014,
+       "label": "Brazier",
        "item": 590,
        "at": [
         3114,
@@ -22372,10 +22615,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tinderbox on Enakh Brazier 5 Multiloc.",
+       "text": "Use Tinderbox on Brazier.",
        "why": "Light brazier 5.",
        "target": "enakh_brazier_5_multiloc",
        "id": 11015,
+       "label": "Brazier",
        "item": 590,
        "at": [
         3116,
@@ -22392,10 +22636,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tinderbox on Enakh Brazier 6 Multiloc.",
+       "text": "Use Tinderbox on Brazier.",
        "why": "Light brazier 6.",
        "target": "enakh_brazier_6_multiloc",
        "id": 11016,
+       "label": "Brazier",
        "item": 590,
        "at": [
         3118,
@@ -22463,6 +22708,12 @@
        "id": 6994,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -22557,10 +22808,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Stone head on Enakh Pedestal Multiloc.",
+       "text": "Use Stone head on Pedestal.",
        "why": "Put the head in the recess.",
        "target": "enakh_pedestal_multiloc",
        "id": 10987,
+       "label": "Pedestal",
        "item": 7002,
        "at": [
         3104,
@@ -23166,10 +23418,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Levera.",
+       "text": "Use Lever A.",
        "why": "Pull it down.",
        "target": "levera",
        "id": 146,
+       "label": "Lever A",
        "at": [
         3108,
         9745
@@ -23177,10 +23430,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Leverb.",
+       "text": "Use Lever B.",
        "why": "Pull it down.",
        "target": "leverb",
        "id": 147,
+       "label": "Lever B",
        "at": [
         3118,
         9752
@@ -23188,10 +23442,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 4to7.",
+       "text": "Use Door.",
        "why": "Through it.",
        "target": "4to7",
        "id": 144,
+       "label": "Door",
        "at": [
         3108,
         9758
@@ -23199,10 +23454,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Leverd.",
+       "text": "Use Lever D.",
        "why": "Pull it down.",
        "target": "leverd",
        "id": 149,
+       "label": "Lever D",
        "at": [
         3108,
         9767
@@ -23210,10 +23466,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 4to5.",
+       "text": "Use Door.",
        "why": "Through it.",
        "target": "4to5",
        "id": 139,
+       "label": "Door",
        "at": [
         3105,
         9760
@@ -23221,10 +23478,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 5to8.",
+       "text": "Use Door.",
        "why": "Through it.",
        "target": "5to8",
        "id": 145,
+       "label": "Door",
        "at": [
         3102,
         9758
@@ -23232,10 +23490,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Levera.",
+       "text": "Use Lever A.",
        "why": "Pull it up.",
        "target": "levera",
        "id": 146,
+       "label": "Lever A",
        "at": [
         3108,
         9745
@@ -23243,10 +23502,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Leverb.",
+       "text": "Use Lever B.",
        "why": "Pull it up.",
        "target": "leverb",
        "id": 147,
+       "label": "Lever B",
        "at": [
         3118,
         9752
@@ -23254,10 +23514,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 5to8.",
+       "text": "Use Door.",
        "why": "Through it.",
        "target": "5to8",
        "id": 145,
+       "label": "Door",
        "at": [
         3102,
         9758
@@ -23265,10 +23526,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 5to6.",
+       "text": "Use Door.",
        "why": "Through it.",
        "target": "5to6",
        "id": 140,
+       "label": "Door",
        "at": [
         3100,
         9760
@@ -23276,10 +23538,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 3to6.",
+       "text": "Use Door.",
        "why": "Through it.",
        "target": "3to6",
        "id": 143,
+       "label": "Door",
        "at": [
         3097,
         9763
@@ -23287,10 +23550,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Levere.",
+       "text": "Use Lever E.",
        "why": "Pull it down.",
        "target": "levere",
        "id": 150,
+       "label": "Lever E",
        "at": [
         3097,
         9767
@@ -23298,10 +23562,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Leverf.",
+       "text": "Use Lever F.",
        "why": "Pull it down.",
        "target": "leverf",
        "id": 151,
+       "label": "Lever F",
        "at": [
         3096,
         9765
@@ -23309,10 +23574,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 2to3.",
+       "text": "Use Door.",
        "why": "Through it.",
        "target": "2to3",
        "id": 138,
+       "label": "Door",
        "at": [
         3100,
         9765
@@ -23320,10 +23586,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 1to2.",
+       "text": "Use Door.",
        "why": "Through it.",
        "target": "1to2",
        "id": 137,
+       "label": "Door",
        "at": [
         3105,
         9765
@@ -23331,10 +23598,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Leverc.",
+       "text": "Use Lever C.",
        "why": "Pull it down.",
        "target": "leverc",
        "id": 148,
+       "label": "Lever C",
        "at": [
         3112,
         9760
@@ -23342,10 +23610,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 1to2.",
+       "text": "Use Door.",
        "why": "Through it.",
        "target": "1to2",
        "id": 137,
+       "label": "Door",
        "at": [
         3105,
         9765
@@ -23353,10 +23622,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 2to3.",
+       "text": "Use Door.",
        "why": "Through it.",
        "target": "2to3",
        "id": 138,
+       "label": "Door",
        "at": [
         3100,
         9765
@@ -23364,10 +23634,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Levere.",
+       "text": "Use Lever E.",
        "why": "Pull it up.",
        "target": "levere",
        "id": 150,
+       "label": "Lever E",
        "at": [
         3097,
         9767
@@ -23375,10 +23646,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 2to3.",
+       "text": "Use Door.",
        "why": "Through it.",
        "target": "2to3",
        "id": 138,
+       "label": "Door",
        "at": [
         3100,
         9765
@@ -23386,10 +23658,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 2to5.",
+       "text": "Use Door.",
        "why": "Through it.",
        "target": "2to5",
        "id": 142,
+       "label": "Door",
        "at": [
         3102,
         9763
@@ -23397,10 +23670,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 5to8.",
+       "text": "Use Door.",
        "why": "Through it.",
        "target": "5to8",
        "id": 145,
+       "label": "Door",
        "at": [
         3102,
         9758
@@ -23408,10 +23682,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 8to9.",
+       "text": "Use Door.",
        "why": "Through it.",
        "target": "8to9",
        "id": 141,
+       "label": "Door",
        "at": [
         3100,
         9755
@@ -26046,6 +26321,12 @@
        "id": 4604,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Coins",
+       "id": 995,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -26596,10 +26877,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Clean her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26607,10 +26889,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Charge her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26618,10 +26901,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Pack her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26629,10 +26913,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Shot her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26640,10 +26925,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Fuse her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26651,10 +26937,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Shot 1.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26682,10 +26969,11 @@
       },
       {
        "kind": "loc",
-       "text": "Repair Fever Multi Hole 1.",
+       "text": "Repair Ship hull.",
        "why": "Fill it.",
        "target": "fever_multi_hole_1",
        "id": 11221,
+       "label": "Ship hull",
        "at": [
         1816,
         4834
@@ -26693,10 +26981,11 @@
       },
       {
        "kind": "loc",
-       "text": "Repair Fever Multi Hole 1.",
+       "text": "Repair Ship hull.",
        "why": "Waterproof it.",
        "target": "fever_multi_hole_1",
        "id": 11221,
+       "label": "Ship hull",
        "at": [
         1816,
         4834
@@ -26712,10 +27001,11 @@
       },
       {
        "kind": "loc",
-       "text": "Repair Fever Multi Hole 2.",
+       "text": "Repair Ship hull.",
        "why": "Fill it.",
        "target": "fever_multi_hole_2",
        "id": 11222,
+       "label": "Ship hull",
        "at": [
         1816,
         4832
@@ -26723,10 +27013,11 @@
       },
       {
        "kind": "loc",
-       "text": "Repair Fever Multi Hole 2.",
+       "text": "Repair Ship hull.",
        "why": "Waterproof it.",
        "target": "fever_multi_hole_2",
        "id": 11222,
+       "label": "Ship hull",
        "at": [
         1816,
         4832
@@ -26742,10 +27033,11 @@
       },
       {
        "kind": "loc",
-       "text": "Repair Fever Multi Hole 3.",
+       "text": "Repair Ship hull.",
        "why": "Fill it.",
        "target": "fever_multi_hole_3",
        "id": 11223,
+       "label": "Ship hull",
        "at": [
         1816,
         4830
@@ -26753,10 +27045,11 @@
       },
       {
        "kind": "loc",
-       "text": "Repair Fever Multi Hole 3.",
+       "text": "Repair Ship hull.",
        "why": "Waterproof it.",
        "target": "fever_multi_hole_3",
        "id": 11223,
+       "label": "Ship hull",
        "at": [
         1816,
         4830
@@ -26804,10 +27097,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Clean her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26815,10 +27109,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Charge her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26826,10 +27121,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Pack her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26837,10 +27133,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Shot her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26848,10 +27145,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Fuse her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26859,10 +27157,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Shot 2.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26898,10 +27197,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Clean her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26909,10 +27209,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Charge her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26920,10 +27221,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Pack her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26931,10 +27233,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Shot her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26942,10 +27245,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Fuse her.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -26953,10 +27257,11 @@
       },
       {
        "kind": "loc",
-       "text": "Load Fever Multi Cannon.",
+       "text": "Load Cannon.",
        "why": "Shot 3.",
        "target": "fever_multi_cannon",
        "id": 11213,
+       "label": "Cannon",
        "at": [
         1816,
         4833
@@ -27230,7 +27535,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Garlic",
+       "id": 1550,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -27573,7 +27885,14 @@
        "item": 1927
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bucket of milk",
+       "id": 1927,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -27930,10 +28249,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hammer on Keldagrim Boardedupdoor Multi.",
+       "text": "Use Hammer on Wooden boards.",
        "why": "Prise the boards off.",
        "target": "keldagrim_boardedupdoor_multi",
        "id": 8885,
+       "label": "Wooden boards",
        "item": 2347,
        "at": [
         2926,
@@ -27941,7 +28261,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Hammer",
+       "id": 2347,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -28507,10 +28834,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Plant cure on Garden Burthorpe Vines.",
+       "text": "Use Plant cure on Diseased Grapevines.",
        "why": "The cure.",
        "target": "garden_burthorpe_vines",
        "id": 9254,
+       "label": "Diseased Grapevines",
        "item": 6036,
        "at": [
         2914,
@@ -28585,6 +28913,12 @@
        "id": 6456,
        "n": 4,
        "bring": false
+      },
+      {
+       "name": "Plant cure",
+       "id": 6036,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -28618,10 +28952,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Delphinium Patch.",
+       "text": "Use Rake on Delphinium patch.",
        "why": "First pass.",
        "target": "garden_delphinium_patch",
        "id": 9165,
+       "label": "Delphinium patch",
        "item": 5341,
        "at": [
         3227,
@@ -28630,10 +28965,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Delphinium Patch.",
+       "text": "Use Rake on Delphinium patch.",
        "why": "Second pass.",
        "target": "garden_delphinium_patch",
        "id": 9165,
+       "label": "Delphinium patch",
        "item": 5341,
        "at": [
         3227,
@@ -28642,10 +28978,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Delphinium Patch.",
+       "text": "Use Rake on Delphinium patch.",
        "why": "It is clear.",
        "target": "garden_delphinium_patch",
        "id": 9165,
+       "label": "Delphinium patch",
        "item": 5341,
        "at": [
         3227,
@@ -28654,10 +28991,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Delphinium seed on Garden Delphinium Patch.",
+       "text": "Use Delphinium seed on Delphinium patch.",
        "why": "4 x garden_delphinium_seed.",
        "target": "garden_delphinium_patch",
        "id": 9165,
+       "label": "Delphinium patch",
        "item": 6457,
        "at": [
         3227,
@@ -28666,10 +29004,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Watering can(8) on Garden Delphinium Patch.",
+       "text": "Use Watering can(8) on Delphinium patch.",
        "why": "One watering takes it all the way up.",
        "target": "garden_delphinium_patch",
        "id": 9165,
+       "label": "Delphinium patch",
        "item": 5340,
        "at": [
         3227,
@@ -28686,10 +29025,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Rosebush Patch White.",
+       "text": "Use Rake on White rose bush patch.",
        "why": "First pass.",
        "target": "garden_rosebush_patch_white",
        "id": 9174,
+       "label": "White rose bush patch",
        "item": 5341,
        "at": [
         3232,
@@ -28698,10 +29038,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Rosebush Patch White.",
+       "text": "Use Rake on White rose bush patch.",
        "why": "Second pass.",
        "target": "garden_rosebush_patch_white",
        "id": 9174,
+       "label": "White rose bush patch",
        "item": 5341,
        "at": [
         3232,
@@ -28710,10 +29051,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Rosebush Patch White.",
+       "text": "Use Rake on White rose bush patch.",
        "why": "It is clear.",
        "target": "garden_rosebush_patch_white",
        "id": 9174,
+       "label": "White rose bush patch",
        "item": 5341,
        "at": [
         3232,
@@ -28722,10 +29064,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use White rose seed on Garden Rosebush Patch White.",
+       "text": "Use White rose seed on White rose bush patch.",
        "why": "3 x garden_rosebush_seed_white.",
        "target": "garden_rosebush_patch_white",
        "id": 9174,
+       "label": "White rose bush patch",
        "item": 6453,
        "at": [
         3232,
@@ -28734,10 +29077,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Watering can(7) on Garden Rosebush Patch White.",
+       "text": "Use Watering can(7) on White rose bush patch.",
        "why": "One watering takes it all the way up.",
        "target": "garden_rosebush_patch_white",
        "id": 9174,
+       "label": "White rose bush patch",
        "item": 5339,
        "at": [
         3232,
@@ -28754,10 +29098,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Rosebush Patch Red.",
+       "text": "Use Rake on Red rose bush patch.",
        "why": "First pass.",
        "target": "garden_rosebush_patch_red",
        "id": 9175,
+       "label": "Red rose bush patch",
        "item": 5341,
        "at": [
         3229,
@@ -28766,10 +29111,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Rosebush Patch Red.",
+       "text": "Use Rake on Red rose bush patch.",
        "why": "Second pass.",
        "target": "garden_rosebush_patch_red",
        "id": 9175,
+       "label": "Red rose bush patch",
        "item": 5341,
        "at": [
         3229,
@@ -28778,10 +29124,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Rosebush Patch Red.",
+       "text": "Use Rake on Red rose bush patch.",
        "why": "It is clear.",
        "target": "garden_rosebush_patch_red",
        "id": 9175,
+       "label": "Red rose bush patch",
        "item": 5341,
        "at": [
         3229,
@@ -28790,10 +29137,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Red rose seed on Garden Rosebush Patch Red.",
+       "text": "Use Red rose seed on Red rose bush patch.",
        "why": "3 x garden_rosebush_seed_red.",
        "target": "garden_rosebush_patch_red",
        "id": 9175,
+       "label": "Red rose bush patch",
        "item": 6454,
        "at": [
         3229,
@@ -28802,10 +29150,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Watering can(6) on Garden Rosebush Patch Red.",
+       "text": "Use Watering can(6) on Red rose bush patch.",
        "why": "One watering takes it all the way up.",
        "target": "garden_rosebush_patch_red",
        "id": 9175,
+       "label": "Red rose bush patch",
        "item": 5338,
        "at": [
         3229,
@@ -28822,10 +29171,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Rosebush Patch Pink.",
+       "text": "Use Rake on Pink rose bush patch.",
        "why": "First pass.",
        "target": "garden_rosebush_patch_pink",
        "id": 9176,
+       "label": "Pink rose bush patch",
        "item": 5341,
        "at": [
         3227,
@@ -28834,10 +29184,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Rosebush Patch Pink.",
+       "text": "Use Rake on Pink rose bush patch.",
        "why": "Second pass.",
        "target": "garden_rosebush_patch_pink",
        "id": 9176,
+       "label": "Pink rose bush patch",
        "item": 5341,
        "at": [
         3227,
@@ -28846,10 +29197,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Rosebush Patch Pink.",
+       "text": "Use Rake on Pink rose bush patch.",
        "why": "It is clear.",
        "target": "garden_rosebush_patch_pink",
        "id": 9176,
+       "label": "Pink rose bush patch",
        "item": 5341,
        "at": [
         3227,
@@ -28858,10 +29210,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Pink rose seed on Garden Rosebush Patch Pink.",
+       "text": "Use Pink rose seed on Pink rose bush patch.",
        "why": "3 x garden_rosebush_seed_pink.",
        "target": "garden_rosebush_patch_pink",
        "id": 9176,
+       "label": "Pink rose bush patch",
        "item": 6455,
        "at": [
         3227,
@@ -28870,10 +29223,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Watering can(5) on Garden Rosebush Patch Pink.",
+       "text": "Use Watering can(5) on Pink rose bush patch.",
        "why": "One watering takes it all the way up.",
        "target": "garden_rosebush_patch_pink",
        "id": 9176,
+       "label": "Pink rose bush patch",
        "item": 5337,
        "at": [
         3227,
@@ -28890,10 +29244,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Snowdrop Patch.",
+       "text": "Use Rake on Snowdrop patch.",
        "why": "First pass.",
        "target": "garden_snowdrop_patch",
        "id": 9223,
+       "label": "Snowdrop patch",
        "item": 5341,
        "at": [
         3232,
@@ -28902,10 +29257,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Snowdrop Patch.",
+       "text": "Use Rake on Snowdrop patch.",
        "why": "Second pass.",
        "target": "garden_snowdrop_patch",
        "id": 9223,
+       "label": "Snowdrop patch",
        "item": 5341,
        "at": [
         3232,
@@ -28914,10 +29270,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Snowdrop Patch.",
+       "text": "Use Rake on Snowdrop patch.",
        "why": "It is clear.",
        "target": "garden_snowdrop_patch",
        "id": 9223,
+       "label": "Snowdrop patch",
        "item": 5341,
        "at": [
         3232,
@@ -28926,10 +29283,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Snowdrop seed on Garden Snowdrop Patch.",
+       "text": "Use Snowdrop seed on Snowdrop patch.",
        "why": "4 x garden_snowdrop_seed.",
        "target": "garden_snowdrop_patch",
        "id": 9223,
+       "label": "Snowdrop patch",
        "item": 6460,
        "at": [
         3232,
@@ -28938,10 +29296,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Watering can(4) on Garden Snowdrop Patch.",
+       "text": "Use Watering can(4) on Snowdrop patch.",
        "why": "One watering takes it all the way up.",
        "target": "garden_snowdrop_patch",
        "id": 9223,
+       "label": "Snowdrop patch",
        "item": 5336,
        "at": [
         3232,
@@ -28958,10 +29317,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Vine Patch.",
+       "text": "Use Rake on Vine patch.",
        "why": "First pass.",
        "target": "garden_vine_patch",
        "id": 9232,
+       "label": "Vine patch",
        "item": 5341,
        "at": [
         3227,
@@ -28970,10 +29330,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Vine Patch.",
+       "text": "Use Rake on Vine patch.",
        "why": "Second pass.",
        "target": "garden_vine_patch",
        "id": 9232,
+       "label": "Vine patch",
        "item": 5341,
        "at": [
         3227,
@@ -28982,10 +29343,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden Vine Patch.",
+       "text": "Use Rake on Vine patch.",
        "why": "It is clear.",
        "target": "garden_vine_patch",
        "id": 9232,
+       "label": "Vine patch",
        "item": 5341,
        "at": [
         3227,
@@ -28994,10 +29356,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Vine seed on Garden Vine Patch.",
+       "text": "Use Vine seed on Vine patch.",
        "why": "4 x garden_vine_seed.",
        "target": "garden_vine_patch",
        "id": 9232,
+       "label": "Vine patch",
        "item": 6456,
        "at": [
         3227,
@@ -29006,10 +29369,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Watering can(3) on Garden Vine Patch.",
+       "text": "Use Watering can(3) on Vine patch.",
        "why": "One watering takes it all the way up.",
        "target": "garden_vine_patch",
        "id": 9232,
+       "label": "Vine patch",
        "item": 5335,
        "at": [
         3227,
@@ -29026,10 +29390,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden White Tree Patch.",
+       "text": "Use Rake on White Tree patch.",
        "why": "First pass.",
        "target": "garden_white_tree_patch",
        "id": 9209,
+       "label": "White Tree patch",
        "item": 5341,
        "at": [
         3229,
@@ -29038,10 +29403,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden White Tree Patch.",
+       "text": "Use Rake on White Tree patch.",
        "why": "Second pass.",
        "target": "garden_white_tree_patch",
        "id": 9209,
+       "label": "White Tree patch",
        "item": 5341,
        "at": [
         3229,
@@ -29050,10 +29416,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Garden White Tree Patch.",
+       "text": "Use Rake on White Tree patch.",
        "why": "It is clear.",
        "target": "garden_white_tree_patch",
        "id": 9209,
+       "label": "White Tree patch",
        "item": 5341,
        "at": [
         3229,
@@ -29062,10 +29429,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use White tree shoot on Garden White Tree Patch.",
+       "text": "Use White tree shoot on White Tree patch.",
        "why": "1 x garden_white_tree_shoot.",
        "target": "garden_white_tree_patch",
        "id": 9209,
+       "label": "White Tree patch",
        "item": 6461,
        "at": [
         3229,
@@ -29074,10 +29442,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Watering can(2) on Garden White Tree Patch.",
+       "text": "Use Watering can(2) on White Tree patch.",
        "why": "One watering takes it all the way up.",
        "target": "garden_white_tree_patch",
        "id": 9209,
+       "label": "White Tree patch",
        "item": 5334,
        "at": [
         3229,
@@ -29094,10 +29463,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Compost on Garden Orchid Pink Patch.",
+       "text": "Use Compost on Plantpot.",
        "why": "Compost in the pot.",
        "target": "garden_orchid_pink_patch",
        "id": 9197,
+       "label": "Plantpot",
        "item": 6032,
        "at": [
         3229,
@@ -29106,10 +29476,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Orchid seed on Garden Orchid Pink Patch.",
+       "text": "Use Orchid seed on Plantpot.",
        "why": "3 x garden_orchid_pink_seed.",
        "target": "garden_orchid_pink_patch",
        "id": 9197,
+       "label": "Plantpot",
        "item": 6458,
        "at": [
         3229,
@@ -29118,10 +29489,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Watering can(1) on Garden Orchid Pink Patch.",
+       "text": "Use Watering can(1) on Plantpot.",
        "why": "One watering takes it all the way up.",
        "target": "garden_orchid_pink_patch",
        "id": 9197,
+       "label": "Plantpot",
        "item": 5333,
        "at": [
         3229,
@@ -29138,10 +29510,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Compost on Garden Orchid Yellow Patch.",
+       "text": "Use Compost on Plantpot.",
        "why": "Compost in the pot.",
        "target": "garden_orchid_yellow_patch",
        "id": 9198,
+       "label": "Plantpot",
        "item": 6032,
        "at": [
         3231,
@@ -29150,10 +29523,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Orchid seed on Garden Orchid Yellow Patch.",
+       "text": "Use Orchid seed on Plantpot.",
        "why": "3 x garden_orchid_yellow_seed.",
        "target": "garden_orchid_yellow_patch",
        "id": 9198,
+       "label": "Plantpot",
        "item": 6459,
        "at": [
         3231,
@@ -29162,10 +29536,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Watering can(8) on Garden Orchid Yellow Patch.",
+       "text": "Use Watering can(8) on Plantpot.",
        "why": "One watering takes it all the way up.",
        "target": "garden_orchid_yellow_patch",
        "id": 9198,
+       "label": "Plantpot",
        "item": 5340,
        "at": [
         3231,
@@ -29173,7 +29548,26 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Rake",
+       "id": 5341,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Watering can(8)",
+       "id": 5340,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Compost",
+       "id": 6032,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -29217,10 +29611,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Trolley on Falador Statue Saradomin.",
+       "text": "Use Trolley on Statue of Saradomin.",
        "why": "Onto the trolley.",
        "target": "falador_statue_saradomin",
        "id": 9250,
+       "label": "Statue of Saradomin",
        "item": 6478,
        "at": [
         2965,
@@ -29238,10 +29633,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Trolley on Garden Saradomin Statue Multi.",
+       "text": "Use Trolley on Statue plinth.",
        "why": "Onto the plinth.",
        "target": "garden_saradomin_statue_multi",
        "id": 9253,
+       "label": "Statue plinth",
        "item": 6478,
        "at": [
         3229,
@@ -29259,10 +29655,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Trolley on Garden Lumbridge Statue.",
+       "text": "Use Trolley on Statue.",
        "why": "Onto the trolley.",
        "target": "garden_lumbridge_statue",
        "id": 9251,
+       "label": "Statue",
        "item": 6478,
        "at": [
         3231,
@@ -29280,10 +29677,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Trolley on Garden King Statue Multi.",
+       "text": "Use Trolley on Statue plinth.",
        "why": "Onto the plinth.",
        "target": "garden_king_statue_multi",
        "id": 9252,
+       "label": "Statue plinth",
        "item": 6478,
        "at": [
         3233,
@@ -29755,6 +30153,12 @@
        "id": 286,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Orange dye",
+       "id": 1769,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -29796,6 +30200,12 @@
        "id": 287,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Blue dye",
+       "id": 1767,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -29942,7 +30352,14 @@
        "item": 1761
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Soft clay",
+       "id": 1761,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -30242,10 +30659,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Display cabinet key on Golem Displaycase.",
+       "text": "Use Display cabinet key on Display case.",
        "why": "The fourth case along.",
        "target": "golem_displaycase",
        "id": 6293,
+       "label": "Display case",
        "item": 4617,
        "at": [
         3261,
@@ -30307,10 +30725,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Statuette on Golem Statuetted.",
+       "text": "Use Statuette on Alcove.",
        "why": "Into the alcove.",
        "target": "golem_statuetted",
        "id": 6306,
+       "label": "Alcove",
        "item": 4618,
        "at": [
         2725,
@@ -30355,10 +30774,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Golem Statuettea.",
+       "text": "Use Statuette in alcove.",
        "why": "Turn it.",
        "target": "golem_statuettea",
        "id": 6303,
+       "label": "Statuette in alcove",
        "at": [
         2718,
         4899
@@ -30374,10 +30794,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Golem Statuetteb.",
+       "text": "Use Statuette in alcove.",
        "why": "Turn it.",
        "target": "golem_statuetteb",
        "id": 6304,
+       "label": "Statuette in alcove",
        "at": [
         2718,
         4896
@@ -30393,10 +30814,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Golem Statuetted.",
+       "text": "Use Alcove.",
        "why": "The fourth, which opens the door.",
        "target": "golem_statuetted",
        "id": 6306,
+       "label": "Alcove",
        "at": [
         2725,
         4896
@@ -30426,10 +30848,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Golem Portal.",
+       "text": "Use Door.",
        "why": "In.",
        "target": "golem_portal",
        "id": 6310,
+       "label": "Door",
        "at": [
         2720,
         4912
@@ -30579,6 +31002,12 @@
      ],
      "items": [
       {
+       "name": "Vial",
+       "id": 229,
+       "n": 1,
+       "bring": true
+      },
+      {
        "name": "Black mushroom ink",
        "id": 4622,
        "n": 1,
@@ -30595,6 +31024,18 @@
        "id": 4624,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Pestle and mortar",
+       "id": 233,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Papyrus",
+       "id": 970,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -32331,10 +32772,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rose tinted lens on Handsand Counter Multiloc.",
+       "text": "Use Rose tinted lens on Counter.",
        "why": "Focus it.",
        "target": "handsand_counter_multiloc",
        "id": 10812,
+       "label": "Counter",
        "item": 6956,
        "at": [
         3013,
@@ -32436,10 +32878,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Truth serum on Handsand Coffee Multiloc.",
+       "text": "Use Truth serum on Sandy's Coffee Mug.",
        "why": "Dose it.",
        "target": "handsand_coffee_multiloc",
        "id": 10806,
+       "label": "Sandy's Coffee Mug",
        "item": 6952,
        "at": [
         2789,
@@ -34232,6 +34675,392 @@
   {
    "stageVarId": 188,
    "stageIsVarbit": false,
+   "id": "hero_phoenix",
+   "name": "HEROES' QUEST (Phoenix side)",
+   "source": "oldschool.runescape.wiki/w/Heroes%27_Quest",
+   "stageVar": "heroquest",
+   "done": 15,
+   "start": [
+    2904,
+    3510,
+    0
+   ],
+   "stages": [
+    {
+     "from": 0,
+     "headings": [
+      {
+       "at": 0,
+       "text": "Achietties, outside the Heroes' Guild."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "talk",
+       "text": "Talk to Achietties.",
+       "why": "She lists the three items.",
+       "target": "achietties",
+       "id": 796,
+       "label": "Achietties",
+       "picks": [
+        "may I apply to join",
+        "I'll start looking for all those things"
+       ]
+      }
+     ],
+     "items": [
+      {
+       "name": "Fishing rod",
+       "id": 307,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Blamish oil",
+       "id": 1582,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Fishing bait",
+       "id": 313,
+       "n": 20,
+       "bring": true
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Logs",
+       "id": 1511,
+       "n": 1,
+       "bring": true
+      }
+     ],
+     "worn": []
+    },
+    {
+     "from": 1,
+     "headings": [
+      {
+       "at": 0,
+       "text": "The Ice Queen, deep under White Wolf Mountain."
+      },
+      {
+       "at": 6,
+       "text": "The firebird on Entrana."
+      },
+      {
+       "at": 8,
+       "text": "The lava eel - oil on the rod, fish the lava in the Taverley dungeon, and cook it."
+      },
+      {
+       "at": 15,
+       "text": "THE BRANCH: Straven in the Phoenix hideout under Varrock, where the Black Arm route goes to Katrine instead."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "obj",
+       "text": "Wield Rune scimitar.",
+       "why": "Wield it for her.",
+       "target": "rune_scimitar",
+       "id": 1333,
+       "label": "Rune scimitar",
+       "op": 2
+      },
+      {
+       "text": "Go through the dwarven tunnel and down to her lair.",
+       "kind": "walk",
+       "at": [
+        2867,
+        9956,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Kill Ice Queen.",
+       "why": "She drops the gloves.",
+       "target": "ice_queen",
+       "id": 795,
+       "label": "Ice Queen"
+      },
+      {
+       "kind": "obj",
+       "text": "Pick up Ice gloves.",
+       "why": "Off the ice.",
+       "target": "ice_gloves",
+       "id": 1580,
+       "label": "Ice gloves"
+      },
+      {
+       "kind": "obj",
+       "text": "Wear Ice gloves.",
+       "target": "ice_gloves",
+       "id": 1580,
+       "label": "Ice gloves",
+       "op": 2,
+       "wears": [
+        1580
+       ]
+      },
+      {
+       "text": "Go to the monks' ship to Entrana.",
+       "kind": "walk",
+       "at": [
+        2850,
+        3385,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Kill Entrana Fire Bird.",
+       "why": "It leaves a feather.",
+       "target": "fire_bird",
+       "id": 139,
+       "label": "Entrana Fire Bird"
+      },
+      {
+       "kind": "obj",
+       "text": "Pick up Fire feather.",
+       "why": "Off the ground.",
+       "target": "hot_feather",
+       "id": 1583,
+       "label": "Fire feather",
+       "gives": [
+        1583
+       ]
+      },
+      {
+       "kind": "obj",
+       "text": "Use Blamish oil on Fishing rod.",
+       "why": "Make the oily rod.",
+       "target": "fishing_rod",
+       "id": 307,
+       "label": "Fishing rod",
+       "item": 1582,
+       "gives": [
+        1585
+       ]
+      },
+      {
+       "text": "Go down into the Taverley dungeon, to the lava.",
+       "kind": "walk",
+       "at": [
+        2890,
+        9767,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Fishing spot.",
+       "why": "Fish it out.",
+       "target": "0_45_152_lavafish",
+       "id": 800,
+       "label": "Fishing spot",
+       "op": 1,
+       "gives": [
+        2148
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go to onto clear ground.",
+       "at": [
+        2890,
+        9768
+       ]
+      },
+      {
+       "kind": "obj",
+       "text": "Use Tinderbox on Logs.",
+       "why": "Light a fire.",
+       "target": "logs",
+       "id": 1511,
+       "label": "Logs",
+       "item": 590
+      },
+      {
+       "kind": "loc",
+       "text": "Use Raw lava eel on Fire.",
+       "why": "Cook it.",
+       "target": "fire",
+       "id": 2732,
+       "label": "Fire",
+       "item": 2148,
+       "at": [
+        2890,
+        9768
+       ],
+       "gives": [
+        2149
+       ]
+      },
+      {
+       "text": "Go into the Phoenix Gang hideout.",
+       "kind": "walk",
+       "at": [
+        3247,
+        9781,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Straven.",
+       "why": "Ask how to get a master thief armband.",
+       "target": "straven",
+       "id": 644,
+       "label": "Straven"
+      }
+     ],
+     "items": [
+      {
+       "name": "Rune scimitar",
+       "id": 1333,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Fire feather",
+       "id": 1583,
+       "n": 1,
+       "bring": false
+      },
+      {
+       "name": "Oily fishing rod",
+       "id": 1585,
+       "n": 1,
+       "bring": false
+      },
+      {
+       "name": "Raw lava eel",
+       "id": 2148,
+       "n": 1,
+       "bring": false
+      },
+      {
+       "name": "Lava eel",
+       "id": 2149,
+       "n": 1,
+       "bring": false
+      },
+      {
+       "name": "Blamish oil",
+       "id": 1582,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
+      }
+     ],
+     "worn": [
+      {
+       "name": "Ice gloves",
+       "id": 1580,
+       "bring": false
+      }
+     ]
+    },
+    {
+     "from": 2,
+     "headings": [
+      {
+       "at": 1,
+       "text": "Alfonse the waiter in the Shrimp and Parrot, Brimhaven."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "text": "Go to by ship to Brimhaven, into the Shrimp and Parrot.",
+       "kind": "walk",
+       "at": [
+        2796,
+        3188,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Alfonse the waiter.",
+       "why": "The password.",
+       "target": "alfonse_the_waiter",
+       "id": 793,
+       "label": "Alfonse the waiter",
+       "picks": [
+        "Do you sell Gherkins?"
+       ]
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 3,
+     "headings": [
+      {
+       "at": 1,
+       "text": "Charlie the cook, round the back, who gives the Phoenix route its one piece of real help - the secret door through Mr Olbors' garden to the mansion's blocked side entrance."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "text": "Go round the back into the kitchen.",
+       "kind": "walk",
+       "at": [
+        2790,
+        3192,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Charlie the cook.",
+       "why": "The secret door.",
+       "target": "charlie_the_cook",
+       "id": 794,
+       "label": "Charlie the cook",
+       "picks": [
+        "I'm looking for a gherkin",
+        "I want to steal Scarface Pete's candlesticks"
+       ]
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 4,
+     "headings": [
+      {
+       "at": 0,
+       "text": "Through the secret door behind the kitchen and Mr Olbors' garden to the mansion's blocked side entrance, which only a Black Arm partner can open from the inside - with the odd key Grip hands his own deputy."
+      }
+     ],
+     "marks": [],
+     "steps": [],
+     "items": [],
+     "worn": []
+    }
+   ]
+  },
+  {
+   "stageVarId": 188,
+   "stageIsVarbit": false,
    "id": "hero",
    "name": "HEROES' QUEST (solo part)",
    "source": "oldschool.runescape.wiki/w/Heroes%27_Quest",
@@ -34530,6 +35359,18 @@
        "id": 2149,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Blamish oil",
+       "id": 1582,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": [
@@ -35411,6 +36252,66 @@
        "id": 3847,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Plank",
+       "id": 960,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Swamp tar",
+       "id": 1939,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Molten glass",
+       "id": 1775,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Fire rune",
+       "id": 554,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Air rune",
+       "id": 556,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Water rune",
+       "id": 555,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Earth rune",
+       "id": 557,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Bronze sword",
+       "id": 1277,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Bronze arrow",
+       "id": 882,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -35638,10 +36539,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hundred Portal Multi.",
+       "text": "Use Portal.",
        "why": "Step through it.",
        "target": "hundred_portal_multi",
        "id": 12354,
+       "label": "Portal",
        "at": [
         3209,
         3218
@@ -36029,10 +36931,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hundred Goodchest.",
+       "text": "Use Chest.",
        "why": "Open the food shop.",
        "target": "hundred_goodchest",
        "id": 12308,
+       "label": "Chest",
        "at": [
         3219,
         9623
@@ -36132,10 +37035,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hundred Portal Multi.",
+       "text": "Use Portal.",
        "why": "Step through it.",
        "target": "hundred_portal_multi",
        "id": 12354,
+       "label": "Portal",
        "at": [
         3209,
         3218
@@ -36296,10 +37200,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hundred Portal Multi.",
+       "text": "Use Portal.",
        "why": "Step through it.",
        "target": "hundred_portal_multi",
        "id": 12354,
+       "label": "Portal",
        "at": [
         3209,
         3218
@@ -36383,10 +37288,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hundred Portal Multi.",
+       "text": "Use Portal.",
        "why": "Step through it.",
        "target": "hundred_portal_multi",
        "id": 12354,
+       "label": "Portal",
        "at": [
         3209,
         3218
@@ -36476,10 +37382,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hundred Portal Multi.",
+       "text": "Use Portal.",
        "why": "Step through it.",
        "target": "hundred_portal_multi",
        "id": 12354,
+       "label": "Portal",
        "at": [
         3209,
         3218
@@ -36698,10 +37605,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hundred Portal Multi.",
+       "text": "Use Portal.",
        "why": "Step through it.",
        "target": "hundred_portal_multi",
        "id": 12354,
+       "label": "Portal",
        "at": [
         3209,
         3218
@@ -36977,10 +37885,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hundred Portal Multi.",
+       "text": "Use Portal.",
        "why": "Step through it.",
        "target": "hundred_portal_multi",
        "id": 12354,
+       "label": "Portal",
        "at": [
         3209,
         3218
@@ -37054,10 +37963,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 100 Dave Celler Trapdoor.",
+       "text": "Use Trapdoor.",
        "why": "Open it.",
        "target": "100_dave_celler_trapdoor",
        "id": 12266,
+       "label": "Trapdoor",
        "at": [
         3077,
         3493
@@ -37065,10 +37975,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use 100 Dave Celler Trapdoor.",
+       "text": "Use Trapdoor.",
        "why": "Climb down.",
        "target": "100_dave_celler_trapdoor",
        "id": 12266,
+       "label": "Trapdoor",
        "at": [
         3077,
         3493
@@ -37156,10 +38067,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hundred Portal Multi.",
+       "text": "Use Portal.",
        "why": "Step through it.",
        "target": "hundred_portal_multi",
        "id": 12354,
+       "label": "Portal",
        "at": [
         3209,
         3218
@@ -37233,10 +38145,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Bronze axe on 100 Jubbly Multi Push Tree.",
+       "text": "Use Bronze axe on Old tree.",
        "why": "Cut the roots off.",
        "target": "100_jubbly_multi_push_tree",
        "id": 12549,
+       "label": "Old tree",
        "item": 1351,
        "at": [
         2653,
@@ -37245,10 +38158,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Bronze axe on 100 Jubbly Multi Push Tree.",
+       "text": "Use Bronze axe on Old tree.",
        "why": "Hollow it out.",
        "target": "100_jubbly_multi_push_tree",
        "id": 12549,
+       "label": "Old tree",
        "item": 1351,
        "at": [
         2653,
@@ -37374,10 +38288,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hundred Portal Multi.",
+       "text": "Use Portal.",
        "why": "Step through it.",
        "target": "hundred_portal_multi",
        "id": 12354,
+       "label": "Portal",
        "at": [
         3209,
         3218
@@ -37509,10 +38424,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Loc 12610.",
+       "text": "Use Banana tree.",
        "why": "Haul the crown down.",
        "target": "loc_12610",
        "id": 12610,
+       "label": "Banana tree",
        "at": [
         2696,
         2785
@@ -37520,10 +38436,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Loc 12610.",
+       "text": "Use Banana tree.",
        "why": "Pick one.",
        "target": "loc_12610",
        "id": 12610,
+       "label": "Banana tree",
        "at": [
         2696,
         2785
@@ -37779,10 +38696,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hundred Portal Multi.",
+       "text": "Use Portal.",
        "why": "Step through it.",
        "target": "hundred_portal_multi",
        "id": 12354,
+       "label": "Portal",
        "at": [
         3209,
         3218
@@ -38803,10 +39721,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Ics Little Entrance Multi.",
+       "text": "Use Rock.",
        "why": "Into the city.",
        "target": "ics_little_entrance_multi",
        "id": 6621,
+       "label": "Rock",
        "at": [
         3323,
         2857
@@ -39006,6 +39925,12 @@
        "id": 4689,
        "n": 2,
        "bring": false
+      },
+      {
+       "name": "Bucket",
+       "id": 1925,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -39138,10 +40063,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Ics Little Pot Liver Multi.",
+       "text": "Use Canopic Jar.",
        "why": "Reach for a jar.",
        "target": "ics_little_pot_liver_multi",
        "id": 6634,
+       "label": "Canopic Jar",
        "at": [
         3286,
         9194
@@ -39157,10 +40083,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Ics Little Pot Liver Multi.",
+       "text": "Use Canopic Jar.",
        "why": "The liver.",
        "target": "ics_little_pot_liver_multi",
        "id": 6634,
+       "label": "Canopic Jar",
        "at": [
         3286,
         9194
@@ -39168,10 +40095,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Ics Little Pot Lungs Multi.",
+       "text": "Use Canopic Jar.",
        "why": "The lungs.",
        "target": "ics_little_pot_lungs_multi",
        "id": 6636,
+       "label": "Canopic Jar",
        "at": [
         3286,
         9195
@@ -39179,10 +40107,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Ics Little Pot Stomach Multi.",
+       "text": "Use Canopic Jar.",
        "why": "The stomach.",
        "target": "ics_little_pot_stomach_multi",
        "id": 6638,
+       "label": "Canopic Jar",
        "at": [
         3286,
         9196
@@ -39190,10 +40119,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Ics Little Pot Intestines Multi.",
+       "text": "Use Canopic Jar.",
        "why": "The intestines.",
        "target": "ics_little_pot_intestines_multi",
        "id": 6640,
+       "label": "Canopic Jar",
        "at": [
         3286,
         9193
@@ -40127,14 +41057,6 @@
       {
        "at": 0,
        "text": "Winelda will teleport you over the lava for twenty limpwurt roots."
-      },
-      {
-       "at": 3,
-       "text": "Ending B: side with Lucien."
-      },
-      {
-       "at": 11,
-       "text": "Lucien takes it, between Edgeville and the Grand Exchange."
       }
      ],
      "marks": [],
@@ -40158,7 +41080,23 @@
        "picks": [
         "Yes I do!"
        ]
-      },
+      }
+     ],
+     "items": [
+      {
+       "name": "Limpwurt root",
+       "id": 225,
+       "n": 20,
+       "bring": true
+      }
+     ],
+     "worn": []
+    },
+    {
+     "from": 50,
+     "headings": [],
+     "marks": [],
+     "steps": [
       {
        "kind": "talk",
        "text": "Talk to Winelda.",
@@ -40166,7 +41104,25 @@
        "target": "ikov_winelda",
        "id": 276,
        "label": "Winelda"
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 60,
+     "headings": [
+      {
+       "at": 0,
+       "text": "Ending B: side with Lucien."
       },
+      {
+       "at": 8,
+       "text": "Lucien takes it, between Edgeville and the Grand Exchange."
+      }
+     ],
+     "marks": [],
+     "steps": [
       {
        "kind": "walk",
        "text": "Go to the brick wall.",
@@ -40252,12 +41208,6 @@
       }
      ],
      "items": [
-      {
-       "name": "Limpwurt root",
-       "id": 225,
-       "n": 20,
-       "bring": true
-      },
       {
        "name": "Staff of armadyl",
        "id": 84,
@@ -40906,6 +41856,12 @@
        "id": 1609,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Chisel",
+       "id": 1755,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -41985,6 +42941,18 @@
        "id": 707,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Rope",
+       "id": 954,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Vial",
+       "id": 229,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -42008,7 +42976,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -45024,10 +45999,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Bronze pickaxe on Lost Tribe Cellar Wall.",
+       "text": "Use Bronze pickaxe on Shelves.",
        "why": "Dig through.",
        "target": "lost_tribe_cellar_wall",
        "id": 6898,
+       "label": "Shelves",
        "item": 1265,
        "at": [
         3219,
@@ -45035,7 +46011,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bronze pickaxe",
+       "id": 1265,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -45050,10 +46033,11 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Lost Tribe Cellar Wall.",
+       "text": "Use Shelves.",
        "why": "Squeeze through.",
        "target": "lost_tribe_cellar_wall",
        "id": 6898,
+       "label": "Shelves",
        "at": [
         3219,
         9618
@@ -45413,10 +46397,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Ham Multi Trapdoor.",
+       "text": "Use Trapdoor.",
        "why": "Pick the lock.",
        "target": "ham_multi_trapdoor",
        "id": 5492,
+       "label": "Trapdoor",
        "at": [
         3166,
         3252
@@ -45425,10 +46410,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Ham Multi Trapdoor.",
+       "text": "Use Trapdoor.",
        "why": "Climb down.",
        "target": "ham_multi_trapdoor",
        "id": 5492,
+       "label": "Trapdoor",
        "at": [
         3166,
         3252
@@ -46565,6 +47551,24 @@
        "id": 10425,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Guam leaf",
+       "id": 249,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Marrentill",
+       "id": 251,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Pestle and mortar",
+       "id": 233,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -46724,6 +47728,12 @@
        "id": 10401,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Dramen staff",
+       "id": 772,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -47277,6 +48287,12 @@
        "id": 10425,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Needle",
+       "id": 1733,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -47430,6 +48446,12 @@
        "id": 10427,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": [
@@ -49123,7 +50145,7 @@
       },
       {
        "name": "Plank",
-       "id": 8187,
+       "id": 960,
        "n": 1,
        "bring": true
       }
@@ -50079,10 +51101,11 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Rock on Mdaughter Multimound.",
+       "text": "Use Rock on Burial mound.",
        "why": "Five stones on top.",
        "target": "mdaughter_multimound",
        "id": 5861,
+       "label": "Burial mound",
        "item": 4492,
        "at": [
         2783,
@@ -52490,6 +53513,15 @@
        ]
       },
       {
+       "kind": "obj",
+       "text": "Hold Monkey greegree.",
+       "why": "A monkey again, at the pen.",
+       "target": "mm_monkey_greegree_for_normal_monkey",
+       "id": 4031,
+       "label": "Monkey greegree",
+       "op": 2
+      },
+      {
        "kind": "talk",
        "text": "Talk to Monkey Minder.",
        "why": "As a monkey, get into the cage.",
@@ -52639,6 +53671,15 @@
        "picks": [
         "1"
        ]
+      },
+      {
+       "kind": "obj",
+       "text": "Hold Monkey greegree.",
+       "why": "A monkey again, back on the island.",
+       "target": "mm_monkey_greegree_for_normal_monkey",
+       "id": 4031,
+       "label": "Monkey greegree",
+       "op": 2
       },
       {
        "kind": "walk",
@@ -52846,10 +53887,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Cavewalltunnel To Temple.",
+       "text": "Use Cave wall.",
        "why": "Crawl through into the temple.",
        "target": "cavewalltunnel_to_temple",
        "id": 9974,
+       "label": "Cave wall",
        "at": [
         2311,
         9792
@@ -53028,10 +54070,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Mourning Temple Obsidian Crystal.",
+       "text": "Use Crystal.",
        "why": "Look at it.",
        "target": "mourning_temple_obsidian_crystal",
        "id": 9750,
+       "label": "Crystal",
        "at": [
         1908,
         4638
@@ -53040,10 +54083,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Chisel on Mourning Temple Obsidian Crystal.",
+       "text": "Use Chisel on Crystal.",
        "why": "Take a sliver.",
        "target": "mourning_temple_obsidian_crystal",
        "id": 9750,
+       "label": "Crystal",
        "item": 1755,
        "at": [
         1908,
@@ -53075,6 +54119,12 @@
        "id": 6638,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Chisel",
+       "id": 1755,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -53131,10 +54181,11 @@
       },
       {
        "kind": "loc",
-       "text": "Pass Mourning Door 1 B.",
+       "text": "Pass Light door.",
        "why": "Through the cyan door.",
        "target": "mourning_door_1_b",
        "id": 9787,
+       "label": "Light door",
        "at": [
         1885,
         4639
@@ -53150,10 +54201,11 @@
       },
       {
        "kind": "loc",
-       "text": "Pass Mourning Door 1 C.",
+       "text": "Pass Light door.",
        "why": "Through the black door.",
        "target": "mourning_door_1_c",
        "id": 9788,
+       "label": "Light door",
        "at": [
         1865,
         4639
@@ -53271,10 +54323,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hand mirror on Mourning Temple Pillar 3 16.",
+       "text": "Use Hand mirror on Pillar of Light.",
        "why": "A mirror in it.",
        "target": "mourning_temple_pillar_3_16",
        "id": 9972,
+       "label": "Pillar of Light",
        "item": 6639,
        "at": [
         1915,
@@ -53292,10 +54345,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hand mirror on Mourning Temple Pillar 3 13.",
+       "text": "Use Hand mirror on Pillar of Light.",
        "why": "A mirror in it.",
        "target": "mourning_temple_pillar_3_13",
        "id": 9970,
+       "label": "Pillar of Light",
        "item": 6639,
        "at": [
         1860,
@@ -53304,10 +54358,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hand mirror on Mourning Temple Pillar 3 13.",
+       "text": "Use Hand mirror on Pillar of Light.",
        "why": "Turned a quarter.",
        "target": "mourning_temple_pillar_3_13",
        "id": 9970,
+       "label": "Pillar of Light",
        "item": 6639,
        "at": [
         1860,
@@ -53325,10 +54380,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hand mirror on Mourning Temple Pillar 3 8.",
+       "text": "Use Hand mirror on Pillar of Light.",
        "why": "A mirror in it.",
        "target": "mourning_temple_pillar_3_8",
        "id": 9966,
+       "label": "Pillar of Light",
        "item": 6639,
        "at": [
         1860,
@@ -53337,10 +54393,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hand mirror on Mourning Temple Pillar 3 8.",
+       "text": "Use Hand mirror on Pillar of Light.",
        "why": "Turned a quarter.",
        "target": "mourning_temple_pillar_3_8",
        "id": 9966,
+       "label": "Pillar of Light",
        "item": 6639,
        "at": [
         1860,
@@ -53349,10 +54406,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hand mirror on Mourning Temple Pillar 3 8.",
+       "text": "Use Hand mirror on Pillar of Light.",
        "why": "Another.",
        "target": "mourning_temple_pillar_3_8",
        "id": 9966,
+       "label": "Pillar of Light",
        "item": 6639,
        "at": [
         1860,
@@ -53409,10 +54467,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hand mirror on Mourning Temple Pillar 1 B.",
+       "text": "Use Hand mirror on Pillar of Light.",
        "why": "A mirror in it.",
        "target": "mourning_temple_pillar_1_b",
        "id": 9939,
+       "label": "Pillar of Light",
        "item": 6639,
        "at": [
         1881,
@@ -53421,10 +54480,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Mourning Temple Pillar 1 B.",
+       "text": "Use Pillar of Light.",
        "why": "Tilt it up, and the light leaves the west wall.",
        "target": "mourning_temple_pillar_1_b",
        "id": 9939,
+       "label": "Pillar of Light",
        "at": [
         1881,
         4639
@@ -53481,10 +54541,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Cavewalltunnel To Temple.",
+       "text": "Use Cave wall.",
        "why": "Crawl through into the temple.",
        "target": "cavewalltunnel_to_temple",
        "id": 9974,
+       "label": "Cave wall",
        "at": [
         2311,
         9792
@@ -53572,10 +54633,11 @@
       },
       {
        "kind": "loc",
-       "text": "Pass Mourning Door 1 B.",
+       "text": "Pass Light door.",
        "why": "Through the cyan door.",
        "target": "mourning_door_1_b",
        "id": 9787,
+       "label": "Light door",
        "at": [
         1885,
         4639
@@ -53591,10 +54653,11 @@
       },
       {
        "kind": "loc",
-       "text": "Pass Mourning Door 1 C.",
+       "text": "Pass Light door.",
        "why": "Through the black door.",
        "target": "mourning_door_1_c",
        "id": 9788,
+       "label": "Light door",
        "at": [
         1865,
         4639
@@ -53820,10 +54883,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Death talisman on Deathtemple Ruined.",
+       "text": "Use Death talisman on Mysterious ruins.",
        "why": "Into the altar chamber.",
        "target": "deathtemple_ruined",
        "id": 2462,
+       "label": "Mysterious ruins",
        "item": 1456,
        "at": [
         1859,
@@ -53902,10 +54966,11 @@
       },
       {
        "kind": "loc",
-       "text": "Pass Mourning Door 1 C.",
+       "text": "Pass Light door.",
        "why": "East through the black door.",
        "target": "mourning_door_1_c",
        "id": 9788,
+       "label": "Light door",
        "at": [
         1865,
         4639
@@ -53921,10 +54986,11 @@
       },
       {
        "kind": "loc",
-       "text": "Pass Mourning Door 1 B.",
+       "text": "Pass Light door.",
        "why": "East through the cyan door.",
        "target": "mourning_door_1_b",
        "id": 9787,
+       "label": "Light door",
        "at": [
         1885,
         4639
@@ -53972,10 +55038,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Newly made crystal on Mourning Temple Obsidian Crystal.",
+       "text": "Use Newly made crystal on Crystal.",
        "why": "Repower it.",
        "target": "mourning_temple_obsidian_crystal",
        "id": 9750,
+       "label": "Crystal",
        "item": 6652,
        "at": [
         1908,
@@ -54052,10 +55119,11 @@
       },
       {
        "kind": "loc",
-       "text": "Pass Mourning Door 1 B.",
+       "text": "Pass Light door.",
        "why": "West through the cyan door.",
        "target": "mourning_door_1_b",
        "id": 9787,
+       "label": "Light door",
        "at": [
         1885,
         4639
@@ -54071,10 +55139,11 @@
       },
       {
        "kind": "loc",
-       "text": "Pass Mourning Door 1 C.",
+       "text": "Pass Light door.",
        "why": "West through the black door.",
        "target": "mourning_door_1_c",
        "id": 9788,
+       "label": "Light door",
        "at": [
         1865,
         4639
@@ -54536,10 +55605,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Mourning Gnome Rack.",
+       "text": "Use Gnome on a rack.",
        "why": "He is a gnome surveyor.",
        "target": "mourning_gnome_rack",
        "id": 8794,
+       "label": "Gnome on a rack",
        "at": [
         2035,
         4629
@@ -54970,10 +56040,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Mourning Gnome Rack.",
+       "text": "Use Gnome on a rack.",
        "why": "Unlock the padlock.",
        "target": "mourning_gnome_rack",
        "id": 8794,
+       "label": "Gnome on a rack",
        "at": [
         2035,
         4629
@@ -56014,10 +57085,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Burgh General Store Roof Multiloc.",
+       "text": "Use Broken Roof.",
        "why": "3 planks and 12 nails.",
        "target": "burgh_general_store_roof_multiloc",
        "id": 12751,
+       "label": "Broken Roof",
        "at": [
         3515,
         3240
@@ -56037,10 +57109,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Burgh General Store Wall Multiloc.",
+       "text": "Use Damaged wall.",
        "why": "3 planks and 12 nails.",
        "target": "burgh_general_store_wall_multiloc",
        "id": 12752,
+       "label": "Damaged wall",
        "at": [
         3517,
         3238
@@ -56115,10 +57188,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Burgh Bank Booth Multiloc.",
+       "text": "Use Bank Booth.",
        "why": "2 planks, 8 nails and swamp paste.",
        "target": "burgh_bank_booth_multiloc",
        "id": 12759,
+       "label": "Bank Booth",
        "at": [
         3494,
         3211
@@ -56126,10 +57200,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Burgh Bank Wall Multiloc.",
+       "text": "Use Damaged wall.",
        "why": "3 planks and 12 nails.",
        "target": "burgh_bank_wall_multiloc",
        "id": 12760,
+       "label": "Damaged wall",
        "at": [
         3491,
         3211
@@ -56146,10 +57221,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Burgh Furnace Multiloc.",
+       "text": "Use Broken furnace.",
        "why": "Clay and water.",
        "target": "burgh_furnace_multiloc",
        "id": 12805,
+       "label": "Broken furnace",
        "at": [
         3527,
         3209
@@ -56157,10 +57233,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Burgh Furnace Multiloc.",
+       "text": "Use Broken furnace.",
        "why": "Five coal.",
        "target": "burgh_furnace_multiloc",
        "id": 12805,
+       "label": "Broken furnace",
        "at": [
         3527,
         3209
@@ -56168,10 +57245,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Burgh Furnace Multiloc.",
+       "text": "Use Broken furnace.",
        "why": "A tinderbox.",
        "target": "burgh_furnace_multiloc",
        "id": 12805,
+       "label": "Broken furnace",
        "at": [
         3527,
         3209
@@ -56379,10 +57457,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Spade on Burgh Inn Colapsed Wall Multiloc.",
+       "text": "Use Spade on Rubble.",
        "why": "One spadeful.",
        "target": "burgh_inn_colapsed_wall_multiloc",
        "id": 12738,
+       "label": "Rubble",
        "item": 952,
        "at": [
         3489,
@@ -56391,10 +57470,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Spade on Burgh Inn Colapsed Wall Multiloc.",
+       "text": "Use Spade on Rubble.",
        "why": "Two.",
        "target": "burgh_inn_colapsed_wall_multiloc",
        "id": 12738,
+       "label": "Rubble",
        "item": 952,
        "at": [
         3489,
@@ -56403,10 +57483,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Spade on Burgh Inn Colapsed Wall Multiloc.",
+       "text": "Use Spade on Rubble.",
        "why": "Three.",
        "target": "burgh_inn_colapsed_wall_multiloc",
        "id": 12738,
+       "label": "Rubble",
        "item": 952,
        "at": [
         3489,
@@ -56461,10 +57542,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Burgh Inn Trapdoor Multiloc.",
+       "text": "Use Trapdoor.",
        "why": "Open it.",
        "target": "burgh_inn_trapdoor_multiloc",
        "id": 12743,
+       "label": "Trapdoor",
        "at": [
         3490,
         3232
@@ -56517,10 +57599,11 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Burgh Inn Trapdoor Multiloc.",
+       "text": "Use Trapdoor.",
        "why": "Down.",
        "target": "burgh_inn_trapdoor_multiloc",
        "id": 12743,
+       "label": "Trapdoor",
        "at": [
         3490,
         3232
@@ -56621,7 +57704,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bread",
+       "id": 2309,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -56697,10 +57787,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Burgh Temple Trapdoor Multiloc.",
+       "text": "Use Trapdoor.",
        "why": "Down into the library.",
        "target": "burgh_temple_trapdoor_multiloc",
        "id": 12762,
+       "label": "Trapdoor",
        "at": [
         3441,
         9899
@@ -56771,10 +57862,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Hammer on Burgh Ivandis Tombdoor Board Multiloc.",
+       "text": "Use Hammer on Wooden boards.",
        "why": "Prise them off.",
        "target": "burgh_ivandis_tombdoor_board_multiloc",
        "id": 12772,
+       "label": "Wooden boards",
        "item": 2347,
        "at": [
         3483,
@@ -56782,7 +57874,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Hammer",
+       "id": 2347,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -56904,10 +58003,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Silver bar on Burgh Furnace Multiloc.",
+       "text": "Use Silver bar on Broken furnace.",
        "why": "Open the casting panel.",
        "target": "burgh_furnace_multiloc",
        "id": 12805,
+       "label": "Broken furnace",
        "item": 2355,
        "at": [
         3527,
@@ -57613,10 +58713,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Osf Weathervane.",
+       "text": "Use Weathervane.",
        "why": "Look at the wreck.",
        "target": "osf_weathervane",
        "id": 5811,
+       "label": "Weathervane",
        "at": [
         2702,
         3476
@@ -57625,10 +58726,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Osf Weathervane.",
+       "text": "Use Weathervane.",
        "why": "Take the pieces.",
        "target": "osf_weathervane",
        "id": 5811,
+       "label": "Weathervane",
        "at": [
         2702,
         3476
@@ -57864,10 +58966,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Osf Weathervane.",
+       "text": "Use Weathervane.",
        "why": "Rebuild the vane.",
        "target": "osf_weathervane",
        "id": 5811,
+       "label": "Weathervane",
        "at": [
         2702,
         3476
@@ -57973,10 +59076,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Osf Multi Landinglight Sapphire 1.",
+       "text": "Use Gnome landing light.",
        "why": "Seat a sapphire.",
        "target": "osf_multi_landinglight_sapphire_1",
        "id": 5823,
+       "label": "Gnome landing light",
        "at": [
         2545,
         2969
@@ -57994,10 +59098,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Osf Multi Landinglight Sapphire 1.",
+       "text": "Use Gnome landing light.",
        "why": "Seat a sapphire.",
        "target": "osf_multi_landinglight_sapphire_1",
        "id": 5823,
+       "label": "Gnome landing light",
        "at": [
         2545,
         2974
@@ -58015,10 +59120,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Osf Multi Landinglight Opal 1.",
+       "text": "Use Gnome landing light.",
        "why": "Seat a opal.",
        "target": "osf_multi_landinglight_opal_1",
        "id": 5821,
+       "label": "Gnome landing light",
        "at": [
         2548,
         2969
@@ -58036,10 +59142,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Osf Multi Landinglight Opal 1.",
+       "text": "Use Gnome landing light.",
        "why": "Seat a opal.",
        "target": "osf_multi_landinglight_opal_1",
        "id": 5821,
+       "label": "Gnome landing light",
        "at": [
         2548,
         2974
@@ -58057,10 +59164,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Osf Multi Landinglight Redtopaz 1.",
+       "text": "Use Gnome landing light.",
        "why": "Seat a red topaz.",
        "target": "osf_multi_landinglight_redtopaz_1",
        "id": 5822,
+       "label": "Gnome landing light",
        "at": [
         2551,
         2969
@@ -58078,10 +59186,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Osf Multi Landinglight Redtopaz 1.",
+       "text": "Use Gnome landing light.",
        "why": "Seat a red topaz.",
        "target": "osf_multi_landinglight_redtopaz_1",
        "id": 5822,
+       "label": "Gnome landing light",
        "at": [
         2551,
         2974
@@ -58099,10 +59208,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Osf Multi Landinglight Jade 1.",
+       "text": "Use Gnome landing light.",
        "why": "Seat a jade.",
        "target": "osf_multi_landinglight_jade_1",
        "id": 5820,
+       "label": "Gnome landing light",
        "at": [
         2554,
         2969
@@ -58120,10 +59230,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Osf Multi Landinglight Jade 1.",
+       "text": "Use Gnome landing light.",
        "why": "Seat a jade.",
        "target": "osf_multi_landinglight_jade_1",
        "id": 5820,
+       "label": "Gnome landing light",
        "at": [
         2554,
         2974
@@ -58392,23 +59503,31 @@
        "text": "Go to the mud patch behind the house.",
        "at": [
         2567,
-        3332
+        3333
        ]
       },
       {
        "kind": "loc",
-       "text": "Use Bucket of water on Plaguemudpatch2.",
+       "text": "Use Bucket of water on Mud patch.",
        "why": "One.",
-       "target": "plaguemudpatch2",
-       "id": 2532,
+       "target": "plaguemudpatch1",
+       "id": 2531,
+       "label": "Mud patch",
        "item": 1929,
        "at": [
         2566,
-        3332
+        3333
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bucket of water",
+       "id": 1929,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -58418,18 +59537,26 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Bucket of water on Plaguemudpatch2.",
+       "text": "Use Bucket of water on Mud patch.",
        "why": "Two.",
-       "target": "plaguemudpatch2",
-       "id": 2532,
+       "target": "plaguemudpatch1",
+       "id": 2531,
+       "label": "Mud patch",
        "item": 1929,
        "at": [
         2566,
-        3332
+        3333
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bucket of water",
+       "id": 1929,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -58439,18 +59566,26 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Bucket of water on Plaguemudpatch2.",
+       "text": "Use Bucket of water on Mud patch.",
        "why": "Three.",
-       "target": "plaguemudpatch2",
-       "id": 2532,
+       "target": "plaguemudpatch1",
+       "id": 2531,
+       "label": "Mud patch",
        "item": 1929,
        "at": [
         2566,
-        3332
+        3333
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bucket of water",
+       "id": 1929,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -58460,18 +59595,26 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Bucket of water on Plaguemudpatch2.",
+       "text": "Use Bucket of water on Mud patch.",
        "why": "Four.",
-       "target": "plaguemudpatch2",
-       "id": 2532,
+       "target": "plaguemudpatch1",
+       "id": 2531,
+       "label": "Mud patch",
        "item": 1929,
        "at": [
         2566,
-        3332
+        3333
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bucket of water",
+       "id": 1929,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -58481,18 +59624,26 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Spade on Plaguemudpatch2.",
+       "text": "Use Spade on Mud patch.",
        "why": "Dig.",
-       "target": "plaguemudpatch2",
-       "id": 2532,
+       "target": "plaguemudpatch1",
+       "id": 2531,
+       "label": "Mud patch",
        "item": 952,
        "at": [
         2566,
-        3332
+        3333
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Spade",
+       "id": 952,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -58527,10 +59678,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rope on Plague Grill.",
+       "text": "Use Rope on Grill.",
        "why": "Tie the rope to it.",
        "target": "plague_grill",
        "id": 11422,
+       "label": "Grill",
        "item": 954,
        "at": [
         2514,
@@ -58538,7 +59690,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Rope",
+       "id": 954,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -58906,6 +60065,18 @@
        "id": 1504,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Chocolate dust",
+       "id": 1975,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Snape grass",
+       "id": 231,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -59627,6 +60798,12 @@
        "id": 2954,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Bucket",
+       "id": 1925,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -60207,7 +61384,14 @@
        "item": 954
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Rope",
+       "id": 954,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -60781,6 +61965,18 @@
        "id": 7826,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Jug of vinegar",
+       "id": 7810,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -60888,7 +62084,14 @@
        "item": 1561
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Pet cat",
+       "id": 1561,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -60969,7 +62172,14 @@
        "item": 1561
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Pet cat",
+       "id": 1561,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -61529,6 +62739,12 @@
        "id": 6766,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Pet cat",
+       "id": 1561,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -61985,10 +63201,11 @@
       },
       {
        "kind": "loc",
-       "text": "Pick-up Rd Room2 Chicken Multi.",
+       "text": "Pick-up Chicken.",
        "why": "Take the chicken.",
        "target": "rd_room2_chicken_multi",
        "id": 7279,
+       "label": "Chicken",
        "at": [
         2487,
         4974
@@ -62018,10 +63235,11 @@
       },
       {
        "kind": "loc",
-       "text": "Pick-up Rd Room2 Fox Multi.",
+       "text": "Pick-up Fox.",
        "why": "Take the fox.",
        "target": "rd_room2_fox_multi",
        "id": 7275,
+       "label": "Fox",
        "at": [
         2485,
         4974
@@ -62040,10 +63258,11 @@
       },
       {
        "kind": "loc",
-       "text": "Pick-up Rd Room2 Chicken Multi Right.",
+       "text": "Pick-up Chicken.",
        "why": "Take the chicken back.",
        "target": "rd_room2_chicken_multi_right",
        "id": 7280,
+       "label": "Chicken",
        "at": [
         2473,
         4970
@@ -62062,10 +63281,11 @@
       },
       {
        "kind": "loc",
-       "text": "Pick-up Rd Room2 Grain Multi.",
+       "text": "Pick-up Grain.",
        "why": "Take the grain.",
        "target": "rd_room2_grain_multi",
        "id": 7282,
+       "label": "Grain",
        "at": [
         2486,
         4974
@@ -62095,10 +63315,11 @@
       },
       {
        "kind": "loc",
-       "text": "Pick-up Rd Room2 Chicken Multi.",
+       "text": "Pick-up Chicken.",
        "why": "Take the chicken.",
        "target": "rd_room2_chicken_multi",
        "id": 7279,
+       "label": "Chicken",
        "at": [
         2487,
         4974
@@ -62141,10 +63362,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rd Statue Multi 6.",
+       "text": "Use Statue.",
        "why": "Touch the one that went away.",
        "target": "rd_statue_multi_6",
        "id": 7295,
+       "label": "Statue",
        "at": [
         2452,
         4976
@@ -62354,10 +63576,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Metal spade on Rd Stone Door.",
+       "text": "Use Metal spade on Stone Door.",
        "why": "Put the blade in the hole.",
        "target": "rd_stone_door",
        "id": 7342,
+       "label": "Stone Door",
        "item": 5587,
        "at": [
         2477,
@@ -62366,10 +63589,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Cupric sulfate on Rd Stone Door.",
+       "text": "Use Cupric sulfate on Stone Door.",
        "why": "Cupric sulfate on the blade.",
        "target": "rd_stone_door",
        "id": 7342,
+       "label": "Stone Door",
        "item": 5577,
        "at": [
         2477,
@@ -62378,10 +63602,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Vial of liquid on Rd Stone Door.",
+       "text": "Use Vial of liquid on Stone Door.",
        "why": "Water on top of it.",
        "target": "rd_stone_door",
        "id": 7342,
+       "label": "Stone Door",
        "item": 5582,
        "at": [
         2477,
@@ -62390,10 +63615,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rd Stone Door.",
+       "text": "Use Stone Door.",
        "why": "Haul on the spade.",
        "target": "rd_stone_door",
        "id": 7342,
+       "label": "Stone Door",
        "at": [
         2477,
         4940
@@ -62517,10 +63743,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rd Stone Door.",
+       "text": "Use Stone Door.",
        "why": "Step through the stone door.",
        "target": "rd_stone_door",
        "id": 7342,
+       "label": "Stone Door",
        "at": [
         2477,
         4940
@@ -63366,6 +64593,24 @@
        "id": 3219,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Pestle and mortar",
+       "id": 233,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Cooked rabbit",
+       "id": 3228,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -64912,6 +66157,12 @@
        "id": 4205,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Glarial's pebble",
+       "id": 294,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -66012,6 +67263,18 @@
        "id": 1941,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Swamp tar",
+       "id": 1939,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -66675,6 +67938,12 @@
        "name": "Ball of wool",
        "id": 1759,
        "n": 20,
+       "bring": true
+      },
+      {
+       "name": "Shears",
+       "id": 1735,
+       "n": 1,
        "bring": true
       }
      ],
@@ -67512,7 +68781,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Spade",
+       "id": 952,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -67534,7 +68810,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Lit candle",
+       "id": 33,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -67556,7 +68839,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Rope",
+       "id": 954,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -68005,6 +69295,18 @@
        "id": 605,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Chisel",
+       "id": 1755,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Bronze wire",
+       "id": 1794,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": [
@@ -68133,7 +69435,14 @@
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Bones",
+       "id": 526,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -68341,10 +69650,11 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Rope on Soulbane Falloff2 Rope Multi.",
+       "text": "Use Rope on Rift.",
        "why": "Tie it on.",
        "target": "soulbane_falloff2_rope_multi",
        "id": 13968,
+       "label": "Rift",
        "item": 954,
        "at": [
         3310,
@@ -68353,17 +69663,25 @@
       },
       {
        "kind": "loc",
-       "text": "Enter Soulbane Falloff2 Rope Multi.",
+       "text": "Enter Rift.",
        "why": "Climb in.",
        "target": "soulbane_falloff2_rope_multi",
        "id": 13968,
+       "label": "Rift",
        "at": [
         3310,
         3452
        ]
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Rope",
+       "id": 954,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -68378,10 +69696,11 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Take-from Soulbane Rack Multi.",
+       "text": "Take-from Weapon rack.",
        "why": "The sword off the rack.",
        "target": "soulbane_rack_multi",
        "id": 13993,
+       "label": "Weapon rack",
        "at": [
         3012,
         5243
@@ -68480,10 +69799,11 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Enter Soulbane Fwall Exit Multi.",
+       "text": "Enter Black hole.",
        "why": "Step into it.",
        "target": "soulbane_fwall_exit_multi",
        "id": 13898,
+       "label": "Black hole",
        "at": [
         3046,
         5235
@@ -68524,10 +69844,11 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Enter Soulbane Door Multi6.",
+       "text": "Enter Confusing door.",
        "why": "The sixth door.",
        "target": "soulbane_door_multi6",
        "id": 13912,
+       "label": "Confusing door",
        "at": [
         3051,
         5200
@@ -69207,10 +70528,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Logs on Loc 14955.",
+       "text": "Use Logs on Firebox.",
        "why": "Fuel.",
        "target": "loc_14955",
        "id": 14955,
+       "label": "Firebox",
        "item": 1511,
        "at": [
         2343,
@@ -69219,10 +70541,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tinderbox on Loc 14955.",
+       "text": "Use Tinderbox on Firebox.",
        "why": "Light it.",
        "target": "loc_14955",
        "id": 14955,
+       "label": "Firebox",
        "item": 590,
        "at": [
         2343,
@@ -69239,10 +70562,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Iron bar on Loc 14954.",
+       "text": "Use Iron bar on Metal Press.",
        "why": "One.",
        "target": "loc_14954",
        "id": 14954,
+       "label": "Metal Press",
        "item": 2351,
        "at": [
         2341,
@@ -69251,10 +70575,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Iron bar on Loc 14954.",
+       "text": "Use Iron bar on Metal Press.",
        "why": "Two.",
        "target": "loc_14954",
        "id": 14954,
+       "label": "Metal Press",
        "item": 2351,
        "at": [
         2341,
@@ -69263,10 +70588,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Iron bar on Loc 14954.",
+       "text": "Use Iron bar on Metal Press.",
        "why": "Three.",
        "target": "loc_14954",
        "id": 14954,
+       "label": "Metal Press",
        "item": 2351,
        "at": [
         2341,
@@ -69275,10 +70601,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Iron bar on Loc 14954.",
+       "text": "Use Iron bar on Metal Press.",
        "why": "Four.",
        "target": "loc_14954",
        "id": 14954,
+       "label": "Metal Press",
        "item": 2351,
        "at": [
         2341,
@@ -69287,10 +70614,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Iron bar on Loc 14954.",
+       "text": "Use Iron bar on Metal Press.",
        "why": "Five.",
        "target": "loc_14954",
        "id": 14954,
+       "label": "Metal Press",
        "item": 2351,
        "at": [
         2341,
@@ -69329,10 +70657,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Iron sheet on Loc 14933.",
+       "text": "Use Iron sheet on Broken wall.",
        "why": "One.",
        "target": "loc_14933",
        "id": 14933,
+       "label": "Broken wall",
        "item": 7941,
        "at": [
         2311,
@@ -69341,10 +70670,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Iron sheet on Loc 14934.",
+       "text": "Use Iron sheet on Broken wall.",
        "why": "Two.",
        "target": "loc_14934",
        "id": 14934,
+       "label": "Broken wall",
        "item": 7941,
        "at": [
         2311,
@@ -69353,10 +70683,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Iron sheet on Loc 14935.",
+       "text": "Use Iron sheet on Broken wall.",
        "why": "Three.",
        "target": "loc_14935",
        "id": 14935,
+       "label": "Broken wall",
        "item": 7941,
        "at": [
         2311,
@@ -69365,10 +70696,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Iron sheet on Loc 14936.",
+       "text": "Use Iron sheet on Broken wall.",
        "why": "Four.",
        "target": "loc_14936",
        "id": 14936,
+       "label": "Broken wall",
        "item": 7941,
        "at": [
         2311,
@@ -69377,10 +70709,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Iron sheet on Loc 14937.",
+       "text": "Use Iron sheet on Broken wall.",
        "why": "Five.",
        "target": "loc_14937",
        "id": 14937,
+       "label": "Broken wall",
        "item": 7941,
        "at": [
         2311,
@@ -69462,6 +70795,18 @@
        "id": 7941,
        "n": 5,
        "bring": false
+      },
+      {
+       "name": "Logs",
+       "id": 1511,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Iron bar",
+       "id": 2351,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -69896,6 +71241,12 @@
        "id": 7951,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Bones",
+       "id": 526,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -70165,7 +71516,7 @@
       },
       {
        "name": "Plank",
-       "id": 8187,
+       "id": 960,
        "n": 8,
        "bring": true
       },
@@ -70243,10 +71594,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tgbr Multi Statue.",
+       "text": "Use Statue.",
        "why": "Pull the statue.",
        "target": "tgbr_multi_statue",
        "id": 19756,
+       "label": "Statue",
        "at": [
         3795,
         2844
@@ -70255,10 +71607,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tgbr Multi Statue.",
+       "text": "Use Statue.",
        "why": "Climb down.",
        "target": "tgbr_multi_statue",
        "id": 19756,
+       "label": "Statue",
        "at": [
         3795,
         2844
@@ -70298,10 +71651,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tgbr Multi Stairs.",
+       "text": "Use Stairs.",
        "why": "Nail the steps back together.",
        "target": "tgbr_multi_stairs",
        "id": 19757,
+       "label": "Stairs",
        "at": [
         3829,
         9254
@@ -70310,10 +71664,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tgbr Multi Stairs.",
+       "text": "Use Stairs.",
        "why": "Climb them.",
        "target": "tgbr_multi_stairs",
        "id": 19757,
+       "label": "Stairs",
        "at": [
         3829,
         9254
@@ -70344,10 +71699,11 @@
       },
       {
        "kind": "loc",
-       "text": "Peer-through Tgbr Multi Gate Door.",
+       "text": "Peer-through Door.",
        "why": "Look through the hole in the gate.",
        "target": "tgbr_multi_gate_door",
        "id": 19760,
+       "label": "Door",
        "at": [
         3805,
         2844
@@ -70636,10 +71992,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tgbr Multi Crate.",
+       "text": "Use Crate.",
        "why": "Build the crate.",
        "target": "tgbr_multi_crate",
        "id": 19764,
+       "label": "Crate",
        "at": [
         3548,
         3555
@@ -70648,10 +72005,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tgbr Multi Crate.",
+       "text": "Use Crate.",
        "why": "Add the false bottom.",
        "target": "tgbr_multi_crate",
        "id": 19764,
+       "label": "Crate",
        "at": [
         3548,
         3555
@@ -70660,10 +72018,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tgbr Multi Crate.",
+       "text": "Use Crate.",
        "why": "Fill the top with cats.",
        "target": "tgbr_multi_crate",
        "id": 19764,
+       "label": "Crate",
        "at": [
         3548,
         3555
@@ -70688,10 +72047,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Shipping order on Tgbr Multi Crate.",
+       "text": "Use Shipping order on Crate.",
        "why": "Post the crate.",
        "target": "tgbr_multi_crate",
        "id": 19764,
+       "label": "Crate",
        "item": 11510,
        "at": [
         3548,
@@ -70878,10 +72238,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Keg on Tgbr Multi Gate Door.",
+       "text": "Use Keg on Door.",
        "why": "Set the keg against the gate.",
        "target": "tgbr_multi_gate_door",
        "id": 19760,
+       "label": "Door",
        "item": 11501,
        "at": [
         3805,
@@ -70890,10 +72251,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Fuse on Tgbr Multi Gate Door.",
+       "text": "Use Fuse on Door.",
        "why": "Run the fuse back.",
        "target": "tgbr_multi_gate_door",
        "id": 19760,
+       "label": "Door",
        "item": 11500,
        "at": [
         3805,
@@ -70902,10 +72264,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tinderbox on Tgbr Multi Fuse Far.",
+       "text": "Use Tinderbox on Fuse.",
        "why": "Light it.",
        "target": "tgbr_multi_fuse_far",
        "id": 19762,
+       "label": "Fuse",
        "item": 590,
        "at": [
         3803,
@@ -70919,6 +72282,12 @@
        "id": 11500,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -70939,10 +72308,11 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Open Tgbr Multi Gate Door.",
+       "text": "Open Door.",
        "why": "In through the gap where the gate was.",
        "target": "tgbr_multi_gate_door",
        "id": 19760,
+       "label": "Door",
        "at": [
         3805,
         2844
@@ -73497,10 +74867,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Twocats Bed.",
+       "text": "Use Bed.",
        "why": "Make it.",
        "target": "twocats_bed",
        "id": 9438,
+       "label": "Bed",
        "at": [
         2917,
         3556
@@ -73508,10 +74879,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Logs on Twocats Fireplace.",
+       "text": "Use Logs on Fireplace.",
        "why": "The logs.",
        "target": "twocats_fireplace",
        "id": 9442,
+       "label": "Fireplace",
        "item": 1511,
        "at": [
         2919,
@@ -73520,10 +74892,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Tinderbox on Twocats Fireplace.",
+       "text": "Use Tinderbox on Fireplace.",
        "why": "Light it.",
        "target": "twocats_fireplace",
        "id": 9442,
+       "label": "Fireplace",
        "item": 590,
        "at": [
         2919,
@@ -73532,10 +74905,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Twocats Table.",
+       "text": "Use Table.",
        "why": "Lay it.",
        "target": "twocats_table",
        "id": 9435,
+       "label": "Table",
        "at": [
         2920,
         3556
@@ -73543,10 +74917,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Bucket of milk on Twocats Table.",
+       "text": "Use Bucket of milk on Table.",
        "why": "The milk.",
        "target": "twocats_table",
        "id": 9435,
+       "label": "Table",
        "item": 1927,
        "at": [
         2920,
@@ -73555,10 +74930,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Chocolate cake on Twocats Table.",
+       "text": "Use Chocolate cake on Table.",
        "why": "The cake.",
        "target": "twocats_table",
        "id": 9435,
+       "label": "Table",
        "item": 1897,
        "at": [
         2920,
@@ -73623,10 +74999,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Twocats Patch.",
+       "text": "Use Rake on Unferth's patch.",
        "why": "Weeds 1.",
        "target": "twocats_patch",
        "id": 9399,
+       "label": "Unferth's patch",
        "item": 5341,
        "at": [
         2919,
@@ -73635,10 +75012,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Twocats Patch.",
+       "text": "Use Rake on Unferth's patch.",
        "why": "Weeds 2.",
        "target": "twocats_patch",
        "id": 9399,
+       "label": "Unferth's patch",
        "item": 5341,
        "at": [
         2919,
@@ -73647,10 +75025,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Rake on Twocats Patch.",
+       "text": "Use Rake on Unferth's patch.",
        "why": "Weeds 3.",
        "target": "twocats_patch",
        "id": 9399,
+       "label": "Unferth's patch",
        "item": 5341,
        "at": [
         2919,
@@ -73659,10 +75038,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Potato seed on Twocats Patch.",
+       "text": "Use Potato seed on Unferth's patch.",
        "why": "Plant them.",
        "target": "twocats_patch",
        "id": 9399,
+       "label": "Unferth's patch",
        "item": 5318,
        "at": [
         2919,
@@ -73684,6 +75064,48 @@
        "id": 6545,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Logs",
+       "id": 1511,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Bucket of milk",
+       "id": 1927,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Chocolate cake",
+       "id": 1897,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Shears",
+       "id": 1735,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Rake",
+       "id": 5341,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Potato seed",
+       "id": 5318,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -74836,6 +76258,12 @@
        "id": 1492,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Bucket",
+       "id": 1925,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -75209,6 +76637,12 @@
        "id": 1496,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Tinderbox",
+       "id": 590,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": [
@@ -78648,6 +80082,18 @@
        "id": 2373,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Rope",
+       "id": 954,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Dragon bones",
+       "id": 536,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -78873,7 +80319,14 @@
        "item": 560
       }
      ],
-     "items": [],
+     "items": [
+      {
+       "name": "Death rune",
+       "id": 560,
+       "n": 1,
+       "bring": true
+      }
+     ],
      "worn": []
     },
     {
@@ -79391,6 +80844,18 @@
        "id": 2394,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Guam leaf",
+       "id": 249,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Pestle and mortar",
+       "id": 233,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -80155,6 +81620,12 @@
        "id": 295,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Rope",
+       "id": 954,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -80749,6 +82220,12 @@
        "id": 771,
        "n": 1,
        "bring": false
+      },
+      {
+       "name": "Knife",
+       "id": 946,
+       "n": 1,
+       "bring": true
       }
      ],
      "worn": []
@@ -80896,10 +82373,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Zogre Multi Blocking Barricade L.",
+       "text": "Use Ogre barricade.",
        "why": "Climb over what is left.",
        "target": "zogre_multi_blocking_barricade_l",
        "id": 6878,
+       "label": "Ogre barricade",
        "at": [
         2456,
         3048
@@ -80987,10 +82465,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Zogre Coffin Special Entity.",
+       "text": "Use Ogre Coffin.",
        "why": "Open it.",
        "target": "zogre_coffin_special_entity",
        "id": 6843,
+       "label": "Ogre Coffin",
        "at": [
         2438,
         9458
@@ -81161,10 +82640,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Necromancy book on Zogre Sithik Bed Entity.",
+       "text": "Use Necromancy book on Sithik Ints.",
        "why": "The necromancy book.",
        "target": "zogre_sithik_bed_entity",
        "id": 6887,
+       "label": "Sithik Ints",
        "item": 4837,
        "at": [
         2591,
@@ -81173,10 +82653,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Book of 'h.a.m' on Zogre Sithik Bed Entity.",
+       "text": "Use Book of 'h.a.m' on Sithik Ints.",
        "why": "The H.A.M. book.",
        "target": "zogre_sithik_bed_entity",
        "id": 6887,
+       "label": "Sithik Ints",
        "item": 4829,
        "at": [
         2591,
@@ -81185,10 +82666,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Papyrus on Zogre Sithik Bed Entity.",
+       "text": "Use Papyrus on Sithik Ints.",
        "why": "Draw him.",
        "target": "zogre_sithik_bed_entity",
        "id": 6887,
+       "label": "Sithik Ints",
        "item": 970,
        "at": [
         2591,
@@ -81200,10 +82682,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Sithik portrait on Zogre Sithik Bed Entity.",
+       "text": "Use Sithik portrait on Sithik Ints.",
        "why": "Show it to him.",
        "target": "zogre_sithik_bed_entity",
        "id": 6887,
+       "label": "Sithik Ints",
        "item": 4814,
        "at": [
         2591,
@@ -81383,10 +82866,11 @@
      "steps": [
       {
        "kind": "loc",
-       "text": "Use Zogre Sithik Bed Entity.",
+       "text": "Use Sithik Ints.",
        "why": "The confession.",
        "target": "zogre_sithik_bed_entity",
        "id": 6887,
+       "label": "Sithik Ints",
        "at": [
         2591,
         3103
@@ -81453,10 +82937,11 @@
       },
       {
        "kind": "loc",
-       "text": "Use Zogre Multi Blocking Barricade L.",
+       "text": "Use Ogre barricade.",
        "why": "Over it again.",
        "target": "zogre_multi_blocking_barricade_l",
        "id": 6878,
+       "label": "Ogre barricade",
        "at": [
         2456,
         3048

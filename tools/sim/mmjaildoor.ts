@@ -15,6 +15,8 @@
  */
 import * as H from './harness.js';
 import { check, R, player } from './a1lib.js';
+import World from '#/engine/World.js';
+import NpcType from '#/cache/config/NpcType.js';
 
 await H.boot();
 
@@ -112,6 +114,119 @@ function pickRate(who: string, thieving: number, withPick: boolean) {
     // with the fix reverted, next to four checks that correctly failed. What the lock DID say is
     // the honest test, and it fails the moment the gate comes back.
     check('a bare-handed player gets an attempt at the lock', said.includes('You pick at the bamboo and brass'), true);
+}
+
+// ---- 5. and sometimes a guard is standing outside -------------------------------------------
+//
+// The other half of wiki steps 13-14, reported separately (DeathPlateau-Bugs#41): the lock was
+// here and the patrol was not. mm_monkey_guard has no static spawn anywhere in the build, so the
+// prison held five archers that cannot reach the corridor and nothing else - picking the lock and
+// walking away was free.
+//
+// It reuses the gate's ambush, so what is new is only the decision to call it: on a coin toss, not
+// while the player is a monkey, and not twice inside %mm_guards_cooldown.
+//
+// SECTIONS 1-4 ARE UNAFFECTED, and that is not luck: they break out of the tick loop the moment
+// the player reaches the far tile, which is the same tick the door opens - a guard has not walked
+// or swung by then. Measured before writing this: 120 of 120 at Thieving 99, unchanged.
+
+const GUARD = NpcType.getId('mm_monkey_guard');
+
+/**
+ * Every mm_monkey_guard in the world, gone. Each escape puts its guard in the same corridor and
+ * they live ^mm_captor_lifetime ticks, so without this the corridor fills up and every later look
+ * finds somebody else's guard.
+ */
+function clearGuards() {
+    for (const npc of World.npcs) {
+        if (npc && npc.isActive && npc.type === GUARD) World.removeNpc(npc, -1);
+    }
+}
+
+/**
+ * A guard within `r` tiles of the player - NOT H.npcNear, which returns the nearest
+ * mm_monkey_guard in the WORLD with no distance bound. That is how the first version of this read
+ * 100% guarded, 8 guards for greegree-wearing players and 12 of 12 cooldown failures: once one
+ * guard existed anywhere, every later check found it and said yes.
+ */
+function guardWithin(p: any, r = 5): boolean {
+    for (const npc of World.npcs) {
+        if (!npc || !npc.isActive || npc.type !== GUARD || npc.level !== p.level) continue;
+        if (Math.max(Math.abs(npc.x - p.x), Math.abs(npc.z - p.z)) <= r) return true;
+    }
+    return false;
+}
+
+/** Escape once at Thieving 99 and say whether a guard turned up beside the player. */
+function escapeGuarded(who: string, asMonkey: boolean, resetCooldown: boolean): boolean {
+    if (resetCooldown) clearGuards();
+    const p: any = player(who, CELL[0], CELL[1], 0);
+    H.setVar(p, 'tutorial', 1000);
+    p.levels[17] = 99;
+    p.baseLevels[17] = 99;
+    if (asMonkey) H.equip(p, { rhand: 'mm_monkey_greegree_for_normal_gorilla' });
+    if (resetCooldown) H.setVar(p, 'mm_guards_cooldown', 0);
+    H.opLoc(p, DOOR[0], DOOR[1], 'mm_jail_door', 1);
+    for (let t = 0; t < 14; t++) {
+        H.tick(1);
+        if (p.x === OUTSIDE[0] && p.z === OUTSIDE[1]) break;
+    }
+    H.tick(1);
+    return guardWithin(p);
+}
+
+let guarded = 0;
+const ESCAPES = 40;
+for (let i = 0; i < ESCAPES; i++) {
+    if (escapeGuarded('jg' + i, false, true)) guarded++;
+}
+const pct = Math.round((guarded * 100) / ESCAPES);
+check(`a guard is outside on roughly half of ${ESCAPES} escapes (${pct}%)`, guarded > 5 && guarded < ESCAPES - 5, true);
+
+// A MONKEY IS NOT ARRESTED. ~mm_captor_add sets opplayer2 by hand and never goes through mm.hunt,
+// so the hunt's check_invparam cannot do this for us - without the explicit check a guard would be
+// added and then vanish on its first swing, which is worse than no guard.
+let monkeyGuards = 0;
+for (let i = 0; i < 15; i++) {
+    if (escapeGuarded('jgm' + i, true, true)) monkeyGuards++;
+}
+check('no guard ever appears for a player wearing a greegree', monkeyGuards, 0);
+
+// THE COOLDOWN HOLDS. Picking the lock, being knocked back in and picking it again must not stack
+// guards the way talking to four monkeys in one walk across Marim used to.
+//
+// ONE PLAYER, TWICE. %mm_guards_cooldown is a PLAYER varp, so two different players each start on
+// a clock of nought - the first version of this check used a fresh player for the second escape
+// and was really measuring two first escapes. It reported 6 of 12 and the content was right.
+{
+    let twice = 0;
+    let pairs = 0;
+    for (let i = 0; i < 20; i++) {
+        clearGuards();
+        const p: any = player('jgc' + i, CELL[0], CELL[1], 0);
+        H.setVar(p, 'tutorial', 1000);
+        p.levels[17] = 99;
+        p.baseLevels[17] = 99;
+        H.setVar(p, 'mm_guards_cooldown', 0);
+        const out = (): boolean => {
+            H.opLoc(p, DOOR[0], DOOR[1], 'mm_jail_door', 1);
+            for (let t = 0; t < 14; t++) {
+                H.tick(1);
+                if (p.x === OUTSIDE[0] && p.z === OUTSIDE[1]) break;
+            }
+            H.tick(1);
+            return guardWithin(p);
+        };
+        const first = out();
+        // the guard goes, the CLOCK stays - which is the thing under test
+        clearGuards();
+        p.teleport(CELL[0], CELL[1], 0);
+        H.tick(2);
+        const second = out();
+        if (first) pairs++;
+        if (first && second) twice++;
+    }
+    check(`a second escape inside the cooldown never gets another guard (${pairs} first escapes were guarded)`, twice, 0);
 }
 
 console.log(R.bad ? `FAILED: ${R.bad} of ${R.ok + R.bad}` : `${R.ok} ok`);

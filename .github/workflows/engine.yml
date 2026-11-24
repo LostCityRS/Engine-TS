@@ -52,3 +52,100 @@ jobs:
     # over the whole shipped table rather than over a few examples.
     - name: Quest helper wording
       run: npx tsx tools/quest/WordingCheck.ts
+
+  # ------------------------------------------------------------------ the generated table
+  # IS data/quests.json STILL WHAT THE EXPORTER WRITES? It is generated out of the sim manifests
+  # and the packed content, and it is also COMMITTED, because the client ships a copy of it as the
+  # fallback its quest helper reads. So it is the one file here that can go stale while everything
+  # compiles, lints and passes.
+  #
+  # IT DID, AND THIS JOB IS WHY. Four PRs that each regenerate it merged in sequence - #110, #122,
+  # #124 and #128 - each exported against the tree as it stood when it was WRITTEN, so what landed
+  # was whichever merged last. MONKEY MADNESS ended up two steps short and HEROES' QUEST (Phoenix
+  # side) two items short. Every one of those PRs was green. The CLIENT caught it, from the far
+  # side, after the fact, and then two main branches were red at once.
+  #
+  # A SEPARATE JOB RATHER THAN A STEP IN `verify`, because it needs the content repository and a
+  # packed cache and `verify` deliberately needs neither - it stays a fast lint-and-compile that
+  # runs against this repository alone. As its own job it runs in parallel and costs nothing on
+  # the critical path.
+  #
+  # IT CAN GO RED ON A CONTENT MERGE. The exporter reads loc, npc and obj names out of the packed
+  # cache, so renaming a loc in DeathPlateau-Content makes this table stale with no engine commit
+  # at all. That is a true statement about the file rather than a false alarm, and it is the whole
+  # reason the check exists - but it does mean a red here is sometimes nobody's PR. The failure
+  # prints which content commit it measured against, for exactly that case.
+  quest-table:
+    name: The quest table is current, and has no new gaps
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        path: engine
+
+    - uses: actions/checkout@v6
+      with:
+        repository: coreysho/DeathPlateau-Content
+        ref: 377-wip
+        path: content
+
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 24
+        cache: npm
+        cache-dependency-path: engine/package-lock.json
+
+    - name: Install
+      working-directory: engine
+      run: npm ci
+
+    # IN THE LOG, because a red verdict is unreadable without it: the same engine commit passes or
+    # fails depending on which content it was built against.
+    - name: Which content this run used
+      working-directory: content
+      run: git log --oneline -1
+
+    # EVERY PROGRESS VALUE THE CONTENT CAN WRITE THAT THE HELPER HAS NO LEG FOR. A leg exists only
+    # where a sim route reached that value, so a value the content writes and no route crosses has
+    # no row - and QuestHelperPlugin.stageNow then shows the player the last leg at or below it,
+    # one they have already finished. It does not throw; it misinforms, which is the shape of the
+    # report on DeathPlateau-Bugs#3.
+    #
+    # Its baseline carries a VERDICT per value rather than just a signature, because a legless
+    # value is not automatically a bug - above its quest's `done` the quest already reads as
+    # complete, and a fork usually leaves the player talking to the npc the previous leg names.
+    # Those judgements need the quest read, so they are written down in the file. A build that
+    # makes a NEW value legless fails; one that fixes a known one says so and passes.
+    #
+    # MOVED HERE FROM THE NIGHTLY, where it sat with three sibling ratchets only because that job
+    # had content checked out. It is the one of the four that needs neither the packed cache nor a
+    # booted world - fs and path are its only imports - so it belongs on the PR that writes the
+    # value rather than in that night's run. Two of its three failure modes are an engine PR's own
+    # doing: a `{ stage: N }` marker removed from a manifest, or a new quest row added on a
+    # progress var another row already uses.
+    #
+    # BEFORE THE PACK, deliberately, because it does not need one. A broken pack cannot stop this
+    # answering, and both checks below carry `if: always()` so one failing never hides the other -
+    # a stale table and a new legless value are different problems with different fixes.
+    - name: Progress values the quest helper has no leg for
+      working-directory: engine
+      env:
+        BUILD_SRC_DIR: ../content
+      run: npx tsx tools/quest/StageGaps.ts --check
+
+    - name: Pack the content
+      if: always()
+      working-directory: engine
+      env:
+        BUILD_SRC_DIR: ../content
+        BUILD_VERIFY: 'false'
+      run: npx tsx tools/pack/Build.ts
+
+    - name: data/quests.json is what the exporter writes
+      if: always()
+      working-directory: engine
+      env:
+        BUILD_SRC_DIR: ../content
+      run: npx tsx tools/quest/ExportCheck.ts

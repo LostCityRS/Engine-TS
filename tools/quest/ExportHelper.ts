@@ -597,7 +597,10 @@ function named(text: string): string {
         for (const kind of ['talk', 'loc', 'obj']) {
             const id = idOf(kind, token);
             if (id < 0) continue;
-            const name = kind === 'talk' ? npcName(id) : kind === 'loc' ? LocType.get(id)?.name : ObjType.get(id)?.name;
+            // locName, not LocType.get(id)?.name: a multiloc handle written in a sim's prose has the
+            // same problem as one used as a target - see locName below. "down the burgh inn trapdoor
+            // multiloc" is the same string in a sentence as it was in a row.
+            const name = kind === 'talk' ? npcName(id) : kind === 'loc' ? locName(id) : ObjType.get(id)?.name;
             if (name) return name;
         }
         return token.replace(/_/g, ' ');
@@ -872,7 +875,7 @@ function stepsOf(raw: unknown[]): { stages: HelperStage[]; dropped: Record<strin
         if (target) {
             id = npc ? idOf('talk', target) : loc ? idOf('loc', target) : idOf('obj', target);
             if (id >= 0) {
-                shown = (npc ? npcName(id) : loc ? LocType.get(id)?.name : ObjType.get(id)?.name) ?? null;
+                shown = (npc ? npcName(id) : loc ? locName(id) : ObjType.get(id)?.name) ?? null;
             } else {
                 unresolved.set(kind + ':' + target, (unresolved.get(kind + ':' + target) ?? 0) + 1);
             }
@@ -939,10 +942,90 @@ function stepsOf(raw: unknown[]): { stages: HelperStage[]; dropped: Record<strin
     for (const stage of stages) {
         for (const item of [...stage.items, ...stage.worn]) {
             item.bring = item.handle !== undefined && given.has(item.handle);
-            delete item.handle;
         }
     }
+
+    // ...AND "IN EVERY LEG THAT ASKS FOR IT" NOW MEANS IT. The line above has said that since it
+    // was written, and it was not true: an item only ever landed in the list of whichever leg the
+    // sim's `give` line happened to sit in, which for most runs is the first one. A player four
+    // legs later, told to "Use Pestle and mortar on Black mushroom", was given no hint that a
+    // pestle and mortar is something they have to go and fetch - it was named on a panel they
+    // last saw at the start of the quest. Reported as "the golem. missing a few steps in helper
+    // how to reprogram the golem" (DeathPlateau-Bugs#59), which is exactly that leg.
+    //
+    // THE STEPS THEMSELVES SAY WHICH LEG ASKS. Every use-step already carries the obj it is used
+    // WITH, so a leg's own shopping list is derivable rather than something a manifest has to
+    // repeat - and derived is the point: 122 of these were missing across 50 of the 108 quests,
+    // and nobody was going to find them by rereading manifests.
+    //
+    // Only items the run was HANDED (`given`) are added. An item the quest itself produces is
+    // already in the leg that produces it, and listing it again in the leg that spends it would
+    // tell a player to go and fetch a golem program.
+    const broughtIds = new Map<number, { name: string; handle: string }>();
+    for (const stage of stages) {
+        for (const item of stage.items) {
+            if (item.bring && item.id >= 0 && item.handle !== undefined) broughtIds.set(item.id, { name: item.name, handle: item.handle });
+        }
+    }
+    for (const stage of stages) {
+        const already = new Set(stage.items.map(x => x.id));
+        for (const step of stage.steps) {
+            const used = (step as { item?: number }).item;
+            if (used === undefined || used < 0 || already.has(used)) continue;
+            const brought = broughtIds.get(used);
+            if (!brought) continue;
+            already.add(used);
+            stage.items.push({ name: brought.name, id: used, n: 1, bring: true });
+        }
+    }
+    for (const stage of stages) {
+        for (const item of [...stage.items, ...stage.worn]) delete item.handle;
+    }
     return { stages, dropped };
+}
+
+/**
+ * A loc's name as a player reads it, THROUGH THE SHELL IF IT IS ONE.
+ *
+ * A multiloc is a placed container with no name of its own: what stands there is whichever CHILD
+ * its varbit selects, and the child is what the player's mouse says. With no name on the shell,
+ * the panel fell back to titling the internal one, and 295 steps across 30 quests told people to
+ * "Use Burgh Inn Trapdoor Multiloc.", "Activate Desert Treasure Oblix1.", "Use 4to7." and - for
+ * eight locs with no debugname either - "Use Iron sheet on Loc 14933."
+ * Reported and measured as DeathPlateau-Bugs#79.
+ *
+ * EVERY ONE OF THE 144 IS A SHELL, AND EVERY ONE HAS A NAMED CHILD. That was worth checking before
+ * writing this, because the issue was filed guessing the opposite - that 82 of them were plain locs
+ * with no name anywhere, needing 82 names invented. There are none. So nothing here chooses a word:
+ * it uses the name the cache already gives the thing standing on that tile.
+ *
+ * THE FIRST NAMED CHILD, which is multiloc[0] - the state the varbit selects at 0, before anything
+ * in the quest has touched it. That is what a player walking up to the step sees: a Damaged wall
+ * before they repair it, a Broken furnace before they fix it, a Trapdoor before it is opened. Where
+ * a shell's children differ (burgh_bank_wall_multiloc is "Damaged wall" then "Repaired wall"), the
+ * earlier one is the one the step is about. tools/sim/helperlocnames.ts prints every shell whose
+ * children disagree, so the handful where that reads oddly are visible rather than buried.
+ */
+function locName(id: number): string | null {
+    const real = (t: LocType | undefined): string | null => {
+        const n = t?.name;
+        return n && n !== 'null' ? String(n) : null;
+    };
+    const self = real(LocType.get(id));
+    if (self) {
+        return self;
+    }
+    const kids = (LocType.get(id) as unknown as { multiloc?: number[] })?.multiloc ?? [];
+    for (const kid of kids) {
+        if (kid < 0) {
+            continue;
+        }
+        const n = real(LocType.get(kid));
+        if (n) {
+            return n;
+        }
+    }
+    return null;
 }
 
 function defaultText(kind: string, target: string): string {

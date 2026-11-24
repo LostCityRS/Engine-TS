@@ -455,5 +455,40 @@ console.log('\nAND THE SHELF SELLS THEM');
     check('  and the shelf always stacks, which is what lets it', !!(t as unknown as { stackall: boolean }).stackall, true);
 }
 
+console.log('\nAND THE FIGHTER TORSO (23 November)');
+{
+    // The one row on this shelf that is not a cosmetic, which the shelf's own comment says in as
+    // many words. Barbarian Assault sells it for 375 Honour points in Old School and is not in this
+    // build, so the Undertaker is the only way one exists; whether a Wilderness currency should buy
+    // a melee upgrade is a judgement recorded on death_token_shop.inv, not here.
+    const shop = InvType.getId('death_token_shop');
+    const torso = ObjType.getId('fighter_torso');
+    const stocked: number[] = [];
+    for (let i = 0; i < InvType.get(shop).size; i++) {
+        const o = World.getInventory(shop)?.get(i);
+        if (o) stocked.push(o.id);
+    }
+    check('  he stocks it', stocked.includes(torso), true);
+
+    // PRICED OFF THE OBJ, never copied: cost IS the token price at 1000 per mille, so a number
+    // repeated here would go stale the moment the price moved.
+    const t = ObjType.get(torso);
+    const dearest = ['whip_kit_gravedigger', 'ancient_fabric', 'undertaker_cape'].map(n => ObjType.get(ObjType.getId(n)).cost);
+    check('  at 500 tokens', t.cost, 500);
+    check('  which is the top of his shelf, not above it', t.cost <= Math.max(...dearest), true);
+    check('  and five times the scroll his comment benchmarks', t.cost / ObjType.get(ObjType.getId('slayer_imbue_scroll')).cost, 5);
+    check('  it stays on the account that bought it', t.tradeable, false);
+
+    // IT IS NOT PART OF THE OUTFIT CONTRACT, and that is deliberate: the five pieces and the cape
+    // carry pvp_token_bounty and destroy_death so a cosmetic has a stake behind it. Giving those to
+    // a 500-token body would mean losing it outright to any Wilderness death. Every other
+    // non-outfit row here is the same - the whip kits, the seed pod, the fabric, the scroll.
+    const bounty = ParamType.getId('pvp_token_bounty');
+    const destroy = ParamType.getId('destroy_death');
+    check('  no bounty is paid for killing someone wearing it', t.params.get(bounty), undefined);
+    check('  and it is not destroyed on death', t.params.get(destroy), undefined);
+    check('  as is true of the other non-outfit rows', ObjType.get(ObjType.getId('whip_kit_bone')).params.get(bounty), undefined);
+}
+
 console.log(`\n${R.ok} ok, ${R.bad} FAIL`);
 process.exit(R.bad ? 1 : 0);

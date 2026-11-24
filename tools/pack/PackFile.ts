@@ -16,11 +16,39 @@ type RevalidateContext = {
 
 let currentRevalidateContext: RevalidateContext | null = null;
 
+// EVERY "IS THIS STALE?" DECISION IN THE PACKER COMES THROUGH THIS FILE. The four shouldBuild*
+// predicates below, plus shouldRevalidatePackFile and the toolChanged flags, are what the config,
+// script, interface, graphics, midi, map, sound, sprite and versionlist packers all ask - either
+// directly or through shouldRebuildVersionListPack / shouldRebuildInterfacePack, which are built
+// out of nothing else. So forcing them all to say YES here forces a real repack everywhere, and
+// there is one place to look rather than nine.
+//
+// WHY THAT IS WORTH HAVING: the predicates compare mtimes, and an mtime comparison can answer no
+// when the answer is yes. Delete a .rs2 and nothing the packer looks at got newer, so the build
+// reports success, does nothing, and leaves the previous script.dat in place. See
+// DeathPlateau-Bugs#81 for the three shapes that takes and what it cost.
+//
+// This is off unless asked for, by BUILD_FORCE or `npm run build -- --force`. It is not a fix for
+// the mtime checks - it is a way for a caller that cannot afford a wrong NO to opt out of them.
+let packRebuildForced = Environment.BUILD_FORCE;
+
+export function forcePackRebuild() {
+    packRebuildForced = true;
+}
+
+export function isPackRebuildForced() {
+    return packRebuildForced;
+}
+
 function getPackFilePath(type: string) {
     return `${Environment.BUILD_SRC_DIR}/pack/${type}.pack`;
 }
 
 function shouldRevalidatePackFile(pack: PackFile, sources: { path: string; ext: string }[]) {
+    if (packRebuildForced) {
+        return true;
+    }
+
     const packFile = getPackFilePath(pack.type);
     if (!fileExists(packFile)) {
         return true;
@@ -202,6 +230,7 @@ function validateCategoryPack(pack: PackFile) {
         : false;
 
     if (
+        packRebuildForced ||
         shouldRebuild ||
         (!currentRevalidateContext &&
             (shouldBuild(`${Environment.BUILD_SRC_DIR}/scripts`, '.loc', packFile) ||
@@ -330,7 +359,7 @@ export async function revalidatePack() {
 
     currentRevalidateContext = {
         snapshot,
-        toolChanged: didFileSetChange('data/pack/.stamps/revalidate-tools.txt', [import.meta.filename, 'tools/pack/Parse.ts'])
+        toolChanged: packRebuildForced || didFileSetChange('data/pack/.stamps/revalidate-tools.txt', [import.meta.filename, 'tools/pack/Parse.ts'])
     };
 
     try {
@@ -470,6 +499,10 @@ export function getLatestModified(path: string, ext: string) {
 }
 
 export function shouldBuild(path: string, ext: string, out: string) {
+    if (packRebuildForced) {
+        return true;
+    }
+
     if (!fileExists(out)) {
         return true;
     }
@@ -481,6 +514,10 @@ export function shouldBuild(path: string, ext: string, out: string) {
 }
 
 export function shouldBuildFile(src: string, dest: string) {
+    if (packRebuildForced) {
+        return true;
+    }
+
     if (!fileExists(dest)) {
         return true;
     }
@@ -492,6 +529,10 @@ export function shouldBuildFile(src: string, dest: string) {
 }
 
 export function shouldBuildFileAny(path: string, dest: string) {
+    if (packRebuildForced) {
+        return true;
+    }
+
     if (!fileExists(dest)) {
         return true;
     }
@@ -521,6 +562,10 @@ export function shouldBuildFileAny(path: string, dest: string) {
 }
 
 export function shouldBuildFileList(files: string[], dest: string) {
+    if (packRebuildForced) {
+        return true;
+    }
+
     if (!fileExists(dest)) {
         return true;
     }

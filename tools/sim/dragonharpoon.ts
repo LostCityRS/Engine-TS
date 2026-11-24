@@ -219,17 +219,12 @@ for (const [roll, plainWant, dragonWant, what] of [
 const SA_ENERGY = VarPlayerType.getByName('sa_energy')!.id;
 const SPECBAR = 'combat_stabsword:specbar';
 
-// THE BAR HAS TO BE FILLED BY HAND, and that is not a bug in this feature. sa_energy is a perm
-// varp with no default and nothing sets it to full for a new account - [proc,sa_login] only starts
-// the regen timer - so a freshly made player has an EMPTY bar and the energy check refuses
-// everything. That is true of every special weapon in the build, not just this one, and five
-// minutes of regen fixes it for a real account; a sim player lives for a few hundred ticks, so it
-// is filled here the way a player who has been online a while would have it.
-function fullBar(p: Player) {
-    p.setVar(SA_ENERGY, 1000);
-    H.tick(1);
-}
-
+// THE BAR IS FULL FROM LOGIN, which it was not when this sim was written. sa_energy is a perm varp
+// with no default, and [proc,sa_login] only starts the regen timer, so a freshly made player used
+// to have an EMPTY bar and the energy check refused everything - which read exactly like
+// Fishstabber being broken. login.rs2 now fills it for a character that has not started the
+// tutorial, so these cases can simply log in. tools/sim/specbarstart.ts owns that behaviour,
+// including the part that matters: a spent bar is NOT refilled by logging out and in again.
 function wielding(name: string, fishing: number): Player {
     const p = A.player(name, 2600, 3420);
     setLevel(p, FISHING, fishing);
@@ -238,7 +233,6 @@ function wielding(name: string, fishing: number): Player {
     H.opheld(p, 'dragon_harpoon', 2);
     H.tick(2);
     if (H.wornName(p, WEARPOS_RHAND) !== 'dragon_harpoon') throw new Error('did not wield');
-    fullBar(p);
     return p;
 }
 
@@ -269,7 +263,6 @@ function wielding(name: string, fishing: number): Player {
     const p = A.player('dh_specheld', 2600, 3420);
     setLevel(p, FISHING, 80);
     H.give(p, 'dragon_harpoon', 1);
-    fullBar(p);
     H.ifButton(p, SPECBAR);
     H.tick(2);
     check('a harpoon in the pack cannot spec', p.levels[FISHING] - p.baseLevels[FISHING], 0);
@@ -298,7 +291,6 @@ function wielding(name: string, fishing: number): Player {
     H.give(after.p, 'dragon_harpoon', 1);
     H.opheld(after.p, 'dragon_harpoon', 2);
     H.tick(2);
-    fullBar(after.p);
     H.ifButton(after.p, SPECBAR);
     H.tick(2);
     check('  the spec takes it to 85', after.p.levels[FISHING], 85);
@@ -314,7 +306,6 @@ function wielding(name: string, fishing: number): Player {
     H.give(p, 'dragon_harpoon', 1);
     H.opheld(p, 'dragon_harpoon', 2);
     H.tick(2);
-    fullBar(p);
     pin(atRoll(30));
     H.opNpc(p, spot, 3);
     H.tick(6); // fishing is under way
