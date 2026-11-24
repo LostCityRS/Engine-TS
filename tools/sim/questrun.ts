@@ -112,6 +112,11 @@ export type Step =
     | { setpos: [number, number, number]; why: string }
     | { has: string; n?: number }
     | { worn: string }
+    // notworn: the opposite assertion, and it is not `hasnt` - taking something off puts it back in
+    // the bag, so the item is still carried. Content that reads `inv_total(worn, ...)` cares about
+    // the difference: the Guardians of Armadyl attack anyone WEARING Lucien's pendant and do not
+    // mind it being in the bag at all.
+    | { notworn: string }
     | { hasnt: string }
     | { fight: string | string[]; until?: string; untilvar?: string; to?: number; tries?: number; r?: number; op?: number; why?: string }
     | { nearnpc: string; r?: number; why?: string }
@@ -1106,6 +1111,18 @@ export function play(m: Manifest, p: Player): Result[] {
                 }
             }
             soft('wearing ' + s.worn, on > 0, on > 0 ? 'on' : 'it is not on');
+            continue;
+        }
+        if ('notworn' in s) {
+            const inv = p.getInventory(InvType.WORN);
+            let on = 0;
+            if (inv) {
+                for (let i = 0; i < inv.capacity; i++) {
+                    const o = inv.get(i);
+                    if (o && ObjType.get(o.id).debugname === s.notworn) on++;
+                }
+            }
+            soft('not wearing ' + s.notworn, on === 0, on === 0 ? 'off' : 'it is still on');
             continue;
         }
         if ('herd' in s) {

@@ -40240,6 +40240,1019 @@
   {
    "stageVarId": 26,
    "stageIsVarbit": false,
+   "id": "ikov_armadyl",
+   "name": "TEMPLE OF IKOV (Armadyl)",
+   "source": "oldschool.runescape.wiki/w/Temple_of_Ikov",
+   "stageVar": "ikov",
+   "done": 80,
+   "start": [
+    2573,
+    3322,
+    0
+   ],
+   "stages": [
+    {
+     "from": 0,
+     "headings": [],
+     "marks": [],
+     "steps": [
+      {
+       "text": "Go to the Flying Horse Inn in north-west Ardougne.",
+       "kind": "walk",
+       "at": [
+        2573,
+        3322,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Lucien.",
+       "why": "He hires you.",
+       "target": "ikov_lucien1",
+       "id": 273,
+       "label": "Lucien",
+       "picks": [
+        "I'm a mighty hero!",
+        "Why can't you get it yourself?",
+        "That sounds like a laugh!"
+       ]
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 10,
+     "headings": [
+      {
+       "at": 0,
+       "text": "The temple is south of the Ranging Guild and the way down is a ladder."
+      },
+      {
+       "at": 3,
+       "text": "The boots of lightness, down the dark stairs and behind a web."
+      },
+      {
+       "at": 11,
+       "text": "The pendant opens the north gate, and the bridge over the lava throws anybody across it who is not already weightless the stairs are a 2x3 block at 2638-2640 x 9763-9764, so the only tile that can reach them is the one the climb down lands you on."
+      },
+      {
+       "at": 23,
+       "text": "The bracket is on the wall by the entrance ladder, and the gate of fear shuts itself behind you every time."
+      },
+      {
+       "at": 28,
+       "text": "Six chests in the south room and only one of them has arrows in it at a time."
+      },
+      {
+       "at": 56,
+       "text": "The lever in the alcove is trapped, and Thieving 42 finds the trap."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "text": "Go to the temple.",
+       "kind": "walk",
+       "at": [
+        2677,
+        3406,
+        0
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Climb-down Ladder.",
+       "why": "Climb down.",
+       "target": "loc_1754",
+       "id": 1754,
+       "label": "Ladder",
+       "at": [
+        2677,
+        3405
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go into the entrance room.",
+       "at": [
+        2677,
+        9806
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the dark stairs.",
+       "at": [
+        2649,
+        9804
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Climb-down Stairs.",
+       "why": "Down, with a light.",
+       "target": "ikov_darkstairsdown",
+       "id": 98,
+       "label": "Stairs",
+       "at": [
+        2650,
+        9804
+       ]
+      },
+      {
+       "kind": "obj",
+       "text": "Wield Bronze sword.",
+       "why": "The web wants slashing.",
+       "target": "bronze_sword",
+       "id": 1277,
+       "label": "Bronze sword",
+       "op": 2
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the web on the stairs.",
+       "at": [
+        2654,
+        9765
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Slash Web.",
+       "why": "Cut it down.",
+       "target": "bigweb_slashable",
+       "id": 733,
+       "label": "Web",
+       "at": [
+        2654,
+        9766
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the boots.",
+       "at": [
+        2654,
+        9767
+       ]
+      },
+      {
+       "kind": "obj",
+       "text": "Pick up Boots of lightness.",
+       "target": "ikov_bootsoflightness",
+       "id": 88,
+       "label": "Boots of lightness"
+      },
+      {
+       "kind": "obj",
+       "text": "Wear Boots of lightness.",
+       "why": "Put them on.",
+       "target": "ikov_bootsoflightness",
+       "id": 88,
+       "label": "Boots of lightness",
+       "op": 2
+      },
+      {
+       "kind": "walk",
+       "text": "Go back to the stairs.",
+       "at": [
+        2641,
+        9764
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Climb-up Stairs.",
+       "why": "Up again.",
+       "target": "ikov_darkstairs",
+       "id": 96,
+       "label": "Stairs",
+       "at": [
+        2638,
+        9763
+       ]
+      },
+      {
+       "kind": "obj",
+       "text": "Wear Pendant of lucien.",
+       "why": "Lucien's pendant.",
+       "target": "ikov_pendantoflucien",
+       "id": 86,
+       "label": "Pendant of lucien",
+       "op": 2,
+       "wears": [
+        86
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the north gate.",
+       "at": [
+        2662,
+        9814
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Open Gate.",
+       "why": "Through it.",
+       "target": "ikov_dooroffearl",
+       "id": 94,
+       "label": "Gate",
+       "at": [
+        2662,
+        9815
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the east lip of the gap.",
+       "at": [
+        2651,
+        9828
+       ]
+      },
+      {
+       "text": "Go across to the west ledge (see above).",
+       "kind": "walk",
+       "at": [
+        2647,
+        9828,
+        0
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the door at the end of the ledge.",
+       "at": [
+        2646,
+        9828
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Open Large door.",
+       "target": "loc_1516",
+       "id": 1516,
+       "label": "Large door",
+       "at": [
+        2645,
+        9828
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go through the door.",
+       "at": [
+        2644,
+        9828
+       ]
+      },
+      {
+       "kind": "obj",
+       "text": "Pick up Lever.",
+       "why": "The lever off the floor.",
+       "target": "ikov_lever",
+       "id": 83,
+       "label": "Lever"
+      },
+      {
+       "text": "Go back over.",
+       "kind": "walk",
+       "at": [
+        2651,
+        9828,
+        0
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go back to the north gate.",
+       "at": [
+        2662,
+        9816
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Open Gate.",
+       "why": "South through it.",
+       "target": "ikov_dooroffearl",
+       "id": 94,
+       "label": "Gate",
+       "at": [
+        2662,
+        9815
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the bracket.",
+       "at": [
+        2671,
+        9805
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Use Lever on Lever bracket.",
+       "why": "Fit it.",
+       "target": "ikov_leverbracket",
+       "id": 86,
+       "label": "Lever bracket",
+       "item": 83,
+       "at": [
+        2671,
+        9804
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Pull Lever.",
+       "why": "Pull it.",
+       "target": "ikov_mendedlever",
+       "id": 87,
+       "label": "Lever",
+       "at": [
+        2671,
+        9804
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the south gate.",
+       "at": [
+        2662,
+        9804
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Open Gate.",
+       "why": "Through it.",
+       "target": "ikov_mendedleverdoorl",
+       "id": 89,
+       "label": "Gate",
+       "at": [
+        2662,
+        9803
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the first chest.",
+       "at": [
+        2710,
+        9849
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Open Closed chest.",
+       "target": "ikov_chestclosed",
+       "id": 103,
+       "label": "Closed chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Search it.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search Open chest.",
+       "why": "Another.",
+       "target": "ikov_chestopen",
+       "id": 104,
+       "label": "Open chest",
+       "at": [
+        2710,
+        9850
+       ],
+       "gives": [
+        78
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go back to the south gate.",
+       "at": [
+        2662,
+        9802
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Open Gate.",
+       "why": "North through it.",
+       "target": "ikov_mendedleverdoorl",
+       "id": 89,
+       "label": "Gate",
+       "at": [
+        2662,
+        9803
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the gate of fear.",
+       "at": [
+        2662,
+        9814
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Open Gate.",
+       "why": "Through it.",
+       "target": "ikov_dooroffearl",
+       "id": 94,
+       "label": "Gate",
+       "at": [
+        2662,
+        9815
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the trapped lever.",
+       "at": [
+        2665,
+        9855
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Search for traps Lever.",
+       "target": "ikov_traplever",
+       "id": 91,
+       "label": "Lever",
+       "at": [
+        2665,
+        9855
+       ],
+       "op": 2
+      }
+     ],
+     "items": [
+      {
+       "name": "Pendant of lucien",
+       "id": 86,
+       "n": 1,
+       "bring": false
+      },
+      {
+       "name": "Lit candle",
+       "id": 33,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Bronze sword",
+       "id": 1277,
+       "n": 1,
+       "bring": true
+      },
+      {
+       "name": "Ice arrows",
+       "id": 78,
+       "n": 20,
+       "bring": false
+      }
+     ],
+     "worn": [
+      {
+       "name": "Pendant of lucien",
+       "id": 86,
+       "bring": false
+      }
+     ]
+    },
+    {
+     "from": 20,
+     "headings": [],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "loc",
+       "text": "Pull Lever.",
+       "why": "Pull it.",
+       "target": "ikov_traplever",
+       "id": 91,
+       "label": "Lever",
+       "at": [
+        2665,
+        9855
+       ]
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 30,
+     "headings": [
+      {
+       "at": 0,
+       "text": "The Fire Warrior of Lesarkus takes damage from ice arrows and nothing else."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "obj",
+       "text": "Wield Yew longbow.",
+       "why": "The bow.",
+       "target": "yew_longbow",
+       "id": 855,
+       "label": "Yew longbow",
+       "op": 2
+      },
+      {
+       "kind": "obj",
+       "text": "Wield Ice arrows.",
+       "why": "The arrows.",
+       "target": "ice_arrow",
+       "id": 78,
+       "label": "Ice arrows",
+       "op": 2
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the unbolted door.",
+       "at": [
+        2648,
+        9856
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Open Door.",
+       "target": "ikov_trapleverdoor",
+       "id": 92,
+       "label": "Door",
+       "at": [
+        2648,
+        9857
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the warrior's door.",
+       "at": [
+        2647,
+        9870
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Open Door.",
+       "why": "Try it.",
+       "target": "ikov_firewarriordoor",
+       "id": 93,
+       "label": "Door",
+       "at": [
+        2646,
+        9870
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Kill Fire Warrior of Lesarkus.",
+       "target": "ikov_firewarrior",
+       "id": 277,
+       "label": "Fire Warrior of Lesarkus"
+      }
+     ],
+     "items": [
+      {
+       "name": "Yew longbow",
+       "id": 855,
+       "n": 1,
+       "bring": true
+      }
+     ],
+     "worn": []
+    },
+    {
+     "from": 40,
+     "headings": [
+      {
+       "at": 0,
+       "text": "Winelda will teleport you over the lava for twenty limpwurt roots."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "text": "Go to the witch by the lava.",
+       "kind": "walk",
+       "at": [
+        2656,
+        9876,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Winelda.",
+       "why": "She wants roots.",
+       "target": "ikov_winelda",
+       "id": 276,
+       "label": "Winelda",
+       "picks": [
+        "Yes I do!"
+       ]
+      }
+     ],
+     "items": [
+      {
+       "name": "Limpwurt root",
+       "id": 225,
+       "n": 20,
+       "bring": true
+      }
+     ],
+     "worn": []
+    },
+    {
+     "from": 50,
+     "headings": [],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "talk",
+       "text": "Talk to Winelda.",
+       "why": "Takes all twenty.",
+       "target": "ikov_winelda",
+       "id": 276,
+       "label": "Winelda"
+      }
+     ],
+     "items": [],
+     "worn": []
+    },
+    {
+     "from": 60,
+     "headings": [
+      {
+       "at": 0,
+       "text": "Ending A: the Guardians of Armadyl keep the temple behind a brick wall in the north-west."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "obj",
+       "text": "Wear Amulet of strength.",
+       "why": "Something else in the amulet slot, so Lucien's pendant comes off.",
+       "target": "amulet_of_strength",
+       "id": 1725,
+       "label": "Amulet of strength",
+       "op": 2
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the brick wall.",
+       "at": [
+        2643,
+        9891
+       ]
+      },
+      {
+       "kind": "loc",
+       "text": "Push Wall.",
+       "target": "secretdoor2",
+       "id": 1586,
+       "label": "Wall",
+       "at": [
+        2643,
+        9892
+       ]
+      },
+      {
+       "kind": "walk",
+       "text": "Go to the Guardians.",
+       "at": [
+        2648,
+        9901
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Talk to Guardian of Armadyl.",
+       "why": "Agree to help them.",
+       "target": "ikov_guardianmale",
+       "id": 274,
+       "label": "Guardian of Armadyl",
+       "picks": [
+        "What are your kind and what are you doing here?",
+        "Who are the Mahjarrat?",
+        "Did you say Lucien?",
+        "You're right, it's time for my yearly bath.",
+        "Ok! I'll help!"
+       ]
+      }
+     ],
+     "items": [
+      {
+       "name": "Amulet of strength",
+       "id": 1725,
+       "n": 1,
+       "bring": true
+      }
+     ],
+     "worn": []
+    },
+    {
+     "from": 70,
+     "headings": [
+      {
+       "at": 0,
+       "text": "Lucien is between Edgeville and the Grand Exchange, and the pendant has to be worn rather than carried for the attack to be allowed at all."
+      }
+     ],
+     "marks": [],
+     "steps": [
+      {
+       "kind": "obj",
+       "text": "Wear Armadyl pendant.",
+       "target": "ikov_pendantofarmardyl",
+       "id": 87,
+       "label": "Armadyl pendant",
+       "op": 2,
+       "wears": [
+        87
+       ]
+      },
+      {
+       "text": "Go to Lucien.",
+       "kind": "walk",
+       "at": [
+        3176,
+        3477,
+        0
+       ]
+      },
+      {
+       "kind": "talk",
+       "text": "Kill Lucien.",
+       "why": "Finish him.",
+       "target": "ikov_lucien2",
+       "id": 272,
+       "label": "Lucien"
+      }
+     ],
+     "items": [
+      {
+       "name": "Armadyl pendant",
+       "id": 87,
+       "n": 1,
+       "bring": false
+      }
+     ],
+     "worn": [
+      {
+       "name": "Armadyl pendant",
+       "id": 87,
+       "bring": false
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "stageVarId": 26,
+   "stageIsVarbit": false,
    "id": "ikov",
    "name": "TEMPLE OF IKOV",
    "source": "oldschool.runescape.wiki/w/Temple_of_Ikov",

@@ -369,7 +369,11 @@ const OBJ_KINDS = new Set(['held', 'take', 'use', 'useObj']);
 /** Tiles, not names: the instruction is "be here", and `at` already carries where. */
 const WALK_KINDS = new Set(['go', 'mapexit', 'sneak']);
 /** The sim asserting the game agrees with it. Not instructions. */
-const ASSERT_KINDS = new Set(['varis', 'count', 'zone', 'nearnpc', 'hasnt']);
+// `notworn` belongs here beside `hasnt` for the same reason, and leaving it out is how a new step
+// kind leaks into the shipped table: an unknown kind falls through to prose, so Temple of Ikov's
+// Armadyl row shipped a step reading "Ikov Pendantoflucien" - a server handle, no verb, no full
+// stop - until WordingCheck caught it. A step kind added to questrun.ts has to be classified here.
+const ASSERT_KINDS = new Set(['varis', 'count', 'zone', 'nearnpc', 'hasnt', 'notworn']);
 /** The robot-only steps. See the header for why each one goes. */
 // `wakehunt` is in here for a reason worth stating: it is the sim running an npc's hunt by hand
 // because no real client is watching it. In a game with a player in it the hunt runs itself, so
