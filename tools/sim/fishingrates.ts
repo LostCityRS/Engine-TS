@@ -277,6 +277,72 @@ console.log('\n=== the slimy eel is worth more in the caves than in Mort Myre');
     check('  ...which the caves handler actually pays', /cave_slimey_eel_bonus_xp/.test(src('skill_fishing/scripts/fishing_spots/cavefish.rs2')), true);
 }
 
+console.log('\n=== the karambwanji, which is bait and still has a published rate');
+{
+    // Raw karambwanji, "Karambwanji + shrimp fishing chance": low=100 high=250, level 5, 5 xp. It
+    // rolls in quest_tbwt.rs2 rather than through a struct, because the vessel and the spot are two
+    // doors into one catch, so there is nothing for the table above to read.
+    //
+    // THE NUMBERS ARE OFF Raw karambwanji AND NOT OFF Karambwanji. The latter page's first success
+    // chart is the COOKING one (200/400), and quoting it here would make the bait three times too
+    // EASY rather than too hard - the opposite mistake to the one this check was added for.
+    const text = src('quests/quest_tbwt/scripts/quest_tbwt.rs2');
+    const m = text.match(/if \(stat_random\(fishing, (\d+), (\d+)\) = false\) \{\s*\n\s*mes\("You fail to catch anything\."\)/);
+    check('karambwanji rolls 100/250', m ? [Number(m[1]), Number(m[2])] : null, [100, 250]);
+    check('  ...at level 5', Number(text.match(/\[label,tbwt_net_karambwanji\][\s\S]*?stat\(fishing\) < (\d+)/)![1]), 5);
+    check('  ...for 5 xp', Number(text.match(/inv_add\(inv, tbwt_raw_karambwanji, 1\);\s*\n\s*stat_advance\(fishing, (\d+)\)/)![1]) / 10, 5);
+    check('  ...which is 41.4% at 5 and 98.0% at 99', [pct(100, 250, 5).toFixed(1), pct(100, 250, 99).toFixed(1)], ['41.4', '98.0']);
+}
+
+console.log('\n=== the Fishing Trawler, every row of it');
+{
+    // THE TRAWLER DIVERGES FROM OLD SCHOOL ON PURPOSE and the divergence is not what is checked
+    // here. OSRS rolls a flat 150/200 for every Trawler fish; this build rolls 150/200 once to
+    // decide junk-or-fish and then each fish's OWN low/high, which trawler_win.rs2 argues for from
+    // two archived 2007 screenshots. That is a decision, so the rates are left alone.
+    //
+    // WHAT IS CHECKED is the part that is not a decision: the level each fish needs, and the
+    // experience it pays. The wiki's reward table gates them at 81, 79, 76, 50, 40, 35 and 16, and
+    // every fish pays what catching it normally pays. Two were wrong - swordfish gated at 60
+    // instead of 50, and the two Trawler-only fish paying 115 and 105 where the wiki and this
+    // build's own structs both say 69 and 57.
+    const text = src('minigames/game_trawler/scripts/trawler_win.rs2');
+    const row = (fish: string): { level: number; low: number; high: number; xp: number } | null => {
+        const m = text.match(new RegExp(`\\$level >= (\\d+) & stat_random\\(fishing, (\\d+), (\\d+)\\) = true\\) \\{\\s*\\n\\s*inv_add\\(trawler_rewardinv, ${fish}, 1\\);[\\s\\S]{0,600}?~fishing_xp\\((\\d+)\\)`));
+        return m ? { level: Number(m[1]), low: Number(m[2]), high: Number(m[3]), xp: Number(m[4]) / 10 } : null;
+    };
+    const WANT: [string, number, number][] = [
+        ['raw_mantaray', 81, 69],
+        ['raw_seaturtle', 79, 57],
+        ['raw_shark', 76, 110],
+        ['raw_swordfish', 50, 100],
+        ['raw_lobster', 40, 90],
+        ['raw_tuna', 35, 80]
+    ];
+    const wrong: string[] = [];
+    for (const [fish, level, xp] of WANT) {
+        const r = row(fish);
+        if (!r) {
+            wrong.push(`${fish}: no row found`);
+            continue;
+        }
+        if (r.level !== level) wrong.push(`${fish} gated at ${r.level}, the wiki's reward table says ${level}`);
+        if (r.xp !== xp) wrong.push(`${fish} pays ${r.xp} xp, the wiki says ${xp}`);
+    }
+    check('every Trawler fish is gated and paid as the wiki has it', wrong, []);
+    // ...and the rates it rolls are each fish's own, which is the documented divergence. Quoted
+    // from the table at the top of this file so the two cannot drift apart.
+    const byName: Record<string, string> = { raw_mantaray: 'manta ray', raw_seaturtle: 'sea turtle', raw_shark: 'shark', raw_swordfish: 'swordfish', raw_lobster: 'lobster', raw_tuna: 'tuna' };
+    const rateWrong: string[] = [];
+    for (const [fish] of WANT) {
+        const r = row(fish)!;
+        const f = TABLE.find(t => t.fish === byName[fish])!;
+        if (r.low !== f.low || r.high !== f.high) rateWrong.push(`${fish} rolls ${r.low}/${r.high}, the spot rolls ${f.low}/${f.high}`);
+    }
+    check('  ...and rolls it at the same rate the open-water spot does', rateWrong, []);
+    check('  ...behind one 150/200 junk gate, which is where OSRS puts the 150/200', /stat_random\(fishing, 150, 200\) = false/.test(text), true);
+}
+
 console.log('\n=== and the engine really rolls what the formula says');
 {
     // The table above is arithmetic. This is the engine: a long run of real rolls at three levels,
