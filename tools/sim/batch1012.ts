@@ -91,10 +91,30 @@ console.log('\n================ ZANARIS: the mushroom gate');
     check('his half of Zanaris is sealed off with the gate shut', connected(0, p.x, p.z, jukat.x, jukat.z, 140), false);
     const lid = LocType.getId('fairy_mushroom_gate_door_l');
     console.log(`  the door: category=${LocType.get(lid).category} "${LocType.get(lid).name}"`);
+    const rid = LocType.getId('fairy_mushroom_gate_door_r');
+
+    // THE GATE IS NOT FREE ANY MORE, and this section asserted that it was. Content d2cd66b5f
+    // (2026-11-18) gave the two gates their trading tax back - one cut diamond, collected by the
+    // Gate Keepers - and this file was last touched on 2026-11-04, so it had been asking for a
+    // free swing for two weeks and the nightly had been red for it. The doors are working; the
+    // test was out of date. See DeathPlateau-Bugs#90.
+    //
+    // Both halves are checked now, because "it opens" alone would pass just as well with the tax
+    // deleted again.
     H.opLoc(p, 2469, 4438, 'fairy_mushroom_gate_door_l', 1);
     H.tick(60); // it is about thirty tiles from the shed to the gate
-    check('the left door leaves its tile', World.getLoc(2469, 4438, 0, lid) === null, true);
-    const rid = LocType.getId('fairy_mushroom_gate_door_r');
+    A.drive(p, ['Okay...']);
+    check('no diamond, no entry: the door stays shut', World.getLoc(2469, 4438, 0, lid) !== null, true);
+    check('  ...and Jukat stays behind it', connected(0, p.x, p.z, jukat.x, jukat.z, 140), false);
+
+    H.give(p, 'diamond');
+    H.tick(1);
+    H.opLoc(p, 2469, 4438, 'fairy_mushroom_gate_door_l', 1);
+    H.tick(10);
+    A.drive(p, ['Okay...']);
+    H.tick(4);
+    check('the tax is one diamond, and it is taken', H.invCount(p, 'diamond'), 0);
+    check('  ...the left door leaves its tile', World.getLoc(2469, 4438, 0, lid) === null, true);
     check('  ...and its partner swings with it', World.getLoc(2469, 4437, 0, rid) === null, true);
     check('Jukat is now reachable', connected(0, p.x, p.z, jukat.x, jukat.z, 140), true);
 }

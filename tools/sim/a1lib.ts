@@ -195,9 +195,27 @@ export function findNpc(npcName: string, p: Player, walking = false): Npc {
     if (!best) throw new Error('no npc ' + npcName);
     return best;
 }
-/** Talk to the nearest npc of a type (any floor), standing next to it first. */
+/**
+ * Talk to the nearest npc of a type, standing next to it first.
+ *
+ * WITH teleport FALSE IT HAS TO BE AN NPC ON THIS FLOOR, and that is what findNpc's `walking`
+ * argument is for. This called findNpc(npcName, p) in both cases, so the npc was chosen on x and z
+ * alone with the level ignored - fine when the caller is about to teleport onto that level, and
+ * never right when it is not, because opNpc paths on the player's OWN level.
+ *
+ * Measured, standing where tools/sim/batch1012.ts stands at 0:3658,3517: there are three
+ * ahoy_disciples, and the any-floor search returned the one at 1:3655,3514 - three tiles away and
+ * one floor UP - over the one at 0:3653,3516, five tiles away on the player's own floor. The walk
+ * went nowhere, the click was aimed through a ceiling, and the sim asked for its ecto-tokens and
+ * got silence (DeathPlateau-Bugs#90).
+ *
+ * So it can now pick a FURTHER npc than it used to, and that is the whole point: one on this floor
+ * is a better place to walk to than a nearer one through a ceiling. It falls back to the old
+ * any-floor search when this floor has none, so a caller that really did mean "wherever it is"
+ * still works.
+ */
 export function talk(p: Player, npcName: string, picks: (number | string)[] = [], op = 1, teleport = true): string[] {
-    const npc = findNpc(npcName, p);
+    const npc = findNpc(npcName, p, !teleport);
     if (!teleport) {
         H.opNpc(p, npc, op);
         for (let t = 0; t < 40 && !p.activeScript; t++) H.tick(1);
