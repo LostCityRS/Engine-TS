@@ -296,8 +296,15 @@ console.log("\n== the seven stops are Old School's: 1, 3, 5, 7 fixed and 2, 4, 6
         if (stop < 7) p.levels[3] = p.baseLevels[3]; // heal up, so stop 4's share is measured off full
     }
     check('seven stops, no place twice', new Set(visited).size, 7);
-    check('he is cornered at the end', H.getVarBit(p, 'wanted_main'), 40);
-    check('  ...and his hat is the proof', H.invCount(p, 'wanted_solus_trophy'), 1);
+    // THE SEVENTH STOP NO LONGER ENDS THE QUEST BY ITSELF, and that is the point of it: Old
+    // School's seventh is a fight, so the hunt now hands the player an attackable Solus and
+    // stops. The hat is what killing him pays, and the kill is asserted in wantedfight.ts - all
+    // that is checked here is that the hunt ends by cornering him, not by narrating his death.
+    const solusId = NpcType.getId('wanted_solus_attackable');
+    const standing = World.npcs.find((n: any) => n && n.isActive && n.type === solusId && n.level === p.level && Math.max(Math.abs(n.x - p.x), Math.abs(n.z - p.z)) <= 12);
+    check('the seventh stop leaves him standing there to be fought', standing !== undefined, true);
+    check('  ...so the hunt itself does not hand over the hat', H.invCount(p, 'wanted_solus_trophy'), 0);
+    check('  ...nor move the quest on - the fight does that', H.getVarBit(p, 'wanted_main'), 30);
 }
 
 console.log('\n== and the quest journal does not give the answer away either');
