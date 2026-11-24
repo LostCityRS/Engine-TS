@@ -65,7 +65,7 @@ type Proof = { label: string; within: number } | { npc: string; within: number }
 const PLACES: { n: number; at: [number, number]; place: string; clue: string; proof: Proof }[] = [
     { n: 1, at: [3487, 3485], place: 'Canifis', clue: '', proof: { npc: 'Roavar', within: 20 } },
     { n: 2, at: [3190, 3359], place: "Champions' Guild", clue: 'cape', proof: { npc: 'Guild master', within: 10 } },
-    { n: 3, at: [3169, 9574], place: 'Lumbridge Swamp Caves', clue: 'bone', proof: { npc: 'Cave bug larva', within: 20 } },
+    { n: 3, at: [3313, 9629], place: 'Dorgesh-Kaan mine', clue: 'bone', proof: { npc: 'Nardok', within: 8 } },
     { n: 4, at: [2892, 4811], place: 'Rune essence mine', clue: 'Essence', proof: { loc: 'blankrunestone', within: 10 } },
     { n: 5, at: [3433, 3544], place: 'Slayer Tower', clue: 'earmuffs', proof: { npc: 'Banshee', within: 10 } },
     { n: 6, at: [2660, 3658], place: 'Rellekka', clue: 'Fremennik', proof: { npc: 'Askeladden', within: 10 } },
@@ -362,14 +362,24 @@ console.log('\n== the Flames of Zamorak cannot kill, which is the whole point of
     check('  ...and Savant still pulled him out to Falador', Math.max(Math.abs(q.x - 2966), Math.abs(q.z - 3380)) <= 10, true);
 }
 
-console.log('\n== and the decoy is at the cave-goblin mine, not in Ardougne');
+console.log('\n== and the decoy is at the cave-goblin mine, beside the man who sells bone weapons');
 {
     const id = NpcType.getId('wanted_solus_fake_woman');
     const npc = World.npcs.find((n: any) => n && n.isActive && n.type === id);
     check('the decoy is in the world', npc !== undefined, true);
     if (npc) {
-        const d = Math.max(Math.abs(npc.x - 3169), Math.abs(npc.z - 9574));
-        check(`  ...beside shell 3 in the swamp caves (${npc.x},${npc.z})`, d <= 8, true);
+        const d = Math.max(Math.abs(npc.x - 3313), Math.abs(npc.z - 9629));
+        check(`  ...beside shell 3 in the Dorgesh-Kaan mine (${npc.x},${npc.z})`, d <= 8, true);
+    }
+    // AND NARDOK IS THE POINT OF THE MOVE, so he is asserted here rather than left implied. The
+    // clue for this stop is the bone spear; before 2026-11-24 it sent players to a cave with no
+    // cave goblins and no shop, and the stop is only worth moving if he is actually standing in it.
+    const nid = NpcType.getId('nardok');
+    const nardok = World.npcs.find((n: any) => n && n.isActive && n.type === nid);
+    check('  ...and Nardok is standing there too', nardok !== undefined, true);
+    if (nardok && npc) {
+        const d = Math.max(Math.abs(nardok.x - npc.x), Math.abs(nardok.z - npc.z));
+        check(`  ...within sight of the decoy (${nardok.x},${nardok.z})`, d <= 8, true);
     }
 }
 
