@@ -175,6 +175,9 @@ function atVine(who: string, wc: number, axe: boolean) {
 }
 {
     const p = atVine('vine_chop', 50, true);
+    // CAPTURED BEFORE THE CHOP, because "it was blocked" is half of what makes "and now it is
+    // not" mean anything.
+    const blockedWhileStanding = isMapBlocked(VINE.x, VINE.z, 0);
     H.opLoc(p, VINE.x, VINE.z, 'karam_dungeon_vineblocking1', 1);
     // Driven by hand the way chaosaltar.ts drives its op3: the engine's own re-queue wants a live
     // interaction the harness does not keep.
@@ -193,6 +196,25 @@ function atVine(who: string, wc: number, axe: boolean) {
         swings++;
     }
     check(`with an axe and the level, the vine comes down (${swings} swings)`, gone, true);
+
+    // THE QUESTION THE CHECK ABOVE DOES NOT ASK, AND THE WHOLE POINT OF CUTTING A VINE.
+    //
+    // "The vine comes down" was green for a tile no player could walk through. A player chopped
+    // all the way through and still could not pass, and filed it (DeathPlateau-Bugs#103): the LAND
+    // under all five of these tiles carried BLOCK_MAP_SQUARE on top of the loc's own blockwalk.
+    // World.removeLoc clears the loc's collision and cannot touch the land's, so the vine vanished
+    // and the wall stayed exactly where it was.
+    //
+    // A vine that disappears without opening anything is scenery with a verb on it. These three
+    // checks are the difference, and the middle one is what the map edit in
+    // DeathPlateau-Content#101 exists for - put the `f1` back on these five tiles and it fails.
+    check('  ...the tile was blocked while the vine stood', blockedWhileStanding, true);
+    check('  ...and chopping OPENS it', isMapBlocked(VINE.x, VINE.z, 0), false);
+    // Not just a flag that reads open: the player is walked onto the far side, because a tile can
+    // be unblocked and still be unreachable if something else fences it.
+    H.walkTo(p, VINE.x - 1, VINE.z);
+    H.tick(12);
+    check(`  ...and the player walks through to the far side (${p.x},${p.z})`, p.x <= VINE.x - 1 && p.z === VINE.z, true);
 }
 
 // ---- 5. AND CHOPPING NEVER HOLDS THE PLAYER --------------------------------------------------
@@ -303,6 +325,83 @@ for (const [name, sx, sz] of STONES) {
         // this check passed against a dead trigger too. Crossed means sz-1.
         check(`  ...and a click from off to the side walks into line and crosses (${p.x},${p.z})`, p.x === sx && p.z === sz - 1, true);
     }
+}
+
+// ---- 8. AND THE DUNGEON BEHIND THE VINES IS ONE DUNGEON --------------------------------------
+//
+// The check above proves one vine opens its own tile. This proves the five of them together open
+// the dungeon, which is a different claim and the one the player was really making.
+//
+// WHY THIS IS MEASURED AND NOT ASSUMED. The first diagnosis of DeathPlateau-Bugs#103 concluded the
+// dungeon was "fragments, not a dungeon" - four disconnected regions that removing all five vines
+// "joins none of". That was wrong, and wrong in a way worth recording: it was measured with the
+// vine LOCS removed while the land flag was still set, so the five doorways were still walls, and
+// it counted only walking, so the stepping stones - which are a scripted two-tile hop and not a
+// step - read as dead ends. Both halves have to be modelled or the dungeon looks broken when it
+// is not.
+//
+// THE STONES ARE EDGES, NOT TILES. Each stone's own tile is blocked and crossing it moves the
+// player two tiles along z, so the flood below jumps them the way the script does rather than
+// trying to walk onto them.
+{
+    const VINE_TILES: [string, number, number][] = [
+        ['karam_dungeon_vineblocking1', 2690, 9564],
+        ['karam_dungeon_vineblocking2', 2683, 9569],
+        ['karam_dungeon_vineblocking3', 2673, 9499],
+        ['karam_dungeon_vineblocking4', 2675, 9479],
+        ['karam_dungeon_vineblocking5', 2694, 9482],
+    ];
+    const STONES: [number, number][] = [[2649, 9561], [2647, 9558]];
+    const LANDING: [number, number] = [2713, 9564];
+    const REPORTED_FROM: [number, number] = [2709, 9468];
+
+    // every vine down, which is the state a player with an axe can put the dungeon in
+    for (const [name, x, z] of VINE_TILES) {
+        const loc = World.getLoc(x, z, 0, LocType.getId(name));
+        if (loc) World.removeLoc(loc, 2000);
+    }
+    for (const [name, x, z] of VINE_TILES) {
+        check(`${name}'s tile is open once it is down`, isMapBlocked(x, z, 0), false);
+    }
+
+    const key = (x: number, z: number) => x * 100000 + z;
+    const seen = new Set<number>([key(LANDING[0], LANDING[1])]);
+    const queue: [number, number][] = [[LANDING[0], LANDING[1]]];
+    while (queue.length) {
+        const [x, z] = queue.pop()!;
+        for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as [number, number][]) {
+            const nx = x + dx, nz = z + dz;
+            // bounded to the dungeon's own squares so a hole in the map cannot turn this into a
+            // walk across Karamja
+            if (nx < 2560 || nx > 2820 || nz < 9380 || nz > 9640) continue;
+            // canTravel AND NOT walkable(). walkable() asks whether a TILE carries WALK_BLOCKED,
+            // which says nothing about the wall between two open tiles - so a flood built on it
+            // walks straight through the dungeon's walls and reported 44,220 tiles here, a number
+            // that would have been "more than 5000" whether or not the vines opened anything.
+            // canTravel is the directional test the player's own movement uses, with the same
+            // extraFlag Player.blockWalkFlag() hands it.
+            if (seen.has(key(nx, nz))) continue;
+            if (!canTravel(0, x, z, dx, dz, 1, CollisionFlag.BLOCK_NPC_AND_PLAYERS, CollisionType.NORMAL)) continue;
+            seen.add(key(nx, nz));
+            queue.push([nx, nz]);
+        }
+        for (const [sx, sz] of STONES) {
+            if (x !== sx) continue;
+            for (const side of [1, -1]) {
+                if (z !== sz + side) continue;
+                const dest: [number, number] = [x, sz - side];
+                if (seen.has(key(dest[0], dest[1])) || isMapBlocked(dest[0], dest[1], 0)) continue;
+                seen.add(key(dest[0], dest[1]));
+                queue.push(dest);
+            }
+        }
+    }
+
+    // 191 is the entrance room on its own - what a player got before this, and what they get again
+    // if the `f1` goes back on those five tiles.
+    check(`the dungeon reachable from the entrance is more than the entrance room (${seen.size} tiles)`, seen.size > 5000, true);
+    check('  ...and it is not the 191-tile room alone', seen.size === 191, false);
+    check('  ...and it reaches the tile the #103 reporter stood on', seen.has(key(REPORTED_FROM[0], REPORTED_FROM[1])), true);
 }
 
 console.log(R.bad ? `FAILED: ${R.bad} of ${R.ok + R.bad}` : `${R.ok} ok`);
