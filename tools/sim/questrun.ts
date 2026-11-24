@@ -102,7 +102,11 @@ export type Step =
     | { setvar: string; to: number; why?: string }
     | { stage: number; orLater?: boolean }
     | { level: number }
-    | { varis: string; to: number }
+    // `nomark` keeps the assertion and withholds the progress mark the exporter would make from
+    // it. For a quest whose legs are parallel rather than sequential - Recipe for Disaster's eight
+    // sub-quests, any of which can be started first - a varbit moving off zero says a branch was
+    // DRAWN, not that the player has reached the step it sits beside. See DeathPlateau-Bugs#60.
+    | { varis: string; to: number; nomark?: boolean }
     | { wait: number; why?: string }
     | { take: string; why?: string; r?: number; soft?: boolean; tries?: number; brief?: number }
     | { setpos: [number, number, number]; why: string }

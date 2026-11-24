@@ -755,14 +755,22 @@ function stepsOf(raw: unknown[]): { stages: HelperStage[]; dropped: Record<strin
             continue;
         }
 
-        const kind = Object.keys(s).find(k => !['why', 'picks', 'op', 'at', 'want', 'tries', 'until', 'soft', 'n', 'r', 'exact', 'obj', 'how'].includes(k));
+        const kind = Object.keys(s).find(k => !['why', 'picks', 'op', 'at', 'want', 'tries', 'until', 'soft', 'n', 'r', 'exact', 'obj', 'how', 'nomark'].includes(k));
         if (!kind) continue;
 
         if (ASSERT_KINDS.has(kind)) {
             // `varis` is the exception among the assertions: the others check the world agrees
             // with the sim, this one records how far the quest's own flags have moved. A target
             // of 0 is "not set yet", which is true before anything happens and marks nothing.
-            if (kind === 'varis' && typeof s.varis === 'string' && typeof s.to === 'number' && s.to > 0) {
+            // AND `nomark` WITHHOLDS THE MARK WITHOUT WITHDRAWING THE ASSERTION. A mark says "the
+            // player who has this value has reached this step", which holds only where the leg's
+            // steps are walked in order. Recipe for Disaster's fourth leg is 203 steps covering
+            // eight sub-quests a player may start in any order, and its eight "started" varbits all
+            // sat beside step 16 - so inspecting ANY plinth sent the panel to the first step of the
+            // Mountain Dwarf's, whichever person the player had actually inspected
+            // (DeathPlateau-Bugs#60). The run still checks the varbit moved; it just no longer
+            // claims that means the player is standing at step 16.
+            if (kind === 'varis' && s.nomark !== true && typeof s.varis === 'string' && typeof s.to === 'number' && s.to > 0) {
                 const bit = VarBitType.getId(s.varis);
                 const varp = bit === -1 ? VarPlayerType.getByName(s.varis) : null;
                 const id = bit !== -1 ? bit : (varp?.id ?? -1);

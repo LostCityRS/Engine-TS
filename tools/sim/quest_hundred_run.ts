@@ -123,13 +123,21 @@ const m: Manifest = {
             { go: [BARRIER_LANDING[0], BARRIER_LANDING[1]], r: 32, why: 'back to the barrier landing' },
             { loc, at, soft: true, why: 'inspect it' }
         ]) as Step[]),
-        { varis: 'hundred_dwarf_quest', to: 1 },
-        { varis: '100goblin', to: 1 },
-        { varis: '100_pirate_quest_var', to: 1 },
-        { varis: '100guide_prog', to: 1 },
-        { varis: 'hundred_dave_main', to: 1 },
-        { varis: '100_ogre_prog', to: 1 },
-        { varis: 'hundred_ilm_quest', to: 1 },
+        // EIGHT BRANCHES DRAWN, NOT A STEP REACHED - hence `nomark` on every one of them.
+        // Inspecting a plinth starts that person's sub-quest and moves its own varbit off zero, and
+        // the player may inspect them in any order. These seven asserts land beside step 16 of this
+        // leg, which is the first step of the Mountain Dwarf's, so as marks they told the panel that
+        // anybody who had inspected ANY plinth was standing there - reported as "rfd. needs to track
+        // only the npc inspected" (DeathPlateau-Bugs#60). The checks stay; the claim about where the
+        // player is does not. The per-sub-quest marks further down the leg are real progress and are
+        // left alone.
+        { varis: 'hundred_dwarf_quest', to: 1, nomark: true },
+        { varis: '100goblin', to: 1, nomark: true },
+        { varis: '100_pirate_quest_var', to: 1, nomark: true },
+        { varis: '100guide_prog', to: 1, nomark: true },
+        { varis: 'hundred_dave_main', to: 1, nomark: true },
+        { varis: '100_ogre_prog', to: 1, nomark: true },
+        { varis: 'hundred_ilm_quest', to: 1, nomark: true },
 
         { note: 'and back out through the barrier, which lands you in the dining hall' },
         { go: [BARRIER_OUT[0], BARRIER_OUT[1] + 1], r: 32, why: 'to the time barrier' },
